@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import "./App.css";
 import { loadSound } from "./lib/loadSound";
+import { dataURLForWaveform } from "./lib/waveform";
 
 const sampleSize = 1024;
 const audioContext = new AudioContext();
@@ -25,8 +26,26 @@ class AudioClip {
     this.name = name;
   }
 
+  // Let's not pre-compute this since we don't know the acutal dimensions
+  // but lets memoize the last size used for perf. shouldn't change.
+  private memodWaveformDataURL: { dims: [number, number]; data: string } = {
+    dims: [0, 0],
+    data: "",
+  };
+  getWaveformDataURL(width: number, height: number) {
+    const {
+      dims: [w, h],
+      data,
+    } = this.memodWaveformDataURL;
+    if (width === w && height === h) {
+      return data;
+    }
+    console.log("generated waveform for", this.name);
+    return dataURLForWaveform(width, height, this.buffer);
+  }
+
   static async fromURL(url: string) {
-    const buffer = await loadSound(audioContext, audioUrl);
+    const buffer = await loadSound(audioContext, url);
     return new AudioClip(buffer, url);
   }
 }
@@ -135,28 +154,60 @@ class AnalizedPlayer {
   }
 }
 
-// This must be hosted on the same server as this page - otherwise you get a Cross Site Scripting error
-let audioUrl = "viper.mp3";
-// Global variables for the Graphics
-
-// Play the audio and loop until stopped
-
 const CANVAS_WIDTH = 512;
 const CANVAS_HEIGHT = 256;
+
+// from https://stackoverflow.com/questions/57155167/web-audio-api-playing-synchronized-sounds
+function mixDown(
+  clipList: Array<AudioClip>,
+  // totalLength: number,
+  numberOfChannels = 2
+) {
+  let totalLength = 0;
+
+  for (let track of clipList) {
+    if (track.length > totalLength) {
+      totalLength = track.length;
+    }
+  }
+
+  //create a buffer using the totalLength and sampleRate of the first buffer node
+  let finalMix = audioContext.createBuffer(
+    numberOfChannels,
+    totalLength,
+    clipList[0].sampleRate
+  );
+
+  //first loop for buffer list
+  for (let i = 0; i < clipList.length; i++) {
+    // second loop for each channel ie. left and right
+    for (let channel = 0; channel < numberOfChannels; channel++) {
+      //here we get a reference to the final mix buffer data
+      let buffer = finalMix.getChannelData(channel);
+
+      //last is loop for updating/summing the track buffer with the final mix buffer
+      for (let j = 0; j < clipList[i].length; j++) {
+        buffer[j] += clipList[i].buffer.getChannelData(channel)[j];
+      }
+    }
+  }
+
+  return finalMix;
+}
 
 function App() {
   // const [ctx, setCtx] = useState<null | CanvasRenderingContext2D>(null);
   const ctxRef = useRef<null | CanvasRenderingContext2D>(null);
   const tDivRef = useRef<null | HTMLDivElement>(null);
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
-  const [audioBuffer, setAudioBuffer] = useState<null | AudioBuffer>(null);
+  // const [audioBuffer, setAudioBuffer] = useState<null | AudioBuffer>(null);
   const [player] = useState(new AnalizedPlayer());
 
   const [clips, setClips] = useState<Array<AudioClip>>([]);
 
   useEffect(
     function () {
-      if (audioBuffer == null) {
+      if (clips.length < 1) {
         console.log("NO AUDIO BUFFER");
         return;
       }
@@ -166,11 +217,38 @@ function App() {
 
       if (isAudioPlaying === true) {
         console.log("PLAY");
-        player.playSound(audioBuffer);
+        // const audioBuffer = clips[0].buffer;
+        // player.playSound(audioBuffer);
+
+        const mixBuffer = mixDown(clips, 2);
+        player.playSound(mixBuffer);
+
+        // const mix = audioContext.createBufferSource();
+        // mix.buffer = mixDown(clips, 2);
+
+        //call our function here
+
+        // mix.connect(audioContext.destination);
+
+        //will playback the entire mixdown
+        // mix.start();
       }
     },
-    [audioBuffer, isAudioPlaying, player]
+    [clips, isAudioPlaying, player]
   );
+
+  async function loadClip(url: string) {
+    try {
+      // load clip
+      const clip = await AudioClip.fromURL(url);
+      const newClips = clips.concat([clip]);
+      setClips(newClips);
+      console.log("loaded");
+    } catch (e) {
+      console.trace(e);
+      return;
+    }
+  }
 
   return (
     <div className="App">
@@ -198,6 +276,7 @@ function App() {
           ctxRef.current = ctx;
         }}
         onClick={function (e) {
+          const audioBuffer = clips[0] && clips[0].buffer;
           if (isAudioPlaying || !audioBuffer) {
             return;
           }
@@ -214,25 +293,25 @@ function App() {
           );
         }}
       ></canvas>
-      <button
-        onClick={async function () {
-          try {
-            // load buffer
-            const buffer = await loadSound(audioContext, audioUrl);
-            setAudioBuffer(buffer);
-            // load clip
-            const clip = await AudioClip.fromURL("viper.mp3");
-            const newClips = clips.concat([clip]);
-            setClips(newClips);
-            console.log("loaded");
-          } catch (e) {
-            console.trace(e);
-            return;
-          }
-        }}
-      >
-        load
-      </button>
+      {[
+        "viper.mp3",
+        "drums.mp3",
+        "clav.mp3",
+        "bassguitar.mp3",
+        "horns.mp3",
+        "leadguitar.mp3",
+      ].map(function (url, i) {
+        return (
+          <button
+            key={i}
+            onClick={async function () {
+              loadClip(url);
+            }}
+          >
+            load {url}
+          </button>
+        );
+      })}
       <button
         onClick={function () {
           setIsAudioPlaying(true);
@@ -250,19 +329,32 @@ function App() {
       </button>
       <div style={{ position: "relative" }}>
         {clips.map(function (clip, i) {
+          const width = clip.duration * 10;
+          const height = 20;
           return (
             <div
               key={i}
               style={{
-                background: "#ccffcc",
-                width: clip.duration * 10,
+                background: i === 0 ? "#ccccbb" : "#ccffcc",
+                backgroundImage:
+                  "url('" + clip.getWaveformDataURL(width, height) + "')",
+                width,
+                height,
                 userSelect: "none",
                 border: "1px solid #bbeebb",
                 position: "relative",
+                color: "white",
                 left: clip.startOffset * 10,
               }}
             >
-              {clip.name}
+              {/* <img
+                style={{ position: "absolute", left: 0, top: 0 }}
+                src={}
+                alt="waveform"
+              /> */}
+              <span style={{ color: "white", background: "black" }}>
+                {clip.name}
+              </span>
             </div>
           );
         })}
@@ -277,15 +369,6 @@ function App() {
           }}
         ></div> */}
       </div>
-      <button
-        onClick={async function () {
-          const clip = await AudioClip.fromURL("viper.mp3");
-          const newClips = clips.concat([clip]);
-          setClips(newClips);
-        }}
-      >
-        load clip
-      </button>
     </div>
   );
 }
