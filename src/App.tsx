@@ -8,7 +8,6 @@ const CANVAS_WIDTH = 512;
 const CANVAS_HEIGHT = 256;
 const CLIP_HEIGHT = 50;
 
-
 const PX_PER_SEC = 10;
 const PX_OVER_SEC = PX_PER_SEC;
 const SECS_PER_PX = 1 / PX_PER_SEC;
@@ -142,7 +141,7 @@ function App() {
     clientX: number;
     clientY: number;
     clip: AudioClip;
-    originalClipOffsetSec: number,
+    originalClipOffsetSec: number;
   } | null>(null);
 
   const togglePlayback = useCallback(
@@ -162,8 +161,6 @@ function App() {
       if (!projectDiv) {
         return;
       }
-
-
 
       const mouseDownEvent = function (e: MouseEvent) {
         // currentTarget should always be the element the event is attatched to,
@@ -203,9 +200,9 @@ function App() {
 
       const mouseUpEvent = function (e: MouseEvent) {
         if (!pressed) {
-          return
+          return;
         }
-  
+
         // const deltaX = e.clientX - pressed.clientX;
         // const asSecs = pxToSecs(deltaX);
         // const newOffset = pressed.clip.startOffsetSec + asSecs;
@@ -219,19 +216,21 @@ function App() {
           return;
         }
         const deltaXSecs = pxToSecs(e.clientX - pressed.clientX);
-        const newOffset = Math.max(0, pressed.originalClipOffsetSec + deltaXSecs);
+        const newOffset = Math.max(
+          0,
+          pressed.originalClipOffsetSec + deltaXSecs
+        );
         pressed.clip.startOffsetSec = newOffset;
-        console.log(e.clientX, '-', pressed.clientX, 'd', deltaXSecs, 'o', newOffset)
-        setStateCounter(x => x+1)
+        setStateCounter((x) => x + 1);
       };
 
       projectDiv.addEventListener("mousedown", mouseDownEvent);
-      projectDiv.addEventListener('mouseup', mouseUpEvent)
-      projectDiv.addEventListener('mousemove', mouseMoveEvent)
+      document.addEventListener("mouseup", mouseUpEvent);
+      document.addEventListener("mousemove", mouseMoveEvent);
       return () => {
         projectDiv.removeEventListener("mousedown", mouseDownEvent);
-        projectDiv.removeEventListener("mouseup", mouseUpEvent);
-        projectDiv.removeEventListener("mousemove", mouseMoveEvent);
+        document.removeEventListener("mouseup", mouseUpEvent);
+        document.removeEventListener("mousemove", mouseMoveEvent);
       };
     },
     [clipOfElem, player, pressed, projectDiv]
@@ -270,9 +269,7 @@ function App() {
       player.onFrame = function (playbackTime) {
         const pbdiv = playbackPosDiv.current;
         if (pbdiv) {
-          pbdiv.style.left =
-            String(secsToPx(playbackTime)) +
-            "px";
+          pbdiv.style.left = String(secsToPx(playbackTime)) + "px";
         }
       };
     },
@@ -308,6 +305,10 @@ function App() {
       console.trace(e);
       return;
     }
+  }
+
+  function removeClip(clip: AudioClip) {
+    setClips(clips => clips.filter(x => x !== clip));
   }
 
   return (
@@ -417,6 +418,8 @@ function App() {
           const startTrimmedWidth = secsToPx(clip.startPosSec);
           const height = CLIP_HEIGHT;
           return (
+            <>
+ 
             <div
               ref={(elem) => {
                 if (elem == null) {
@@ -454,13 +457,8 @@ function App() {
                   setStateCounter((x) => x + 1);
                 }
               }}
-              onMouseDown={function (e) {
-                if (tool !== "move") {
-                  return;
-                }
-                setPressed({ clientX: e.clientX, clientY: e.clientY, clip, originalClipOffsetSec: clip.startOffsetSec });
-              }}
               key={i}
+              onMouseDown={function () {}}
               style={{
                 backgroundColor: "#ccffcc",
                 backgroundImage:
@@ -475,16 +473,41 @@ function App() {
                 border: "1px solid #bbeebb",
                 position: "relative",
                 color: "white",
-                left:
-                  secsToPx(clip.startOffsetSec),
+                left: secsToPx(clip.startOffsetSec),
               }}
             >
-              <span
-                style={{ color: "white", background: "black", fontSize: 10 }}
+              <div
+                onMouseDown={function (e) {
+                  if (tool !== "move") {
+                    return;
+                  }
+                  setPressed({
+                    clientX: e.clientX,
+                    clientY: e.clientY,
+                    clip,
+                    originalClipOffsetSec: clip.startOffsetSec,
+                  });
+                }}
+                style={{
+                  color: "black",
+                  background: "#bbeebb",
+                  borderBottom: "1px solid #aaddaa",
+                  opacity: 0.8,
+                  fontSize: 10,
+                }}
               >
                 {clip.name} ({Math.round(clip.durationSec * 100) / 100})
-              </span>
-            </div>
+                <button style={{
+                  border: 'none',
+                  fontSize: 10,
+                  cursor: 'pointer',
+                  right: 2,
+                  position: "absolute",
+            }} onClick={function () {
+              removeClip(clip)
+            }}>remove</button>
+              </div>
+            </div></>
           );
         })}
         <div
