@@ -68,8 +68,8 @@ export class AudioClip {
     return waveform;
   }
 
-  static async fromURL(url: string) {
+  static async fromURL(url: string, name?: string) {
     const buffer = await loadSound(audioContext, url);
-    return new AudioClip(buffer, url);
+    return new AudioClip(buffer, name || url);
   }
 }

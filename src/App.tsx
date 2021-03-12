@@ -6,8 +6,15 @@ import { mixDown } from "./mixDown";
 
 const CANVAS_WIDTH = 512;
 const CANVAS_HEIGHT = 256;
-const PROJECT_WIDTH_PX = 900;
-const PROJECT_WIDTH_SECS = 90;
+const CLIP_HEIGHT = 50;
+
+
+const PX_PER_SEC = 10;
+const PX_OVER_SEC = PX_PER_SEC;
+const SECS_PER_PX = 1 / PX_PER_SEC;
+const SECS_OVER_PX = SECS_PER_PX;
+const pxToSecs = (px: number) => px * SECS_OVER_PX;
+const secsToPx = (secs: number) => secs * PX_OVER_SEC;
 
 class AnalizedPlayer {
   amplitudeArray: Uint8Array = new Uint8Array();
@@ -188,12 +195,11 @@ function App() {
           const div = e.currentTarget;
           if (!(div instanceof HTMLDivElement)) return;
           const position = {
-            x: e.clientX - div.getBoundingClientRect().x,
-            y: e.clientY - div.getBoundingClientRect().y,
+            x: e.clientX + div.scrollLeft - div.getBoundingClientRect().x,
+            y: e.clientY + div.scrollTop - div.getBoundingClientRect().y,
           };
 
-          const posPercentage = position.x / PROJECT_WIDTH_PX;
-          const asSecs = PROJECT_WIDTH_SECS * posPercentage;
+          const asSecs = pxToSecs(position.x);
           player.setCursorPos(asSecs);
           setCursorPos(asSecs);
         }
@@ -257,7 +263,7 @@ function App() {
         const pbdiv = playbackPosDiv.current;
         if (pbdiv) {
           pbdiv.style.left =
-            String(playbackTime * (PROJECT_WIDTH_PX / PROJECT_WIDTH_SECS)) +
+            String(secsToPx(playbackTime)) +
             "px";
         }
       };
@@ -283,10 +289,10 @@ function App() {
     [clips, isAudioPlaying, player]
   );
 
-  async function loadClip(url: string) {
+  async function loadClip(url: string, name?: string) {
     try {
       // load clip
-      const clip = await AudioClip.fromURL(url);
+      const clip = await AudioClip.fromURL(url, name);
       const newClips = clips.concat([clip]);
       setClips(newClips);
       console.log("loaded");
@@ -298,7 +304,7 @@ function App() {
 
   return (
     <div className="App">
-      <div
+      {/* <div
         ref={(elem) => {
           // if (!elem) return;
           // tDivRef.current = elem;
@@ -307,64 +313,84 @@ function App() {
           //   requestAnimationFrame(drawTime);
           // });
         }}
-      ></div>
-      <canvas
-        style={{ background: "black" }}
-        width={CANVAS_WIDTH}
-        height={CANVAS_HEIGHT}
-        ref={(canvas) => {
-          if (canvas == null) {
-            return;
-          }
-          const ctx = canvas.getContext("2d");
-          player.canvasCtx = ctx;
-          // setCtx();
-          ctxRef.current = ctx;
+      ></div> */}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "row",
+          width: "100%",
         }}
-        onClick={function (e) {
-          const audioBuffer = clips[0] && clips[0].buffer;
-          if (isAudioPlaying || !audioBuffer) {
-            return;
-          }
-          const canvas = e.target;
-          if (!(canvas instanceof HTMLCanvasElement)) return;
-          const position = {
-            x: e.clientX - canvas.getBoundingClientRect().x,
-            y: e.clientY - canvas.getBoundingClientRect().y,
-          };
-
-          player.setCursorPos(
-            audioBuffer.duration * (position.x / CANVAS_WIDTH)
-          );
-          setCursorPos(audioBuffer.duration * (position.x / CANVAS_WIDTH));
-        }}
-      ></canvas>
-      <br />
-      <button disabled={clips.length === 0} onClick={togglePlayback}>
-        {isAudioPlaying ? "stop" : "start"}
-      </button>
-      {tool}
-
-      <br />
-      {[
-        "viper.mp3",
-        "drums.mp3",
-        "clav.mp3",
-        "bassguitar.mp3",
-        "horns.mp3",
-        "leadguitar.mp3",
-      ].map(function (url, i) {
-        return (
-          <button
-            key={i}
-            onClick={async function () {
-              loadClip(url);
-            }}
-          >
-            load {url}
+      >
+        <div style={{ flexGrow: 1 }}>
+          <br />
+          <button disabled={clips.length === 0} onClick={togglePlayback}>
+            {isAudioPlaying ? "stop" : "start"}
           </button>
-        );
-      })}
+          {tool}
+
+          <br />
+          <input
+            value={""}
+            type="file"
+            accept="audio/*"
+            onChange={function (e) {
+              const files = e.target.files || [];
+              const url = URL.createObjectURL(files[0]);
+              loadClip(url, files[0].name);
+            }}
+          />
+          {[
+            "viper.mp3",
+            "drums.mp3",
+            "clav.mp3",
+            "bassguitar.mp3",
+            "horns.mp3",
+            "leadguitar.mp3",
+          ].map(function (url, i) {
+            return (
+              <button
+                key={i}
+                onClick={async function () {
+                  loadClip(url);
+                }}
+              >
+                load {url}
+              </button>
+            );
+          })}
+        </div>
+        <canvas
+          style={{ background: "black" }}
+          width={CANVAS_WIDTH}
+          height={CANVAS_HEIGHT}
+          ref={(canvas) => {
+            if (canvas == null) {
+              return;
+            }
+            const ctx = canvas.getContext("2d");
+            player.canvasCtx = ctx;
+            // setCtx();
+            ctxRef.current = ctx;
+          }}
+          onClick={function (e) {
+            const audioBuffer = clips[0] && clips[0].buffer;
+            if (isAudioPlaying || !audioBuffer) {
+              return;
+            }
+            const canvas = e.target;
+            if (!(canvas instanceof HTMLCanvasElement)) return;
+            const position = {
+              x: e.clientX - canvas.getBoundingClientRect().x,
+              y: e.clientY - canvas.getBoundingClientRect().y,
+            };
+
+            player.setCursorPos(
+              audioBuffer.duration * (position.x / CANVAS_WIDTH)
+            );
+            setCursorPos(audioBuffer.duration * (position.x / CANVAS_WIDTH));
+          }}
+        ></canvas>
+      </div>
 
       {/* The whole width of this div is 90s */}
       <div
@@ -372,20 +398,16 @@ function App() {
         style={{
           position: "relative",
           background: "#eeeeee",
-          width: PROJECT_WIDTH_PX,
-          paddingBottom: 20,
+          width: "100%",
+          paddingBottom: CLIP_HEIGHT,
           overflowX: "scroll",
         }}
       >
         {clips.map(function (clip, i) {
-          const pxToSecs = (px: number) =>
-            px * (PROJECT_WIDTH_SECS / PROJECT_WIDTH_PX);
-          const secsToPx = (secs: number) =>
-            secs * (PROJECT_WIDTH_PX / PROJECT_WIDTH_SECS);
           const width = secsToPx(clip.durationSec);
           const totalBufferWidth = secsToPx(clip.lengthSec);
           const startTrimmedWidth = secsToPx(clip.startPosSec);
-          const height = 20;
+          const height = CLIP_HEIGHT;
           return (
             <div
               ref={(elem) => {
@@ -400,22 +422,28 @@ function App() {
                   return;
                 }
                 if (tool === "trimStart") {
-                  const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
+                  const pxFromStartOfClip =
+                    e.clientX - div.getBoundingClientRect().x;
                   const asSec = pxToSecs(pxFromStartOfClip);
                   clip.startPosSec += asSec;
                   clip.startOffsetSec += asSec;
-                  console.log('asdfasdf');
-                  setStateCounter(x => x+1)
+                  console.log("asdfasdf");
+                  setStateCounter((x) => x + 1);
                 }
                 if (tool === "trimEnd") {
-                  const divRect = div.getBoundingClientRect();
-                  const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x
+                  const pxFromStartOfClip =
+                    e.clientX - div.getBoundingClientRect().x;
                   const secsFromStartPos = pxToSecs(pxFromStartOfClip);
-                  const secsFromZero = clip.startPosSec + secsFromStartPos
+                  const secsFromZero = clip.startPosSec + secsFromStartPos;
                   clip.endPosSec = secsFromZero;
-                  console.log('pxFromStartOfClip', pxFromStartOfClip, secsFromZero, 's');
-                  console.log("clip.endPosSec", clip.endPosSec)
-                  setStateCounter(x => x+1)
+                  console.log(
+                    "pxFromStartOfClip",
+                    pxFromStartOfClip,
+                    secsFromZero,
+                    "s"
+                  );
+                  console.log("clip.endPosSec", clip.endPosSec);
+                  setStateCounter((x) => x + 1);
                 }
                 // clip.startOffsetSec += 1
                 // setStateCounter((x) => x + 1)
@@ -464,10 +492,12 @@ function App() {
                 position: "relative",
                 color: "white",
                 left:
-                  clip.startOffsetSec * (PROJECT_WIDTH_PX / PROJECT_WIDTH_SECS),
+                  secsToPx(clip.startOffsetSec),
               }}
             >
-              <span style={{ color: "white", background: "black" }}>
+              <span
+                style={{ color: "white", background: "black", fontSize: 10 }}
+              >
                 {clip.name} ({Math.round(clip.durationSec * 100) / 100})
               </span>
             </div>
@@ -480,7 +510,7 @@ function App() {
             width: "1px",
             height: "100%",
             position: "absolute",
-            left: cursorPos * (PROJECT_WIDTH_PX / PROJECT_WIDTH_SECS),
+            left: secsToPx(cursorPos),
             top: 0,
           }}
         ></div>
