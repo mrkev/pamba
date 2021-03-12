@@ -137,6 +137,8 @@ function App() {
   const [clips, setClips] = useState<Array<AudioClip>>([]);
   const [_, setStateCounter] = useState<number>(0);
   const [tool, setTool] = useState<Tool>("move");
+  const [mediaRecorder, setMediaRecorder] = useState<null | MediaRecorder>(null)
+  const [isRecording, setIsRecording] = useState(false)
 
   function rerender() {
     setStateCounter((x) => x + 1);
@@ -160,6 +162,48 @@ function App() {
     },
     [isAudioPlaying, player]
   );
+
+  function removeClip(clip: AudioClip) {
+    setClips((clips) => clips.filter((x) => x !== clip));
+  }
+
+  const loadClip = useCallback(async function loadClip(url: string, name?: string) {
+    try {
+      // load clip
+      const clip = await AudioClip.fromURL(url, name);
+      setClips(clips => clips.concat([clip]));
+      console.log("loaded");
+    } catch (e) {
+      console.trace(e);
+      return;
+    }
+  }, [])
+
+
+
+  useEffect(function () {
+    navigator.mediaDevices.getUserMedia({
+      audio: true,
+    }).then(function (mediaStream: MediaStream) {
+      let chunks : Array<BlobPart> = []
+      const mediaRecorder = new MediaRecorder(mediaStream);
+      mediaRecorder.ondataavailable = function (e) {
+        chunks.push(e.data);
+      };
+      mediaRecorder.onstop = function (e) {
+        console.log("data available after MediaRecorder.stop() called.");
+        const blob = new Blob(chunks, { type: "audio/ogg; codecs=opus" });
+        chunks = [];
+        const audioURL = window.URL.createObjectURL(blob);
+        // audio.src = audioURL;
+        loadClip(audioURL, 'recording')
+        console.log("recorder stopped");
+      };
+      setMediaRecorder(mediaRecorder)
+    })
+    .catch(console.error)
+
+  }, [loadClip])
 
   useEffect(
     function () {
@@ -299,22 +343,6 @@ function App() {
     [clips, isAudioPlaying, player]
   );
 
-  async function loadClip(url: string, name?: string) {
-    try {
-      // load clip
-      const clip = await AudioClip.fromURL(url, name);
-      const newClips = clips.concat([clip]);
-      setClips(newClips);
-      console.log("loaded");
-    } catch (e) {
-      console.trace(e);
-      return;
-    }
-  }
-
-  function removeClip(clip: AudioClip) {
-    setClips((clips) => clips.filter((x) => x !== clip));
-  }
 
   return (
     <div className="App">
@@ -353,6 +381,17 @@ function App() {
               loadClip(url, files[0].name);
             }}
           />
+          {mediaRecorder && <button onClick={function () {
+            if (!isRecording) {
+              mediaRecorder.start();
+              setIsRecording(true)
+            } else {
+              mediaRecorder.stop();
+              setIsRecording(false)
+            }
+
+          }}>{!isRecording ? 'record' : 'stop recording'}</button>}
+          <br />
           {[
             "viper.mp3",
             "drums.mp3",
