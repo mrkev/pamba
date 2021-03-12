@@ -10,6 +10,7 @@ import {
 import { AudioClip } from "./AudioClip";
 import { mixDown } from "./mixDown";
 import { Clip } from "./ui/Clip";
+import firebase from "firebase";
 
 const CANVAS_WIDTH = 512;
 const CANVAS_HEIGHT = 256;
@@ -137,8 +138,14 @@ function App() {
   const [clips, setClips] = useState<Array<AudioClip>>([]);
   const [_, setStateCounter] = useState<number>(0);
   const [tool, setTool] = useState<Tool>("move");
-  const [mediaRecorder, setMediaRecorder] = useState<null | MediaRecorder>(null)
-  const [isRecording, setIsRecording] = useState(false)
+  const [mediaRecorder, setMediaRecorder] = useState<null | MediaRecorder>(
+    null
+  );
+  const [isRecording, setIsRecording] = useState(false);
+  const [
+    firebaseStoreRef,
+    setFirebaseStoreRef,
+  ] = useState<firebase.storage.Reference | null>(null);
 
   function rerender() {
     setStateCounter((x) => x + 1);
@@ -167,43 +174,90 @@ function App() {
     setClips((clips) => clips.filter((x) => x !== clip));
   }
 
-  const loadClip = useCallback(async function loadClip(url: string, name?: string) {
+  const loadClip = useCallback(async function loadClip(
+    url: string,
+    name?: string
+  ) {
     try {
       // load clip
       const clip = await AudioClip.fromURL(url, name);
-      setClips(clips => clips.concat([clip]));
+      setClips((clips) => clips.concat([clip]));
       console.log("loaded");
     } catch (e) {
       console.trace(e);
       return;
     }
-  }, [])
+  },
+  []);
 
+  // Microphone recording
+  useEffect(
+    function () {
+      navigator.mediaDevices
+        .getUserMedia({
+          audio: true,
+        })
+        .then(function (mediaStream: MediaStream) {
+          let chunks: Array<BlobPart> = [];
+          const mediaRecorder = new MediaRecorder(mediaStream);
+          mediaRecorder.ondataavailable = function (e) {
+            chunks.push(e.data);
+          };
+          mediaRecorder.onstop = function (e) {
+            console.log("data available after MediaRecorder.stop() called.");
+            const blob = new Blob(chunks, { type: "audio/ogg; codecs=opus" });
+            chunks = [];
+            const audioURL = window.URL.createObjectURL(blob);
+            // audio.src = audioURL;
+            loadClip(audioURL, "recording");
+            console.log("recorder stopped");
+          };
+          setMediaRecorder(mediaRecorder);
+        })
+        .catch(console.error);
+    },
+    [loadClip]
+  );
 
-
+  // Firebase storage
   useEffect(function () {
-    navigator.mediaDevices.getUserMedia({
-      audio: true,
-    }).then(function (mediaStream: MediaStream) {
-      let chunks : Array<BlobPart> = []
-      const mediaRecorder = new MediaRecorder(mediaStream);
-      mediaRecorder.ondataavailable = function (e) {
-        chunks.push(e.data);
-      };
-      mediaRecorder.onstop = function (e) {
-        console.log("data available after MediaRecorder.stop() called.");
-        const blob = new Blob(chunks, { type: "audio/ogg; codecs=opus" });
-        chunks = [];
-        const audioURL = window.URL.createObjectURL(blob);
-        // audio.src = audioURL;
-        loadClip(audioURL, 'recording')
-        console.log("recorder stopped");
-      };
-      setMediaRecorder(mediaRecorder)
-    })
-    .catch(console.error)
+    // Your web app's Firebase configuration
+    var firebaseConfig = {
+      apiKey: "AIzaSyBhdehFiYqwx3ahC5yCh6NTQgW7NxZMXvk",
+      authDomain: "pamba-c5951.firebaseapp.com",
+      projectId: "pamba-c5951",
+      storageBucket: "pamba-c5951.appspot.com",
+      messagingSenderId: "204416012722",
+      appId: "1:204416012722:web:9e00b129f067d20c4894ab",
+    };
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
 
-  }, [loadClip])
+    const auth = firebase.auth();
+
+    auth.onAuthStateChanged(function (user) {
+      if (user) {
+        console.log("Anonymous user signed-in.", user);
+        setFirebaseStoreRef(firebase.storage().ref());
+      } else {
+        setFirebaseStoreRef(null);
+        console.log(
+          "There was no anonymous session. Creating a new anonymous user."
+        );
+        // Sign the user in anonymously since accessing Storage requires the user to be authorized.
+        auth.signInAnonymously().catch(function (error) {
+          if (error.code === "auth/operation-not-allowed") {
+            window.alert(
+              "Anonymous Sign-in failed. Please make sure that you have enabled anonymous " +
+                "sign-in on your Firebase project."
+            );
+          } else {
+            setFirebaseStoreRef(firebase.storage().ref());
+          }
+        });
+      }
+    });
+  }, []);
 
   useEffect(
     function () {
@@ -343,7 +397,6 @@ function App() {
     [clips, isAudioPlaying, player]
   );
 
-
   return (
     <div className="App">
       {/* <div
@@ -371,7 +424,7 @@ function App() {
           {tool}
 
           <br />
-          <input
+          {/* <input
             value={""}
             type="file"
             accept="audio/*"
@@ -380,17 +433,50 @@ function App() {
               const url = URL.createObjectURL(files[0]);
               loadClip(url, files[0].name);
             }}
-          />
-          {mediaRecorder && <button onClick={function () {
-            if (!isRecording) {
-              mediaRecorder.start();
-              setIsRecording(true)
-            } else {
-              mediaRecorder.stop();
-              setIsRecording(false)
-            }
+          /> */}
 
-          }}>{!isRecording ? 'record' : 'stop recording'}</button>}
+          {firebaseStoreRef && (
+            <input
+              value={""}
+              type="file"
+              accept="audio/*"
+              onChange={async function (e) {
+                const file = (e.target.files || [])[0];
+                if (!file) {
+                  console.log("NO FILE");
+                  return;
+                }
+                // Push to child path.
+                const snapshot = await firebaseStoreRef
+                  .child("images/" + file.name)
+                  .put(file, {
+                    contentType: file.type,
+                  });
+
+                console.log("Uploaded", snapshot.totalBytes, "bytes.");
+                console.log("File metadata:", snapshot.metadata);
+                // Let's get a download URL for the file.
+                const url = await snapshot.ref.getDownloadURL();
+                console.log("File available at", url);
+                loadClip(url, file.name);
+              }}
+            />
+          )}
+          {mediaRecorder && (
+            <button
+              onClick={function () {
+                if (!isRecording) {
+                  mediaRecorder.start();
+                  setIsRecording(true);
+                } else {
+                  mediaRecorder.stop();
+                  setIsRecording(false);
+                }
+              }}
+            >
+              {!isRecording ? "record" : "stop recording"}
+            </button>
+          )}
           <br />
           {[
             "viper.mp3",
