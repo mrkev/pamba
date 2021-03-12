@@ -142,6 +142,7 @@ function App() {
     clientX: number;
     clientY: number;
     clip: AudioClip;
+    originalClipOffsetSec: number,
   } | null>(null);
 
   const togglePlayback = useCallback(
@@ -162,12 +163,7 @@ function App() {
         return;
       }
 
-      let pressed: null | {
-        elem: EventTarget | null;
-        startClientX: number;
-        startClientY: number;
-        clip: AudioClip | null;
-      } = null;
+
 
       const mouseDownEvent = function (e: MouseEvent) {
         // currentTarget should always be the element the event is attatched to,
@@ -179,12 +175,12 @@ function App() {
         )
           return;
 
-        pressed = {
-          elem: currentTarget,
-          startClientX: e.clientX,
-          startClientY: e.clientY,
-          clip: clipOfElem.get(target) ?? null,
-        };
+        // pressed = {
+        //   elem: currentTarget,
+        //   startClientX: e.clientX,
+        //   startClientY: e.clientY,
+        //   clip: clipOfElem.get(target) ?? null,
+        // };
         // On a child element
         if (e.target !== e.currentTarget) {
           // drag clips around
@@ -205,28 +201,40 @@ function App() {
         }
       };
 
-      const mouseUpEvent = function () {
-        pressed = null;
-        console.log("HELLO");
+      const mouseUpEvent = function (e: MouseEvent) {
+        if (!pressed) {
+          return
+        }
+  
+        // const deltaX = e.clientX - pressed.clientX;
+        // const asSecs = pxToSecs(deltaX);
+        // const newOffset = pressed.clip.startOffsetSec + asSecs;
+        // // console.log(newOffset)
+        // pressed.clip.startOffsetSec = newOffset <= 0 ? 0 : newOffset;
+        setPressed(null);
       };
 
       const mouseMoveEvent = function (e: MouseEvent) {
         if (!pressed) {
           return;
         }
-        console.log("pressed", e.clientX - pressed.startClientX);
+        const deltaXSecs = pxToSecs(e.clientX - pressed.clientX);
+        const newOffset = Math.max(0, pressed.originalClipOffsetSec + deltaXSecs);
+        pressed.clip.startOffsetSec = newOffset;
+        console.log(e.clientX, '-', pressed.clientX, 'd', deltaXSecs, 'o', newOffset)
+        setStateCounter(x => x+1)
       };
 
       projectDiv.addEventListener("mousedown", mouseDownEvent);
-      // projectDiv.addEventListener('mouseup', mouseUpEvent)
-      // projectDiv.addEventListener('mousemove', mouseMoveEvent)
+      projectDiv.addEventListener('mouseup', mouseUpEvent)
+      projectDiv.addEventListener('mousemove', mouseMoveEvent)
       return () => {
         projectDiv.removeEventListener("mousedown", mouseDownEvent);
         projectDiv.removeEventListener("mouseup", mouseUpEvent);
         projectDiv.removeEventListener("mousemove", mouseMoveEvent);
       };
     },
-    [clipOfElem, player, projectDiv]
+    [clipOfElem, player, pressed, projectDiv]
   );
 
   useEffect(
@@ -445,37 +453,13 @@ function App() {
                   console.log("clip.endPosSec", clip.endPosSec);
                   setStateCounter((x) => x + 1);
                 }
-                // clip.startOffsetSec += 1
-                // setStateCounter((x) => x + 1)
               }}
               onMouseDown={function (e) {
                 if (tool !== "move") {
                   return;
                 }
-                setPressed({ clientX: e.clientX, clientY: e.clientY, clip });
+                setPressed({ clientX: e.clientX, clientY: e.clientY, clip, originalClipOffsetSec: clip.startOffsetSec });
               }}
-              onMouseUp={function (e) {
-                if (!pressed) {
-                  return;
-                }
-                const deltaX = e.clientX - pressed.clientX;
-                const asSecs = pxToSecs(deltaX);
-                const newOffset = clip.startOffsetSec + asSecs;
-                // console.log(newOffset)
-                clip.startOffsetSec = newOffset <= 0 ? 0 : newOffset;
-                setPressed(null);
-              }}
-              // onMouseMove={function (e) {
-
-              //   if (!pressed) {
-              //     return
-              //   }
-              //   const deltaX = e.clientX - pressed.clientX;
-              //   const asSecs =  pxToSecs(deltaX)
-
-              //   console.log(asSecs)
-              // }}
-
               key={i}
               style={{
                 backgroundColor: "#ccffcc",
