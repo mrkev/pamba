@@ -1,19 +1,20 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import "./App.css";
-import { audioContext, sampleSize } from "./globals";
+import {
+  audioContext,
+  sampleSize,
+  CLIP_HEIGHT,
+  secsToPx,
+  pxToSecs,
+} from "./globals";
 import { AudioClip } from "./AudioClip";
 import { mixDown } from "./mixDown";
+import { Clip } from "./ui/Clip";
 
 const CANVAS_WIDTH = 512;
 const CANVAS_HEIGHT = 256;
-const CLIP_HEIGHT = 50;
 
-const PX_PER_SEC = 10;
-const PX_OVER_SEC = PX_PER_SEC;
-const SECS_PER_PX = 1 / PX_PER_SEC;
-const SECS_OVER_PX = SECS_PER_PX;
-const pxToSecs = (px: number) => px * SECS_OVER_PX;
-const secsToPx = (secs: number) => secs * PX_OVER_SEC;
+export type Tool = "move" | "trimStart" | "trimEnd";
 
 class AnalizedPlayer {
   amplitudeArray: Uint8Array = new Uint8Array();
@@ -135,7 +136,11 @@ function App() {
   const [clipOfElem] = useState(new Map<HTMLDivElement, AudioClip>());
   const [clips, setClips] = useState<Array<AudioClip>>([]);
   const [_, setStateCounter] = useState<number>(0);
-  const [tool, setTool] = useState<"move" | "trimStart" | "trimEnd">("move");
+  const [tool, setTool] = useState<Tool>("move");
+
+  function rerender() {
+    setStateCounter((x) => x + 1);
+  }
 
   const [pressed, setPressed] = useState<{
     clientX: number;
@@ -308,7 +313,7 @@ function App() {
   }
 
   function removeClip(clip: AudioClip) {
-    setClips(clips => clips.filter(x => x !== clip));
+    setClips((clips) => clips.filter((x) => x !== clip));
   }
 
   return (
@@ -413,101 +418,27 @@ function App() {
         }}
       >
         {clips.map(function (clip, i) {
-          const width = secsToPx(clip.durationSec);
-          const totalBufferWidth = secsToPx(clip.lengthSec);
-          const startTrimmedWidth = secsToPx(clip.startPosSec);
-          const height = CLIP_HEIGHT;
           return (
-            <>
- 
-            <div
-              ref={(elem) => {
-                if (elem == null) {
-                  return;
-                }
-                clipOfElem.set(elem, clip);
-              }}
-              onClick={function (e) {
-                const div = e.currentTarget;
-                if (!(div instanceof HTMLDivElement)) {
-                  return;
-                }
-                if (tool === "trimStart") {
-                  const pxFromStartOfClip =
-                    e.clientX - div.getBoundingClientRect().x;
-                  const asSec = pxToSecs(pxFromStartOfClip);
-                  clip.startPosSec += asSec;
-                  clip.startOffsetSec += asSec;
-                  console.log("asdfasdf");
-                  setStateCounter((x) => x + 1);
-                }
-                if (tool === "trimEnd") {
-                  const pxFromStartOfClip =
-                    e.clientX - div.getBoundingClientRect().x;
-                  const secsFromStartPos = pxToSecs(pxFromStartOfClip);
-                  const secsFromZero = clip.startPosSec + secsFromStartPos;
-                  clip.endPosSec = secsFromZero;
-                  console.log(
-                    "pxFromStartOfClip",
-                    pxFromStartOfClip,
-                    secsFromZero,
-                    "s"
-                  );
-                  console.log("clip.endPosSec", clip.endPosSec);
-                  setStateCounter((x) => x + 1);
-                }
-              }}
+            <Clip
               key={i}
-              onMouseDown={function () {}}
-              style={{
-                backgroundColor: "#ccffcc",
-                backgroundImage:
-                  "url('" +
-                  clip.getWaveformDataURL(totalBufferWidth, height) +
-                  "')",
-                backgroundRepeat: "no-repeat",
-                backgroundPosition: `${startTrimmedWidth * -1}px 0px`,
-                width,
-                height,
-                userSelect: "none",
-                border: "1px solid #bbeebb",
-                position: "relative",
-                color: "white",
-                left: secsToPx(clip.startOffsetSec),
+              clip={clip}
+              tool={tool}
+              rerender={rerender}
+              onMouseDownToDrag={function (e) {
+                if (tool !== "move") {
+                  return;
+                }
+                setPressed({
+                  clientX: e.clientX,
+                  clientY: e.clientY,
+                  clip,
+                  originalClipOffsetSec: clip.startOffsetSec,
+                });
               }}
-            >
-              <div
-                onMouseDown={function (e) {
-                  if (tool !== "move") {
-                    return;
-                  }
-                  setPressed({
-                    clientX: e.clientX,
-                    clientY: e.clientY,
-                    clip,
-                    originalClipOffsetSec: clip.startOffsetSec,
-                  });
-                }}
-                style={{
-                  color: "black",
-                  background: "#bbeebb",
-                  borderBottom: "1px solid #aaddaa",
-                  opacity: 0.8,
-                  fontSize: 10,
-                }}
-              >
-                {clip.name} ({Math.round(clip.durationSec * 100) / 100})
-                <button style={{
-                  border: 'none',
-                  fontSize: 10,
-                  cursor: 'pointer',
-                  right: 2,
-                  position: "absolute",
-            }} onClick={function () {
-              removeClip(clip)
-            }}>remove</button>
-              </div>
-            </div></>
+              onRemove={function () {
+                removeClip(clip);
+              }}
+            />
           );
         })}
         <div
