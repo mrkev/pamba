@@ -34,7 +34,7 @@ export function getImageForBuffer(
 export function dataURLForWaveform(
   width: number,
   height: number,
-  buffer: AudioBuffer
+  buffer: AudioBuffer,
 ): string {
   const canvas = document.createElement("canvas");
   canvas.width = width;
