@@ -138,25 +138,23 @@ function App() {
   const [clips, setClips] = useState<Array<AudioClip>>([]);
   const [_, setStateCounter] = useState<number>(0);
   const [tool, setTool] = useState<Tool>("move");
-  const [mediaRecorder, setMediaRecorder] = useState<null | MediaRecorder>(
-    null
-  );
+  const [mediaRecorder, setMediaRecorder] =
+    useState<null | MediaRecorder>(null);
   const [isRecording, setIsRecording] = useState(false);
-  const [
-    firebaseStoreRef,
-    setFirebaseStoreRef,
-  ] = useState<firebase.storage.Reference | null>(null);
+  const [firebaseStoreRef, setFirebaseStoreRef] =
+    useState<firebase.storage.Reference | null>(null);
 
   function rerender() {
     setStateCounter((x) => x + 1);
   }
 
-  const [pressed, setPressed] = useState<{
-    clientX: number;
-    clientY: number;
-    clip: AudioClip;
-    originalClipOffsetSec: number;
-  } | null>(null);
+  const [pressed, setPressed] =
+    useState<{
+      clientX: number;
+      clientY: number;
+      clip: AudioClip;
+      originalClipOffsetSec: number;
+    } | null>(null);
 
   const togglePlayback = useCallback(
     function togglePlayback() {
