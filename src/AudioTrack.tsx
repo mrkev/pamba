@@ -7,6 +7,13 @@ export class AudioTrack {
   // - Non-overlapping clips.
   clips: Array<AudioClip> = [];
 
+  // New track with a single clip
+  static fromClip(clip: AudioClip) {
+    const track = new AudioTrack();
+    track.pushClip(clip);
+    return track;
+  }
+
   addClip(newClip: AudioClip) {
     // console.log("track", this.clips);
     // if (this.clips.length === 0) {

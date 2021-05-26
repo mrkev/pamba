@@ -23,14 +23,13 @@ function App() {
   // const [audioBuffer, setAudioBuffer] = useState<null | AudioBuffer>(null);
   const [player] = useState(new AnalizedPlayer());
   const [clipOfElem] = useState(new Map<HTMLDivElement, AudioClip>());
-  const [clips, setClips] = useState<Array<AudioClip>>([]);
   const [_, setStateCounter] = useState<number>(0);
   const [tool, setTool] = useState<Tool>("move");
   const [mediaRecorder, setMediaRecorder] =
     useState<null | MediaRecorder>(null);
   const [isRecording, setIsRecording] = useState(false);
   const firebaseStoreRef = usePambaFirebaseStoreRef();
-  const [tracks, setTracks] = useState([new AudioTrack()]);
+  const [tracks, setTracks] = useState<Array<AudioTrack>>([]);
 
   function rerender() {
     setStateCounter((x) => x + 1);
@@ -57,8 +56,9 @@ function App() {
     [isAudioPlaying, player]
   );
 
-  function removeClip(clip: AudioClip) {
-    setClips((clips) => clips.filter((x) => x !== clip));
+  function removeClip(clip: AudioClip, track: AudioTrack) {
+    track.removeClip(clip);
+    setStateCounter((c) => c + 1);
   }
 
   const loadClip = useCallback(async function loadClip(
@@ -68,13 +68,8 @@ function App() {
     try {
       // load clip
       const clip = await AudioClip.fromURL(url, name);
-      const trackClip = await AudioClip.fromURL(url, name);
-      setClips((clips) => clips.concat([clip]));
-      setTracks((tracks) => {
-        tracks[0].pushClip(trackClip);
-        (window as any).tracks = tracks;
-        return [...tracks];
-      });
+      const newTrack = AudioTrack.fromClip(clip);
+      setTracks((tracks) => tracks.concat([newTrack]));
       console.log("loaded");
     } catch (e) {
       console.trace(e);
@@ -243,7 +238,7 @@ function App() {
 
   useEffect(
     function () {
-      if (clips.length < 1) {
+      if (tracks.length < 1) {
         console.log("NO AUDIO BUFFER");
         return;
       }
@@ -252,11 +247,12 @@ function App() {
       }
       if (isAudioPlaying === true) {
         console.log("PLAY");
-        const mixBuffer = mixDown(clips, 2);
+        const trackClips = tracks.flatMap((track) => track.clips);
+        const mixBuffer = mixDown(trackClips, 2);
         player.playSound(mixBuffer);
       }
     },
-    [clips, isAudioPlaying, player]
+    [tracks, isAudioPlaying, player]
   );
 
   return (
@@ -280,7 +276,7 @@ function App() {
       >
         <div style={{ flexGrow: 1 }}>
           <br />
-          <button disabled={clips.length === 0} onClick={togglePlayback}>
+          <button disabled={tracks.length === 0} onClick={togglePlayback}>
             {isAudioPlaying ? "stop" : "start"}
           </button>
           {tool}
@@ -374,7 +370,8 @@ function App() {
             ctxRef.current = ctx;
           }}
           onClick={function (e) {
-            const audioBuffer = clips[0] && clips[0].buffer;
+            const audioBuffer =
+              tracks[0] && tracks[0].clips[0] && tracks[0].clips[0].buffer;
             if (isAudioPlaying || !audioBuffer) {
               return;
             }
@@ -404,69 +401,48 @@ function App() {
           overflowX: "scroll",
         }}
       >
-        {clips.map(function (clip, i) {
+        {tracks.map(function (track, i) {
           return (
-            <Clip
+            <div
               key={i}
-              clip={clip}
-              tool={tool}
-              rerender={rerender}
               style={{
                 position: "relative",
-                left: secsToPx(clip.startOffsetSec),
+                borderBottom: "1px solid black",
+                height: CLIP_HEIGHT,
               }}
-              onMouseDownToDrag={function (e) {
-                if (tool !== "move") {
-                  return;
-                }
-                setPressed({
-                  clientX: e.clientX,
-                  clientY: e.clientY,
-                  clip,
-                  originalClipOffsetSec: clip.startOffsetSec,
-                });
-              }}
-              onRemove={function () {
-                removeClip(clip);
-              }}
-            />
+            >
+              {track.clips.map((clip, i) => {
+                return (
+                  <Clip
+                    key={i}
+                    clip={clip}
+                    tool={tool}
+                    rerender={rerender}
+                    onMouseDownToDrag={function (e) {
+                      if (tool !== "move") {
+                        return;
+                      }
+                      setPressed({
+                        clientX: e.clientX,
+                        clientY: e.clientY,
+                        clip,
+                        track,
+                        originalClipOffsetSec: clip.startOffsetSec,
+                      });
+                    }}
+                    onRemove={function () {
+                      removeClip(clip, track);
+                    }}
+                    style={{
+                      position: "absolute",
+                      left: secsToPx(clip.startOffsetSec),
+                    }}
+                  />
+                );
+              })}
+            </div>
           );
         })}
-
-        {false &&
-          tracks.map(function (track, i) {
-            return (
-              <div style={{ position: "relative", border: "1px solid black" }}>
-                {track.clips.map((clip, i) => {
-                  return (
-                    <Clip
-                      key={i}
-                      clip={clip}
-                      tool={tool}
-                      rerender={rerender}
-                      onMouseDownToDrag={function (e) {
-                        if (tool !== "move") {
-                          return;
-                        }
-                        setPressed({
-                          clientX: e.clientX,
-                          clientY: e.clientY,
-                          clip,
-                          track,
-                          originalClipOffsetSec: clip.startOffsetSec,
-                        });
-                      }}
-                      onRemove={function () {}}
-                      style={{
-                        position: "absolute",
-                        left: secsToPx(clip.startOffsetSec),
-                      }}
-                    />
-                  );
-                })}
-              </div>
-            );
-          })}
         <div
           // ref={cursorPosDiv}
           style={{
