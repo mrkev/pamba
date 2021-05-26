@@ -9,6 +9,7 @@ type Props = {
   rerender: () => void;
   onMouseDownToDrag: React.MouseEventHandler<HTMLDivElement>;
   onRemove: React.MouseEventHandler<HTMLButtonElement>;
+  style?: React.CSSProperties;
 };
 
 export function Clip({
@@ -17,6 +18,7 @@ export function Clip({
   rerender,
   onMouseDownToDrag,
   onRemove,
+  style = {},
 }: Props) {
   const width = secsToPx(clip.durationSec);
   const totalBufferWidth = secsToPx(clip.lengthSec);
@@ -63,9 +65,8 @@ export function Clip({
           height,
           userSelect: "none",
           border: "1px solid #bbeebb",
-          position: "relative",
           color: "white",
-          left: secsToPx(clip.startOffsetSec),
+          ...style,
         }}
       >
         <div

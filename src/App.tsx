@@ -11,6 +11,7 @@ import { AudioClip } from "./AudioClip";
 import { mixDown } from "./mixDown";
 import { Clip } from "./ui/Clip";
 import firebase from "firebase";
+import { AudioTrack } from "./AudioTrack";
 
 const CANVAS_WIDTH = 512;
 const CANVAS_HEIGHT = 256;
@@ -143,6 +144,7 @@ function App() {
   const [isRecording, setIsRecording] = useState(false);
   const [firebaseStoreRef, setFirebaseStoreRef] =
     useState<firebase.storage.Reference | null>(null);
+  const [tracks, setTracks] = useState([new AudioTrack()]);
 
   function rerender() {
     setStateCounter((x) => x + 1);
@@ -153,6 +155,7 @@ function App() {
       clientX: number;
       clientY: number;
       clip: AudioClip;
+      track?: AudioTrack | void;
       originalClipOffsetSec: number;
     } | null>(null);
 
@@ -179,7 +182,13 @@ function App() {
     try {
       // load clip
       const clip = await AudioClip.fromURL(url, name);
+      const trackClip = await AudioClip.fromURL(url, name);
       setClips((clips) => clips.concat([clip]));
+      setTracks((tracks) => {
+        tracks[0].pushClip(trackClip);
+        (window as any).tracks = tracks;
+        return [...tracks];
+      });
       console.log("loaded");
     } catch (e) {
       console.trace(e);
@@ -302,6 +311,15 @@ function App() {
       const mouseUpEvent = function (e: MouseEvent) {
         if (!pressed) {
           return;
+        }
+
+        if (pressed.track) {
+          pressed.track.deleteTime(
+            pressed.clip.startOffsetSec,
+            pressed.clip.endOffsetSec
+          );
+          pressed.track.removeClip(pressed.clip);
+          pressed.track.addClip(pressed.clip);
         }
 
         // const deltaX = e.clientX - pressed.clientX;
@@ -547,6 +565,10 @@ function App() {
               clip={clip}
               tool={tool}
               rerender={rerender}
+              style={{
+                position: "relative",
+                left: secsToPx(clip.startOffsetSec),
+              }}
               onMouseDownToDrag={function (e) {
                 if (tool !== "move") {
                   return;
@@ -564,6 +586,41 @@ function App() {
             />
           );
         })}
+
+        {false &&
+          tracks.map(function (track, i) {
+            return (
+              <div style={{ position: "relative", border: "1px solid black" }}>
+                {track.clips.map((clip, i) => {
+                  return (
+                    <Clip
+                      key={i}
+                      clip={clip}
+                      tool={tool}
+                      rerender={rerender}
+                      onMouseDownToDrag={function (e) {
+                        if (tool !== "move") {
+                          return;
+                        }
+                        setPressed({
+                          clientX: e.clientX,
+                          clientY: e.clientY,
+                          clip,
+                          track,
+                          originalClipOffsetSec: clip.startOffsetSec,
+                        });
+                      }}
+                      onRemove={function () {}}
+                      style={{
+                        position: "absolute",
+                        left: secsToPx(clip.startOffsetSec),
+                      }}
+                    />
+                  );
+                })}
+              </div>
+            );
+          })}
         <div
           // ref={cursorPosDiv}
           style={{

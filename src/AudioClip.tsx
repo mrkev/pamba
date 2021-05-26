@@ -11,10 +11,13 @@ export class AudioClip {
   readonly numberOfChannels: number;
   readonly sampleRate: number;
 
+  // Offset relates to the clip in the timeline
+  // Pos referes to the position the audio-clip plays in an audio file
+
   // on the timeline, the x position
   _startOffsetSec: number = 0;
   get startOffsetFr() {
-    return (this._startOffsetSec * this.sampleRate) >> 0;
+    return Math.floor(this._startOffsetSec * this.sampleRate);
   }
   get startOffsetSec() {
     return this._startOffsetSec;
@@ -26,13 +29,30 @@ export class AudioClip {
     this._startOffsetSec = frs / this.sampleRate;
   }
 
+  // on the timeline, the x position where + width (duration)
+  get endOffsetFr() {
+    return (this.startOffsetFr + this.durationFr) * this.sampleRate;
+  }
+  get endOffsetSec() {
+    return this.startOffsetSec + this.durationSec;
+  }
+  set endOffsetSec(secs: number) {
+    //                    [          clip           ]
+    //                    +--------endPosSec--------+
+    // +--startOffsetSec--+
+    // +---------------endOffsetSec-----------------+
+    // ^0:00
+    this._endPosSec = secs - this.startOffsetSec;
+    // TODO: verify if I have to do anything with startPosSec
+  }
+
   // What time is considered the end of the clip. Should verify this is set to > startPosSec
   _endPosSec: number;
   get endPosSec() {
     return this._endPosSec;
   }
   get endPosFr() {
-    return (this._endPosSec * this.sampleRate) >> 0;
+    return Math.floor(this._endPosSec * this.sampleRate);
   }
   set endPosSec(s: number) {
     this._endPosSec = s;
@@ -45,7 +65,7 @@ export class AudioClip {
     return this._endPosSec - this._startPosSec;
   }
   get durationFr() {
-    return (this.durationSec * this.sampleRate) >> 0;
+    return Math.floor(this.durationSec * this.sampleRate);
   }
 
   // within the clip, where to start. Should verify this is set to < endPosSec
@@ -54,7 +74,7 @@ export class AudioClip {
     return this._startPosSec;
   }
   get startPosFr() {
-    return (this._startPosSec * this.sampleRate) >> 0;
+    return Math.floor(this._startPosSec * this.sampleRate);
   }
   set startPosSec(s: number) {
     this._startPosSec = s;
@@ -73,6 +93,15 @@ export class AudioClip {
     this.numberOfChannels = buffer.numberOfChannels;
     this.name = name;
     this._endPosSec = buffer.duration;
+  }
+
+  clone() {
+    const newClip = new AudioClip(this.buffer, this.name);
+    newClip.startOffsetSec = this.startOffsetSec;
+    newClip.startPosSec = this.startPosSec;
+    newClip.endPosSec = this.endPosSec;
+    // todo: endOffsetSec?
+    return newClip;
   }
 
   // Let's not pre-compute this since we don't know the acutal dimensions
