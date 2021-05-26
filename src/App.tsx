@@ -1,130 +1,17 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import "./App.css";
-import {
-  audioContext,
-  sampleSize,
-  CLIP_HEIGHT,
-  secsToPx,
-  pxToSecs,
-} from "./globals";
+import { CLIP_HEIGHT, secsToPx, pxToSecs } from "./globals";
 import { AudioClip } from "./AudioClip";
 import { mixDown } from "./mixDown";
 import { Clip } from "./ui/Clip";
-import firebase from "firebase";
 import { AudioTrack } from "./AudioTrack";
+import { AnalizedPlayer } from "./AnalizedPlayer";
+import { usePambaFirebaseStoreRef } from "./usePambaFirebaseStoreRef";
 
-const CANVAS_WIDTH = 512;
-const CANVAS_HEIGHT = 256;
+export const CANVAS_WIDTH = 512;
+export const CANVAS_HEIGHT = 256;
 
 export type Tool = "move" | "trimStart" | "trimEnd";
-
-class AnalizedPlayer {
-  amplitudeArray: Uint8Array = new Uint8Array();
-  sourceNode: AudioBufferSourceNode = audioContext.createBufferSource();
-  analyserNode = audioContext.createAnalyser();
-  javascriptNode = audioContext.createScriptProcessor(sampleSize, 1, 1);
-  isAudioPlaying: boolean = false;
-
-  canvasCtx: CanvasRenderingContext2D | null = null;
-  onFrame: ((playbackTime: number) => void) | null = null;
-
-  // The time in the audio context we should count as zero
-  CTX_PLAY_START_TIME: number = 0;
-
-  drawTimeDomain(
-    amplitudeArray: Uint8Array,
-    playbackTime: number,
-    buffer: AudioBuffer
-  ) {
-    const ctx = this.canvasCtx;
-    if (ctx == null) return;
-
-    ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-    for (let i = 0; i < amplitudeArray.length; i++) {
-      let value = amplitudeArray[i] / CANVAS_HEIGHT;
-      let y = CANVAS_HEIGHT - CANVAS_HEIGHT * value - 1;
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(i, y, 1, 1);
-    }
-    ctx.font = "20px Helvetica";
-    ctx.fillText(String(playbackTime), 20, 20);
-
-    const playbackPercent = playbackTime / buffer.duration;
-
-    ctx.fillRect(playbackPercent * CANVAS_WIDTH, 0, 1, CANVAS_HEIGHT);
-
-    ctx.fillStyle = "#00ff00";
-    const cursorPercent = this.cursorPos / buffer.duration;
-    ctx.fillRect(cursorPercent * CANVAS_WIDTH, 0, 1, CANVAS_HEIGHT);
-  }
-
-  playSound(
-    buffer: AudioBuffer,
-    drawTimeDomain?: (
-      amplitudeArray: Uint8Array,
-      playbackTime: number,
-      buffer: AudioBuffer,
-      player: AnalizedPlayer
-    ) => void
-  ) {
-    // Set up nodes, since not all of them can be re-used
-    this.sourceNode = audioContext.createBufferSource();
-    this.analyserNode = audioContext.createAnalyser();
-    this.javascriptNode = audioContext.createScriptProcessor(sampleSize, 1, 1);
-
-    // Set up the audio Analyser, the Source Buffer and javascriptNode
-    // Create the array for the data values  // array to hold time domain data
-    this.amplitudeArray = new Uint8Array(this.analyserNode.frequencyBinCount);
-    // Now connect the nodes together
-    this.sourceNode.connect(audioContext.destination);
-    this.sourceNode.connect(this.analyserNode);
-    this.analyserNode.connect(this.javascriptNode);
-    this.javascriptNode.connect(audioContext.destination);
-
-    const cursorAtPlaybackStart = this.cursorPos;
-
-    // setup the event handler that is triggered every time enough samples have been collected
-    // trigger the audio analysis and draw the results
-    this.javascriptNode.onaudioprocess = () => {
-      // get the Time Domain data for this sample
-      this.analyserNode.getByteTimeDomainData(this.amplitudeArray);
-      // draw the display if the audio is playing
-
-      if (this.isAudioPlaying === true) {
-        requestAnimationFrame(() => {
-          const timePassed =
-            audioContext.currentTime - this.CTX_PLAY_START_TIME;
-          const currentTimeInBuffer = cursorAtPlaybackStart + timePassed;
-          this.drawTimeDomain(this.amplitudeArray, currentTimeInBuffer, buffer);
-          if (this.onFrame) this.onFrame(currentTimeInBuffer);
-        });
-      } else {
-        console.log("NOTHING");
-      }
-    };
-
-    this.CTX_PLAY_START_TIME = audioContext.currentTime;
-    this.sourceNode.buffer = buffer;
-    this.sourceNode.start(0, this.cursorPos); // Play the sound now
-    this.isAudioPlaying = true;
-    this.sourceNode.loop = false;
-  }
-
-  stopSound() {
-    this.sourceNode.stop(0);
-    this.isAudioPlaying = false;
-    this.sourceNode.disconnect(audioContext.destination);
-    this.sourceNode.disconnect(this.analyserNode);
-    this.analyserNode.disconnect(this.javascriptNode);
-    this.javascriptNode.disconnect(audioContext.destination);
-  }
-
-  cursorPos: number = 0;
-  setCursorPos(seconds: number) {
-    console.log("setting", seconds);
-    this.cursorPos = seconds;
-  }
-}
 
 function App() {
   // const [ctx, setCtx] = useState<null | CanvasRenderingContext2D>(null);
@@ -142,8 +29,7 @@ function App() {
   const [mediaRecorder, setMediaRecorder] =
     useState<null | MediaRecorder>(null);
   const [isRecording, setIsRecording] = useState(false);
-  const [firebaseStoreRef, setFirebaseStoreRef] =
-    useState<firebase.storage.Reference | null>(null);
+  const firebaseStoreRef = usePambaFirebaseStoreRef();
   const [tracks, setTracks] = useState([new AudioTrack()]);
 
   function rerender() {
@@ -225,46 +111,6 @@ function App() {
     },
     [loadClip]
   );
-
-  // Firebase storage
-  useEffect(function () {
-    // Your web app's Firebase configuration
-    var firebaseConfig = {
-      apiKey: "AIzaSyBhdehFiYqwx3ahC5yCh6NTQgW7NxZMXvk",
-      authDomain: "pamba-c5951.firebaseapp.com",
-      projectId: "pamba-c5951",
-      storageBucket: "pamba-c5951.appspot.com",
-      messagingSenderId: "204416012722",
-      appId: "1:204416012722:web:9e00b129f067d20c4894ab",
-    };
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-
-    const auth = firebase.auth();
-
-    auth.onAuthStateChanged(function (user) {
-      if (user) {
-        console.log("Anonymous user signed-in.", user);
-        setFirebaseStoreRef(firebase.storage().ref());
-      } else {
-        setFirebaseStoreRef(null);
-        console.log(
-          "There was no anonymous session. Creating a new anonymous user."
-        );
-        // Sign the user in anonymously since accessing Storage requires the user to be authorized.
-        auth.signInAnonymously().catch(function (error) {
-          if (error.code === "auth/operation-not-allowed") {
-            window.alert(
-              "Anonymous Sign-in failed. Please make sure that you have enabled anonymous " +
-                "sign-in on your Firebase project."
-            );
-          } else {
-            setFirebaseStoreRef(firebase.storage().ref());
-          }
-        });
-      }
-    });
-  }, []);
 
   useEffect(
     function () {
