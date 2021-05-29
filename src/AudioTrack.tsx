@@ -1,6 +1,8 @@
 import { AudioClip } from "./AudioClip";
 
 export class AudioTrack {
+  // Idea: can we use a mutation counter to keep track of state changes?
+  mutations: number = 0;
   // A track is a collection of non-overalping clips.
   // Invariants:
   // - Sorted by start time.
@@ -52,6 +54,7 @@ export class AudioTrack {
     }
     // Insert the clip
     this.clips.splice(i, 0, newClip);
+    this.mutations++;
     console.log("IN AFTER", i);
 
     if (prev && prev.endOffsetSec > newClip.startOffsetSec) {
@@ -76,6 +79,7 @@ export class AudioTrack {
     }
 
     this.clips.push(newClip);
+    this.mutations++;
   }
 
   removeClip(clip: AudioClip) {
@@ -84,6 +88,7 @@ export class AudioTrack {
       return;
     }
     this.clips.splice(i, 1);
+    this.mutations++;
   }
 
   /** Splits a clip into two at the specified time */
@@ -106,6 +111,7 @@ export class AudioTrack {
 
     clip.endOffsetSec = timeSec;
     this.clips.splice(i + 1, 0, clipAfter);
+    this.mutations++;
 
     return [clip, clipAfter];
   }

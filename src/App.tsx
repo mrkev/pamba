@@ -13,6 +13,21 @@ export const CANVAS_HEIGHT = 256;
 
 export type Tool = "move" | "trimStart" | "trimEnd";
 
+type CursorState =
+  | {
+      status: "moving_clip";
+      clientX: number;
+      clientY: number;
+      clip: AudioClip;
+      track?: AudioTrack | void;
+      originalClipOffsetSec: number;
+    }
+  | {
+      status: "selecting";
+      clientX: number;
+      clientY: number;
+    };
+
 function App() {
   // const [ctx, setCtx] = useState<null | CanvasRenderingContext2D>(null);
   const ctxRef = useRef<null | CanvasRenderingContext2D>(null);
@@ -20,6 +35,8 @@ function App() {
   const [projectDiv, setProjectDiv] = useState<null | HTMLDivElement>(null);
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
   const [cursorPos, setCursorPos] = useState(0);
+  const [selectionWidth, setSelectionWidth] = useState<null | number>(null);
+  const selectionWidthRef = useRef<null | number>(null);
   // const [audioBuffer, setAudioBuffer] = useState<null | AudioBuffer>(null);
   const [player] = useState(new AnalizedPlayer());
   const [clipOfElem] = useState(new Map<HTMLDivElement, AudioClip>());
@@ -35,14 +52,7 @@ function App() {
     setStateCounter((x) => x + 1);
   }
 
-  const [pressed, setPressed] =
-    useState<{
-      clientX: number;
-      clientY: number;
-      clip: AudioClip;
-      track?: AudioTrack | void;
-      originalClipOffsetSec: number;
-    } | null>(null);
+  const [pressed, setPressed] = useState<CursorState | null>(null);
 
   const togglePlayback = useCallback(
     function togglePlayback() {
@@ -160,10 +170,17 @@ function App() {
             x: e.clientX + div.scrollLeft - div.getBoundingClientRect().x,
             y: e.clientY + div.scrollTop - div.getBoundingClientRect().y,
           };
-
           const asSecs = pxToSecs(position.x);
           player.setCursorPos(asSecs);
           setCursorPos(asSecs);
+
+          setSelectionWidth(null);
+          selectionWidthRef.current = null;
+          setPressed({
+            status: "selecting",
+            clientX: e.clientX,
+            clientY: e.clientY,
+          });
         }
       };
 
@@ -172,34 +189,61 @@ function App() {
           return;
         }
 
-        if (pressed.track) {
-          pressed.track.deleteTime(
-            pressed.clip.startOffsetSec,
-            pressed.clip.endOffsetSec
-          );
-          pressed.track.removeClip(pressed.clip);
-          pressed.track.addClip(pressed.clip);
+        if (pressed.status === "moving_clip") {
+          if (pressed.track) {
+            pressed.track.deleteTime(
+              pressed.clip.startOffsetSec,
+              pressed.clip.endOffsetSec
+            );
+            pressed.track.removeClip(pressed.clip);
+            pressed.track.addClip(pressed.clip);
+          }
+
+          // const deltaX = e.clientX - pressed.clientX;
+          // const asSecs = pxToSecs(deltaX);
+          // const newOffset = pressed.clip.startOffsetSec + asSecs;
+          // // console.log(newOffset)
+          // pressed.clip.startOffsetSec = newOffset <= 0 ? 0 : newOffset;
+          setPressed(null);
         }
 
-        // const deltaX = e.clientX - pressed.clientX;
-        // const asSecs = pxToSecs(deltaX);
-        // const newOffset = pressed.clip.startOffsetSec + asSecs;
-        // // console.log(newOffset)
-        // pressed.clip.startOffsetSec = newOffset <= 0 ? 0 : newOffset;
-        setPressed(null);
+        if (pressed.status === "selecting") {
+          setPressed(null);
+          const curSel = selectionWidthRef.current;
+          if (curSel == null || curSel > 0) {
+            return;
+          }
+
+          // Move the cursor to the beggining of the selection
+          // and make the selection positive
+          setCursorPos((pos) => {
+            player.setCursorPos(pos + curSel);
+            return pos + curSel;
+          });
+
+          setSelectionWidth(Math.abs(curSel));
+        }
       };
 
       const mouseMoveEvent = function (e: MouseEvent) {
         if (!pressed) {
           return;
         }
-        const deltaXSecs = pxToSecs(e.clientX - pressed.clientX);
-        const newOffset = Math.max(
-          0,
-          pressed.originalClipOffsetSec + deltaXSecs
-        );
-        pressed.clip.startOffsetSec = newOffset;
-        setStateCounter((x) => x + 1);
+        if (pressed.status === "moving_clip") {
+          const deltaXSecs = pxToSecs(e.clientX - pressed.clientX);
+          const newOffset = Math.max(
+            0,
+            pressed.originalClipOffsetSec + deltaXSecs
+          );
+          pressed.clip.startOffsetSec = newOffset;
+          setStateCounter((x) => x + 1);
+        }
+
+        if (pressed.status === "selecting") {
+          const deltaXSecs = pxToSecs(e.clientX - pressed.clientX);
+          setSelectionWidth(deltaXSecs);
+          selectionWidthRef.current = deltaXSecs;
+        }
       };
 
       projectDiv.addEventListener("mousedown", mouseDownEvent);
@@ -216,6 +260,15 @@ function App() {
 
   useEffect(
     function () {
+      function keydownEvent(e: KeyboardEvent) {
+        console.log(e.code);
+        switch (e.code) {
+          case "Backspace":
+            console.log(selectionWidthRef.current);
+            break;
+        }
+      }
+
       function keypressEvent(e: KeyboardEvent) {
         switch (e.code) {
           case "KeyM":
@@ -227,15 +280,18 @@ function App() {
           case "KeyE":
             setTool("trimEnd");
             break;
+          default:
+            console.log(e.code);
         }
-        console.log(e.code);
         if (e.code === "Space") {
           togglePlayback();
         }
       }
 
+      document.addEventListener("keydown", keydownEvent);
       document.addEventListener("keypress", keypressEvent);
       return function () {
+        document.removeEventListener("keydown", keydownEvent);
         document.removeEventListener("keypress", keypressEvent);
       };
     },
@@ -298,7 +354,6 @@ function App() {
             {isAudioPlaying ? "stop" : "start"}
           </button>
           {tool}
-
           <br />
           {/* <input
             value={""}
@@ -310,7 +365,6 @@ function App() {
               loadClip(url, files[0].name);
             }}
           /> */}
-
           {firebaseStoreRef && (
             <input
               value={""}
@@ -386,6 +440,9 @@ function App() {
           >
             new track
           </button>
+          Pressed:{" "}
+          {JSON.stringify(pressed, ["status", "clientX", "clientY"], 2)}
+          Cursor: {cursorPos} {selectionWidth}
         </div>
         <canvas
           style={{ background: "black" }}
@@ -463,6 +520,7 @@ function App() {
                           return;
                         }
                         setPressed({
+                          status: "moving_clip",
                           clientX: e.clientX,
                           clientY: e.clientY,
                           clip,
@@ -514,11 +572,19 @@ function App() {
         <div
           // ref={cursorPosDiv}
           style={{
-            background: "green",
-            width: "1px",
+            backdropFilter: "invert(100%)",
             height: "100%",
             position: "absolute",
-            left: secsToPx(cursorPos),
+            userSelect: "none",
+            pointerEvents: "none",
+            left:
+              selectionWidth == null || selectionWidth >= 0
+                ? secsToPx(cursorPos)
+                : secsToPx(cursorPos + selectionWidth),
+            width:
+              selectionWidth == null || selectionWidth === 0
+                ? 1
+                : secsToPx(Math.abs(selectionWidth)),
             top: 0,
           }}
         ></div>
