@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import "./App.css";
 import { CLIP_HEIGHT, secsToPx, pxToSecs } from "./globals";
 import { AudioClip } from "./AudioClip";
@@ -70,6 +70,24 @@ function App() {
       const clip = await AudioClip.fromURL(url, name);
       const newTrack = AudioTrack.fromClip(clip);
       setTracks((tracks) => tracks.concat([newTrack]));
+      console.log("loaded");
+    } catch (e) {
+      console.trace(e);
+      return;
+    }
+  },
+  []);
+
+  const loadClipIntoTrack = useCallback(async function loadClipIntoTrack(
+    url: string,
+    track: AudioTrack,
+    name?: string
+  ) {
+    try {
+      // load clip
+      const clip = await AudioClip.fromURL(url, name);
+      track.pushClip(clip);
+      setTracks((tracks) => [...tracks]);
       console.log("loaded");
     } catch (e) {
       console.trace(e);
@@ -347,6 +365,10 @@ function App() {
             return (
               <button
                 key={i}
+                draggable
+                onDragStart={function (ev: React.DragEvent<HTMLButtonElement>) {
+                  ev.dataTransfer.setData("text", url);
+                }}
                 onClick={async function () {
                   loadClip(url);
                 }}
@@ -355,6 +377,15 @@ function App() {
               </button>
             );
           })}
+          <br />
+          <hr />
+          <button
+            onClick={function () {
+              setTracks((tracks) => tracks.concat([new AudioTrack()]));
+            }}
+          >
+            new track
+          </button>
         </div>
         <canvas
           style={{ background: "black" }}
@@ -403,43 +434,80 @@ function App() {
       >
         {tracks.map(function (track, i) {
           return (
-            <div
-              key={i}
-              style={{
-                position: "relative",
-                borderBottom: "1px solid black",
-                height: CLIP_HEIGHT,
-              }}
-            >
-              {track.clips.map((clip, i) => {
-                return (
-                  <Clip
-                    key={i}
-                    clip={clip}
-                    tool={tool}
-                    rerender={rerender}
-                    onMouseDownToDrag={function (e) {
-                      if (tool !== "move") {
-                        return;
+            <div style={{ position: "relative" }}>
+              <div
+                key={i}
+                onDrop={function (ev) {
+                  ev.preventDefault();
+                  const url = ev.dataTransfer.getData("text");
+                  loadClipIntoTrack(url, track);
+                }}
+                onDragOver={function allowDrop(ev) {
+                  ev.preventDefault();
+                }}
+                style={{
+                  position: "relative",
+                  borderBottom: "1px solid black",
+                  height: CLIP_HEIGHT,
+                }}
+              >
+                {track.clips.map((clip, i) => {
+                  return (
+                    <Clip
+                      key={i}
+                      clip={clip}
+                      tool={tool}
+                      rerender={rerender}
+                      onMouseDownToDrag={function (e) {
+                        if (tool !== "move") {
+                          return;
+                        }
+                        setPressed({
+                          clientX: e.clientX,
+                          clientY: e.clientY,
+                          clip,
+                          track,
+                          originalClipOffsetSec: clip.startOffsetSec,
+                        });
+                      }}
+                      onRemove={function () {
+                        removeClip(clip, track);
+                      }}
+                      style={{
+                        position: "absolute",
+                        left: secsToPx(clip.startOffsetSec),
+                      }}
+                    />
+                  );
+                })}
+              </div>
+              <div
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  right: 0,
+                  background: "white",
+                  height: "100%",
+                  width: "120px",
+                }}
+              >
+                Track {i}
+                <button
+                  onClick={function () {
+                    setTracks((tracks) => {
+                      const pos = tracks.indexOf(track);
+                      if (pos === -1) {
+                        return tracks;
                       }
-                      setPressed({
-                        clientX: e.clientX,
-                        clientY: e.clientY,
-                        clip,
-                        track,
-                        originalClipOffsetSec: clip.startOffsetSec,
-                      });
-                    }}
-                    onRemove={function () {
-                      removeClip(clip, track);
-                    }}
-                    style={{
-                      position: "absolute",
-                      left: secsToPx(clip.startOffsetSec),
-                    }}
-                  />
-                );
-              })}
+                      const copy = tracks.map((x) => x);
+                      copy.splice(pos, 1);
+                      return copy;
+                    });
+                  }}
+                >
+                  remove track
+                </button>
+              </div>
             </div>
           );
         })}
