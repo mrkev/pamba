@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { AudioClip } from "../AudioClip";
 import { Tool } from "../App";
 import { CLIP_HEIGHT, pxToSecs, secsToPx } from "../globals";
@@ -24,7 +24,7 @@ export function Clip({
   const totalBufferWidth = secsToPx(clip.lengthSec);
   const startTrimmedWidth = secsToPx(clip.startPosSec);
   const height = CLIP_HEIGHT;
-  const [cursorState, setCursorState] = useState(null);
+  // const [cursorState, setCursorState] = useState(null);
 
   // useEffect(function () {
   //   const onMouseMove = function () {

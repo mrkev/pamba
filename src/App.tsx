@@ -19,7 +19,7 @@ type CursorState =
       clientX: number;
       clientY: number;
       clip: AudioClip;
-      track?: AudioTrack | void;
+      track: AudioTrack;
       originalClipOffsetSec: number;
     }
   | {
@@ -27,6 +27,8 @@ type CursorState =
       clientX: number;
       clientY: number;
     };
+
+const player = new AnalizedPlayer();
 
 function App() {
   // const [ctx, setCtx] = useState<null | CanvasRenderingContext2D>(null);
@@ -38,7 +40,6 @@ function App() {
   const [selectionWidth, setSelectionWidth] = useState<null | number>(null);
   const selectionWidthRef = useRef<null | number>(null);
   // const [audioBuffer, setAudioBuffer] = useState<null | AudioBuffer>(null);
-  const [player] = useState(new AnalizedPlayer());
   const [clipOfElem] = useState(new Map<HTMLDivElement, AudioClip>());
   const [_, setStateCounter] = useState<number>(0);
   const [tool, setTool] = useState<Tool>("move");
@@ -63,7 +64,7 @@ function App() {
         setIsAudioPlaying(true);
       }
     },
-    [isAudioPlaying, player]
+    [isAudioPlaying]
   );
 
   function removeClip(clip: AudioClip, track: AudioTrack) {
@@ -190,14 +191,12 @@ function App() {
         }
 
         if (pressed.status === "moving_clip") {
-          if (pressed.track) {
-            pressed.track.deleteTime(
-              pressed.clip.startOffsetSec,
-              pressed.clip.endOffsetSec
-            );
-            pressed.track.removeClip(pressed.clip);
-            pressed.track.addClip(pressed.clip);
-          }
+          pressed.track.deleteTime(
+            pressed.clip.startOffsetSec,
+            pressed.clip.endOffsetSec
+          );
+          pressed.track.removeClip(pressed.clip);
+          pressed.track.addClip(pressed.clip);
 
           // const deltaX = e.clientX - pressed.clientX;
           // const asSecs = pxToSecs(deltaX);
@@ -255,7 +254,7 @@ function App() {
         document.removeEventListener("mousemove", mouseMoveEvent);
       };
     },
-    [clipOfElem, player, pressed, projectDiv]
+    [clipOfElem, pressed, projectDiv]
   );
 
   useEffect(
@@ -298,17 +297,14 @@ function App() {
     [togglePlayback]
   );
 
-  useEffect(
-    function () {
-      player.onFrame = function (playbackTime) {
-        const pbdiv = playbackPosDiv.current;
-        if (pbdiv) {
-          pbdiv.style.left = String(secsToPx(playbackTime)) + "px";
-        }
-      };
-    },
-    [player]
-  );
+  useEffect(function () {
+    player.onFrame = function (playbackTime) {
+      const pbdiv = playbackPosDiv.current;
+      if (pbdiv) {
+        pbdiv.style.left = String(secsToPx(playbackTime)) + "px";
+      }
+    };
+  }, []);
 
   useEffect(
     function () {
@@ -326,7 +322,7 @@ function App() {
         player.playSound(mixBuffer);
       }
     },
-    [tracks, isAudioPlaying, player]
+    [tracks, isAudioPlaying]
   );
 
   return (
@@ -491,9 +487,8 @@ function App() {
       >
         {tracks.map(function (track, i) {
           return (
-            <div style={{ position: "relative" }}>
+            <div style={{ position: "relative" }} key={i}>
               <div
-                key={i}
                 onDrop={function (ev) {
                   ev.preventDefault();
                   const url = ev.dataTransfer.getData("text");
@@ -502,6 +497,12 @@ function App() {
                 onDragOver={function allowDrop(ev) {
                   ev.preventDefault();
                 }}
+                onMouseEnter={function () {
+                  console.log("Hovering over", i);
+                  if (pressed && pressed.status === "selecting") {
+                    setPressed((prev) => Object.assign({}, prev, { track }));
+                  }
+                }}
                 style={{
                   position: "relative",
                   borderBottom: "1px solid black",
@@ -509,6 +510,15 @@ function App() {
                 }}
               >
                 {track.clips.map((clip, i) => {
+                  if (
+                    pressed &&
+                    pressed.status === "moving_clip" &&
+                    pressed.track !== track &&
+                    pressed.clip === clip
+                  ) {
+                    return null;
+                  }
+
                   return (
                     <Clip
                       key={i}
