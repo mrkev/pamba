@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import "./App.css";
 import { CLIP_HEIGHT, secsToPx, pxToSecs } from "./globals";
 import { AudioClip } from "./AudioClip";
-import { mixDown } from "./mixDown";
 import { Clip } from "./ui/Clip";
 import { AudioTrack } from "./AudioTrack";
 import { AnalizedPlayer } from "./AnalizedPlayer";
@@ -88,6 +87,7 @@ function App() {
     name?: string
   ) {
     try {
+      console.log("LOAD CLIP");
       // load clip
       const clip = await AudioClip.fromURL(url, name);
       const newTrack = AudioTrack.fromClip(clip);
@@ -355,10 +355,7 @@ function App() {
         return;
       }
       if (isAudioPlaying === true) {
-        console.log("PLAY");
-        const trackClips = tracks.flatMap((track) => track.clips);
-        const mixBuffer = mixDown(trackClips, 2);
-        player.playSound(mixBuffer);
+        player.playTracks(tracks);
       }
     },
     [tracks, isAudioPlaying, player]
@@ -458,7 +455,7 @@ function App() {
                 onDragStart={function (ev: React.DragEvent<HTMLButtonElement>) {
                   ev.dataTransfer.setData("text", url);
                 }}
-                onClick={async function () {
+                onClick={function () {
                   loadClip(url);
                 }}
               >

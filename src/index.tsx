@@ -1,7 +1,8 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import "./index.css";
-import App from "./App";
+// import App from "./App";
+
 // import reportWebVitals from "./reportWebVitals";
 import { audioContext } from "./globals";
 
@@ -38,15 +39,20 @@ async function init() {
       "shared-buffer-worklet-processor.js"
     );
     console.log("LOADED", "shared-buffer-worklet-processor.js");
+    await audioContext.audioWorklet.addModule("mix-down-processor.js");
+    console.log("LOADED", "mix-down-processor.js");
+
+    const App = (await import("./App")).default;
+
+    ReactDOM.render(
+      <React.StrictMode>
+        <App />
+      </React.StrictMode>,
+      document.getElementById("root")
+    );
   } catch (e) {
     console.trace(e);
   }
-  ReactDOM.render(
-    <React.StrictMode>
-      <App />
-    </React.StrictMode>,
-    document.getElementById("root")
-  );
 }
 
 init();

@@ -1,6 +1,8 @@
 import { audioContext, sampleSize } from "./globals";
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from "./App";
-import SharedBufferWorkletNode from "./lib/shared-buffer-worklet-node";
+// import SharedBufferWorkletNode from "./lib/shared-buffer-worklet-node";
+import { AudioTrack } from "./AudioTrack";
+import { mixDown } from "./mixDown";
 
 // sbwNode.onInitialized = () => {
 //   oscillator.connect(sbwNode).connect(context.destination);
@@ -13,10 +15,18 @@ import SharedBufferWorkletNode from "./lib/shared-buffer-worklet-node";
 
 export class AnalizedPlayer {
   amplitudeArray: Uint8Array = new Uint8Array();
-  sourceNode: AudioBufferSourceNode = audioContext.createBufferSource();
+  sourceNodes: Array<AudioBufferSourceNode> = [];
   analyserNode = audioContext.createAnalyser();
   javascriptNode = audioContext.createScriptProcessor(sampleSize, 1, 1);
   isAudioPlaying: boolean = false;
+  mixDownNode: AudioWorkletNode = new AudioWorkletNode(
+    audioContext,
+    "mix-down-processor"
+  );
+  noiseNode: AudioWorkletNode = new AudioWorkletNode(
+    audioContext,
+    "white-noise-processor"
+  );
 
   canvasCtx: CanvasRenderingContext2D | null = null;
   onFrame: ((playbackTime: number) => void) | null = null;
@@ -24,25 +34,20 @@ export class AnalizedPlayer {
   // The time in the audio context we should count as zero
   CTX_PLAY_START_TIME: number = 0;
 
-  constructor() {
-    const sbwNode = new SharedBufferWorkletNode(audioContext, {});
-    console.log("CONSTRUCTING");
-    sbwNode.onInitialized = () => {
-      console.log("INITTTTTT");
-      // oscillator.connect(sbwNode).connect(context.destination);
-      // oscillator.start();
-    };
+  // constructor() {
+  //   const sbwNode = new SharedBufferWorkletNode(audioContext, {});
+  //   console.log("CONSTRUCTING");
+  //   sbwNode.onInitialized = () => {
+  //     console.log("INITTTTTT");
+  //     // oscillator.connect(sbwNode).connect(context.destination);
+  //     // oscillator.start();
+  //   };
+  //   sbwNode.onError = (errorData) => {
+  //     console.log("[ERROR] " + errorData.detail);
+  //   };
+  // }
 
-    sbwNode.onError = (errorData) => {
-      console.log("[ERROR] " + errorData.detail);
-    };
-  }
-
-  drawTimeDomain(
-    amplitudeArray: Uint8Array,
-    playbackTime: number,
-    buffer: AudioBuffer
-  ) {
+  drawTimeDomain(amplitudeArray: Uint8Array, playbackTime: number) {
     const ctx = this.canvasCtx;
     if (ctx == null) return;
 
@@ -55,41 +60,33 @@ export class AnalizedPlayer {
     }
     ctx.font = "20px Helvetica";
     ctx.fillText(String(playbackTime), 20, 20);
-
-    const playbackPercent = playbackTime / buffer.duration;
-
-    ctx.fillRect(playbackPercent * CANVAS_WIDTH, 0, 1, CANVAS_HEIGHT);
-
-    ctx.fillStyle = "#00ff00";
-    const cursorPercent = this.cursorPos / buffer.duration;
-    ctx.fillRect(cursorPercent * CANVAS_WIDTH, 0, 1, CANVAS_HEIGHT);
   }
 
-  playSound(
-    buffer: AudioBuffer,
-    drawTimeDomain?: (
-      amplitudeArray: Uint8Array,
-      playbackTime: number,
-      buffer: AudioBuffer,
-      player: AnalizedPlayer
-    ) => void
-  ) {
+  playTracks(tracks: Array<AudioTrack>) {
+    // const trackClips = tracks.flatMap((track) => track.clips);
+    // const mixBuffer = mixDown(trackClips, 2);
+
     // Set up nodes, since not all of them can be re-used
-    this.sourceNode = audioContext.createBufferSource();
     this.analyserNode = audioContext.createAnalyser();
     this.javascriptNode = audioContext.createScriptProcessor(sampleSize, 1, 1);
-    const whiteNoiseNode = new AudioWorkletNode(
-      audioContext,
-      "white-noise-processor"
-    );
-    // whiteNoiseNode.connect(audioContext.destination);
+    this.mixDownNode = new AudioWorkletNode(audioContext, "mix-down-processor");
+
+    // track sources => mixdown => analizer => etc
+    this.sourceNodes = tracks.map((track) => {
+      const trackBuffer = mixDown(track.clips, 2);
+      const sourceNode = audioContext.createBufferSource();
+      sourceNode.buffer = trackBuffer;
+      sourceNode.loop = false;
+      sourceNode.connect(this.mixDownNode);
+      return sourceNode;
+    });
 
     // Set up the audio Analyser, the Source Buffer and javascriptNode
     // Create the array for the data values  // array to hold time domain data
     this.amplitudeArray = new Uint8Array(this.analyserNode.frequencyBinCount);
     // Now connect the nodes together
-    this.sourceNode.connect(audioContext.destination);
-    this.sourceNode.connect(this.analyserNode);
+    this.mixDownNode.connect(audioContext.destination);
+    this.mixDownNode.connect(this.analyserNode);
     this.analyserNode.connect(this.javascriptNode);
     this.javascriptNode.connect(audioContext.destination);
 
@@ -106,7 +103,7 @@ export class AnalizedPlayer {
           const timePassed =
             audioContext.currentTime - this.CTX_PLAY_START_TIME;
           const currentTimeInBuffer = cursorAtPlaybackStart + timePassed;
-          this.drawTimeDomain(this.amplitudeArray, currentTimeInBuffer, buffer);
+          this.drawTimeDomain(this.amplitudeArray, currentTimeInBuffer);
           if (this.onFrame) this.onFrame(currentTimeInBuffer);
         });
       } else {
@@ -114,18 +111,20 @@ export class AnalizedPlayer {
       }
     };
 
+    for (let sourceNode of this.sourceNodes) {
+      sourceNode.start(0, this.cursorPos); // Play the sound now
+    }
+
     this.CTX_PLAY_START_TIME = audioContext.currentTime;
-    this.sourceNode.buffer = buffer;
-    this.sourceNode.start(0, this.cursorPos); // Play the sound now
     this.isAudioPlaying = true;
-    this.sourceNode.loop = false;
   }
 
   stopSound() {
-    this.sourceNode.stop(0);
+    for (let sourceNode of this.sourceNodes) {
+      sourceNode.stop(0);
+      sourceNode.disconnect(this.mixDownNode);
+    }
     this.isAudioPlaying = false;
-    this.sourceNode.disconnect(audioContext.destination);
-    this.sourceNode.disconnect(this.analyserNode);
     this.analyserNode.disconnect(this.javascriptNode);
     this.javascriptNode.disconnect(audioContext.destination);
   }
