@@ -1,5 +1,15 @@
 import { audioContext, sampleSize } from "./globals";
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from "./App";
+import SharedBufferWorkletNode from "./lib/shared-buffer-worklet-node";
+
+// sbwNode.onInitialized = () => {
+//   oscillator.connect(sbwNode).connect(context.destination);
+//   oscillator.start();
+// };
+
+// sbwNode.onError = (errorData) => {
+//   logger.post('[ERROR] ' + errorData.detail);
+// };
 
 export class AnalizedPlayer {
   amplitudeArray: Uint8Array = new Uint8Array();
@@ -13,6 +23,20 @@ export class AnalizedPlayer {
 
   // The time in the audio context we should count as zero
   CTX_PLAY_START_TIME: number = 0;
+
+  constructor() {
+    const sbwNode = new SharedBufferWorkletNode(audioContext, {});
+    console.log("CONSTRUCTING");
+    sbwNode.onInitialized = () => {
+      console.log("INITTTTTT");
+      // oscillator.connect(sbwNode).connect(context.destination);
+      // oscillator.start();
+    };
+
+    sbwNode.onError = (errorData) => {
+      console.log("[ERROR] " + errorData.detail);
+    };
+  }
 
   drawTimeDomain(
     amplitudeArray: Uint8Array,
@@ -54,6 +78,11 @@ export class AnalizedPlayer {
     this.sourceNode = audioContext.createBufferSource();
     this.analyserNode = audioContext.createAnalyser();
     this.javascriptNode = audioContext.createScriptProcessor(sampleSize, 1, 1);
+    const whiteNoiseNode = new AudioWorkletNode(
+      audioContext,
+      "white-noise-processor"
+    );
+    // whiteNoiseNode.connect(audioContext.destination);
 
     // Set up the audio Analyser, the Source Buffer and javascriptNode
     // Create the array for the data values  // array to hold time domain data

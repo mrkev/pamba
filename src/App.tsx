@@ -28,8 +28,6 @@ type CursorState =
       clientY: number;
     };
 
-const player = new AnalizedPlayer();
-
 function App() {
   // const [ctx, setCtx] = useState<null | CanvasRenderingContext2D>(null);
   const ctxRef = useRef<null | CanvasRenderingContext2D>(null);
@@ -48,6 +46,7 @@ function App() {
   const [isRecording, setIsRecording] = useState(false);
   const firebaseStoreRef = usePambaFirebaseStoreRef();
   const [tracks, setTracks] = useState<Array<AudioTrack>>([]);
+  const [player] = useState<AnalizedPlayer>(() => new AnalizedPlayer());
 
   function rerender() {
     setStateCounter((x) => x + 1);

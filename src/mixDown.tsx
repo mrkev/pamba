@@ -1,5 +1,5 @@
-import { audioContext } from './globals';
-import { AudioClip } from './AudioClip';
+import { audioContext } from "./globals";
+import { AudioClip } from "./AudioClip";
 
 // from https://stackoverflow.com/questions/57155167/web-audio-api-playing-synchronized-sounds
 export function mixDown(clipList: Array<AudioClip>, numberOfChannels = 2) {
@@ -11,6 +11,8 @@ export function mixDown(clipList: Array<AudioClip>, numberOfChannels = 2) {
       totalLength = end;
     }
   }
+
+  console.log("TOTAL", totalLength);
 
   //create a buffer using the totalLength and sampleRate of the first buffer node
   let finalMix = audioContext.createBuffer(
@@ -31,7 +33,8 @@ export function mixDown(clipList: Array<AudioClip>, numberOfChannels = 2) {
       for (let j = 0; j < clip.durationFr; j++) {
         // If it's mono audio, we just copy it to all channels
         const channelSrc = clip.numberOfChannels === 1 ? 0 : channel;
-        buffer[j + clip.startOffsetFr] += clip.buffer.getChannelData(channelSrc)[j + clip.startPosFr];
+        buffer[j + clip.startOffsetFr] +=
+          clip.buffer.getChannelData(channelSrc)[j + clip.startPosFr];
       }
     }
   }
