@@ -16,6 +16,7 @@ export type Tool = "move" | "trimStart" | "trimEnd";
 type CursorState =
   | {
       status: "moving_clip";
+      // Original clientX/Y of event
       clientX: number;
       clientY: number;
       clip: AudioClip;
@@ -24,6 +25,17 @@ type CursorState =
     }
   | {
       status: "selecting";
+      // Original clientX/Y of event
+      clientX: number;
+      clientY: number;
+    }
+  | {
+      status: "resizing_clip";
+      from: "start" | "end";
+      originalClipEndPosSec: number;
+      originalClipStartPosSec: number;
+      originalClipOffsetSec: number;
+      clip: AudioClip;
       clientX: number;
       clientY: number;
     };
@@ -63,7 +75,7 @@ function App() {
         setIsAudioPlaying(true);
       }
     },
-    [isAudioPlaying]
+    [isAudioPlaying, player]
   );
 
   function removeClip(clip: AudioClip, track: AudioTrack) {
@@ -221,6 +233,10 @@ function App() {
 
           setSelectionWidth(Math.abs(curSel));
         }
+
+        if (pressed.status === "resizing_clip") {
+          setPressed(null);
+        }
       };
 
       const mouseMoveEvent = function (e: MouseEvent) {
@@ -234,6 +250,30 @@ function App() {
             pressed.originalClipOffsetSec + deltaXSecs
           );
           pressed.clip.startOffsetSec = newOffset;
+          setStateCounter((x) => x + 1);
+        }
+
+        if (pressed.status === "resizing_clip") {
+          const deltaXSecs = pxToSecs(e.clientX - pressed.clientX);
+          if (pressed.from === "end") {
+            const newEndPosSec = Math.max(
+              0,
+              pressed.originalClipEndPosSec + deltaXSecs
+            );
+            pressed.clip.endPosSec = newEndPosSec;
+          } else {
+            const newStartPosSec = Math.min(
+              pressed.clip.lengthSec,
+              pressed.originalClipStartPosSec + deltaXSecs
+            );
+            const newOffset = Math.min(
+              pressed.clip.lengthSec,
+              Math.max(0, pressed.originalClipOffsetSec + deltaXSecs)
+            );
+            pressed.clip.startPosSec = newStartPosSec;
+            pressed.clip.startOffsetSec = newOffset;
+          }
+
           setStateCounter((x) => x + 1);
         }
 
@@ -253,7 +293,7 @@ function App() {
         document.removeEventListener("mousemove", mouseMoveEvent);
       };
     },
-    [clipOfElem, pressed, projectDiv]
+    [clipOfElem, player, pressed, projectDiv]
   );
 
   useEffect(
@@ -321,7 +361,7 @@ function App() {
         player.playSound(mixBuffer);
       }
     },
-    [tracks, isAudioPlaying]
+    [tracks, isAudioPlaying, player]
   );
 
   return (
@@ -524,6 +564,22 @@ function App() {
                       clip={clip}
                       tool={tool}
                       rerender={rerender}
+                      onMouseDownToResize={function (e, from) {
+                        if (tool !== "move") {
+                          return;
+                        }
+                        setPressed({
+                          status: "resizing_clip",
+                          clip,
+                          // IDEA: just clone and have the original clip at hand
+                          originalClipEndPosSec: clip.endPosSec,
+                          originalClipStartPosSec: clip.startPosSec,
+                          originalClipOffsetSec: clip.startOffsetSec,
+                          from,
+                          clientX: e.clientX,
+                          clientY: e.clientY,
+                        });
+                      }}
                       onMouseDownToDrag={function (e) {
                         if (tool !== "move") {
                           return;

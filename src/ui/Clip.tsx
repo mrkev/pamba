@@ -10,6 +10,10 @@ type Props = {
   onMouseDownToDrag: React.MouseEventHandler<HTMLDivElement>;
   onRemove: React.MouseEventHandler<HTMLButtonElement>;
   style?: React.CSSProperties;
+  onMouseDownToResize: (
+    e: React.MouseEvent<HTMLDivElement>,
+    from: "start" | "end"
+  ) => void;
 };
 
 export function Clip({
@@ -18,6 +22,7 @@ export function Clip({
   rerender,
   onMouseDownToDrag,
   onRemove,
+  onMouseDownToResize,
   style = {},
 }: Props) {
   const width = secsToPx(clip.durationSec);
@@ -38,9 +43,16 @@ export function Clip({
   //   document.addEventListener("mouseup", onMouseUp);
   // }, []);
 
-  function onStartResize() {}
+  function onStartResize(e: React.MouseEvent<HTMLDivElement>) {
+    onMouseDownToResize(e, "start");
+    console.log("START");
+  }
 
-  function onEndResize() {}
+  function onEndResize(e: React.MouseEvent<HTMLDivElement>) {
+    onMouseDownToResize(e, "end");
+
+    console.log("END");
+  }
 
   return (
     <div
@@ -113,7 +125,7 @@ export function Clip({
       <div
         style={{
           width: 10,
-          background: "black",
+          background: "rgba(0,0,0,0)",
           height: "100%",
           position: "absolute",
           left: 0,
@@ -125,7 +137,7 @@ export function Clip({
       <div
         style={{
           width: 10,
-          background: "black",
+          background: "rgba(0,0,0,0)",
           height: "100%",
           position: "absolute",
           right: 0,
