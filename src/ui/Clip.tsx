@@ -7,6 +7,7 @@ type Props = {
   clip: AudioClip;
   tool: Tool;
   rerender: () => void;
+  selected: boolean;
   onMouseDownToDrag: React.MouseEventHandler<HTMLDivElement>;
   onRemove: React.MouseEventHandler<HTMLButtonElement>;
   style?: React.CSSProperties;
@@ -20,6 +21,7 @@ export function Clip({
   clip,
   tool,
   rerender,
+  selected,
   onMouseDownToDrag,
   onRemove,
   onMouseDownToResize,
@@ -29,61 +31,44 @@ export function Clip({
   const totalBufferWidth = secsToPx(clip.lengthSec);
   const startTrimmedWidth = secsToPx(clip.startPosSec);
   const height = CLIP_HEIGHT;
-  // const [cursorState, setCursorState] = useState(null);
-
-  // useEffect(function () {
-  //   const onMouseMove = function () {
-  //     setCursorState({})
-  //   };
-  //   const onMouseUp = function () {
-
-  //   };
-
-  //   document.addEventListener("mousemove", onMouseMove);
-  //   document.addEventListener("mouseup", onMouseUp);
-  // }, []);
 
   function onStartResize(e: React.MouseEvent<HTMLDivElement>) {
     onMouseDownToResize(e, "start");
-    console.log("START");
   }
 
   function onEndResize(e: React.MouseEvent<HTMLDivElement>) {
     onMouseDownToResize(e, "end");
-
-    console.log("END");
   }
+
+  function onClipClick(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
+    const div = e.currentTarget;
+    if (!(div instanceof HTMLDivElement)) {
+      return;
+    }
+    if (tool === "trimStart") {
+      const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
+      const asSec = pxToSecs(pxFromStartOfClip);
+      clip.startPosSec += asSec;
+      clip.startOffsetSec += asSec;
+      console.log("asdfasdf");
+      rerender();
+    }
+    if (tool === "trimEnd") {
+      const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
+      const secsFromStartPos = pxToSecs(pxFromStartOfClip);
+      const secsFromZero = clip.startPosSec + secsFromStartPos;
+      clip.endPosSec = secsFromZero;
+      console.log("pxFromStartOfClip", pxFromStartOfClip, secsFromZero, "s");
+      console.log("clip.endPosSec", clip.endPosSec);
+      rerender();
+    }
+  }
+
+  const border = selected ? "1px solid #114411" : "1px solid #aaddaa";
 
   return (
     <div
-      onClick={function (e) {
-        const div = e.currentTarget;
-        if (!(div instanceof HTMLDivElement)) {
-          return;
-        }
-        if (tool === "trimStart") {
-          const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
-          const asSec = pxToSecs(pxFromStartOfClip);
-          clip.startPosSec += asSec;
-          clip.startOffsetSec += asSec;
-          console.log("asdfasdf");
-          rerender();
-        }
-        if (tool === "trimEnd") {
-          const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
-          const secsFromStartPos = pxToSecs(pxFromStartOfClip);
-          const secsFromZero = clip.startPosSec + secsFromStartPos;
-          clip.endPosSec = secsFromZero;
-          console.log(
-            "pxFromStartOfClip",
-            pxFromStartOfClip,
-            secsFromZero,
-            "s"
-          );
-          console.log("clip.endPosSec", clip.endPosSec);
-          rerender();
-        }
-      }}
+      onClick={onClipClick}
       style={{
         backgroundColor: "#ccffcc",
         backgroundImage:
@@ -92,8 +77,10 @@ export function Clip({
         backgroundPosition: `${startTrimmedWidth * -1}px 0px`,
         width,
         height,
+        // pointerEvents: 'none',
         userSelect: "none",
-        border: "1px solid #bbeebb",
+        borderLeft: border,
+        borderRight: border,
         color: "white",
         ...style,
       }}
@@ -101,9 +88,9 @@ export function Clip({
       <div
         onMouseDown={onMouseDownToDrag}
         style={{
-          color: "black",
-          background: "#bbeebb",
-          borderBottom: "1px solid #aaddaa",
+          color: selected ? "white" : "black",
+          background: selected ? "#225522" : "#bbeebb",
+          border: border,
           opacity: 0.8,
           fontSize: 10,
         }}

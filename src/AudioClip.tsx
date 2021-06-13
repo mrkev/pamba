@@ -11,6 +11,15 @@ export class AudioClip {
   readonly numberOfChannels: number;
   readonly sampleRate: number;
 
+  name: string;
+
+  // Let's not pre-compute this since we don't know the acutal dimensions
+  // but lets memoize the last size used for perf. shouldn't change.
+  private memodWaveformDataURL: { dims: [number, number]; data: string } = {
+    dims: [0, 0],
+    data: "",
+  };
+
   // Offset relates to the clip in the timeline
   // Pos referes to the position the audio-clip plays in an audio file
 
@@ -83,8 +92,6 @@ export class AudioClip {
     this._startPosSec = f / this.sampleRate;
   }
 
-  name: string;
-
   constructor(buffer: AudioBuffer, name: string = "untitled") {
     this.buffer = buffer;
     this.lengthSec = buffer.duration;
@@ -104,12 +111,6 @@ export class AudioClip {
     return newClip;
   }
 
-  // Let's not pre-compute this since we don't know the acutal dimensions
-  // but lets memoize the last size used for perf. shouldn't change.
-  private memodWaveformDataURL: { dims: [number, number]; data: string } = {
-    dims: [0, 0],
-    data: "",
-  };
   getWaveformDataURL(width: number, height: number) {
     const {
       dims: [w, h],

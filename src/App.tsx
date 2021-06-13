@@ -64,6 +64,7 @@ function App() {
   }
 
   const [pressed, setPressed] = useState<CursorState | null>(null);
+  const [selected, setSelected] = useState<AudioClip | null>(null);
 
   const togglePlayback = useCallback(
     function togglePlayback() {
@@ -160,8 +161,10 @@ function App() {
         if (
           !(target instanceof HTMLDivElement) ||
           !(currentTarget instanceof HTMLDivElement)
-        )
+        ) {
+          console.log("WOOP");
           return;
+        }
 
         // pressed = {
         //   elem: currentTarget,
@@ -193,6 +196,7 @@ function App() {
             clientX: e.clientX,
             clientY: e.clientY,
           });
+          setSelected(null);
         }
       };
 
@@ -563,6 +567,7 @@ function App() {
                       clip={clip}
                       tool={tool}
                       rerender={rerender}
+                      selected={selected === clip}
                       onMouseDownToResize={function (e, from) {
                         if (tool !== "move") {
                           return;
@@ -591,6 +596,7 @@ function App() {
                           track,
                           originalClipOffsetSec: clip.startOffsetSec,
                         });
+                        setSelected(clip);
                       }}
                       onRemove={function () {
                         removeClip(clip, track);
