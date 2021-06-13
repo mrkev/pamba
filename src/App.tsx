@@ -357,6 +357,8 @@ function App() {
       if (isAudioPlaying === true) {
         player.playTracks(tracks);
       }
+
+      return () => player.stopSound();
     },
     [tracks, isAudioPlaying, player]
   );

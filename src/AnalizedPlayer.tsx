@@ -27,6 +27,7 @@ export class AnalizedPlayer {
     audioContext,
     "white-noise-processor"
   );
+  cursorAtPlaybackStart: number = 0;
 
   canvasCtx: CanvasRenderingContext2D | null = null;
   onFrame: ((playbackTime: number) => void) | null = null;
@@ -34,18 +35,33 @@ export class AnalizedPlayer {
   // The time in the audio context we should count as zero
   CTX_PLAY_START_TIME: number = 0;
 
-  // constructor() {
-  //   const sbwNode = new SharedBufferWorkletNode(audioContext, {});
-  //   console.log("CONSTRUCTING");
-  //   sbwNode.onInitialized = () => {
-  //     console.log("INITTTTTT");
-  //     // oscillator.connect(sbwNode).connect(context.destination);
-  //     // oscillator.start();
-  //   };
-  //   sbwNode.onError = (errorData) => {
-  //     console.log("[ERROR] " + errorData.detail);
-  //   };
-  // }
+  constructor() {
+    // Set up the audio Analyser, the Source Buffer and javascriptNode
+    // Create the array for the data values  // array to hold time domain data
+    this.amplitudeArray = new Uint8Array(this.analyserNode.frequencyBinCount);
+
+    this.mixDownNode.connect(audioContext.destination);
+    this.mixDownNode.connect(this.analyserNode);
+
+    // setup the event handler that is triggered every time enough samples have been collected
+    // trigger the audio analysis and draw the results
+    this.javascriptNode.onaudioprocess = () => {
+      // get the Time Domain data for this sample
+      this.analyserNode.getByteTimeDomainData(this.amplitudeArray);
+      // draw the display if the audio is playing
+      if (this.isAudioPlaying === true) {
+        requestAnimationFrame(() => {
+          const timePassed =
+            audioContext.currentTime - this.CTX_PLAY_START_TIME;
+          const currentTimeInBuffer = this.cursorAtPlaybackStart + timePassed;
+          this.drawTimeDomain(this.amplitudeArray, currentTimeInBuffer);
+          if (this.onFrame) this.onFrame(currentTimeInBuffer);
+        });
+      } else {
+        console.log("NOTHING");
+      }
+    };
+  }
 
   drawTimeDomain(amplitudeArray: Uint8Array, playbackTime: number) {
     const ctx = this.canvasCtx;
@@ -63,14 +79,6 @@ export class AnalizedPlayer {
   }
 
   playTracks(tracks: Array<AudioTrack>) {
-    // const trackClips = tracks.flatMap((track) => track.clips);
-    // const mixBuffer = mixDown(trackClips, 2);
-
-    // Set up nodes, since not all of them can be re-used
-    this.analyserNode = audioContext.createAnalyser();
-    this.javascriptNode = audioContext.createScriptProcessor(sampleSize, 1, 1);
-    this.mixDownNode = new AudioWorkletNode(audioContext, "mix-down-processor");
-
     // track sources => mixdown => analizer => etc
     this.sourceNodes = tracks.map((track) => {
       const trackBuffer = mixDown(track.clips, 2);
@@ -80,36 +88,10 @@ export class AnalizedPlayer {
       sourceNode.connect(this.mixDownNode);
       return sourceNode;
     });
-
-    // Set up the audio Analyser, the Source Buffer and javascriptNode
-    // Create the array for the data values  // array to hold time domain data
-    this.amplitudeArray = new Uint8Array(this.analyserNode.frequencyBinCount);
-    // Now connect the nodes together
-    this.mixDownNode.connect(audioContext.destination);
-    this.mixDownNode.connect(this.analyserNode);
     this.analyserNode.connect(this.javascriptNode);
     this.javascriptNode.connect(audioContext.destination);
 
-    const cursorAtPlaybackStart = this.cursorPos;
-
-    // setup the event handler that is triggered every time enough samples have been collected
-    // trigger the audio analysis and draw the results
-    this.javascriptNode.onaudioprocess = () => {
-      // get the Time Domain data for this sample
-      this.analyserNode.getByteTimeDomainData(this.amplitudeArray);
-      // draw the display if the audio is playing
-      if (this.isAudioPlaying === true) {
-        requestAnimationFrame(() => {
-          const timePassed =
-            audioContext.currentTime - this.CTX_PLAY_START_TIME;
-          const currentTimeInBuffer = cursorAtPlaybackStart + timePassed;
-          this.drawTimeDomain(this.amplitudeArray, currentTimeInBuffer);
-          if (this.onFrame) this.onFrame(currentTimeInBuffer);
-        });
-      } else {
-        console.log("NOTHING");
-      }
-    };
+    this.cursorAtPlaybackStart = this.cursorPos;
 
     for (let sourceNode of this.sourceNodes) {
       sourceNode.start(0, this.cursorPos); // Play the sound now
@@ -120,6 +102,9 @@ export class AnalizedPlayer {
   }
 
   stopSound() {
+    if (this.isAudioPlaying === false) {
+      return;
+    }
     for (let sourceNode of this.sourceNodes) {
       sourceNode.stop(0);
       sourceNode.disconnect(this.mixDownNode);

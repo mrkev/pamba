@@ -5,7 +5,11 @@ import { AudioClip } from "./AudioClip";
 export function mixDown(
   clipList: Array<AudioClip>,
   numberOfChannels = 2
-): AudioBuffer {
+): AudioBuffer | null {
+  if (clipList.length === 0) {
+    return null;
+  }
+
   // TODO: make start offset aware, so not all clips start at 0:00
   let totalLength = 0;
   for (let clip of clipList) {
