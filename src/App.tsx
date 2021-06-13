@@ -39,6 +39,25 @@ type CursorState =
       clientY: number;
     };
 
+type SelectionState = {
+  clips: Array<{ clip: AudioClip; track: AudioTrack }>;
+  test: Set<AudioClip | AudioTrack>;
+};
+
+type ModifierState = {
+  shift: boolean;
+  meta: boolean;
+  control: boolean;
+  alt: boolean;
+};
+
+const modifierState: ModifierState = {
+  shift: false,
+  meta: false,
+  control: false,
+  alt: false,
+};
+
 function App() {
   // const [ctx, setCtx] = useState<null | CanvasRenderingContext2D>(null);
   const ctxRef = useRef<null | CanvasRenderingContext2D>(null);
@@ -64,7 +83,7 @@ function App() {
   }
 
   const [pressed, setPressed] = useState<CursorState | null>(null);
-  const [selected, setSelected] = useState<AudioClip | null>(null);
+  const [selected, setSelected] = useState<SelectionState | null>(null);
 
   const togglePlayback = useCallback(
     function togglePlayback() {
@@ -80,6 +99,7 @@ function App() {
 
   function removeClip(clip: AudioClip, track: AudioTrack) {
     track.removeClip(clip);
+    console.log("HERE");
     setStateCounter((c) => c + 1);
   }
 
@@ -303,10 +323,39 @@ function App() {
   useEffect(
     function () {
       function keydownEvent(e: KeyboardEvent) {
-        console.log(e.code);
+        // console.log(e.code);
         switch (e.code) {
+          case "ShiftLeft":
+          case "ShiftRight":
+            modifierState.shift = true;
+            break;
+          case "MetaLeft":
+          case "MetaRight":
+            modifierState.meta = true;
+            break;
+
           case "Backspace":
+            if (selected) {
+              for (let { clip, track } of selected.clips) {
+                console.log("remove", selected);
+                removeClip(clip, track);
+              }
+            }
+
             console.log(selectionWidthRef.current);
+            break;
+        }
+      }
+
+      function keyupEvent(e: KeyboardEvent) {
+        switch (e.code) {
+          case "ShiftLeft":
+          case "ShiftRight":
+            modifierState.shift = false;
+            break;
+          case "MetaLeft":
+          case "MetaRight":
+            modifierState.meta = false;
             break;
         }
       }
@@ -332,12 +381,14 @@ function App() {
 
       document.addEventListener("keydown", keydownEvent);
       document.addEventListener("keypress", keypressEvent);
+      document.addEventListener("keyup", keyupEvent);
       return function () {
         document.removeEventListener("keydown", keydownEvent);
         document.removeEventListener("keypress", keypressEvent);
+        document.removeEventListener("keyup", keyupEvent);
       };
     },
-    [togglePlayback]
+    [selected, togglePlayback]
   );
 
   useEffect(function () {
@@ -478,9 +529,14 @@ function App() {
           >
             new track
           </button>
+          <br />
           Pressed:{" "}
           {JSON.stringify(pressed, ["status", "clientX", "clientY"], 2)}
+          <br />
           Cursor: {cursorPos} {selectionWidth}
+          <br />
+          Selected: {JSON.stringify(selected, [], 2)}
+          <br />
         </div>
         <canvas
           style={{ background: "black" }}
@@ -567,7 +623,7 @@ function App() {
                       clip={clip}
                       tool={tool}
                       rerender={rerender}
-                      selected={selected === clip}
+                      selected={selected !== null && selected.test.has(clip)}
                       onMouseDownToResize={function (e, from) {
                         if (tool !== "move") {
                           return;
@@ -596,7 +652,21 @@ function App() {
                           track,
                           originalClipOffsetSec: clip.startOffsetSec,
                         });
-                        setSelected(clip);
+                        setSelected((prev) => {
+                          const selectAdd =
+                            modifierState.meta || modifierState.shift;
+                          if (selectAdd && prev !== null) {
+                            prev.clips.push({ clip, track });
+                            prev.test.add(clip);
+                            prev.test.add(track);
+                            return { ...prev };
+                          } else {
+                            return {
+                              clips: [{ clip, track }],
+                              test: new Set([clip, track]),
+                            };
+                          }
+                        });
                       }}
                       onRemove={function () {
                         removeClip(clip, track);
