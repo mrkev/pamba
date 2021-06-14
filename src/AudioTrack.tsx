@@ -1,6 +1,10 @@
 import { AudioClip } from "./AudioClip";
+import { audioContext } from "./globals";
+
+let trackNo = 0;
 
 export class AudioTrack {
+  name: string = `Track ${trackNo++}`;
   // Idea: can we use a mutation counter to keep track of state changes?
   mutations: number = 0;
   // A track is a collection of non-overalping clips.
@@ -8,6 +12,8 @@ export class AudioTrack {
   // - Sorted by start time.
   // - Non-overlapping clips.
   clips: Array<AudioClip> = [];
+
+  gainNode: GainNode = new GainNode(audioContext);
 
   // New track with a single clip
   static fromClip(clip: AudioClip) {

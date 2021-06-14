@@ -6,6 +6,7 @@ import { Clip } from "./ui/Clip";
 import { AudioTrack } from "./AudioTrack";
 import { AnalizedPlayer } from "./AnalizedPlayer";
 import { usePambaFirebaseStoreRef } from "./usePambaFirebaseStoreRef";
+import TrackHeader from "./ui/TrackHeader";
 
 export const CANVAS_WIDTH = 512;
 export const CANVAS_HEIGHT = 256;
@@ -549,13 +550,6 @@ function App() {
           })}
           <br />
           <hr />
-          <button
-            onClick={function () {
-              setTracks((tracks) => tracks.concat([new AudioTrack()]));
-            }}
-          >
-            new track
-          </button>
           <br />
           Pressed:{" "}
           {JSON.stringify(pressed, ["status", "clientX", "clientY"], 2)}
@@ -575,26 +569,7 @@ function App() {
             }
             const ctx = canvas.getContext("2d");
             player.canvasCtx = ctx;
-            // setCtx();
             ctxRef.current = ctx;
-          }}
-          onClick={function (e) {
-            const audioBuffer =
-              tracks[0] && tracks[0].clips[0] && tracks[0].clips[0].buffer;
-            if (isAudioPlaying || !audioBuffer) {
-              return;
-            }
-            const canvas = e.target;
-            if (!(canvas instanceof HTMLCanvasElement)) return;
-            const position = {
-              x: e.clientX - canvas.getBoundingClientRect().x,
-              y: e.clientY - canvas.getBoundingClientRect().y,
-            };
-
-            player.setCursorPos(
-              audioBuffer.duration * (position.x / CANVAS_WIDTH)
-            );
-            setCursorPos(audioBuffer.duration * (position.x / CANVAS_WIDTH));
           }}
         ></canvas>
       </div>
@@ -766,6 +741,7 @@ function App() {
           style={{
             display: "flex",
             flexDirection: "column",
+            width: "120px",
           }}
         >
           {tracks.map((track, i) => {
@@ -774,56 +750,44 @@ function App() {
               selected.status === "tracks" &&
               selected.test.has(track);
             return (
-              <div
-                style={{
-                  top: 0,
-                  right: 0,
-                  background: "white",
-                  height: CLIP_HEIGHT,
-                  width: "120px",
+              <TrackHeader
+                isSelected={isSelected}
+                onRemove={function () {
+                  removeTrack(track);
                 }}
-              >
-                <div
-                  style={{
-                    background: isSelected ? "#333" : "#eee",
-                    color: isSelected ? "white" : "black",
-                    userSelect: "none",
-                    cursor: "pointer",
-                  }}
-                  onClick={function () {
-                    setSelected((prev) => {
-                      const selectAdd =
-                        modifierState.meta || modifierState.shift;
-                      if (
-                        selectAdd &&
-                        prev !== null &&
-                        prev.status === "tracks"
-                      ) {
-                        prev.tracks.push(track);
-                        prev.test.add(track);
-                        return { ...prev };
-                      } else {
-                        return {
-                          status: "tracks",
-                          tracks: [track],
-                          test: new Set([track]),
-                        };
-                      }
-                    });
-                  }}
-                >
-                  Track {i}
-                </div>
-                <button
-                  onClick={function () {
-                    removeTrack(track);
-                  }}
-                >
-                  remove track
-                </button>
-              </div>
+                track={track}
+                onMouseDown={function () {
+                  setSelected((prev) => {
+                    const selectAdd = modifierState.meta || modifierState.shift;
+                    if (
+                      selectAdd &&
+                      prev !== null &&
+                      prev.status === "tracks"
+                    ) {
+                      prev.tracks.push(track);
+                      prev.test.add(track);
+                      return { ...prev };
+                    } else {
+                      return {
+                        status: "tracks",
+                        tracks: [track],
+                        test: new Set([track]),
+                      };
+                    }
+                  });
+                }}
+              />
             );
           })}
+          <div>
+            <button
+              onClick={function () {
+                setTracks((tracks) => tracks.concat([new AudioTrack()]));
+              }}
+            >
+              new track
+            </button>
+          </div>
         </div>
       </div>
     </div>
