@@ -39,10 +39,17 @@ type CursorState =
       clientY: number;
     };
 
-type SelectionState = {
-  clips: Array<{ clip: AudioClip; track: AudioTrack }>;
-  test: Set<AudioClip | AudioTrack>;
-};
+type SelectionState =
+  | {
+      status: "clips";
+      clips: Array<{ clip: AudioClip; track: AudioTrack }>;
+      test: Set<AudioClip | AudioTrack>;
+    }
+  | {
+      status: "tracks";
+      tracks: Array<AudioTrack>;
+      test: Set<AudioTrack>;
+    };
 
 type ModifierState = {
   shift: boolean;
@@ -103,6 +110,18 @@ function App() {
     setStateCounter((c) => c + 1);
   }
 
+  function removeTrack(track: AudioTrack) {
+    setTracks((tracks) => {
+      const pos = tracks.indexOf(track);
+      if (pos === -1) {
+        return tracks;
+      }
+      const copy = tracks.map((x) => x);
+      copy.splice(pos, 1);
+      return copy;
+    });
+  }
+
   const loadClip = useCallback(async function loadClip(
     url: string,
     name?: string
@@ -131,7 +150,6 @@ function App() {
       const clip = await AudioClip.fromURL(url, name);
       track.pushClip(clip);
       setTracks((tracks) => [...tracks]);
-      console.log("loaded");
     } catch (e) {
       console.trace(e);
       return;
@@ -335,10 +353,19 @@ function App() {
             break;
 
           case "Backspace":
-            if (selected) {
+            if (!selected) {
+              return;
+            }
+            if (selected.status === "clips") {
               for (let { clip, track } of selected.clips) {
                 console.log("remove", selected);
                 removeClip(clip, track);
+              }
+            }
+            if (selected.status === "tracks") {
+              for (let track of selected.tracks) {
+                console.log("remove", selected);
+                removeTrack(track);
               }
             }
 
@@ -572,173 +599,232 @@ function App() {
         ></canvas>
       </div>
 
-      {/* The whole width of this div is 90s */}
       <div
-        ref={(elem) => setProjectDiv(elem)}
+        id="container"
         style={{
-          position: "relative",
-          background: "#eeeeee",
           width: "100%",
-          paddingBottom: CLIP_HEIGHT,
-          overflowX: "scroll",
+          display: "flex",
+          flexDirection: "row",
         }}
       >
-        {tracks.map(function (track, i) {
-          return (
-            <div style={{ position: "relative" }} key={i}>
-              <div
-                onDrop={function (ev) {
-                  ev.preventDefault();
-                  const url = ev.dataTransfer.getData("text");
-                  loadClipIntoTrack(url, track);
-                }}
-                onDragOver={function allowDrop(ev) {
-                  ev.preventDefault();
-                }}
-                onMouseEnter={function () {
-                  console.log("Hovering over", i);
-                  if (pressed && pressed.status === "selecting") {
-                    setPressed((prev) => Object.assign({}, prev, { track }));
-                  }
-                }}
-                style={{
-                  position: "relative",
-                  borderBottom: "1px solid black",
-                  height: CLIP_HEIGHT,
-                }}
-              >
-                {track.clips.map((clip, i) => {
-                  if (
-                    pressed &&
-                    pressed.status === "moving_clip" &&
-                    pressed.track !== track &&
-                    pressed.clip === clip
-                  ) {
-                    return null;
-                  }
+        {/* The whole width of this div is 90s */}
+        <div
+          id="projectDiv"
+          ref={(elem) => setProjectDiv(elem)}
+          style={{
+            position: "relative",
+            background: "#eeeeee",
+            paddingBottom: CLIP_HEIGHT,
+            overflowX: "scroll",
+            width: "100%",
+          }}
+        >
+          {tracks.map(function (track, i) {
+            return (
+              <div style={{ position: "relative" }} key={i}>
+                <div
+                  onDrop={function (ev) {
+                    ev.preventDefault();
+                    const url = ev.dataTransfer.getData("text");
+                    loadClipIntoTrack(url, track);
+                  }}
+                  onDragOver={function allowDrop(ev) {
+                    ev.preventDefault();
+                  }}
+                  onMouseEnter={function () {
+                    console.log("Hovering over", i);
+                    if (pressed && pressed.status === "selecting") {
+                      setPressed((prev) => Object.assign({}, prev, { track }));
+                    }
+                  }}
+                  style={{
+                    position: "relative",
+                    borderBottom: "1px solid black",
+                    height: CLIP_HEIGHT,
+                  }}
+                >
+                  {track.clips.map((clip, i) => {
+                    if (
+                      pressed &&
+                      pressed.status === "moving_clip" &&
+                      pressed.track !== track &&
+                      pressed.clip === clip
+                    ) {
+                      return null;
+                    }
 
-                  return (
-                    <Clip
-                      key={i}
-                      clip={clip}
-                      tool={tool}
-                      rerender={rerender}
-                      selected={selected !== null && selected.test.has(clip)}
-                      onMouseDownToResize={function (e, from) {
-                        if (tool !== "move") {
-                          return;
-                        }
-                        setPressed({
-                          status: "resizing_clip",
-                          clip,
-                          // IDEA: just clone and have the original clip at hand
-                          originalClipEndPosSec: clip.endPosSec,
-                          originalClipStartPosSec: clip.startPosSec,
-                          originalClipOffsetSec: clip.startOffsetSec,
-                          from,
-                          clientX: e.clientX,
-                          clientY: e.clientY,
-                        });
-                      }}
-                      onMouseDownToDrag={function (e) {
-                        if (tool !== "move") {
-                          return;
-                        }
-                        setPressed({
-                          status: "moving_clip",
-                          clientX: e.clientX,
-                          clientY: e.clientY,
-                          clip,
-                          track,
-                          originalClipOffsetSec: clip.startOffsetSec,
-                        });
-                        setSelected((prev) => {
-                          const selectAdd =
-                            modifierState.meta || modifierState.shift;
-                          if (selectAdd && prev !== null) {
-                            prev.clips.push({ clip, track });
-                            prev.test.add(clip);
-                            prev.test.add(track);
-                            return { ...prev };
-                          } else {
-                            return {
-                              clips: [{ clip, track }],
-                              test: new Set([clip, track]),
-                            };
+                    const isSelected =
+                      selected !== null &&
+                      selected.status === "clips" &&
+                      selected.test.has(clip);
+
+                    return (
+                      <Clip
+                        key={i}
+                        clip={clip}
+                        tool={tool}
+                        rerender={rerender}
+                        selected={isSelected}
+                        onMouseDownToResize={function (e, from) {
+                          if (tool !== "move") {
+                            return;
                           }
-                        });
-                      }}
-                      onRemove={function () {
-                        removeClip(clip, track);
-                      }}
-                      style={{
-                        position: "absolute",
-                        left: secsToPx(clip.startOffsetSec),
-                      }}
-                    />
-                  );
-                })}
+                          setPressed({
+                            status: "resizing_clip",
+                            clip,
+                            // IDEA: just clone and have the original clip at hand
+                            originalClipEndPosSec: clip.endPosSec,
+                            originalClipStartPosSec: clip.startPosSec,
+                            originalClipOffsetSec: clip.startOffsetSec,
+                            from,
+                            clientX: e.clientX,
+                            clientY: e.clientY,
+                          });
+                        }}
+                        onMouseDownToDrag={function (e) {
+                          if (tool !== "move") {
+                            return;
+                          }
+                          setPressed({
+                            status: "moving_clip",
+                            clientX: e.clientX,
+                            clientY: e.clientY,
+                            clip,
+                            track,
+                            originalClipOffsetSec: clip.startOffsetSec,
+                          });
+                          setSelected((prev) => {
+                            const selectAdd =
+                              modifierState.meta || modifierState.shift;
+                            if (
+                              selectAdd &&
+                              prev !== null &&
+                              prev.status === "clips"
+                            ) {
+                              prev.clips.push({ clip, track });
+                              prev.test.add(clip);
+                              prev.test.add(track);
+                              return { ...prev };
+                            } else {
+                              return {
+                                status: "clips",
+                                clips: [{ clip, track }],
+                                test: new Set([clip, track]),
+                              };
+                            }
+                          });
+                          setSelectionWidth(null);
+                        }}
+                        onRemove={function () {
+                          removeClip(clip, track);
+                        }}
+                        style={{
+                          position: "absolute",
+                          left: secsToPx(clip.startOffsetSec),
+                        }}
+                      />
+                    );
+                  })}
+                </div>
               </div>
+            );
+          })}
+          <div
+            // ref={cursorPosDiv}
+            style={{
+              backdropFilter: "invert(100%)",
+              height: "100%",
+              position: "absolute",
+              userSelect: "none",
+              pointerEvents: "none",
+              left:
+                selectionWidth == null || selectionWidth >= 0
+                  ? secsToPx(cursorPos)
+                  : secsToPx(cursorPos + selectionWidth),
+              width:
+                selectionWidth == null || selectionWidth === 0
+                  ? 1
+                  : secsToPx(Math.abs(selectionWidth)),
+              top: 0,
+            }}
+          ></div>
+          <div
+            ref={playbackPosDiv}
+            style={{
+              background: "red",
+              width: "1px",
+              height: "100%",
+              position: "absolute",
+              left: 0,
+              top: 0,
+            }}
+          ></div>
+        </div>
+
+        {/* Track headers */}
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          {tracks.map((track, i) => {
+            const isSelected =
+              selected !== null &&
+              selected.status === "tracks" &&
+              selected.test.has(track);
+            return (
               <div
                 style={{
-                  position: "absolute",
                   top: 0,
                   right: 0,
                   background: "white",
-                  height: "100%",
+                  height: CLIP_HEIGHT,
                   width: "120px",
                 }}
               >
-                Track {i}
+                <div
+                  style={{
+                    background: isSelected ? "#333" : "#eee",
+                    color: isSelected ? "white" : "black",
+                    userSelect: "none",
+                    cursor: "pointer",
+                  }}
+                  onClick={function () {
+                    setSelected((prev) => {
+                      const selectAdd =
+                        modifierState.meta || modifierState.shift;
+                      if (
+                        selectAdd &&
+                        prev !== null &&
+                        prev.status === "tracks"
+                      ) {
+                        prev.tracks.push(track);
+                        prev.test.add(track);
+                        return { ...prev };
+                      } else {
+                        return {
+                          status: "tracks",
+                          tracks: [track],
+                          test: new Set([track]),
+                        };
+                      }
+                    });
+                  }}
+                >
+                  Track {i}
+                </div>
                 <button
                   onClick={function () {
-                    setTracks((tracks) => {
-                      const pos = tracks.indexOf(track);
-                      if (pos === -1) {
-                        return tracks;
-                      }
-                      const copy = tracks.map((x) => x);
-                      copy.splice(pos, 1);
-                      return copy;
-                    });
+                    removeTrack(track);
                   }}
                 >
                   remove track
                 </button>
               </div>
-            </div>
-          );
-        })}
-        <div
-          // ref={cursorPosDiv}
-          style={{
-            backdropFilter: "invert(100%)",
-            height: "100%",
-            position: "absolute",
-            userSelect: "none",
-            pointerEvents: "none",
-            left:
-              selectionWidth == null || selectionWidth >= 0
-                ? secsToPx(cursorPos)
-                : secsToPx(cursorPos + selectionWidth),
-            width:
-              selectionWidth == null || selectionWidth === 0
-                ? 1
-                : secsToPx(Math.abs(selectionWidth)),
-            top: 0,
-          }}
-        ></div>
-        <div
-          ref={playbackPosDiv}
-          style={{
-            background: "red",
-            width: "1px",
-            height: "100%",
-            position: "absolute",
-            left: 0,
-            top: 0,
-          }}
-        ></div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
