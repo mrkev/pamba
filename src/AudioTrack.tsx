@@ -2,6 +2,13 @@ import { AudioClip } from "./AudioClip";
 import { audioContext } from "./globals";
 import { mixDown } from "./mixDown";
 
+const assertNonNil = function <T>(val: T | null | void): T {
+  if (val == null) {
+    throw new Error(`Expected ${val} to be non nil.`);
+  }
+  return val;
+};
+
 let trackNo = 0;
 
 export class AudioTrack {
@@ -33,12 +40,8 @@ export class AudioTrack {
   }
 
   addClip(newClip: AudioClip) {
-    // console.log("track", this.clips);
-    // if (this.clips.length === 0) {
-    //   this.clips.push(newClip);
-    //   return;
-    // }
-
+    // Essentially, we want to insert in order, sorted
+    // by the startOffsetSec of each clip.
     let i = 0;
     let prev;
     let next;
@@ -49,16 +52,21 @@ export class AudioTrack {
         prev?.name,
         prev?.startOffsetSec,
         ":",
-        newClip?.name,
-        newClip?.startOffsetSec,
+        newClip.name,
+        newClip.startOffsetSec,
         ":",
         next?.name,
         next?.startOffsetSec
       );
-      // We're inserting somewhere ahead, not here
+
+      // We're inserting somewhere ahead, not here. Keep going until
+      // we find a spot where if we were to keep going we'd be
+      // later than the next clip
       if (next && next.startOffsetSec < newClip.startOffsetSec) {
         continue;
-      } else if (
+      }
+
+      if (
         (prev && prev.startOffsetSec === newClip.startOffsetSec) ||
         (next && next.startOffsetSec === newClip.startOffsetSec)
       ) {
@@ -68,19 +76,27 @@ export class AudioTrack {
         break;
       }
     }
+
+    console.log("inserting between", prev, "and", next);
+
+    this.deleteTime(newClip.startOffsetSec, newClip.endOffsetSec);
+
     // Insert the clip
     this.clips.splice(i, 0, newClip);
     this.mutations++;
     console.log("IN AFTER", i);
 
-    if (prev && prev.endOffsetSec > newClip.startOffsetSec) {
-      // TODO: clip prev clip
-      console.log("CLIP PREV");
-      // prev.endPosSec = newClip.startOffsetSec;
-    }
-    if (next && next.startOffsetSec < newClip.endOffsetSec) {
-      next.startOffsetSec = newClip.endOffsetSec;
-    }
+    // if (prev && prev.endOffsetSec > newClip.startOffsetSec) {
+    //   // TODO: delete time range within current clip and insert it.
+
+    //   prev.endOffsetSec = newClip.startOffsetSec;
+
+    //   console.log("TODO: CLIP PREV");
+    //   // prev.endPosSec = newClip.startOffsetSec;
+    // }
+    // if (next && next.startOffsetSec < newClip.endOffsetSec) {
+    //   next.startOffsetSec = newClip.endOffsetSec;
+    // }
   }
 
   // Adds a clip right after the last clip
@@ -133,6 +149,7 @@ export class AudioTrack {
   }
 
   deleteTime(startSec: number, endSec: number): void {
+    console.log("deleteTime", startSec, endSec);
     if (startSec === endSec) {
       return;
     }
@@ -180,6 +197,10 @@ export class AudioTrack {
         current.startOffsetSec < endSec &&
         endSec < current.endOffsetSec
       ) {
+        const [_, after] = assertNonNil(this.splitClip(current, startSec));
+        const [before, __] = assertNonNil(this.splitClip(after, endSec));
+        this.removeClip(before);
+        console.log("TODO: split into three");
         // TODO: split into three
         // remove middle part
         // End the loop, this is the only case and we just messed up
