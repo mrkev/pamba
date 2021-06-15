@@ -1,5 +1,6 @@
 import { AudioClip } from "./AudioClip";
 import { audioContext } from "./globals";
+import { mixDown } from "./mixDown";
 
 let trackNo = 0;
 
@@ -14,6 +15,15 @@ export class AudioTrack {
   clips: Array<AudioClip> = [];
 
   gainNode: GainNode = new GainNode(audioContext);
+
+  getSourceNode(): AudioBufferSourceNode {
+    const trackBuffer = mixDown(this.clips, 2);
+    const sourceNode = audioContext.createBufferSource();
+    sourceNode.buffer = trackBuffer;
+    sourceNode.loop = false;
+    sourceNode.connect(this.gainNode);
+    return sourceNode;
+  }
 
   // New track with a single clip
   static fromClip(clip: AudioClip) {

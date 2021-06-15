@@ -5,6 +5,7 @@ type Props = {
   isSelected: boolean;
   onMouseDown: () => void;
   onRemove: () => void;
+  onSolo: () => void;
   track: AudioTrack;
 };
 
@@ -12,12 +13,13 @@ export default function TrackHeader({
   isSelected,
   onMouseDown,
   onRemove,
+  onSolo,
   track,
 }: Props) {
   return (
     <div
       style={{
-        background: "white",
+        background: isSelected ? "#eee" : "white",
         height: CLIP_HEIGHT,
       }}
     >
@@ -33,6 +35,10 @@ export default function TrackHeader({
         {track.name}
       </div>
       <button onClick={onRemove}>remove track</button>
+      <button onClick={onSolo} disabled>
+        S
+      </button>
+      <input type="range" disabled />
     </div>
   );
 }

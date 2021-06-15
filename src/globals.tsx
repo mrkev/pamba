@@ -1,6 +1,6 @@
 export const sampleSize = 1024;
 export const audioContext = new AudioContext();
-export const CLIP_HEIGHT = 50;
+export const CLIP_HEIGHT = 88;
 
 export const PX_PER_SEC = 10;
 export const PX_OVER_SEC = PX_PER_SEC;

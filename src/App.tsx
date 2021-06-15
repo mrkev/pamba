@@ -7,6 +7,7 @@ import { AudioTrack } from "./AudioTrack";
 import { AnalizedPlayer } from "./AnalizedPlayer";
 import { usePambaFirebaseStoreRef } from "./usePambaFirebaseStoreRef";
 import TrackHeader from "./ui/TrackHeader";
+import { RecoilRoot } from "recoil";
 
 export const CANVAS_WIDTH = 512;
 export const CANVAS_HEIGHT = 256;
@@ -21,6 +22,7 @@ type CursorState =
       clientY: number;
       clip: AudioClip;
       track: AudioTrack;
+      originalTrack: AudioTrack;
       originalClipOffsetSec: number;
     }
   | {
@@ -249,7 +251,7 @@ function App() {
             pressed.clip.startOffsetSec,
             pressed.clip.endOffsetSec
           );
-          pressed.track.removeClip(pressed.clip);
+          pressed.originalTrack.removeClip(pressed.clip);
           pressed.track.addClip(pressed.clip);
 
           // const deltaX = e.clientX - pressed.clientX;
@@ -447,8 +449,9 @@ function App() {
   );
 
   return (
-    <div className="App">
-      {/* <div
+    <RecoilRoot>
+      <div className="App">
+        {/* <div
         ref={(elem) => {
           // if (!elem) return;
           // tDivRef.current = elem;
@@ -458,21 +461,21 @@ function App() {
           // });
         }}
       ></div> */}
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "row",
-          width: "100%",
-        }}
-      >
-        <div style={{ flexGrow: 1 }}>
-          <br />
-          <button disabled={tracks.length === 0} onClick={togglePlayback}>
-            {isAudioPlaying ? "stop" : "start"}
-          </button>
-          {tool}
-          <br />
-          {/* <input
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            width: "100%",
+          }}
+        >
+          <div style={{ flexGrow: 1 }}>
+            <br />
+            <button disabled={tracks.length === 0} onClick={togglePlayback}>
+              {isAudioPlaying ? "stop" : "start"}
+            </button>
+            {tool}
+            <br />
+            {/* <input
             value={""}
             type="file"
             accept="audio/*"
@@ -482,121 +485,122 @@ function App() {
               loadClip(url, files[0].name);
             }}
           /> */}
-          {firebaseStoreRef && (
-            <input
-              value={""}
-              type="file"
-              accept="audio/*"
-              onChange={async function (e) {
-                const file = (e.target.files || [])[0];
-                if (!file) {
-                  console.log("NO FILE");
-                  return;
-                }
-                // Push to child path.
-                const snapshot = await firebaseStoreRef
-                  .child("images/" + file.name)
-                  .put(file, {
-                    contentType: file.type,
-                  });
+            {firebaseStoreRef && (
+              <input
+                value={""}
+                type="file"
+                accept="audio/*"
+                onChange={async function (e) {
+                  const file = (e.target.files || [])[0];
+                  if (!file) {
+                    console.log("NO FILE");
+                    return;
+                  }
+                  // Push to child path.
+                  const snapshot = await firebaseStoreRef
+                    .child("images/" + file.name)
+                    .put(file, {
+                      contentType: file.type,
+                    });
 
-                console.log("Uploaded", snapshot.totalBytes, "bytes.");
-                console.log("File metadata:", snapshot.metadata);
-                // Let's get a download URL for the file.
-                const url = await snapshot.ref.getDownloadURL();
-                console.log("File available at", url);
-                loadClip(url, file.name);
-              }}
-            />
-          )}
-          {mediaRecorder && (
-            <button
-              onClick={function () {
-                if (!isRecording) {
-                  mediaRecorder.start();
-                  setIsRecording(true);
-                } else {
-                  mediaRecorder.stop();
-                  setIsRecording(false);
-                }
-              }}
-            >
-              {!isRecording ? "record" : "stop recording"}
-            </button>
-          )}
-          <br />
-          {[
-            "viper.mp3",
-            "drums.mp3",
-            "clav.mp3",
-            "bassguitar.mp3",
-            "horns.mp3",
-            "leadguitar.mp3",
-          ].map(function (url, i) {
-            return (
-              <button
-                key={i}
-                draggable
-                onDragStart={function (ev: React.DragEvent<HTMLButtonElement>) {
-                  ev.dataTransfer.setData("text", url);
+                  console.log("Uploaded", snapshot.totalBytes, "bytes.");
+                  console.log("File metadata:", snapshot.metadata);
+                  // Let's get a download URL for the file.
+                  const url = await snapshot.ref.getDownloadURL();
+                  console.log("File available at", url);
+                  loadClip(url, file.name);
                 }}
+              />
+            )}
+            {mediaRecorder && (
+              <button
                 onClick={function () {
-                  loadClip(url);
+                  if (!isRecording) {
+                    mediaRecorder.start();
+                    setIsRecording(true);
+                  } else {
+                    mediaRecorder.stop();
+                    setIsRecording(false);
+                  }
                 }}
               >
-                load {url}
+                {!isRecording ? "record" : "stop recording"}
               </button>
-            );
-          })}
-          <br />
-          <hr />
-          <br />
-          Pressed:{" "}
-          {JSON.stringify(pressed, ["status", "clientX", "clientY"], 2)}
-          <br />
-          Cursor: {cursorPos} {selectionWidth}
-          <br />
-          Selected: {JSON.stringify(selected, [], 2)}
-          <br />
+            )}
+            <br />
+            {[
+              "viper.mp3",
+              "drums.mp3",
+              "clav.mp3",
+              "bassguitar.mp3",
+              "horns.mp3",
+              "leadguitar.mp3",
+            ].map(function (url, i) {
+              return (
+                <button
+                  key={i}
+                  draggable
+                  onDragStart={function (
+                    ev: React.DragEvent<HTMLButtonElement>
+                  ) {
+                    ev.dataTransfer.setData("text", url);
+                  }}
+                  onClick={function () {
+                    loadClip(url);
+                  }}
+                >
+                  load {url}
+                </button>
+              );
+            })}
+            <br />
+            <hr />
+            <br />
+            Pressed:{" "}
+            {JSON.stringify(pressed, ["status", "clientX", "clientY"], 2)}
+            <br />
+            Cursor: {cursorPos} {selectionWidth}
+            <br />
+            Selected: {JSON.stringify(selected, [], 2)}
+            <br />
+          </div>
+          <canvas
+            style={{ background: "black" }}
+            width={CANVAS_WIDTH}
+            height={CANVAS_HEIGHT}
+            ref={(canvas) => {
+              if (canvas == null) {
+                return;
+              }
+              const ctx = canvas.getContext("2d");
+              player.canvasCtx = ctx;
+              ctxRef.current = ctx;
+            }}
+          ></canvas>
         </div>
-        <canvas
-          style={{ background: "black" }}
-          width={CANVAS_WIDTH}
-          height={CANVAS_HEIGHT}
-          ref={(canvas) => {
-            if (canvas == null) {
-              return;
-            }
-            const ctx = canvas.getContext("2d");
-            player.canvasCtx = ctx;
-            ctxRef.current = ctx;
-          }}
-        ></canvas>
-      </div>
 
-      <div
-        id="container"
-        style={{
-          width: "100%",
-          display: "flex",
-          flexDirection: "row",
-        }}
-      >
-        {/* The whole width of this div is 90s */}
         <div
-          id="projectDiv"
-          ref={(elem) => setProjectDiv(elem)}
+          id="container"
           style={{
-            position: "relative",
-            background: "#eeeeee",
-            paddingBottom: CLIP_HEIGHT,
-            overflowX: "scroll",
             width: "100%",
+            display: "flex",
+            flexDirection: "row",
           }}
         >
-          {tracks.map(function (track, i) {
-            return (
-              <div style={{ position: "relative" }} key={i}>
+          {/* The whole width of this div is 90s */}
+          <div
+            id="projectDiv"
+            ref={(elem) => setProjectDiv(elem)}
+            style={{
+              position: "relative",
+              background: "#ddd",
+              paddingBottom: CLIP_HEIGHT,
+              overflowX: "scroll",
+              width: "100%",
+            }}
+          >
+            {tracks.map(function (track, i) {
+              return (
                 <div
                   onDrop={function (ev) {
                     ev.preventDefault();
@@ -608,7 +612,8 @@ function App() {
                   }}
                   onMouseEnter={function () {
                     console.log("Hovering over", i);
-                    if (pressed && pressed.status === "selecting") {
+                    if (pressed && pressed.status === "moving_clip") {
+                      console.log("HERE");
                       setPressed((prev) => Object.assign({}, prev, { track }));
                     }
                   }}
@@ -666,6 +671,7 @@ function App() {
                             clientY: e.clientY,
                             clip,
                             track,
+                            originalTrack: track,
                             originalClipOffsetSec: clip.startOffsetSec,
                           });
                           setSelected((prev) => {
@@ -700,97 +706,118 @@ function App() {
                       />
                     );
                   })}
+                  {/* RENDER CLIP BEING MOVED */}
+                  {pressed &&
+                    pressed.status === "moving_clip" &&
+                    pressed.track === track && (
+                      <Clip
+                        key={i}
+                        clip={pressed.clip}
+                        tool={tool}
+                        rerender={rerender}
+                        selected={true}
+                        onMouseDownToResize={function (e, from) {}}
+                        onMouseDownToDrag={function (e) {}}
+                        onRemove={function () {}}
+                        style={{
+                          position: "absolute",
+                          left: secsToPx(pressed.clip.startOffsetSec),
+                        }}
+                      />
+                    )}
                 </div>
-              </div>
-            );
-          })}
-          <div
-            // ref={cursorPosDiv}
-            style={{
-              backdropFilter: "invert(100%)",
-              height: "100%",
-              position: "absolute",
-              userSelect: "none",
-              pointerEvents: "none",
-              left:
-                selectionWidth == null || selectionWidth >= 0
-                  ? secsToPx(cursorPos)
-                  : secsToPx(cursorPos + selectionWidth),
-              width:
-                selectionWidth == null || selectionWidth === 0
-                  ? 1
-                  : secsToPx(Math.abs(selectionWidth)),
-              top: 0,
-            }}
-          ></div>
-          <div
-            ref={playbackPosDiv}
-            style={{
-              background: "red",
-              width: "1px",
-              height: "100%",
-              position: "absolute",
-              left: 0,
-              top: 0,
-            }}
-          ></div>
-        </div>
-
-        {/* Track headers */}
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            width: "120px",
-          }}
-        >
-          {tracks.map((track, i) => {
-            const isSelected =
-              selected !== null &&
-              selected.status === "tracks" &&
-              selected.test.has(track);
-            return (
-              <TrackHeader
-                isSelected={isSelected}
-                onRemove={function () {
-                  removeTrack(track);
-                }}
-                track={track}
-                onMouseDown={function () {
-                  setSelected((prev) => {
-                    const selectAdd = modifierState.meta || modifierState.shift;
-                    if (
-                      selectAdd &&
-                      prev !== null &&
-                      prev.status === "tracks"
-                    ) {
-                      prev.tracks.push(track);
-                      prev.test.add(track);
-                      return { ...prev };
-                    } else {
-                      return {
-                        status: "tracks",
-                        tracks: [track],
-                        test: new Set([track]),
-                      };
-                    }
-                  });
-                }}
-              />
-            );
-          })}
-          <div>
-            <button
-              onClick={function () {
-                setTracks((tracks) => tracks.concat([new AudioTrack()]));
+              );
+            })}
+            <div
+              // ref={cursorPosDiv}
+              style={{
+                backdropFilter: "invert(100%)",
+                height: "100%",
+                position: "absolute",
+                userSelect: "none",
+                pointerEvents: "none",
+                left:
+                  selectionWidth == null || selectionWidth >= 0
+                    ? secsToPx(cursorPos)
+                    : secsToPx(cursorPos + selectionWidth),
+                width:
+                  selectionWidth == null || selectionWidth === 0
+                    ? 1
+                    : secsToPx(Math.abs(selectionWidth)),
+                top: 0,
               }}
-            >
-              new track
-            </button>
+            ></div>
+            <div
+              ref={playbackPosDiv}
+              style={{
+                background: "red",
+                width: "1px",
+                height: "100%",
+                position: "absolute",
+                left: 0,
+                top: 0,
+              }}
+            ></div>
+          </div>
+
+          {/* Track headers */}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              width: "150px",
+            }}
+          >
+            {tracks.map((track, i) => {
+              const isSelected =
+                selected !== null &&
+                selected.status === "tracks" &&
+                selected.test.has(track);
+              return (
+                <TrackHeader
+                  isSelected={isSelected}
+                  onRemove={function () {
+                    removeTrack(track);
+                  }}
+                  onSolo={() => {}}
+                  track={track}
+                  onMouseDown={function () {
+                    setSelected((prev) => {
+                      const selectAdd =
+                        modifierState.meta || modifierState.shift;
+                      if (
+                        selectAdd &&
+                        prev !== null &&
+                        prev.status === "tracks"
+                      ) {
+                        prev.tracks.push(track);
+                        prev.test.add(track);
+                        return { ...prev };
+                      } else {
+                        return {
+                          status: "tracks",
+                          tracks: [track],
+                          test: new Set([track]),
+                        };
+                      }
+                    });
+                  }}
+                />
+              );
+            })}
+            <div>
+              <button
+                onClick={function () {
+                  setTracks((tracks) => tracks.concat([new AudioTrack()]));
+                }}
+              >
+                new track
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </RecoilRoot>
   );
 }
 

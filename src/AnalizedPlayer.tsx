@@ -2,7 +2,6 @@ import { audioContext, sampleSize } from "./globals";
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from "./App";
 // import SharedBufferWorkletNode from "./lib/shared-buffer-worklet-node";
 import { AudioTrack } from "./AudioTrack";
-import { mixDown } from "./mixDown";
 
 // sbwNode.onInitialized = () => {
 //   oscillator.connect(sbwNode).connect(context.destination);
@@ -15,6 +14,8 @@ import { mixDown } from "./mixDown";
 
 export class AnalizedPlayer {
   amplitudeArray: Uint8Array = new Uint8Array();
+
+  // Nodes
   sourceNodes: Array<AudioBufferSourceNode> = [];
   analyserNode = audioContext.createAnalyser();
   javascriptNode = audioContext.createScriptProcessor(sampleSize, 1, 1);
@@ -28,6 +29,7 @@ export class AnalizedPlayer {
     "white-noise-processor"
   );
   cursorAtPlaybackStart: number = 0;
+  cursorPos: number = 0;
 
   canvasCtx: CanvasRenderingContext2D | null = null;
   onFrame: ((playbackTime: number) => void) | null = null;
@@ -81,11 +83,10 @@ export class AnalizedPlayer {
   playTracks(tracks: Array<AudioTrack>) {
     // track sources => mixdown => analizer => etc
     this.sourceNodes = tracks.map((track) => {
-      const trackBuffer = mixDown(track.clips, 2);
-      const sourceNode = audioContext.createBufferSource();
-      sourceNode.buffer = trackBuffer;
-      sourceNode.loop = false;
+      const sourceNode = track.getSourceNode();
       sourceNode.connect(this.mixDownNode);
+      // sourceNode.connect(track.gainNode);
+      // track.gainNode.connect(this.mixDownNode);
       return sourceNode;
     });
     this.analyserNode.connect(this.javascriptNode);
@@ -114,9 +115,7 @@ export class AnalizedPlayer {
     this.javascriptNode.disconnect(audioContext.destination);
   }
 
-  cursorPos: number = 0;
   setCursorPos(seconds: number) {
-    console.log("setting", seconds);
     this.cursorPos = seconds;
   }
 }
