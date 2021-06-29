@@ -42,7 +42,7 @@ export function mixDown(
       const clipBuffer = clip.buffer.getChannelData(channelSrc);
       //last is loop for updating/summing the track buffer with the final mix buffer
       for (let j = 0; j < clip.durationFr; j++) {
-        buffer[j + clip.startOffsetFr] += clipBuffer[j + clip.startPosFr];
+        buffer[j + clip.startOffsetFr] += clipBuffer[j + clip.trimStartFr];
       }
     }
   }

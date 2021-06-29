@@ -8,6 +8,7 @@ import { AnalizedPlayer } from "./AnalizedPlayer";
 import { usePambaFirebaseStoreRef } from "./usePambaFirebaseStoreRef";
 import TrackHeader from "./ui/TrackHeader";
 import { RecoilRoot } from "recoil";
+import { jsonifyState } from "./jsonifyState";
 
 export const CANVAS_WIDTH = 512;
 export const CANVAS_HEIGHT = 256;
@@ -81,8 +82,9 @@ function App() {
   const [clipOfElem] = useState(new Map<HTMLDivElement, AudioClip>());
   const [_, setStateCounter] = useState<number>(0);
   const [tool, setTool] = useState<Tool>("move");
-  const [mediaRecorder, setMediaRecorder] =
-    useState<null | MediaRecorder>(null);
+  const [mediaRecorder, setMediaRecorder] = useState<null | MediaRecorder>(
+    null
+  );
   const [isRecording, setIsRecording] = useState(false);
   const firebaseStoreRef = usePambaFirebaseStoreRef();
   const [tracks, setTracks] = useState<Array<AudioTrack>>([]);
@@ -305,7 +307,7 @@ function App() {
               0,
               pressed.originalClipEndPosSec + deltaXSecs
             );
-            pressed.clip.endPosSec = newEndPosSec;
+            pressed.clip.trimEndSec = newEndPosSec;
           } else {
             const newStartPosSec = Math.min(
               pressed.clip.lengthSec,
@@ -315,7 +317,7 @@ function App() {
               pressed.clip.lengthSec,
               Math.max(0, pressed.originalClipOffsetSec + deltaXSecs)
             );
-            pressed.clip.startPosSec = newStartPosSec;
+            pressed.clip.trimStartSec = newStartPosSec;
             pressed.clip.startOffsetSec = newOffset;
           }
 
@@ -447,6 +449,8 @@ function App() {
     },
     [tracks, isAudioPlaying, player]
   );
+
+  const allState = jsonifyState(tracks);
 
   return (
     <RecoilRoot>
@@ -653,8 +657,8 @@ function App() {
                             status: "resizing_clip",
                             clip,
                             // IDEA: just clone and have the original clip at hand
-                            originalClipEndPosSec: clip.endPosSec,
-                            originalClipStartPosSec: clip.startPosSec,
+                            originalClipEndPosSec: clip.trimEndSec,
+                            originalClipStartPosSec: clip.trimStartSec,
                             originalClipOffsetSec: clip.startOffsetSec,
                             from,
                             clientX: e.clientX,
@@ -817,6 +821,7 @@ function App() {
           </div>
         </div>
       </div>
+      <pre>{JSON.stringify(allState, undefined, 2)}</pre>
     </RecoilRoot>
   );
 }

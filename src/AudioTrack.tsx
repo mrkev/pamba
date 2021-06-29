@@ -9,6 +9,31 @@ const assertNonNil = function <T>(val: T | null | void): T {
   return val;
 };
 
+function assertClipInvariants(clips: Array<AudioClip>) {
+  let cStart = 0;
+  let cEnd = 0;
+  for (let i = 0; i < clips.length; i++) {
+    const clip = clips[i];
+    if (clip.startOffsetSec < cStart) {
+      console.log(`Out of place clip at position ${i}!`, clip, clips);
+      throw new Error("Failed invariant: clips are not sorted.");
+    }
+
+    if (cEnd > clip.startOffsetSec) {
+      console.log(
+        `Clip at position ${i} overlaps with previous!`,
+        clip.toString(),
+        cEnd
+      );
+      console.log(`${cEnd} > ${clip.startOffsetSec}`);
+      throw new Error("Failed invariant: clips overlap.");
+    }
+
+    cStart = clip.startOffsetSec;
+    cEnd = clip.endOffsetSec;
+  }
+}
+
 let trackNo = 0;
 
 export class AudioTrack {
@@ -39,7 +64,12 @@ export class AudioTrack {
     return track;
   }
 
+  toString() {
+    return this.clips.map((c) => c.toString()).join("\n");
+  }
+
   addClip(newClip: AudioClip) {
+    console.log("adding", newClip.toString(), "\n", "into:\n", this.toString());
     // Essentially, we want to insert in order, sorted
     // by the startOffsetSec of each clip.
     let i = 0;
@@ -48,22 +78,16 @@ export class AudioTrack {
     for (; i < this.clips.length; i++) {
       prev = this.clips[i];
       next = this.clips[i + 1];
-      console.log(
-        prev?.name,
-        prev?.startOffsetSec,
-        ":",
-        newClip.name,
-        newClip.startOffsetSec,
-        ":",
-        next?.name,
-        next?.startOffsetSec
-      );
 
-      // We're inserting somewhere ahead, not here. Keep going until
+      // We want to iterate until i
       // we find a spot where if we were to keep going we'd be
       // later than the next clip
       if (next && next.startOffsetSec < newClip.startOffsetSec) {
         continue;
+      }
+
+      if (next && next.startOffsetSec === newClip.startOffsetSec) {
+        // Overlap
       }
 
       if (
@@ -77,14 +101,15 @@ export class AudioTrack {
       }
     }
 
-    console.log("inserting between", prev, "and", next);
+    console.log("inserting between", prev?.toString(), "and", next?.toString());
 
     this.deleteTime(newClip.startOffsetSec, newClip.endOffsetSec);
 
     // Insert the clip
-    this.clips.splice(i, 0, newClip);
+    this.clips.splice(i + 1, 0, newClip);
     this.mutations++;
     console.log("IN AFTER", i);
+    console.log("NEW CLIPS\n", this.toString());
 
     // if (prev && prev.endOffsetSec > newClip.startOffsetSec) {
     //   // TODO: delete time range within current clip and insert it.
@@ -97,6 +122,9 @@ export class AudioTrack {
     // if (next && next.startOffsetSec < newClip.endOffsetSec) {
     //   next.startOffsetSec = newClip.endOffsetSec;
     // }
+
+    this.mutations++;
+    assertClipInvariants(this.clips);
   }
 
   // Adds a clip right after the last clip
@@ -111,7 +139,9 @@ export class AudioTrack {
     }
 
     this.clips.push(newClip);
+
     this.mutations++;
+    assertClipInvariants(this.clips);
   }
 
   removeClip(clip: AudioClip) {
@@ -120,7 +150,9 @@ export class AudioTrack {
       return;
     }
     this.clips.splice(i, 1);
+
     this.mutations++;
+    assertClipInvariants(this.clips);
   }
 
   /** Splits a clip into two at the specified time */
@@ -139,12 +171,13 @@ export class AudioTrack {
 
     const clipAfter = clip.clone();
     clipAfter.startOffsetSec = timeSec;
-    clipAfter.startPosSec = timeSec - clip.startOffsetSec;
+    clipAfter.trimStartSec = timeSec - clip.startOffsetSec;
 
     clip.endOffsetSec = timeSec;
     this.clips.splice(i + 1, 0, clipAfter);
-    this.mutations++;
 
+    this.mutations++;
+    assertClipInvariants(this.clips);
     return [clip, clipAfter];
   }
 
@@ -200,12 +233,13 @@ export class AudioTrack {
         const [_, after] = assertNonNil(this.splitClip(current, startSec));
         const [before, __] = assertNonNil(this.splitClip(after, endSec));
         this.removeClip(before);
-        console.log("TODO: split into three");
-        // TODO: split into three
-        // remove middle part
+
         // End the loop, this is the only case and we just messed up
         // the indexes so we very much don't want to keep going
       }
     }
+
+    this.mutations++;
+    assertClipInvariants(this.clips);
   }
 }

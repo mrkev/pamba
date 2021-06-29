@@ -29,7 +29,7 @@ export function Clip({
 }: Props) {
   const width = secsToPx(clip.durationSec);
   const totalBufferWidth = secsToPx(clip.lengthSec);
-  const startTrimmedWidth = secsToPx(clip.startPosSec);
+  const startTrimmedWidth = secsToPx(clip.trimStartSec);
   const height = CLIP_HEIGHT;
 
   function onStartResize(e: React.MouseEvent<HTMLDivElement>) {
@@ -48,7 +48,7 @@ export function Clip({
     if (tool === "trimStart") {
       const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
       const asSec = pxToSecs(pxFromStartOfClip);
-      clip.startPosSec += asSec;
+      clip.trimStartSec += asSec;
       clip.startOffsetSec += asSec;
       console.log("asdfasdf");
       rerender();
@@ -56,10 +56,10 @@ export function Clip({
     if (tool === "trimEnd") {
       const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
       const secsFromStartPos = pxToSecs(pxFromStartOfClip);
-      const secsFromZero = clip.startPosSec + secsFromStartPos;
-      clip.endPosSec = secsFromZero;
+      const secsFromZero = clip.trimStartSec + secsFromStartPos;
+      clip.trimEndSec = secsFromZero;
       console.log("pxFromStartOfClip", pxFromStartOfClip, secsFromZero, "s");
-      console.log("clip.endPosSec", clip.endPosSec);
+      console.log("clip.endPosSec", clip.trimEndSec);
       rerender();
     }
   }
