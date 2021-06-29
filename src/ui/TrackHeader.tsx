@@ -1,5 +1,5 @@
 import { CLIP_HEIGHT } from "../globals";
-import type { AudioTrack } from "../AudioTrack";
+import type { AudioTrack } from "../lib/AudioTrack";
 
 type Props = {
   isSelected: boolean;

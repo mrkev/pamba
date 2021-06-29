@@ -1,28 +1,42 @@
-import { loadSound } from "./lib/loadSound";
-import { dataURLForWaveform } from "./lib/waveform";
-import { audioContext } from "./globals";
-
-// A clip of audio
-export class AudioClip {
-  readonly buffer: AudioBuffer;
+// Base clip deals with the offsets and times.
+// Allows for easier testing than having to worry
+// about and mock AudioContext, etc.
+export class BaseClip {
+  // A BaseClip represents media that has a certain length (in frames), but has
+  // been trimmed to be of another length.
   readonly lengthSec: number; // seconds, whole buffer
-  readonly length: number; // frames, whole buffer
+  readonly sampleRate: number; // how many frames per second
+  protected _startOffsetSec: number = 0; // on the timeline, the x position
+  protected _trimEndSec: number; // within the clip, time considered the end.
+  protected _trimStartSec: number = 0; // within the clip, where to start.
 
-  readonly numberOfChannels: number;
-  readonly sampleRate: number;
-
-  name: string;
-
-  toString() {
-    return `${this.startOffsetSec} [ ${this.trimStartSec} | ${this.name} | ${this.trimEndSec} ] ${this.endOffsetSec}`;
+  clone(): BaseClip {
+    const copy = new BaseClip({
+      lengthSec: this.lengthFr,
+      sampleRate: this.sampleRate,
+    });
+    copy._startOffsetSec = this._startOffsetSec;
+    copy.trimEndSec = this._trimEndSec;
+    copy._trimStartSec = this._trimStartSec;
+    return copy;
   }
 
-  // Let's not pre-compute this since we don't know the acutal dimensions
-  // but lets memoize the last size used for perf. shouldn't change.
-  private memodWaveformDataURL: { dims: [number, number]; data: string } = {
-    dims: [0, 0],
-    data: "",
-  };
+  toString() {
+    return `${this.startOffsetSec} [ ${this.trimStartSec} | -- | ${this.trimEndSec} ] ${this.endOffsetSec}`;
+  }
+
+  constructor({
+    lengthSec,
+    sampleRate,
+  }: {
+    lengthSec: number;
+    sampleRate: number;
+  }) {
+    // By default, there is no trim and the clip has offset 0
+    this.lengthSec = lengthSec;
+    this.sampleRate = sampleRate;
+    this._trimEndSec = lengthSec;
+  }
 
   private secToFr(sec: number): number {
     return Math.floor(sec * this.sampleRate);
@@ -32,11 +46,12 @@ export class AudioClip {
     return fr / this.sampleRate;
   }
 
+  get lengthFr(): number {
+    return this.secToFr(this.lengthSec);
+  }
+
   // Offset relates to the clip in the timeline
   // Pos referes to the position the audio-clip plays in an audio file
-
-  // on the timeline, the x position
-  _startOffsetSec: number = 0;
   get startOffsetFr() {
     return this.secToFr(this._startOffsetSec);
   }
@@ -71,10 +86,9 @@ export class AudioClip {
     // TODO: verify if I have to do anything with trimStartSec
   }
 
-  // Within the clip, time is considered the end.
+  //
   // min is 0, max is duration.
   // always is > trimStartSec
-  _trimEndSec: number;
   get trimEndSec() {
     return this._trimEndSec;
   }
@@ -103,10 +117,9 @@ export class AudioClip {
     return this.secToFr(this.durationSec);
   }
 
-  // within the clip, where to start.
+  //
   // min is 0, max is duration
   // always < trimEndSec
-  _trimStartSec: number = 0;
   get trimStartSec() {
     return this._trimStartSec;
   }
@@ -122,43 +135,5 @@ export class AudioClip {
   }
   set trimStartFr(f: number) {
     this._trimStartSec = this.frToSec(f);
-  }
-
-  constructor(buffer: AudioBuffer, name: string = "untitled") {
-    this.buffer = buffer;
-    this.lengthSec = buffer.duration;
-    this.length = buffer.length;
-    this.sampleRate = buffer.sampleRate;
-    this.numberOfChannels = buffer.numberOfChannels;
-    this.name = name;
-    this._trimEndSec = buffer.duration;
-  }
-
-  clone() {
-    const newClip = new AudioClip(this.buffer, this.name);
-    newClip.startOffsetSec = this.startOffsetSec;
-    newClip.trimStartSec = this.trimStartSec;
-    newClip.trimEndSec = this.trimEndSec;
-    // todo: endOffsetSec?
-    return newClip;
-  }
-
-  getWaveformDataURL(width: number, height: number) {
-    const {
-      dims: [w, h],
-      data,
-    } = this.memodWaveformDataURL;
-    if (width === w && height === h) {
-      return data;
-    }
-    const waveform = dataURLForWaveform(width, height, this.buffer);
-    this.memodWaveformDataURL = { dims: [width, height], data: waveform };
-    console.log("generated waveform for", this.name);
-    return waveform;
-  }
-
-  static async fromURL(url: string, name?: string) {
-    const buffer = await loadSound(audioContext, url);
-    return new AudioClip(buffer, name || url);
   }
 }

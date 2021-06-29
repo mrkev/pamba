@@ -1,5 +1,5 @@
 import React from "react";
-import { AudioClip } from "../AudioClip";
+import { AudioClip } from "../lib/AudioClip";
 import { Tool } from "../App";
 import { CLIP_HEIGHT, pxToSecs, secsToPx } from "../globals";
 

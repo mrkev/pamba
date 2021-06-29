@@ -1,5 +1,5 @@
 import { audioContext } from "./globals";
-import { AudioClip } from "./AudioClip";
+import { AudioClip } from "./lib/AudioClip";
 
 // from https://stackoverflow.com/questions/57155167/web-audio-api-playing-synchronized-sounds
 export function mixDown(

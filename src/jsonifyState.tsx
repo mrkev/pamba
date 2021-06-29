@@ -1,5 +1,5 @@
-import { AudioClip } from "./AudioClip";
-import { AudioTrack } from "./AudioTrack";
+import { AudioClip } from "./lib/AudioClip";
+import { AudioTrack } from "./lib/AudioTrack";
 
 export function jsonifyState(val: unknown): any {
   if (

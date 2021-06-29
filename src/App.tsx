@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import "./App.css";
 import { CLIP_HEIGHT, secsToPx, pxToSecs } from "./globals";
-import { AudioClip } from "./AudioClip";
+import { AudioClip } from "./lib/AudioClip";
 import { Clip } from "./ui/Clip";
-import { AudioTrack } from "./AudioTrack";
+import { AudioTrack } from "./lib/AudioTrack";
 import { AnalizedPlayer } from "./AnalizedPlayer";
 import { usePambaFirebaseStoreRef } from "./usePambaFirebaseStoreRef";
 import TrackHeader from "./ui/TrackHeader";
