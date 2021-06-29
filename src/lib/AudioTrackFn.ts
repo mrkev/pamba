@@ -113,7 +113,7 @@ export function deleteTime(
     throw new Error("Invariant Violation: startSec > endSec in deleteTime");
   }
 
-  // deletes/trims clips to make time from startSec to endSec be blank
+  // deletes/trims clips to make the time from startSec to endSec be blank
 
   const toRemove = [];
 
@@ -152,13 +152,23 @@ export function deleteTime(
       current.startOffsetSec < endSec &&
       endSec < current.endOffsetSec
     ) {
+      // console.log("CLIPS HERE\n", printClips(clips));
       const [_, after] = nullthrows(splitClip(current, startSec, clips));
+      // console.log("CLIPS HERE\n", printClips(clips));
+
       const [before, __] = nullthrows(splitClip(after, endSec, clips));
+      // console.log("CLIPS HERE\n", printClips(clips));
+
+      // console.log("BEFORE", before.toString(), "aaaaaaaa", __.toString());
       removeClip(before, clips);
 
       // End the loop, this is the only case and we just messed up
       // the indexes so we very much don't want to keep going
     }
+  }
+
+  for (let clip of toRemove) {
+    removeClip(clip, clips);
   }
 
   assertClipInvariants(clips);
@@ -188,15 +198,22 @@ export function splitClip<T extends BaseClip>(
     return null;
   }
 
+  // console.log(`HERE ${timeSec}\n`, printClips(clips));
+
   //         [         clip         |     clipAfter    ]
   // ^0:00   ^clip.startOffsetSec   ^timeSec
 
   const clipAfter = clip.clone();
-  clipAfter.startOffsetSec = timeSec;
-  clipAfter.trimStartSec = timeSec - clip.startOffsetSec;
+  const delta = timeSec - clipAfter.startOffsetSec;
 
+  clipAfter.startOffsetSec = timeSec;
+  clipAfter.trimStartSec = clipAfter.trimStartSec + delta;
   clip.endOffsetSec = timeSec;
+
   clips.splice(i + 1, 0, clipAfter);
+
+  // console.log(`HERE2 ${timeSec}\n`, printClips(clips));
+
   assertClipInvariants(clips);
   return [clip, clipAfter];
 }

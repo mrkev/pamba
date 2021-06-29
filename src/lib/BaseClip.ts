@@ -72,17 +72,18 @@ export class BaseClip {
   get endOffsetSec() {
     return this.startOffsetSec + this.durationSec;
   }
-  set endOffsetSec(secs: number) {
-    if (secs < this.startOffsetSec) {
+  set endOffsetSec(newEnd: number) {
+    if (newEnd < this.startOffsetSec) {
       throw new Error("Can't set endOffsetSec to be before startOffsetSec");
     }
 
-    //                    [          clip           ]
+    //                    [          clip       |    ]
     //                    +--------trimEndSec--------+
     // +--startOffsetSec--+
     // +---------------endOffsetSec-----------------+
     // ^0:00
-    this._trimEndSec = secs - this.startOffsetSec;
+    const delta = this.endOffsetSec - newEnd;
+    this._trimEndSec = this._trimEndSec - delta;
     // TODO: verify if I have to do anything with trimStartSec
   }
 
@@ -135,5 +136,13 @@ export class BaseClip {
   }
   set trimStartFr(f: number) {
     this._trimStartSec = this.frToSec(f);
+  }
+
+  moveToOffsetSec(s: number) {
+    this.startOffsetSec = s;
+  }
+
+  trimToOffsetSec(s: number) {
+    // TODO
   }
 }

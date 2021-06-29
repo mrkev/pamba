@@ -6,6 +6,7 @@ import {
   pushClip,
   assertClipInvariants,
   printClips,
+  splitClip,
 } from "../AudioTrackFn";
 
 function clip(startOffset, endOffset) {
@@ -151,5 +152,49 @@ describe("addClip", () => {
     expect(all.length).toBe(3);
     expect(all[0].endOffsetSec).toBe(2);
     expect(all[2].startOffsetSec).toBe(8);
+  });
+});
+
+describe("splitClip", () => {
+  it("splits a clip, idk", () => {
+    const foo = clip(0, 10);
+    const all = [foo];
+    splitClip(foo, 5, all);
+
+    expect(all.length).toBe(2);
+    expect(all[0].startOffsetSec).toBe(0);
+    expect(all[0].endOffsetSec).toBe(5);
+    expect(all[1].startOffsetSec).toBe(5);
+    expect(all[1].endOffsetSec).toBe(10);
+  });
+
+  it("returns the two clips", () => {
+    const foo = clip(0, 10);
+    const all = [foo];
+
+    const [before, after] = splitClip(foo, 5, all);
+
+    expect(all.length).toBe(2);
+    expect(all).toContain(before);
+    expect(all).toContain(after);
+    expect(before.startOffsetSec).toBe(0);
+    expect(before.endOffsetSec).toBe(5);
+    expect(after.startOffsetSec).toBe(5);
+    expect(after.endOffsetSec).toBe(10);
+  });
+
+  it("splits a clip with start offset, chained", () => {
+    const foo = clip(2, 8);
+    const all = [foo];
+    const [_before, after] = splitClip(foo, 4, all);
+    splitClip(after, 6, all);
+
+    expect(all.length).toBe(3);
+    expect(all[0].startOffsetSec).toBe(2);
+    expect(all[0].endOffsetSec).toBe(4);
+    expect(all[1].startOffsetSec).toBe(4);
+    expect(all[1].endOffsetSec).toBe(6);
+    expect(all[2].startOffsetSec).toBe(6);
+    expect(all[2].endOffsetSec).toBe(8);
   });
 });
