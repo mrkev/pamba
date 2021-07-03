@@ -15,8 +15,53 @@ export class AudioTrack {
   // - Non-overlapping clips.
   clips: Array<AudioClip> = [];
 
-  gainNode: GainNode = new GainNode(audioContext);
+  // if audo is playing, this is the soruce with the playing buffer
+  private playingSource: AudioBufferSourceNode | null = null;
+  private gainNode: GainNode = new GainNode(audioContext);
+  private outNode: AudioNode | null = null;
 
+  getCurrentGain(): AudioParam {
+    return this.gainNode.gain;
+  }
+
+  setGain(val: number): void {
+    this.gainNode.gain.value = val;
+  }
+
+  //////////// Playback ////////////
+
+  setAudioOut(node: AudioNode): void {
+    this.outNode = node;
+  }
+
+  startPlayback(offset?: number): void {
+    if (!this.outNode) {
+      console.warn("No out node for this track!", this);
+      return;
+    }
+    this.playingSource = this.getSourceNode();
+    this.playingSource.connect(this.gainNode);
+    this.gainNode.connect(this.outNode);
+    this.playingSource.start(0, offset); // Play the sound now
+  }
+
+  stopPlayback(): void {
+    if (!this.playingSource) {
+      console.warn("Stopping but no playingSource on track", this);
+      return;
+    }
+    if (!this.outNode) {
+      console.warn("Stopping but not outputing to any node", this);
+      return;
+    }
+
+    this.playingSource.stop(0);
+
+    this.playingSource.disconnect(this.gainNode);
+    this.gainNode.disconnect(this.outNode);
+  }
+
+  // TODO: I think I can keep 'trackBuffer' between plays
   getSourceNode(): AudioBufferSourceNode {
     const trackBuffer = mixDown(this.clips, 2);
     const sourceNode = audioContext.createBufferSource();
@@ -25,6 +70,8 @@ export class AudioTrack {
     sourceNode.connect(this.gainNode);
     return sourceNode;
   }
+
+  //////////// UTILITY ////////////
 
   // New track with a single clip
   static fromClip(clip: AudioClip) {
@@ -37,8 +84,9 @@ export class AudioTrack {
     return this.clips.map((c) => c.toString()).join("\n");
   }
 
+  //////////// CLIPS ////////////
+
   addClip(newClip: AudioClip) {
-    console.log("adding", newClip.toString(), "\n", "into:\n", this.toString());
     addClip(newClip, this.clips);
     this.mutations++;
   }

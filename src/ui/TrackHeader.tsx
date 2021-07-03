@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { CLIP_HEIGHT } from "../globals";
 import type { AudioTrack } from "../lib/AudioTrack";
 
@@ -16,6 +17,8 @@ export default function TrackHeader({
   onSolo,
   track,
 }: Props) {
+  const [gain, setGain] = useState<number>(track.getCurrentGain().value);
+
   return (
     <div
       style={{
@@ -38,7 +41,18 @@ export default function TrackHeader({
       <button onClick={onSolo} disabled>
         S
       </button>
-      <input type="range" disabled />
+      <input
+        type="range"
+        max={2}
+        min={0}
+        step="any"
+        value={gain}
+        onChange={(e) => {
+          const val = parseFloat(e.target.value);
+          setGain(val);
+          track.setGain(val);
+        }}
+      />
     </div>
   );
 }

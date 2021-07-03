@@ -80,35 +80,37 @@ export class AnalizedPlayer {
     ctx.fillText(String(playbackTime), 20, 20);
   }
 
+  playingTracks: Array<AudioTrack> | null = null;
   playTracks(tracks: Array<AudioTrack>) {
-    // track sources => mixdown => analizer => etc
-    this.sourceNodes = tracks.map((track) => {
-      const sourceNode = track.getSourceNode();
-      sourceNode.connect(this.mixDownNode);
-      // sourceNode.connect(track.gainNode);
-      // track.gainNode.connect(this.mixDownNode);
-      return sourceNode;
-    });
+    for (let track of tracks) {
+      track.setAudioOut(this.mixDownNode);
+    }
+
     this.analyserNode.connect(this.javascriptNode);
     this.javascriptNode.connect(audioContext.destination);
 
     this.cursorAtPlaybackStart = this.cursorPos;
 
-    for (let sourceNode of this.sourceNodes) {
-      sourceNode.start(0, this.cursorPos); // Play the sound now
+    for (let track of tracks) {
+      track.startPlayback(this.cursorPos);
     }
+    this.playingTracks = tracks;
 
     this.CTX_PLAY_START_TIME = audioContext.currentTime;
     this.isAudioPlaying = true;
   }
 
   stopSound() {
+    if (!this.playingTracks) {
+      console.warn("Stopping but no playing tracks on player");
+      return;
+    }
+
     if (this.isAudioPlaying === false) {
       return;
     }
-    for (let sourceNode of this.sourceNodes) {
-      sourceNode.stop(0);
-      sourceNode.disconnect(this.mixDownNode);
+    for (let track of this.playingTracks) {
+      track.stopPlayback();
     }
     this.isAudioPlaying = false;
     this.analyserNode.disconnect(this.javascriptNode);

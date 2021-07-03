@@ -408,7 +408,11 @@ function App() {
     [tracks, isAudioPlaying, player]
   );
 
-  const allState = tracks.map((track) => track.toString()).join("\n");
+  const allState = tracks
+    .map((track, i) => {
+      return `Track ${i}:\n${track.toString()}\n`;
+    })
+    .join("\n");
 
   return (
     <RecoilRoot>
