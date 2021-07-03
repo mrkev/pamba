@@ -131,6 +131,7 @@ describe("addClip", () => {
     expect(all).toContain(foo);
     expect(all.indexOf(foo)).toEqual(0);
     expect(all[1].startOffsetSec).toEqual(10);
+    expect(all[1].endOffsetSec).toEqual(15);
   });
 
   it("adds correctly when wide overlap over another clip", () => {

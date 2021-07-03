@@ -11,7 +11,11 @@ export class AudioClip extends BaseClip {
   name: string;
 
   toString() {
-    return `${this.startOffsetSec} [ ${this.trimStartSec} | ${this.name} | ${this.trimEndSec} ] ${this.endOffsetSec}`;
+    return `${this.startOffsetSec.toFixed(2)} [ ${this.trimStartSec.toFixed(
+      2
+    )} | ${this.name} | ${this.trimEndSec.toFixed(
+      2
+    )} ] ${this.endOffsetSec.toFixed(2)}`;
   }
 
   // Let's not pre-compute this since we don't know the acutal dimensions

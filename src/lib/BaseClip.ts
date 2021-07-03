@@ -142,7 +142,18 @@ export class BaseClip {
     this.startOffsetSec = s;
   }
 
-  trimToOffsetSec(s: number) {
-    // TODO
+  trimToOffsetSec(timeSec: number) {
+    if (timeSec < this.startOffsetSec) {
+      return;
+    }
+
+    if (timeSec > this.endOffsetSec) {
+      throw new Error("trimming past end time");
+    }
+
+    const delta = timeSec - this.startOffsetSec;
+
+    this.startOffsetSec = timeSec;
+    this.trimStartSec = this.trimStartSec + delta;
   }
 }

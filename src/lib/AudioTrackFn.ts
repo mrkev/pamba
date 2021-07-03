@@ -70,17 +70,6 @@ export function addClip(newClip: BaseClip, clips: Array<BaseClip>) {
     }
   }
 
-  // if (i === clips.length) {
-  //   console.log(`at the end: ${i}`);
-  // } else {
-  //   console.log(
-  //     `inserting here:\n   ${i - 1}:`,
-  //     prev?.toString(),
-  //     `\n-->\n   ${i}:`,
-  //     next?.toString()
-  //   );
-  // }
-
   deleteTime(newClip.startOffsetSec, newClip.endOffsetSec, clips);
 
   // Insert the clip
@@ -100,6 +89,10 @@ export function addClip(newClip: BaseClip, clips: Array<BaseClip>) {
   assertClipInvariants(clips);
 }
 
+/**
+ * deletes/trims clips as necessary to make the time from
+ * startSec to endSec is blank
+ */
 export function deleteTime(
   startSec: number,
   endSec: number,
@@ -112,8 +105,6 @@ export function deleteTime(
   if (startSec > endSec) {
     throw new Error("Invariant Violation: startSec > endSec in deleteTime");
   }
-
-  // deletes/trims clips to make the time from startSec to endSec be blank
 
   const toRemove = [];
 
@@ -133,7 +124,7 @@ export function deleteTime(
 
     // Trim the start of the clip
     if (remStart) {
-      current.startOffsetSec = endSec;
+      current.trimToOffsetSec(endSec);
       continue;
     }
 
@@ -174,6 +165,9 @@ export function deleteTime(
   assertClipInvariants(clips);
 }
 
+/**
+ * Deletes a clip
+ */
 export function removeClip(clip: BaseClip, clips: Array<BaseClip>): void {
   const i = clips.indexOf(clip);
   if (i === -1) {
@@ -183,7 +177,9 @@ export function removeClip(clip: BaseClip, clips: Array<BaseClip>): void {
   assertClipInvariants(clips);
 }
 
-/** Splits a clip into two at the specified time */
+/**
+ * Splits a clip into two at the specified time
+ */
 export function splitClip<T extends BaseClip>(
   clip: T,
   timeSec: number,
@@ -198,26 +194,23 @@ export function splitClip<T extends BaseClip>(
     return null;
   }
 
-  // console.log(`HERE ${timeSec}\n`, printClips(clips));
-
   //         [         clip         |     clipAfter    ]
   // ^0:00   ^clip.startOffsetSec   ^timeSec
 
   const clipAfter = clip.clone();
-  const delta = timeSec - clipAfter.startOffsetSec;
 
-  clipAfter.startOffsetSec = timeSec;
-  clipAfter.trimStartSec = clipAfter.trimStartSec + delta;
+  clipAfter.trimToOffsetSec(timeSec);
   clip.endOffsetSec = timeSec;
 
   clips.splice(i + 1, 0, clipAfter);
-
-  // console.log(`HERE2 ${timeSec}\n`, printClips(clips));
 
   assertClipInvariants(clips);
   return [clip, clipAfter];
 }
 
+/**
+ * Adds a clip right after the last clip
+ */
 export function pushClip(newClip: BaseClip, clips: Array<BaseClip>): void {
   const lastClip = clips.length > 0 ? clips[clips.length - 1] : null;
 

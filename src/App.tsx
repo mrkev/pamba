@@ -8,7 +8,7 @@ import { AnalizedPlayer } from "./AnalizedPlayer";
 import { usePambaFirebaseStoreRef } from "./usePambaFirebaseStoreRef";
 import TrackHeader from "./ui/TrackHeader";
 import { RecoilRoot } from "recoil";
-import { jsonifyState } from "./jsonifyState";
+import { useMediaRecorder } from "./lib/useMediaRecorder";
 
 export const CANVAS_WIDTH = 512;
 export const CANVAS_HEIGHT = 256;
@@ -79,12 +79,9 @@ function App() {
   const [selectionWidth, setSelectionWidth] = useState<null | number>(null);
   const selectionWidthRef = useRef<null | number>(null);
   // const [audioBuffer, setAudioBuffer] = useState<null | AudioBuffer>(null);
-  const [clipOfElem] = useState(new Map<HTMLDivElement, AudioClip>());
   const [_, setStateCounter] = useState<number>(0);
   const [tool, setTool] = useState<Tool>("move");
-  const [mediaRecorder, setMediaRecorder] = useState<null | MediaRecorder>(
-    null
-  );
+
   const [isRecording, setIsRecording] = useState(false);
   const firebaseStoreRef = usePambaFirebaseStoreRef();
   const [tracks, setTracks] = useState<Array<AudioTrack>>([]);
@@ -162,275 +159,236 @@ function App() {
   },
   []);
 
-  // Microphone recording
-  useEffect(
-    function () {
-      navigator.mediaDevices
-        .getUserMedia({
-          audio: true,
-        })
-        .then(function (mediaStream: MediaStream) {
-          let chunks: Array<BlobPart> = [];
-          const mediaRecorder = new MediaRecorder(mediaStream);
-          mediaRecorder.ondataavailable = function (e) {
-            chunks.push(e.data);
-          };
-          mediaRecorder.onstop = function (e) {
-            console.log("data available after MediaRecorder.stop() called.");
-            const blob = new Blob(chunks, { type: "audio/ogg; codecs=opus" });
-            chunks = [];
-            const audioURL = window.URL.createObjectURL(blob);
-            // audio.src = audioURL;
-            loadClip(audioURL, "recording");
-            console.log("recorder stopped");
-          };
-          setMediaRecorder(mediaRecorder);
-        })
-        .catch(console.error);
-    },
-    [loadClip]
-  );
+  const mediaRecorder = useMediaRecorder(loadClip);
 
-  useEffect(
-    function () {
-      if (!projectDiv) {
+  useEffect(() => {
+    if (!projectDiv) {
+      return;
+    }
+
+    const mouseDownEvent = function (e: MouseEvent) {
+      // currentTarget should always be the element the event is attatched to,
+      // so our project div.
+      const { target, currentTarget } = e;
+      if (
+        !(target instanceof HTMLDivElement) ||
+        !(currentTarget instanceof HTMLDivElement)
+      ) {
+        console.log("WOOP");
         return;
       }
 
-      const mouseDownEvent = function (e: MouseEvent) {
-        // currentTarget should always be the element the event is attatched to,
-        // so our project div.
-        const { target, currentTarget } = e;
-        if (
-          !(target instanceof HTMLDivElement) ||
-          !(currentTarget instanceof HTMLDivElement)
-        ) {
-          console.log("WOOP");
+      // On a child element
+      if (e.target !== e.currentTarget) {
+        // drag clips around
+      }
+
+      // On the project div element
+      else {
+        const div = e.currentTarget;
+        if (!(div instanceof HTMLDivElement)) return;
+        const position = {
+          x: e.clientX + div.scrollLeft - div.getBoundingClientRect().x,
+          y: e.clientY + div.scrollTop - div.getBoundingClientRect().y,
+        };
+        const asSecs = pxToSecs(position.x);
+        player.setCursorPos(asSecs);
+        setCursorPos(asSecs);
+
+        setSelectionWidth(null);
+        selectionWidthRef.current = null;
+        setPressed({
+          status: "selecting",
+          clientX: e.clientX,
+          clientY: e.clientY,
+        });
+        setSelected(null);
+      }
+    };
+
+    const mouseUpEvent = function (e: MouseEvent) {
+      if (!pressed) {
+        return;
+      }
+
+      if (pressed.status === "moving_clip") {
+        pressed.track.deleteTime(
+          pressed.clip.startOffsetSec,
+          pressed.clip.endOffsetSec
+        );
+        pressed.originalTrack.removeClip(pressed.clip);
+        pressed.track.addClip(pressed.clip);
+
+        // const deltaX = e.clientX - pressed.clientX;
+        // const asSecs = pxToSecs(deltaX);
+        // const newOffset = pressed.clip.startOffsetSec + asSecs;
+        // // console.log(newOffset)
+        // pressed.clip.startOffsetSec = newOffset <= 0 ? 0 : newOffset;
+        setPressed(null);
+      }
+
+      if (pressed.status === "selecting") {
+        setPressed(null);
+        const curSel = selectionWidthRef.current;
+        if (curSel == null || curSel > 0) {
           return;
         }
 
-        // pressed = {
-        //   elem: currentTarget,
-        //   startClientX: e.clientX,
-        //   startClientY: e.clientY,
-        //   clip: clipOfElem.get(target) ?? null,
-        // };
-        // On a child element
-        if (e.target !== e.currentTarget) {
-          // drag clips around
-        }
+        // Move the cursor to the beggining of the selection
+        // and make the selection positive
+        setCursorPos((pos) => {
+          player.setCursorPos(pos + curSel);
+          return pos + curSel;
+        });
 
-        // On the project div element
-        else {
-          const div = e.currentTarget;
-          if (!(div instanceof HTMLDivElement)) return;
-          const position = {
-            x: e.clientX + div.scrollLeft - div.getBoundingClientRect().x,
-            y: e.clientY + div.scrollTop - div.getBoundingClientRect().y,
-          };
-          const asSecs = pxToSecs(position.x);
-          player.setCursorPos(asSecs);
-          setCursorPos(asSecs);
+        setSelectionWidth(Math.abs(curSel));
+      }
 
-          setSelectionWidth(null);
-          selectionWidthRef.current = null;
-          setPressed({
-            status: "selecting",
-            clientX: e.clientX,
-            clientY: e.clientY,
-          });
-          setSelected(null);
-        }
-      };
+      if (pressed.status === "resizing_clip") {
+        setPressed(null);
+      }
+    };
 
-      const mouseUpEvent = function (e: MouseEvent) {
-        if (!pressed) {
-          return;
-        }
+    const mouseMoveEvent = function (e: MouseEvent) {
+      if (!pressed) {
+        return;
+      }
+      if (pressed.status === "moving_clip") {
+        const deltaXSecs = pxToSecs(e.clientX - pressed.clientX);
+        const newOffset = Math.max(
+          0,
+          pressed.originalClipOffsetSec + deltaXSecs
+        );
+        pressed.clip.startOffsetSec = newOffset;
+        setStateCounter((x) => x + 1);
+      }
 
-        if (pressed.status === "moving_clip") {
-          pressed.track.deleteTime(
-            pressed.clip.startOffsetSec,
-            pressed.clip.endOffsetSec
+      if (pressed.status === "resizing_clip") {
+        const deltaXSecs = pxToSecs(e.clientX - pressed.clientX);
+        if (pressed.from === "end") {
+          const newEndPosSec = Math.max(
+            0,
+            pressed.originalClipEndPosSec + deltaXSecs
           );
-          pressed.originalTrack.removeClip(pressed.clip);
-          pressed.track.addClip(pressed.clip);
-
-          // const deltaX = e.clientX - pressed.clientX;
-          // const asSecs = pxToSecs(deltaX);
-          // const newOffset = pressed.clip.startOffsetSec + asSecs;
-          // // console.log(newOffset)
-          // pressed.clip.startOffsetSec = newOffset <= 0 ? 0 : newOffset;
-          setPressed(null);
+          pressed.clip.trimEndSec = newEndPosSec;
+        } else {
+          const newStartPosSec = Math.min(
+            pressed.clip.lengthSec,
+            pressed.originalClipStartPosSec + deltaXSecs
+          );
+          const newOffset = Math.min(
+            pressed.clip.lengthSec,
+            Math.max(0, pressed.originalClipOffsetSec + deltaXSecs)
+          );
+          pressed.clip.trimStartSec = newStartPosSec;
+          pressed.clip.startOffsetSec = newOffset;
         }
 
-        if (pressed.status === "selecting") {
-          setPressed(null);
-          const curSel = selectionWidthRef.current;
-          if (curSel == null || curSel > 0) {
+        setStateCounter((x) => x + 1);
+      }
+
+      if (pressed.status === "selecting") {
+        const deltaXSecs = pxToSecs(e.clientX - pressed.clientX);
+        setSelectionWidth(deltaXSecs);
+        selectionWidthRef.current = deltaXSecs;
+      }
+    };
+
+    projectDiv.addEventListener("mousedown", mouseDownEvent);
+    document.addEventListener("mouseup", mouseUpEvent);
+    document.addEventListener("mousemove", mouseMoveEvent);
+    return () => {
+      projectDiv.removeEventListener("mousedown", mouseDownEvent);
+      document.removeEventListener("mouseup", mouseUpEvent);
+      document.removeEventListener("mousemove", mouseMoveEvent);
+    };
+  }, [player, pressed, projectDiv]);
+
+  useEffect(() => {
+    function keydownEvent(e: KeyboardEvent) {
+      // console.log(e.code);
+      switch (e.code) {
+        case "ShiftLeft":
+        case "ShiftRight":
+          modifierState.shift = true;
+          break;
+        case "MetaLeft":
+        case "MetaRight":
+          modifierState.meta = true;
+          break;
+
+        case "Backspace":
+          if (!selected) {
             return;
           }
-
-          // Move the cursor to the beggining of the selection
-          // and make the selection positive
-          setCursorPos((pos) => {
-            player.setCursorPos(pos + curSel);
-            return pos + curSel;
-          });
-
-          setSelectionWidth(Math.abs(curSel));
-        }
-
-        if (pressed.status === "resizing_clip") {
-          setPressed(null);
-        }
-      };
-
-      const mouseMoveEvent = function (e: MouseEvent) {
-        if (!pressed) {
-          return;
-        }
-        if (pressed.status === "moving_clip") {
-          const deltaXSecs = pxToSecs(e.clientX - pressed.clientX);
-          const newOffset = Math.max(
-            0,
-            pressed.originalClipOffsetSec + deltaXSecs
-          );
-          pressed.clip.startOffsetSec = newOffset;
-          setStateCounter((x) => x + 1);
-        }
-
-        if (pressed.status === "resizing_clip") {
-          const deltaXSecs = pxToSecs(e.clientX - pressed.clientX);
-          if (pressed.from === "end") {
-            const newEndPosSec = Math.max(
-              0,
-              pressed.originalClipEndPosSec + deltaXSecs
-            );
-            pressed.clip.trimEndSec = newEndPosSec;
-          } else {
-            const newStartPosSec = Math.min(
-              pressed.clip.lengthSec,
-              pressed.originalClipStartPosSec + deltaXSecs
-            );
-            const newOffset = Math.min(
-              pressed.clip.lengthSec,
-              Math.max(0, pressed.originalClipOffsetSec + deltaXSecs)
-            );
-            pressed.clip.trimStartSec = newStartPosSec;
-            pressed.clip.startOffsetSec = newOffset;
+          if (selected.status === "clips") {
+            for (let { clip, track } of selected.clips) {
+              console.log("remove", selected);
+              removeClip(clip, track);
+            }
+          }
+          if (selected.status === "tracks") {
+            for (let track of selected.tracks) {
+              console.log("remove", selected);
+              removeTrack(track);
+            }
           }
 
-          setStateCounter((x) => x + 1);
-        }
-
-        if (pressed.status === "selecting") {
-          const deltaXSecs = pxToSecs(e.clientX - pressed.clientX);
-          setSelectionWidth(deltaXSecs);
-          selectionWidthRef.current = deltaXSecs;
-        }
-      };
-
-      projectDiv.addEventListener("mousedown", mouseDownEvent);
-      document.addEventListener("mouseup", mouseUpEvent);
-      document.addEventListener("mousemove", mouseMoveEvent);
-      return () => {
-        projectDiv.removeEventListener("mousedown", mouseDownEvent);
-        document.removeEventListener("mouseup", mouseUpEvent);
-        document.removeEventListener("mousemove", mouseMoveEvent);
-      };
-    },
-    [clipOfElem, player, pressed, projectDiv]
-  );
-
-  useEffect(
-    function () {
-      function keydownEvent(e: KeyboardEvent) {
-        // console.log(e.code);
-        switch (e.code) {
-          case "ShiftLeft":
-          case "ShiftRight":
-            modifierState.shift = true;
-            break;
-          case "MetaLeft":
-          case "MetaRight":
-            modifierState.meta = true;
-            break;
-
-          case "Backspace":
-            if (!selected) {
-              return;
-            }
-            if (selected.status === "clips") {
-              for (let { clip, track } of selected.clips) {
-                console.log("remove", selected);
-                removeClip(clip, track);
-              }
-            }
-            if (selected.status === "tracks") {
-              for (let track of selected.tracks) {
-                console.log("remove", selected);
-                removeTrack(track);
-              }
-            }
-
-            console.log(selectionWidthRef.current);
-            break;
-        }
+          console.log(selectionWidthRef.current);
+          break;
       }
+    }
 
-      function keyupEvent(e: KeyboardEvent) {
-        switch (e.code) {
-          case "ShiftLeft":
-          case "ShiftRight":
-            modifierState.shift = false;
-            break;
-          case "MetaLeft":
-          case "MetaRight":
-            modifierState.meta = false;
-            break;
-        }
+    function keyupEvent(e: KeyboardEvent) {
+      switch (e.code) {
+        case "ShiftLeft":
+        case "ShiftRight":
+          modifierState.shift = false;
+          break;
+        case "MetaLeft":
+        case "MetaRight":
+          modifierState.meta = false;
+          break;
       }
+    }
 
-      function keypressEvent(e: KeyboardEvent) {
-        switch (e.code) {
-          case "KeyM":
-            setTool("move");
-            break;
-          case "KeyS":
-            setTool("trimStart");
-            break;
-          case "KeyE":
-            setTool("trimEnd");
-            break;
-          default:
-            console.log(e.code);
-        }
-        if (e.code === "Space") {
-          togglePlayback();
-        }
+    function keypressEvent(e: KeyboardEvent) {
+      switch (e.code) {
+        case "KeyM":
+          setTool("move");
+          break;
+        case "KeyS":
+          setTool("trimStart");
+          break;
+        case "KeyE":
+          setTool("trimEnd");
+          break;
+        default:
+          console.log(e.code);
       }
+      if (e.code === "Space") {
+        togglePlayback();
+      }
+    }
 
-      document.addEventListener("keydown", keydownEvent);
-      document.addEventListener("keypress", keypressEvent);
-      document.addEventListener("keyup", keyupEvent);
-      return function () {
-        document.removeEventListener("keydown", keydownEvent);
-        document.removeEventListener("keypress", keypressEvent);
-        document.removeEventListener("keyup", keyupEvent);
-      };
-    },
-    [selected, togglePlayback]
-  );
+    document.addEventListener("keydown", keydownEvent);
+    document.addEventListener("keypress", keypressEvent);
+    document.addEventListener("keyup", keyupEvent);
+    return function () {
+      document.removeEventListener("keydown", keydownEvent);
+      document.removeEventListener("keypress", keypressEvent);
+      document.removeEventListener("keyup", keyupEvent);
+    };
+  }, [selected, togglePlayback]);
 
-  useEffect(function () {
+  useEffect(() => {
     player.onFrame = function (playbackTime) {
       const pbdiv = playbackPosDiv.current;
       if (pbdiv) {
         pbdiv.style.left = String(secsToPx(playbackTime)) + "px";
       }
     };
-  }, []);
+  }, [player]);
 
   useEffect(
     function () {
@@ -450,7 +408,7 @@ function App() {
     [tracks, isAudioPlaying, player]
   );
 
-  const allState = jsonifyState(tracks);
+  const allState = tracks.map((track) => track.toString()).join("\n");
 
   return (
     <RecoilRoot>
@@ -821,7 +779,7 @@ function App() {
           </div>
         </div>
       </div>
-      <pre>{JSON.stringify(allState, undefined, 2)}</pre>
+      <pre>{allState}</pre>
     </RecoilRoot>
   );
 }
