@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CLIP_HEIGHT } from "../globals";
+import type { AudioProject } from "../lib/AudioProject";
 import type { AudioTrack } from "../lib/AudioTrack";
 
 type Props = {
@@ -8,6 +9,7 @@ type Props = {
   onRemove: () => void;
   onSolo: () => void;
   track: AudioTrack;
+  project: AudioProject;
 };
 
 export default function TrackHeader({
@@ -16,6 +18,7 @@ export default function TrackHeader({
   onRemove,
   onSolo,
   track,
+  project,
 }: Props) {
   const [gain, setGain] = useState<number>(track.getCurrentGain().value);
   const [muted, setMuted] = useState<boolean>(false);
@@ -38,7 +41,7 @@ export default function TrackHeader({
       >
         <button onClick={onRemove}>x</button> {track.name}
       </div>
-      <button onClick={onSolo} disabled>
+      <button onClick={function () {}} disabled>
         S
       </button>
       <button

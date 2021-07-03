@@ -9,6 +9,8 @@ import { usePambaFirebaseStoreRef } from "./usePambaFirebaseStoreRef";
 import TrackHeader from "./ui/TrackHeader";
 import { RecoilRoot } from "recoil";
 import { useMediaRecorder } from "./lib/useMediaRecorder";
+import { AudioProject } from "./lib/AudioProject";
+import { useLinkedState } from "./lib/LinkedState";
 
 export const CANVAS_WIDTH = 512;
 export const CANVAS_HEIGHT = 256;
@@ -55,6 +57,28 @@ type SelectionState =
       test: Set<AudioTrack>;
     };
 
+function stringOfSelected(sel: SelectionState | null): string {
+  if (!sel) {
+    return "";
+  }
+
+  switch (sel.status) {
+    case "clips":
+      return JSON.stringify({
+        ...sel,
+        clips: sel.clips.map(({ clip }) => clip.toString()),
+      });
+
+    case "tracks":
+      return JSON.stringify({
+        ...sel,
+        tracks: sel.tracks.map((track) => track.toString()),
+      });
+  }
+
+  return JSON.stringify(sel);
+}
+
 type ModifierState = {
   shift: boolean;
   meta: boolean;
@@ -70,7 +94,6 @@ const modifierState: ModifierState = {
 };
 
 function App() {
-  // const [ctx, setCtx] = useState<null | CanvasRenderingContext2D>(null);
   const ctxRef = useRef<null | CanvasRenderingContext2D>(null);
   const playbackPosDiv = useRef<null | HTMLDivElement>(null);
   const [projectDiv, setProjectDiv] = useState<null | HTMLDivElement>(null);
@@ -78,14 +101,14 @@ function App() {
   const [cursorPos, setCursorPos] = useState(0);
   const [selectionWidth, setSelectionWidth] = useState<null | number>(null);
   const selectionWidthRef = useRef<null | number>(null);
-  // const [audioBuffer, setAudioBuffer] = useState<null | AudioBuffer>(null);
   const [_, setStateCounter] = useState<number>(0);
   const [tool, setTool] = useState<Tool>("move");
-
   const [isRecording, setIsRecording] = useState(false);
   const firebaseStoreRef = usePambaFirebaseStoreRef();
-  const [tracks, setTracks] = useState<Array<AudioTrack>>([]);
+  // const [tracks, setTracks] = useState<Array<AudioTrack>>([]);
   const [player] = useState<AnalizedPlayer>(() => new AnalizedPlayer());
+  const [project] = useState(() => new AudioProject());
+  const [tracks, setTracks] = useLinkedState(project.tracks);
 
   function rerender() {
     setStateCounter((x) => x + 1);
@@ -93,6 +116,8 @@ function App() {
 
   const [pressed, setPressed] = useState<CursorState | null>(null);
   const [selected, setSelected] = useState<SelectionState | null>(null);
+
+  (window as any).s = selected;
 
   const togglePlayback = useCallback(
     function togglePlayback() {
@@ -108,7 +133,9 @@ function App() {
 
   function removeClip(clip: AudioClip, track: AudioTrack) {
     track.removeClip(clip);
-    console.log("HERE");
+    if (selected && selected.status === "clips") {
+      // TODO: remove clip from selected clips
+    }
     setStateCounter((c) => c + 1);
   }
 
@@ -120,6 +147,14 @@ function App() {
       }
       const copy = tracks.map((x) => x);
       copy.splice(pos, 1);
+      if (
+        selected &&
+        selected.status === "tracks" &&
+        selected.test.has(track)
+      ) {
+        // TODO: remove track from selected tracks
+      }
+
       return copy;
     });
   }
@@ -325,12 +360,14 @@ function App() {
             for (let { clip, track } of selected.clips) {
               console.log("remove", selected);
               removeClip(clip, track);
+              setSelected(null);
             }
           }
           if (selected.status === "tracks") {
             for (let track of selected.tracks) {
               console.log("remove", selected);
               removeTrack(track);
+              setSelected(null);
             }
           }
 
@@ -527,7 +564,7 @@ function App() {
             <br />
             Cursor: {cursorPos} {selectionWidth}
             <br />
-            Selected: {JSON.stringify(selected, [], 2)}
+            Selected: {stringOfSelected(selected)}
             <br />
           </div>
           <canvas
@@ -734,7 +771,7 @@ function App() {
               width: "150px",
             }}
           >
-            {tracks.map((track, i) => {
+            {tracks.map((track) => {
               const isSelected =
                 selected !== null &&
                 selected.status === "tracks" &&
@@ -747,6 +784,7 @@ function App() {
                   }}
                   onSolo={() => {}}
                   track={track}
+                  project={project}
                   onMouseDown={function () {
                     setSelected((prev) => {
                       const selectAdd =
