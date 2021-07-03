@@ -18,6 +18,7 @@ export default function TrackHeader({
   track,
 }: Props) {
   const [gain, setGain] = useState<number>(track.getCurrentGain().value);
+  const [muted, setMuted] = useState<boolean>(false);
 
   return (
     <div
@@ -35,11 +36,25 @@ export default function TrackHeader({
         }}
         onClick={onMouseDown}
       >
-        {track.name}
+        <button onClick={onRemove}>x</button> {track.name}
       </div>
-      <button onClick={onRemove}>remove track</button>
       <button onClick={onSolo} disabled>
         S
+      </button>
+      <button
+        style={muted ? { background: "#5566EE" } : undefined}
+        onClick={function () {
+          setMuted((prev) => {
+            if (!prev) {
+              track.setGain(0);
+            } else {
+              track.setGain(gain);
+            }
+            return !prev;
+          });
+        }}
+      >
+        M
       </button>
       <input
         type="range"
