@@ -12,39 +12,12 @@ import { useMediaRecorder } from "./lib/useMediaRecorder";
 import { AudioProject, SelectionState } from "./lib/AudioProject";
 import { useLinkedState } from "./lib/LinkedState";
 import { modifierState, useSingletonModifierState } from "./ModifierState";
+import { CursorState, pressedState } from "./lib/linkedState/pressedState";
 
 export const CANVAS_WIDTH = 512;
 export const CANVAS_HEIGHT = 256;
 
 export type Tool = "move" | "trimStart" | "trimEnd";
-
-type CursorState =
-  | {
-      status: "moving_clip";
-      // Original clientX/Y of event
-      clientX: number;
-      clientY: number;
-      clip: AudioClip;
-      track: AudioTrack;
-      originalTrack: AudioTrack;
-      originalClipOffsetSec: number;
-    }
-  | {
-      status: "selecting";
-      // Original clientX/Y of event
-      clientX: number;
-      clientY: number;
-    }
-  | {
-      status: "resizing_clip";
-      from: "start" | "end";
-      originalClipEndPosSec: number;
-      originalClipStartPosSec: number;
-      originalClipOffsetSec: number;
-      clip: AudioClip;
-      clientX: number;
-      clientY: number;
-    };
 
 function stringOfSelected(sel: SelectionState | null): string {
   if (!sel) {
@@ -87,7 +60,9 @@ function App() {
     setStateCounter((x) => x + 1);
   }
 
-  const [pressed, setPressed] = useState<CursorState | null>(null);
+  const [pressed, setPressed] = useLinkedState<CursorState | null>(
+    pressedState
+  );
   const [tracks, setTracks] = useLinkedState(project.tracks);
   const [selected, setSelected] = useLinkedState<SelectionState | null>(
     project.selected
@@ -610,60 +585,9 @@ function App() {
                         clip={clip}
                         tool={tool}
                         rerender={rerender}
-                        selected={isSelected}
-                        onMouseDownToResize={function (e, from) {
-                          e.stopPropagation();
-                          if (tool !== "move") {
-                            return;
-                          }
-                          setPressed({
-                            status: "resizing_clip",
-                            clip,
-                            // IDEA: just clone and have the original clip at hand
-                            originalClipEndPosSec: clip.trimEndSec,
-                            originalClipStartPosSec: clip.trimStartSec,
-                            originalClipOffsetSec: clip.startOffsetSec,
-                            from,
-                            clientX: e.clientX,
-                            clientY: e.clientY,
-                          });
-                        }}
-                        onMouseDownToDrag={function (e) {
-                          e.stopPropagation();
-                          if (tool !== "move") {
-                            return;
-                          }
-                          setPressed({
-                            status: "moving_clip",
-                            clientX: e.clientX,
-                            clientY: e.clientY,
-                            clip,
-                            track,
-                            originalTrack: track,
-                            originalClipOffsetSec: clip.startOffsetSec,
-                          });
-                          setSelected((prev) => {
-                            const selectAdd =
-                              modifierState.meta || modifierState.shift;
-                            if (
-                              selectAdd &&
-                              prev !== null &&
-                              prev.status === "clips"
-                            ) {
-                              prev.clips.push({ clip, track });
-                              prev.test.add(clip);
-                              prev.test.add(track);
-                              return { ...prev };
-                            } else {
-                              return {
-                                status: "clips",
-                                clips: [{ clip, track }],
-                                test: new Set([clip, track]),
-                              };
-                            }
-                          });
-                          setSelectionWidth(null);
-                        }}
+                        isSelected={isSelected}
+                        track={track}
+                        project={project}
                         style={{
                           position: "absolute",
                           left: secsToPx(clip.startOffsetSec),
@@ -680,11 +604,9 @@ function App() {
                         clip={pressed.clip}
                         tool={tool}
                         rerender={rerender}
-                        selected={true}
-                        onMouseDownToResize={function (e, from) {}}
-                        onMouseDownToDrag={function (e) {
-                          e.stopPropagation();
-                        }}
+                        isSelected={true}
+                        project={project}
+                        track={null}
                         style={{
                           position: "absolute",
                           left: secsToPx(pressed.clip.startOffsetSec),

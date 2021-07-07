@@ -1,34 +1,63 @@
-import React from "react";
-import { AudioClip } from "../lib/AudioClip";
-import { Tool } from "../App";
 import { CLIP_HEIGHT, pxToSecs, secsToPx } from "../globals";
+import { useLinkedState } from "../lib/LinkedState";
+import { pressedState } from "../lib/linkedState/pressedState";
+import { modifierState } from "../ModifierState";
+
+import type React from "react";
+import type { Tool } from "../App";
+import type { AudioProject } from "../lib/AudioProject";
+import type { AudioTrack } from "../lib/AudioTrack";
+import type { AudioClip } from "../lib/AudioClip";
 
 type Props = {
   clip: AudioClip;
   tool: Tool;
   rerender: () => void;
-  selected: boolean;
-  onMouseDownToDrag: React.MouseEventHandler<HTMLDivElement>;
+  isSelected: boolean;
   style?: React.CSSProperties;
-  onMouseDownToResize: (
-    e: React.MouseEvent<HTMLDivElement>,
-    from: "start" | "end"
-  ) => void;
+  project: AudioProject;
+  track: AudioTrack | null; // null if clip is being rendered for move
 };
 
 export function Clip({
   clip,
   tool,
   rerender,
-  selected,
-  onMouseDownToDrag,
-  onMouseDownToResize,
+  isSelected,
   style = {},
+  project,
+  track,
 }: Props) {
   const width = secsToPx(clip.durationSec);
   const totalBufferWidth = secsToPx(clip.lengthSec);
   const startTrimmedWidth = secsToPx(clip.trimStartSec);
   const height = CLIP_HEIGHT;
+  const [pressed, setPressed] = useLinkedState(pressedState);
+  const [selectionWidth, setSelectionWidth] = useLinkedState(
+    project.selectionWidth
+  );
+  const [_, setSelected] = useLinkedState(project.selected);
+
+  function onMouseDownToResize(
+    e: React.MouseEvent<HTMLDivElement>,
+    from: "start" | "end"
+  ) {
+    e.stopPropagation();
+    if (tool !== "move") {
+      return;
+    }
+    setPressed({
+      status: "resizing_clip",
+      clip,
+      // IDEA: just clone and have the original clip at hand
+      originalClipEndPosSec: clip.trimEndSec,
+      originalClipStartPosSec: clip.trimStartSec,
+      originalClipOffsetSec: clip.startOffsetSec,
+      from,
+      clientX: e.clientX,
+      clientY: e.clientY,
+    });
+  }
 
   function onStartResize(e: React.MouseEvent<HTMLDivElement>) {
     onMouseDownToResize(e, "start");
@@ -62,7 +91,7 @@ export function Clip({
     }
   }
 
-  const border = selected ? "1px solid #114411" : "1px solid #aaddaa";
+  const border = isSelected ? "1px solid #114411" : "1px solid #aaddaa";
 
   return (
     <div
@@ -84,10 +113,40 @@ export function Clip({
       }}
     >
       <div
-        onMouseDown={onMouseDownToDrag}
+        onMouseDown={function (e) {
+          e.stopPropagation();
+          if (tool !== "move" || track == null) {
+            return;
+          }
+          setPressed({
+            status: "moving_clip",
+            clientX: e.clientX,
+            clientY: e.clientY,
+            clip,
+            track,
+            originalTrack: track,
+            originalClipOffsetSec: clip.startOffsetSec,
+          });
+          setSelected((prev) => {
+            const selectAdd = modifierState.meta || modifierState.shift;
+            if (selectAdd && prev !== null && prev.status === "clips") {
+              prev.clips.push({ clip, track });
+              prev.test.add(clip);
+              prev.test.add(track);
+              return { ...prev };
+            } else {
+              return {
+                status: "clips",
+                clips: [{ clip, track }],
+                test: new Set([clip, track]),
+              };
+            }
+          });
+          setSelectionWidth(null);
+        }}
         style={{
-          color: selected ? "white" : "black",
-          background: selected ? "#225522" : "#bbeebb",
+          color: isSelected ? "white" : "black",
+          background: isSelected ? "#225522" : "#bbeebb",
           border: border,
           opacity: 0.8,
           fontSize: 10,
