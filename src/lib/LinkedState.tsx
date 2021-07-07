@@ -10,7 +10,7 @@ export class LinkedState<S> {
   }
 
   static of<T>(val: T) {
-    return new LinkedState(val);
+    return new LinkedState<T>(val);
   }
 
   set(val: S): void {

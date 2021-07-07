@@ -9,8 +9,9 @@ import { usePambaFirebaseStoreRef } from "./usePambaFirebaseStoreRef";
 import TrackHeader from "./ui/TrackHeader";
 import { RecoilRoot } from "recoil";
 import { useMediaRecorder } from "./lib/useMediaRecorder";
-import { AudioProject } from "./lib/AudioProject";
+import { AudioProject, SelectionState } from "./lib/AudioProject";
 import { useLinkedState } from "./lib/LinkedState";
+import { modifierState, useSingletonModifierState } from "./ModifierState";
 
 export const CANVAS_WIDTH = 512;
 export const CANVAS_HEIGHT = 256;
@@ -45,18 +46,6 @@ type CursorState =
       clientY: number;
     };
 
-type SelectionState =
-  | {
-      status: "clips";
-      clips: Array<{ clip: AudioClip; track: AudioTrack }>;
-      test: Set<AudioClip | AudioTrack>;
-    }
-  | {
-      status: "tracks";
-      tracks: Array<AudioTrack>;
-      test: Set<AudioTrack>;
-    };
-
 function stringOfSelected(sel: SelectionState | null): string {
   if (!sel) {
     return "";
@@ -79,20 +68,6 @@ function stringOfSelected(sel: SelectionState | null): string {
   return JSON.stringify(sel);
 }
 
-type ModifierState = {
-  shift: boolean;
-  meta: boolean;
-  control: boolean;
-  alt: boolean;
-};
-
-const modifierState: ModifierState = {
-  shift: false,
-  meta: false,
-  control: false,
-  alt: false,
-};
-
 function App() {
   const ctxRef = useRef<null | CanvasRenderingContext2D>(null);
   const playbackPosDiv = useRef<null | HTMLDivElement>(null);
@@ -105,17 +80,19 @@ function App() {
   const [tool, setTool] = useState<Tool>("move");
   const [isRecording, setIsRecording] = useState(false);
   const firebaseStoreRef = usePambaFirebaseStoreRef();
-  // const [tracks, setTracks] = useState<Array<AudioTrack>>([]);
   const [player] = useState<AnalizedPlayer>(() => new AnalizedPlayer());
   const [project] = useState(() => new AudioProject());
-  const [tracks, setTracks] = useLinkedState(project.tracks);
+  useSingletonModifierState(modifierState);
 
   function rerender() {
     setStateCounter((x) => x + 1);
   }
 
   const [pressed, setPressed] = useState<CursorState | null>(null);
-  const [selected, setSelected] = useState<SelectionState | null>(null);
+  const [tracks, setTracks] = useLinkedState(project.tracks);
+  const [selected, setSelected] = useLinkedState<SelectionState | null>(
+    project.selected
+  );
 
   (window as any).s = selected;
 
@@ -213,10 +190,11 @@ function App() {
         return;
       }
 
-      // On a child element
-      if (e.target !== e.currentTarget) {
-        // drag clips around
-      }
+      // // On a child element
+      // if (e.target !== e.currentTarget) {
+      //   console.log("CHILD");
+      //   // drag clips around
+      // }
 
       // On the project div element
       else {
@@ -237,7 +215,6 @@ function App() {
           clientX: e.clientX,
           clientY: e.clientY,
         });
-        setSelected(null);
       }
     };
 
@@ -326,14 +303,17 @@ function App() {
         const deltaXSecs = pxToSecs(e.clientX - pressed.clientX);
         setSelectionWidth(deltaXSecs);
         selectionWidthRef.current = deltaXSecs;
+        setSelected(null);
       }
     };
 
-    projectDiv.addEventListener("mousedown", mouseDownEvent);
+    projectDiv.addEventListener("mousedown", mouseDownEvent, { capture: true });
     document.addEventListener("mouseup", mouseUpEvent);
     document.addEventListener("mousemove", mouseMoveEvent);
     return () => {
-      projectDiv.removeEventListener("mousedown", mouseDownEvent);
+      projectDiv.removeEventListener("mousedown", mouseDownEvent, {
+        capture: true,
+      });
       document.removeEventListener("mouseup", mouseUpEvent);
       document.removeEventListener("mousemove", mouseMoveEvent);
     };
@@ -343,15 +323,6 @@ function App() {
     function keydownEvent(e: KeyboardEvent) {
       // console.log(e.code);
       switch (e.code) {
-        case "ShiftLeft":
-        case "ShiftRight":
-          modifierState.shift = true;
-          break;
-        case "MetaLeft":
-        case "MetaRight":
-          modifierState.meta = true;
-          break;
-
         case "Backspace":
           if (!selected) {
             return;
@@ -371,23 +342,12 @@ function App() {
             }
           }
 
-          console.log(selectionWidthRef.current);
+          // console.log(selectionWidthRef.current);
           break;
       }
     }
 
-    function keyupEvent(e: KeyboardEvent) {
-      switch (e.code) {
-        case "ShiftLeft":
-        case "ShiftRight":
-          modifierState.shift = false;
-          break;
-        case "MetaLeft":
-        case "MetaRight":
-          modifierState.meta = false;
-          break;
-      }
-    }
+    function keyupEvent(e: KeyboardEvent) {}
 
     function keypressEvent(e: KeyboardEvent) {
       switch (e.code) {
@@ -614,11 +574,13 @@ function App() {
                     ev.preventDefault();
                   }}
                   onMouseEnter={function () {
-                    console.log("Hovering over", i);
+                    // console.log("Hovering over", i);
                     if (pressed && pressed.status === "moving_clip") {
-                      console.log("HERE");
                       setPressed((prev) => Object.assign({}, prev, { track }));
                     }
+                  }}
+                  onMouseUp={() => {
+                    // console.log("COOl");
                   }}
                   style={{
                     position: "relative",
@@ -649,6 +611,7 @@ function App() {
                         rerender={rerender}
                         selected={isSelected}
                         onMouseDownToResize={function (e, from) {
+                          e.stopPropagation();
                           if (tool !== "move") {
                             return;
                           }
@@ -665,6 +628,7 @@ function App() {
                           });
                         }}
                         onMouseDownToDrag={function (e) {
+                          e.stopPropagation();
                           if (tool !== "move") {
                             return;
                           }
@@ -699,9 +663,6 @@ function App() {
                           });
                           setSelectionWidth(null);
                         }}
-                        onRemove={function () {
-                          removeClip(clip, track);
-                        }}
                         style={{
                           position: "absolute",
                           left: secsToPx(clip.startOffsetSec),
@@ -720,8 +681,9 @@ function App() {
                         rerender={rerender}
                         selected={true}
                         onMouseDownToResize={function (e, from) {}}
-                        onMouseDownToDrag={function (e) {}}
-                        onRemove={function () {}}
+                        onMouseDownToDrag={function (e) {
+                          e.stopPropagation();
+                        }}
                         style={{
                           position: "absolute",
                           left: secsToPx(pressed.clip.startOffsetSec),

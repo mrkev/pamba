@@ -9,7 +9,6 @@ type Props = {
   rerender: () => void;
   selected: boolean;
   onMouseDownToDrag: React.MouseEventHandler<HTMLDivElement>;
-  onRemove: React.MouseEventHandler<HTMLButtonElement>;
   style?: React.CSSProperties;
   onMouseDownToResize: (
     e: React.MouseEvent<HTMLDivElement>,
@@ -23,7 +22,6 @@ export function Clip({
   rerender,
   selected,
   onMouseDownToDrag,
-  onRemove,
   onMouseDownToResize,
   style = {},
 }: Props) {
@@ -96,18 +94,6 @@ export function Clip({
         }}
       >
         {clip.name} ({Math.round(clip.durationSec * 100) / 100})
-        <button
-          style={{
-            border: "none",
-            fontSize: 10,
-            cursor: "pointer",
-            right: 2,
-            position: "absolute",
-          }}
-          onClick={onRemove}
-        >
-          remove
-        </button>
       </div>
       <div
         style={{
