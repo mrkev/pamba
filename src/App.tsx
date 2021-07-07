@@ -74,7 +74,6 @@ function App() {
   const [projectDiv, setProjectDiv] = useState<null | HTMLDivElement>(null);
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
   const [cursorPos, setCursorPos] = useState(0);
-  const [selectionWidth, setSelectionWidth] = useState<null | number>(null);
   const selectionWidthRef = useRef<null | number>(null);
   const [_, setStateCounter] = useState<number>(0);
   const [tool, setTool] = useState<Tool>("move");
@@ -93,8 +92,9 @@ function App() {
   const [selected, setSelected] = useLinkedState<SelectionState | null>(
     project.selected
   );
-
-  (window as any).s = selected;
+  const [selectionWidth, setSelectionWidth] = useLinkedState<null | number>(
+    project.selectionWidth
+  );
 
   const togglePlayback = useCallback(
     function togglePlayback() {
@@ -565,6 +565,7 @@ function App() {
             {tracks.map(function (track, i) {
               return (
                 <div
+                  key={i}
                   onDrop={function (ev) {
                     ev.preventDefault();
                     const url = ev.dataTransfer.getData("text");
@@ -733,41 +734,20 @@ function App() {
               width: "150px",
             }}
           >
-            {tracks.map((track) => {
+            {tracks.map((track, i) => {
               const isSelected =
                 selected !== null &&
                 selected.status === "tracks" &&
                 selected.test.has(track);
               return (
                 <TrackHeader
+                  key={i}
                   isSelected={isSelected}
                   onRemove={function () {
                     removeTrack(track);
                   }}
-                  onSolo={() => {}}
                   track={track}
                   project={project}
-                  onMouseDown={function () {
-                    setSelected((prev) => {
-                      const selectAdd =
-                        modifierState.meta || modifierState.shift;
-                      if (
-                        selectAdd &&
-                        prev !== null &&
-                        prev.status === "tracks"
-                      ) {
-                        prev.tracks.push(track);
-                        prev.test.add(track);
-                        return { ...prev };
-                      } else {
-                        return {
-                          status: "tracks",
-                          tracks: [track],
-                          test: new Set([track]),
-                        };
-                      }
-                    });
-                  }}
                 />
               );
             })}

@@ -21,8 +21,11 @@ export class AudioProject {
   );
   solod: LinkedState<Array<AudioTrack>> = LinkedState.of<Array<AudioTrack>>([]);
 
+  // the selected clip(s), track(s), etc
   selected: LinkedState<SelectionState | null> =
     LinkedState.of<SelectionState | null>(null);
-
-  // don't need to persist
+  // the width of the selection at the playback cursor
+  selectionWidth: LinkedState<number | null> = LinkedState.of<number | null>(
+    null
+  );
 }
