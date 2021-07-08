@@ -19,6 +19,27 @@ type Props = {
   track: AudioTrack | null; // null if clip is being rendered for move
 };
 
+const styles: Record<string, React.CSSProperties> = {
+  resizerEnd: {
+    width: 10,
+    background: "rgba(0,0,0,0)",
+    height: "100%",
+    position: "absolute",
+    right: 0,
+    top: 0,
+    cursor: "ew-resize",
+  },
+  resizerStart: {
+    width: 10,
+    background: "rgba(0,0,0,0)",
+    height: "100%",
+    position: "absolute",
+    left: 0,
+    top: 0,
+    cursor: "ew-resize",
+  },
+};
+
 export function Clip({
   clip,
   tool,
@@ -32,11 +53,9 @@ export function Clip({
   const totalBufferWidth = secsToPx(clip.lengthSec);
   const startTrimmedWidth = secsToPx(clip.trimStartSec);
   const height = CLIP_HEIGHT;
-  const [pressed, setPressed] = useLinkedState(pressedState);
-  const [selectionWidth, setSelectionWidth] = useLinkedState(
-    project.selectionWidth
-  );
-  const [_, setSelected] = useLinkedState(project.selected);
+  const [, setPressed] = useLinkedState(pressedState);
+  const [, setSelectionWidth] = useLinkedState(project.selectionWidth);
+  const [, setSelected] = useLinkedState(project.selected);
 
   function onMouseDownToResize(
     e: React.MouseEvent<HTMLDivElement>,
@@ -59,12 +78,36 @@ export function Clip({
     });
   }
 
-  function onStartResize(e: React.MouseEvent<HTMLDivElement>) {
-    onMouseDownToResize(e, "start");
-  }
-
-  function onEndResize(e: React.MouseEvent<HTMLDivElement>) {
-    onMouseDownToResize(e, "end");
+  function onMouseDownToMove(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
+    e.stopPropagation();
+    if (tool !== "move" || track == null) {
+      return;
+    }
+    setPressed({
+      status: "moving_clip",
+      clientX: e.clientX,
+      clientY: e.clientY,
+      clip,
+      track,
+      originalTrack: track,
+      originalClipOffsetSec: clip.startOffsetSec,
+    });
+    setSelected((prev) => {
+      const selectAdd = modifierState.meta || modifierState.shift;
+      if (selectAdd && prev !== null && prev.status === "clips") {
+        prev.clips.push({ clip, track });
+        prev.test.add(clip);
+        prev.test.add(track);
+        return { ...prev };
+      } else {
+        return {
+          status: "clips",
+          clips: [{ clip, track }],
+          test: new Set([clip, track]),
+        };
+      }
+    });
+    setSelectionWidth(null);
   }
 
   function onClipClick(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
@@ -113,37 +156,7 @@ export function Clip({
       }}
     >
       <div
-        onMouseDown={function (e) {
-          e.stopPropagation();
-          if (tool !== "move" || track == null) {
-            return;
-          }
-          setPressed({
-            status: "moving_clip",
-            clientX: e.clientX,
-            clientY: e.clientY,
-            clip,
-            track,
-            originalTrack: track,
-            originalClipOffsetSec: clip.startOffsetSec,
-          });
-          setSelected((prev) => {
-            const selectAdd = modifierState.meta || modifierState.shift;
-            if (selectAdd && prev !== null && prev.status === "clips") {
-              prev.clips.push({ clip, track });
-              prev.test.add(clip);
-              prev.test.add(track);
-              return { ...prev };
-            } else {
-              return {
-                status: "clips",
-                clips: [{ clip, track }],
-                test: new Set([clip, track]),
-              };
-            }
-          });
-          setSelectionWidth(null);
-        }}
+        onMouseDown={onMouseDownToMove}
         style={{
           color: isSelected ? "white" : "black",
           background: isSelected ? "#225522" : "#bbeebb",
@@ -155,28 +168,12 @@ export function Clip({
         {clip.name} ({Math.round(clip.durationSec * 100) / 100})
       </div>
       <div
-        style={{
-          width: 10,
-          background: "rgba(0,0,0,0)",
-          height: "100%",
-          position: "absolute",
-          left: 0,
-          top: 0,
-          cursor: "ew-resize",
-        }}
-        onMouseDown={onStartResize}
+        style={styles.resizerStart}
+        onMouseDown={(e) => onMouseDownToResize(e, "start")}
       ></div>
       <div
-        style={{
-          width: 10,
-          background: "rgba(0,0,0,0)",
-          height: "100%",
-          position: "absolute",
-          right: 0,
-          top: 0,
-          cursor: "ew-resize",
-        }}
-        onMouseDown={onEndResize}
+        style={styles.resizerEnd}
+        onMouseDown={(e) => onMouseDownToResize(e, "end")}
       ></div>
     </div>
   );

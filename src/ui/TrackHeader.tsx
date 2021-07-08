@@ -7,20 +7,14 @@ import { modifierState } from "../ModifierState";
 
 type Props = {
   isSelected: boolean;
-  onRemove: () => void;
   track: AudioTrack;
   project: AudioProject;
 };
 
-export default function TrackHeader({
-  isSelected,
-  onRemove,
-  track,
-  project,
-}: Props) {
+export default function TrackHeader({ isSelected, track, project }: Props) {
   const [gain, setGain] = useState<number>(track.getCurrentGain().value);
   const [muted, setMuted] = useState<boolean>(false);
-  const [_selected, setSelected] = useLinkedState<SelectionState | null>(
+  const [, setSelected] = useLinkedState<SelectionState | null>(
     project.selected
   );
 
@@ -55,7 +49,8 @@ export default function TrackHeader({
           });
         }}
       >
-        <button onClick={onRemove}>x</button> {track.name}
+        <button onClick={() => project.removeTrack(track)}>x</button>{" "}
+        {track.name}
       </div>
       <button onClick={function () {}} disabled>
         S

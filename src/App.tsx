@@ -48,7 +48,6 @@ function App() {
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
   const [cursorPos, setCursorPos] = useState(0);
   const selectionWidthRef = useRef<null | number>(null);
-  const [_, setStateCounter] = useState<number>(0);
   const [tool, setTool] = useState<Tool>("move");
   const [isRecording, setIsRecording] = useState(false);
   const firebaseStoreRef = usePambaFirebaseStoreRef();
@@ -56,6 +55,7 @@ function App() {
   const [project] = useState(() => new AudioProject());
   useSingletonModifierState(modifierState);
 
+  const [_, setStateCounter] = useState<number>(0);
   function rerender() {
     setStateCounter((x) => x + 1);
   }
@@ -292,7 +292,7 @@ function App() {
       document.removeEventListener("mouseup", mouseUpEvent);
       document.removeEventListener("mousemove", mouseMoveEvent);
     };
-  }, [player, pressed, projectDiv]);
+  }, [player, pressed, projectDiv, setPressed, setSelected, setSelectionWidth]);
 
   useEffect(() => {
     function keydownEvent(e: KeyboardEvent) {
@@ -665,9 +665,6 @@ function App() {
                 <TrackHeader
                   key={i}
                   isSelected={isSelected}
-                  onRemove={function () {
-                    removeTrack(track);
-                  }}
                   track={track}
                   project={project}
                 />
@@ -675,7 +672,7 @@ function App() {
             })}
             <div>
               <button
-                onClick={function () {
+                onClick={() => {
                   setTracks((tracks) => tracks.concat([new AudioTrack()]));
                 }}
               >

@@ -28,4 +28,20 @@ export class AudioProject {
   selectionWidth: LinkedState<number | null> = LinkedState.of<number | null>(
     null
   );
+
+  removeTrack(track: AudioTrack) {
+    const tracks = this.tracks.get();
+    const selected = this.selected.get();
+    const pos = tracks.indexOf(track);
+    if (pos === -1) {
+      return;
+    }
+    const copy = tracks.map((x) => x);
+    copy.splice(pos, 1);
+    if (selected && selected.status === "tracks" && selected.test.has(track)) {
+      // TODO: remove track from selected tracks
+    }
+
+    this.tracks.set(copy);
+  }
 }
