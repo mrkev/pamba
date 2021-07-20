@@ -17,14 +17,14 @@ export function usePambaFirebaseStoreRef(): firebase.storage.Reference | null {
       messagingSenderId: "204416012722",
       appId: "1:204416012722:web:9e00b129f067d20c4894ab",
     };
-    // Initialize Firebase
-    const firebaseApp = firebase.initializeApp(firebaseConfig);
-    setFirebaseApp(firebaseApp);
-    return () => {
-      firebaseApp.delete();
-      setFirebaseApp(null);
-      setFirebaseStoreRef(null);
-    };
+
+    if (!firebase.apps.length) {
+      // Initialize Firebase
+      const app = firebase.initializeApp(firebaseConfig);
+      setFirebaseApp(app);
+    } else {
+      setFirebaseApp(firebase.app());
+    }
   }, []);
 
   useEffect(
