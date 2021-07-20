@@ -1,5 +1,5 @@
 import { audioContext, sampleSize } from "./globals";
-import { CANVAS_WIDTH, CANVAS_HEIGHT } from "./App";
+import { CANVAS_WIDTH, CANVAS_HEIGHT } from "./globals";
 // import SharedBufferWorkletNode from "./lib/shared-buffer-worklet-node";
 import { AudioTrack } from "./lib/AudioTrack";
 

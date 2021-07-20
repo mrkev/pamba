@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import "./App.css";
-import { CLIP_HEIGHT, secsToPx, pxToSecs } from "./globals";
+import { CLIP_HEIGHT, CANVAS_WIDTH, CANVAS_HEIGHT } from "./globals";
 import { AudioClip } from "./lib/AudioClip";
 import { Clip } from "./ui/Clip";
 import { AudioTrack } from "./lib/AudioTrack";
@@ -13,9 +13,7 @@ import { AudioProject, SelectionState } from "./lib/AudioProject";
 import { useLinkedState } from "./lib/LinkedState";
 import { modifierState, useSingletonModifierState } from "./ModifierState";
 import { CursorState, pressedState } from "./lib/linkedState/pressedState";
-
-export const CANVAS_WIDTH = 512;
-export const CANVAS_HEIGHT = 256;
+import { Axis } from "./Axis";
 
 export type Tool = "move" | "trimStart" | "trimEnd";
 
@@ -53,6 +51,7 @@ function App() {
   const firebaseStoreRef = usePambaFirebaseStoreRef();
   const [player] = useState<AnalizedPlayer>(() => new AnalizedPlayer());
   const [project] = useState(() => new AudioProject());
+
   useSingletonModifierState(modifierState);
 
   const [_, setStateCounter] = useState<number>(0);
@@ -70,6 +69,8 @@ function App() {
   const [selectionWidth, setSelectionWidth] = useLinkedState<null | number>(
     project.selectionWidth
   );
+  const [secsToPx] = useLinkedState(project.secsToPx);
+  const pxToSecs = secsToPx.invert;
 
   const togglePlayback = useCallback(
     function togglePlayback() {
@@ -340,6 +341,7 @@ function App() {
       }
       if (e.code === "Space") {
         togglePlayback();
+        e.preventDefault();
       }
     }
 
@@ -537,6 +539,7 @@ function App() {
               width: "100%",
             }}
           >
+            <Axis project={project}></Axis>
             {tracks.map(function (track, i) {
               return (
                 <div

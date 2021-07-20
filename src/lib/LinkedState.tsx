@@ -33,20 +33,17 @@ export class LinkedState<S> {
 export function useLinkedState<S>(
   linkedState: LinkedState<S>
 ): [S, StateDispath<S>] {
-  const [state, setState] = useState<S>(linkedState.get());
+  const [state, setState] = useState<S>(() => linkedState.get());
 
-  useEffect(
-    function () {
-      return linkedState.addStateDispatchHandler(setState);
-    },
-    [linkedState]
-  );
+  useEffect(() => {
+    return linkedState.addStateDispatchHandler(setState);
+  }, [linkedState]);
 
   const apiState = linkedState.get();
   useEffect(
     function () {
       // console.log("API => React", apiState);
-      setState(apiState);
+      setState(() => apiState);
     },
     [apiState]
   );
@@ -55,6 +52,7 @@ export function useLinkedState<S>(
     function (newVal) {
       // newVal instanceof Function
       if (newVal instanceof Function) {
+        console.log("HELLO WORLD");
         linkedState.set(newVal(linkedState.get()));
       } else {
         linkedState.set(newVal);

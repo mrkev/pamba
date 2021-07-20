@@ -1,4 +1,4 @@
-import { CLIP_HEIGHT, pxToSecs, secsToPx } from "../globals";
+import { CLIP_HEIGHT } from "../globals";
 import { useLinkedState } from "../lib/LinkedState";
 import { pressedState } from "../lib/linkedState/pressedState";
 import { modifierState } from "../ModifierState";
@@ -49,6 +49,8 @@ export function Clip({
   project,
   track,
 }: Props) {
+  const [secsToPx] = useLinkedState(project.secsToPx);
+  const pxToSecs = secsToPx.invert;
   const width = secsToPx(clip.durationSec);
   const totalBufferWidth = secsToPx(clip.lengthSec);
   const startTrimmedWidth = secsToPx(clip.trimStartSec);

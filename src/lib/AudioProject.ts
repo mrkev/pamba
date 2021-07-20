@@ -1,6 +1,10 @@
 import { AudioTrack } from "./AudioTrack";
 import { LinkedState } from "./LinkedState";
 import { AudioClip } from "./AudioClip";
+import { scaleLinear } from "d3-scale";
+import type { ScaleLinear } from "d3-scale";
+
+type XScale = ScaleLinear<number, number>;
 
 export type SelectionState =
   | {
@@ -27,6 +31,11 @@ export class AudioProject {
   // the width of the selection at the playback cursor
   selectionWidth: LinkedState<number | null> = LinkedState.of<number | null>(
     null
+  );
+
+  // 1 sec corresponds to 10 px
+  secsToPx: LinkedState<XScale> = LinkedState.of<XScale>(
+    scaleLinear().domain([0, 100]).range([0, 1000])
   );
 
   removeTrack(track: AudioTrack) {
