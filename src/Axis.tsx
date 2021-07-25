@@ -2,12 +2,12 @@ import React, { useEffect, useState } from "react";
 import * as d3 from "d3";
 import { axisTop } from "d3-axis";
 import { scaleLinear } from "d3-scale";
-import { useLinkedState } from "./lib/LinkedState";
 import { AudioProject } from "./lib/AudioProject";
+import { useDerivedState } from "./lib/DerivedState";
 
 export function Axis({ project }: { project: AudioProject }) {
   const [svg, setSvg] = useState<SVGSVGElement | null>(null);
-  const [secsToPx] = useLinkedState(project.secsToPx);
+  const secsToPx = useDerivedState(project.secsToPx);
 
   useEffect(() => {
     if (!svg) {

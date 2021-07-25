@@ -14,6 +14,7 @@ import { useLinkedState } from "./lib/LinkedState";
 import { modifierState, useSingletonModifierState } from "./ModifierState";
 import { CursorState, pressedState } from "./lib/linkedState/pressedState";
 import { Axis } from "./Axis";
+import { useDerivedState } from "./lib/DerivedState";
 
 export type Tool = "move" | "trimStart" | "trimEnd";
 
@@ -62,14 +63,16 @@ function App() {
   const [pressed, setPressed] = useLinkedState<CursorState | null>(
     pressedState
   );
-  const [tracks, setTracks] = useLinkedState(project.tracks);
+  const [tracks, setTracks] = useLinkedState<AudioTrack[]>(project.tracks);
   const [selected, setSelected] = useLinkedState<SelectionState | null>(
     project.selected
   );
   const [selectionWidth, setSelectionWidth] = useLinkedState<null | number>(
     project.selectionWidth
   );
-  const [secsToPx] = useLinkedState(project.secsToPx);
+
+  const [scaleFactor, setScaleFactor] = useLinkedState(project.scaleFactor);
+  const secsToPx = useDerivedState(project.secsToPx);
   const pxToSecs = secsToPx.invert;
 
   const togglePlayback = useCallback(
@@ -382,6 +385,27 @@ function App() {
     [tracks, isAudioPlaying, player]
   );
 
+  const [_scale, setScale] = useState<number>(1);
+  useEffect(function () {
+    window.addEventListener(
+      "wheel",
+      function (e) {
+        if (e.ctrlKey) {
+          // Your zoom/scale factor
+          setScale((prev) => e.deltaY * 0.01);
+          e.preventDefault();
+        } else {
+          // Your trackpad X and Y positions
+          // posX -= e.deltaX * 2;
+          // posY -= e.deltaY * 2;
+        }
+
+        // render();
+      },
+      { passive: false }
+    );
+  });
+
   const allState = tracks
     .map((track, i) => {
       return `Track ${i}:\n${track.toString()}\n`;
@@ -409,7 +433,6 @@ function App() {
           }}
         >
           <div style={{ flexGrow: 1 }}>
-            <br />
             <button disabled={tracks.length === 0} onClick={togglePlayback}>
               {isAudioPlaying ? "stop" : "start"}
             </button>
@@ -493,6 +516,13 @@ function App() {
                 </button>
               );
             })}
+            <input
+              type="range"
+              min={1}
+              max={20}
+              value={scaleFactor}
+              onChange={(e) => setScaleFactor(parseInt(e.target.value))}
+            />
             <br />
             <hr />
             <br />

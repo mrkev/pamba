@@ -8,6 +8,7 @@ import type { Tool } from "../App";
 import type { AudioProject } from "../lib/AudioProject";
 import type { AudioTrack } from "../lib/AudioTrack";
 import type { AudioClip } from "../lib/AudioClip";
+import { useDerivedState } from "../lib/DerivedState";
 
 type Props = {
   clip: AudioClip;
@@ -49,7 +50,7 @@ export function Clip({
   project,
   track,
 }: Props) {
-  const [secsToPx] = useLinkedState(project.secsToPx);
+  const secsToPx = useDerivedState(project.secsToPx);
   const pxToSecs = secsToPx.invert;
   const width = secsToPx(clip.durationSec);
   const totalBufferWidth = secsToPx(clip.lengthSec);

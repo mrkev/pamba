@@ -1,5 +1,6 @@
 import { AudioTrack } from "./AudioTrack";
 import { LinkedState } from "./LinkedState";
+import { DerivedState } from "./DerivedState";
 import { AudioClip } from "./AudioClip";
 import { scaleLinear } from "d3-scale";
 import type { ScaleLinear } from "d3-scale";
@@ -33,9 +34,14 @@ export class AudioProject {
     null
   );
 
+  scaleFactor: LinkedState<number> = LinkedState.of(10);
   // 1 sec corresponds to 10 px
-  secsToPx: LinkedState<XScale> = LinkedState.of<XScale>(
-    scaleLinear().domain([0, 100]).range([0, 1000])
+  secsToPx = DerivedState.from(
+    this.scaleFactor,
+    (factor: number) =>
+      scaleLinear()
+        .domain([0, 100])
+        .range([0, 100 * factor]) as XScale
   );
 
   removeTrack(track: AudioTrack) {
@@ -54,3 +60,8 @@ export class AudioProject {
     this.tracks.set(copy);
   }
 }
+
+/**
+ * TODO:
+ *
+ */

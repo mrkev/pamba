@@ -1,10 +1,11 @@
 import { useEffect, useState, useCallback } from "react";
 
 type StateDispath<S> = (value: S | ((prevState: S) => S)) => void;
+type StateChangeHandler<S> = (value: S) => void;
 
 export class LinkedState<S> {
   private val: S;
-  private handlers: Set<StateDispath<S>> = new Set();
+  private handlers: Set<StateChangeHandler<S>> = new Set();
   constructor(initialValue: S) {
     this.val = initialValue;
   }
@@ -15,14 +16,16 @@ export class LinkedState<S> {
 
   set(val: S): void {
     this.val = val;
-    this.handlers.forEach(function (cb) {
+    this.handlers.forEach((cb) => {
       cb(val);
     });
   }
   get(): S {
     return this.val;
   }
-  addStateDispatchHandler(cb: StateDispath<S>): () => void {
+
+  // Executes these handlers on change
+  addStateChangeHandler(cb: StateChangeHandler<S>): () => void {
     this.handlers.add(cb);
     return () => {
       this.handlers.delete(cb);
@@ -36,7 +39,9 @@ export function useLinkedState<S>(
   const [state, setState] = useState<S>(() => linkedState.get());
 
   useEffect(() => {
-    return linkedState.addStateDispatchHandler(setState);
+    return linkedState.addStateChangeHandler((newVal) =>
+      setState(() => newVal)
+    );
   }, [linkedState]);
 
   const apiState = linkedState.get();
