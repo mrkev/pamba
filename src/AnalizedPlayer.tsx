@@ -33,6 +33,7 @@ export class AnalizedPlayer {
 
   canvasCtx: CanvasRenderingContext2D | null = null;
   onFrame: ((playbackTime: number) => void) | null = null;
+  playbackTime: number = 0;
 
   // The time in the audio context we should count as zero
   CTX_PLAY_START_TIME: number = 0;
@@ -58,6 +59,7 @@ export class AnalizedPlayer {
           const currentTimeInBuffer = this.cursorAtPlaybackStart + timePassed;
           this.drawTimeDomain(this.amplitudeArray, currentTimeInBuffer);
           if (this.onFrame) this.onFrame(currentTimeInBuffer);
+          this.playbackTime = currentTimeInBuffer;
         });
       } else {
         console.log("NOTHING");

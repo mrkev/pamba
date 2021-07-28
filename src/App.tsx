@@ -365,7 +365,14 @@ function App() {
         pbdiv.style.left = String(secsToPx(playbackTime)) + "px";
       }
     };
-  }, [player]);
+  }, [player, secsToPx]);
+
+  useEffect(() => {
+    const pbdiv = playbackPosDiv.current;
+    if (pbdiv) {
+      pbdiv.style.left = String(secsToPx(player.playbackTime)) + "px";
+    }
+  }, [player, secsToPx]);
 
   useEffect(
     function () {
@@ -385,14 +392,15 @@ function App() {
     [tracks, isAudioPlaying, player]
   );
 
-  const [_scale, setScale] = useState<number>(1);
   useEffect(function () {
     window.addEventListener(
       "wheel",
       function (e) {
         if (e.ctrlKey) {
           // Your zoom/scale factor
-          setScale((prev) => e.deltaY * 0.01);
+
+          // setScaleFactor((prev) => ((e.deltaY + 100) / 100) * prev);
+
           e.preventDefault();
         } else {
           // Your trackpad X and Y positions
@@ -520,8 +528,12 @@ function App() {
               type="range"
               min={1}
               max={20}
+              step={0.01}
               value={scaleFactor}
-              onChange={(e) => setScaleFactor(parseInt(e.target.value))}
+              onChange={(e) => {
+                const val = parseFloat(e.target.value);
+                setScaleFactor(val);
+              }}
             />
             <br />
             <hr />
@@ -569,7 +581,9 @@ function App() {
               width: "100%",
             }}
           >
-            <Axis project={project}></Axis>
+            {projectDiv && (
+              <Axis project={project} projectDiv={projectDiv}></Axis>
+            )}
             {tracks.map(function (track, i) {
               return (
                 <div

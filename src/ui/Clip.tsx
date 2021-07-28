@@ -138,14 +138,19 @@ export function Clip({
   }
 
   const border = isSelected ? "1px solid #114411" : "1px solid #aaddaa";
+  const backgroundImageData = clip.getWaveformDataURL(
+    // totalBufferWidth,
+    1000,
+    CLIP_HEIGHT
+  );
 
   return (
     <div
       onClick={onClipClick}
       style={{
         backgroundColor: "#ccffcc",
-        backgroundImage:
-          "url('" + clip.getWaveformDataURL(totalBufferWidth, height) + "')",
+        backgroundSize: `${width}px ${height}px`,
+        backgroundImage: "url('" + backgroundImageData + "')",
         backgroundRepeat: "no-repeat",
         backgroundPosition: `${startTrimmedWidth * -1}px 0px`,
         width,

@@ -37,7 +37,7 @@ export class AudioProject {
   scaleFactor: LinkedState<number> = LinkedState.of(10);
   // 1 sec corresponds to 10 px
   secsToPx = DerivedState.from(
-    this.scaleFactor,
+    [this.scaleFactor],
     (factor: number) =>
       scaleLinear()
         .domain([0, 100])
