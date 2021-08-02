@@ -16,6 +16,25 @@ function formatSecs(secs: number) {
   )}`;
 }
 
+const MIN_TICK_DISTANCE = 60; // 60px
+
+function getStepForRes(dist: number): number {
+  switch (true) {
+    case dist < 1:
+      return 1;
+    case dist < 3:
+      return 3;
+    case dist < 5:
+      return 5;
+    case dist < 10:
+      return 10;
+    case dist < 30:
+      return 30;
+    default:
+      return 60;
+  }
+}
+
 export function Axis({
   project,
   projectDiv,
@@ -32,16 +51,18 @@ export function Axis({
     }
 
     const pxToSecs = secsToPx.invert;
-    const tickData: Array<{ i: number; t: number }> = [];
+    const tickData: Array<{ s: number; px: number }> = [];
     // TODO: draw only visible window, not whole timeline
     const totalTime = pxToSecs(projectDiv.scrollWidth);
 
-    for (let i = 0; i < totalTime; i += 10) {
-      // console.log(projectDiv.scrollWidth);
-      tickData.push({ i, t: secsToPx(i) });
+    const MIN_DIST_SEC = pxToSecs(MIN_TICK_DISTANCE);
+    const STEP = getStepForRes(MIN_DIST_SEC);
+
+    for (let i = 0; i < totalTime; i += STEP) {
+      tickData.push({ s: i, px: secsToPx(i) });
     }
 
-    const d3svg = d3.select(svg).attr("width", 1440).attr("height", 30);
+    const d3svg = d3.select(svg);
 
     // // How wide the axis will be
     // const width = 100;
@@ -60,37 +81,69 @@ export function Axis({
 
     groupEnter
       .append("line")
-      .attr("x1", ({ t }) => t)
-      .attr("x2", ({ t }) => t)
+      .attr("x1", ({ px }) => px)
+      .attr("x2", ({ px }) => px)
       .attr("y1", 0)
-      .attr("y2", 100)
-      .attr("stroke", "black");
+      .attr("y2", "100%")
+      .attr("stroke", "#CBCBCB");
 
     groupEnter
       .append("text")
-      .attr("x", ({ t }) => t)
+      .attr("x", ({ px }) => px)
       .attr("y", 2)
       .attr("dx", "2px")
       .attr("font-size", "12px")
-      .text(({ i }) => formatSecs(i))
+      .attr("fill", "#454545")
+      .text(({ s: i }) => formatSecs(i))
       .attr("text-anchor", "start")
       .attr("alignment-baseline", "hanging");
 
     ticks
       .select("line")
-      .attr("x1", ({ t }) => t)
-      .attr("x2", ({ t }) => t);
+      .attr("x1", ({ px }) => px)
+      .attr("x2", ({ px }) => px);
 
-    ticks.select("text").attr("x", ({ t }) => t);
+    ticks
+      .select("text")
+      .attr("x", ({ px }) => px)
+      .text(({ s: i }) => formatSecs(i));
 
     ticks.exit().remove();
-    // d3svg.selectAll("line").data(ticks).exit().remove();
-
-    // lines.data(ticks);
-    return () => {
-      // axisGroup.remove();
-    };
   }, [projectDiv, secsToPx, svg]);
 
-  return <svg ref={(elem: SVGSVGElement) => setSvg(elem)}></svg>;
+  return (
+    <>
+      <svg
+        ref={(elem: SVGSVGElement) => setSvg(elem)}
+        style={{
+          position: "absolute",
+          width: 1440,
+          height: "100%",
+          pointerEvents: "none",
+        }}
+      ></svg>
+      <div
+        className="axis-spacer"
+        style={{ height: 30, display: "block" }}
+      ></div>
+    </>
+  );
 }
+
+/**
+ * TODO:
+ * - Scale is currently anchored on 0:00. Anchor it on the cursor position
+ * - Scale with trackpad, anchored on cursor position
+ * - Click and drag on axis moves, zooms, like ableton
+ * - If a control is focused, need to click twice to set cursor. Fix that.
+ * - Clip properties panel.
+ * - Format seconds on canvas view
+ * - Disable clip addition during playback, or adding a clip stops playback first.
+ * - Markers, play from marker
+ * - Comments on markers, for collaboration?
+ * - Loop markers, enable/disable loop capturing
+ * - Select within single track
+ * - Keyboard shortcuts: cut, paste, copy
+ * - Command palette, a-la VS Code. Cmd+P
+ * - BUG: trimming a clip draws the whole waveform, not a subset
+ */

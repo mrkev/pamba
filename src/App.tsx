@@ -704,6 +704,12 @@ function App() {
               width: "150px",
             }}
           >
+            <div
+              className="axis-spacer"
+              style={{ display: "block", height: "30px" }}
+            >
+              {/* Spacer for the axis */}
+            </div>
             {tracks.map((track, i) => {
               const isSelected =
                 selected !== null &&
