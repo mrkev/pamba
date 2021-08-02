@@ -5,7 +5,7 @@ import { AudioClip } from "./lib/AudioClip";
 import { Clip } from "./ui/Clip";
 import { AudioTrack } from "./lib/AudioTrack";
 import { AnalizedPlayer } from "./AnalizedPlayer";
-import { usePambaFirebaseStoreRef } from "./usePambaFirebaseStoreRef";
+import { usePambaFirebaseStoreRef } from "./firebase/useFirebase";
 import TrackHeader from "./ui/TrackHeader";
 import { RecoilRoot } from "recoil";
 import { useMediaRecorder } from "./lib/useMediaRecorder";
@@ -52,6 +52,7 @@ function App() {
   const firebaseStoreRef = usePambaFirebaseStoreRef();
   const [player] = useState<AnalizedPlayer>(() => new AnalizedPlayer());
   const [project] = useState(() => new AudioProject());
+  (window as any).project = project;
 
   useSingletonModifierState(modifierState);
 

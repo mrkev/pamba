@@ -1,31 +1,43 @@
 import { useEffect, useState } from "react";
 import firebase from "firebase";
 
-export function usePambaFirebaseStoreRef(): firebase.storage.Reference | null {
-  const [firebaseStoreRef, setFirebaseStoreRef] =
-    useState<firebase.storage.Reference | null>(null);
+// Your web app's Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyBhdehFiYqwx3ahC5yCh6NTQgW7NxZMXvk",
+  authDomain: "pamba-c5951.firebaseapp.com",
+  projectId: "pamba-c5951",
+  storageBucket: "pamba-c5951.appspot.com",
+  messagingSenderId: "204416012722",
+  appId: "1:204416012722:web:9e00b129f067d20c4894ab",
+};
+
+export function useFirebaseApp(
+  config: typeof firebaseConfig
+): firebase.app.App | null {
   const [firebaseApp, setFirebaseApp] = useState<firebase.app.App | null>(null);
 
   // Firebase storage
-  useEffect(function () {
-    // Your web app's Firebase configuration
-    const firebaseConfig = {
-      apiKey: "AIzaSyBhdehFiYqwx3ahC5yCh6NTQgW7NxZMXvk",
-      authDomain: "pamba-c5951.firebaseapp.com",
-      projectId: "pamba-c5951",
-      storageBucket: "pamba-c5951.appspot.com",
-      messagingSenderId: "204416012722",
-      appId: "1:204416012722:web:9e00b129f067d20c4894ab",
-    };
+  useEffect(
+    function () {
+      if (!firebase.apps.length) {
+        // Initialize Firebase
+        const app = firebase.initializeApp(config);
+        setFirebaseApp(app);
+      } else {
+        setFirebaseApp(firebase.app());
+      }
+    },
+    [config]
+  );
 
-    if (!firebase.apps.length) {
-      // Initialize Firebase
-      const app = firebase.initializeApp(firebaseConfig);
-      setFirebaseApp(app);
-    } else {
-      setFirebaseApp(firebase.app());
-    }
-  }, []);
+  return firebaseApp;
+}
+
+export function usePambaFirebaseStoreRef(): firebase.storage.Reference | null {
+  const [firebaseStoreRef, setFirebaseStoreRef] =
+    useState<firebase.storage.Reference | null>(null);
+
+  const firebaseApp = useFirebaseApp(firebaseConfig);
 
   useEffect(
     function () {
@@ -60,4 +72,11 @@ export function usePambaFirebaseStoreRef(): firebase.storage.Reference | null {
   );
 
   return firebaseStoreRef;
+}
+
+export function usePambaFirebaseDBRef(): firebase.database.Database | null {
+  const firebaseApp = useFirebaseApp(firebaseConfig);
+
+  const database = firebaseApp?.database() || null;
+  return database;
 }
