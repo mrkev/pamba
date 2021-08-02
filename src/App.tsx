@@ -548,9 +548,13 @@ function App() {
             <br />
           </div>
           <canvas
-            style={{ background: "black" }}
-            width={CANVAS_WIDTH}
-            height={CANVAS_HEIGHT}
+            style={{
+              background: "black",
+              width: CANVAS_WIDTH,
+              height: CANVAS_HEIGHT,
+            }}
+            width={CANVAS_WIDTH + "px"}
+            height={CANVAS_HEIGHT + "px"}
             ref={(canvas) => {
               if (canvas == null) {
                 return;

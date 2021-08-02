@@ -9,5 +9,5 @@ export const SECS_OVER_PX = SECS_PER_PX;
 // export const pxToSecs = (px: number) => px * SECS_OVER_PX;
 // export const secsToPx = (secs: number) => secs * PX_OVER_SEC;
 
-export const CANVAS_WIDTH = 512;
-export const CANVAS_HEIGHT = 256;
+export const CANVAS_WIDTH = 512 / 2;
+export const CANVAS_HEIGHT = 256 / 2;
