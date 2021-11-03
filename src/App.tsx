@@ -258,21 +258,30 @@ function App() {
       if (pressed.status === "resizing_clip") {
         const deltaXSecs = pxToSecs(e.clientX - pressed.clientX);
         if (pressed.from === "end") {
-          const newEndPosSec = Math.max(
+          // We can't trim a clip to end before it's beggining
+          let newEndPosSec = Math.max(
             0,
             pressed.originalClipEndPosSec + deltaXSecs
           );
+          // and also prevent it from extending beyond its original length
+          newEndPosSec = Math.min(newEndPosSec, pressed.clip.lengthSec);
+
           pressed.clip.trimEndSec = newEndPosSec;
-        } else {
-          const newStartPosSec = Math.min(
+        } else if (pressed.from === "start") {
+          // Can't trim past the length of the clip, so
+          // clamp it on one side to that.
+          let newTrimStartSec = Math.min(
             pressed.clip.lengthSec,
             pressed.originalClipStartPosSec + deltaXSecs
           );
-          const newOffset = Math.min(
-            pressed.clip.lengthSec,
-            Math.max(0, pressed.originalClipOffsetSec + deltaXSecs)
-          );
-          pressed.clip.trimStartSec = newStartPosSec;
+          // let's not allow extending the begging back before 0
+          newTrimStartSec = Math.max(newTrimStartSec, 0);
+
+          // The change in trim, not mouse position
+          const actualDelta = newTrimStartSec - pressed.originalClipStartPosSec;
+          let newOffset = pressed.originalClipOffsetSec + actualDelta;
+
+          pressed.clip.trimStartSec = newTrimStartSec;
           pressed.clip.startOffsetSec = newOffset;
         }
 

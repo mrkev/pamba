@@ -149,7 +149,7 @@ export function Clip({
       onClick={onClipClick}
       style={{
         backgroundColor: "#ccffcc",
-        backgroundSize: `${width}px ${height}px`,
+        backgroundSize: `${totalBufferWidth}px ${height}px`,
         backgroundImage: "url('" + backgroundImageData + "')",
         backgroundRepeat: "no-repeat",
         backgroundPosition: `${startTrimmedWidth * -1}px 0px`,
@@ -171,6 +171,8 @@ export function Clip({
           border: border,
           opacity: 0.8,
           fontSize: 10,
+          whiteSpace: "nowrap",
+          overflow: "hidden",
         }}
       >
         {clip.name} ({Math.round(clip.durationSec * 100) / 100})

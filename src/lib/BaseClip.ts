@@ -77,10 +77,11 @@ export class BaseClip {
       throw new Error("Can't set endOffsetSec to be before startOffsetSec");
     }
 
+    //
     //                    [          clip       |    ]
     //                    +--------trimEndSec--------+
     // +--startOffsetSec--+
-    // +---------------endOffsetSec-----------------+
+    // +---------------endOffsetSec------------------+
     // ^0:00
     const delta = this.endOffsetSec - newEnd;
     this._trimEndSec = this._trimEndSec - delta;
