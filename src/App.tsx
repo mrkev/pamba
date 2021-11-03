@@ -64,7 +64,7 @@ function App() {
   const [pressed, setPressed] = useLinkedState<CursorState | null>(
     pressedState
   );
-  const [tracks, setTracks] = useLinkedState<AudioTrack[]>(project.tracks);
+  const [tracks, setTracks] = useLinkedState<AudioTrack[]>(project.allTracks);
   const [selected, setSelected] = useLinkedState<SelectionState | null>(
     project.selected
   );
@@ -394,12 +394,17 @@ function App() {
         return;
       }
       if (isAudioPlaying === true) {
-        player.playTracks(tracks);
+        const solodTracks = project.solodTracks.get();
+        if (solodTracks.size > 0) {
+          player.playTracks(Array.from(solodTracks));
+        } else {
+          player.playTracks(tracks);
+        }
       }
 
       return () => player.stopSound();
     },
-    [tracks, isAudioPlaying, player]
+    [tracks, isAudioPlaying, player, project.solodTracks]
   );
 
   useEffect(function () {

@@ -21,20 +21,15 @@ export type SelectionState =
 
 export class AudioProject {
   // Should persist
-  tracks: LinkedState<Array<AudioTrack>> = LinkedState.of<Array<AudioTrack>>(
-    []
-  );
-  solod: LinkedState<Array<AudioTrack>> = LinkedState.of<Array<AudioTrack>>([]);
+  allTracks = LinkedState.of<Array<AudioTrack>>([]);
+  solodTracks = LinkedState.of<Set<AudioTrack>>(new Set());
 
   // the selected clip(s), track(s), etc
-  selected: LinkedState<SelectionState | null> =
-    LinkedState.of<SelectionState | null>(null);
+  selected = LinkedState.of<SelectionState | null>(null);
   // the width of the selection at the playback cursor
-  selectionWidth: LinkedState<number | null> = LinkedState.of<number | null>(
-    null
-  );
+  selectionWidth = LinkedState.of<number | null>(null);
 
-  scaleFactor: LinkedState<number> = LinkedState.of(10);
+  scaleFactor = LinkedState.of<number>(10);
   // 1 sec corresponds to 10 px
   secsToPx = DerivedState.from(
     [this.scaleFactor],
@@ -45,7 +40,7 @@ export class AudioProject {
   );
 
   removeTrack(track: AudioTrack) {
-    const tracks = this.tracks.get();
+    const tracks = this.allTracks.get();
     const selected = this.selected.get();
     const pos = tracks.indexOf(track);
     if (pos === -1) {
@@ -57,7 +52,7 @@ export class AudioProject {
       // TODO: remove track from selected tracks
     }
 
-    this.tracks.set(copy);
+    this.allTracks.set(copy);
   }
 }
 

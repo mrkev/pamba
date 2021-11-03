@@ -1,6 +1,18 @@
 // Base clip deals with the offsets and times.
 // Allows for easier testing than having to worry
 // about and mock AudioContext, etc.
+//
+//  Basic topology:
+//
+//
+//                    [~~~|====== clip ========|~~~]
+// length:            +----------------------------+
+// duration:              +--------------------+
+// trimEndSec:        +------------------------+
+// trimStartSec:      +---+
+// +--startOffsetSec--+
+// +--endOffsetSec-----------------------------+
+
 export class BaseClip {
   // A BaseClip represents media that has a certain length (in frames), but has
   // been trimmed to be of another length.
@@ -81,7 +93,7 @@ export class BaseClip {
     //                    [          clip       |    ]
     //                    +--------trimEndSec--------+
     // +--startOffsetSec--+
-    // +---------------endOffsetSec------------------+
+    // +---------------endOffsetSec-------------+
     // ^0:00
     const delta = this.endOffsetSec - newEnd;
     this._trimEndSec = this._trimEndSec - delta;
