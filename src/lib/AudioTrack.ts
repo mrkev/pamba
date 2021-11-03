@@ -17,7 +17,10 @@ export class AudioTrack {
 
   // if audo is playing, this is the soruce with the playing buffer
   private playingSource: AudioBufferSourceNode | null = null;
+  // The "volume" of the track
   private gainNode: GainNode = new GainNode(audioContext);
+  // Hidden gain node, just for solo-ing tracks.
+  private _hiddenGainNode = new GainNode(audioContext);
   private outNode: AudioNode | null = null;
 
   getCurrentGain(): AudioParam {
@@ -26,6 +29,15 @@ export class AudioTrack {
 
   setGain(val: number): void {
     this.gainNode.gain.value = val;
+  }
+
+  // to be used only when solo-ing
+  _hidden_setIsMutedByApplication(muted: boolean) {
+    if (muted) {
+      this._hiddenGainNode.gain.value = 0;
+      return;
+    }
+    this._hiddenGainNode.gain.value = 1;
   }
 
   //////////// Playback ////////////
@@ -41,7 +53,8 @@ export class AudioTrack {
     }
     this.playingSource = this.getSourceNode();
     this.playingSource.connect(this.gainNode);
-    this.gainNode.connect(this.outNode);
+    this.gainNode.connect(this._hiddenGainNode);
+    this._hiddenGainNode.connect(this.outNode);
     this.playingSource.start(0, offset); // Play the sound now
   }
 
@@ -58,7 +71,8 @@ export class AudioTrack {
     this.playingSource.stop(0);
 
     this.playingSource.disconnect(this.gainNode);
-    this.gainNode.disconnect(this.outNode);
+    this.gainNode.disconnect(this._hiddenGainNode);
+    this._hiddenGainNode.disconnect(this.outNode);
   }
 
   // TODO: I think I can keep 'trackBuffer' between plays

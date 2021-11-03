@@ -394,12 +394,7 @@ function App() {
         return;
       }
       if (isAudioPlaying === true) {
-        const solodTracks = project.solodTracks.get();
-        if (solodTracks.size > 0) {
-          player.playTracks(Array.from(solodTracks));
-        } else {
-          player.playTracks(tracks);
-        }
+        player.playTracks(tracks);
       }
 
       return () => player.stopSound();

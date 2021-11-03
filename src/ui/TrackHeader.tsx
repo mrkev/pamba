@@ -68,6 +68,17 @@ export default function TrackHeader({ isSelected, track, project }: Props) {
             } else {
               res.add(track);
             }
+
+            const tracks = project.allTracks.get();
+
+            for (const track of tracks) {
+              if (res.size === 0 || res.has(track)) {
+                track._hidden_setIsMutedByApplication(false);
+              } else {
+                track._hidden_setIsMutedByApplication(true);
+              }
+            }
+
             return res;
           });
         }}

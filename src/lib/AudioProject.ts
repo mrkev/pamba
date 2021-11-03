@@ -58,5 +58,6 @@ export class AudioProject {
 
 /**
  * TODO:
- *
+ * - Implement solo-ing by adding a second gain node, or a "gate" node with just
+ *   an on-off value, completley hidden for the user and just for the sake of solo-ing.
  */
