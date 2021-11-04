@@ -15,6 +15,7 @@ import { modifierState, useSingletonModifierState } from "./ModifierState";
 import { CursorState, pressedState } from "./lib/linkedState/pressedState";
 import { Axis } from "./Axis";
 import { useDerivedState } from "./lib/DerivedState";
+import { FaustTest } from "./dsp/Faust";
 
 export type Tool = "move" | "trimStart" | "trimEnd";
 
@@ -750,6 +751,7 @@ function App() {
         </div>
       </div>
       <pre>{allState}</pre>
+      <FaustTest />
     </RecoilRoot>
   );
 }
