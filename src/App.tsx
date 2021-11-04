@@ -16,6 +16,7 @@ import { CursorState, pressedState } from "./lib/linkedState/pressedState";
 import { Axis } from "./Axis";
 import { useDerivedState } from "./lib/DerivedState";
 import { FaustTest } from "./dsp/Faust";
+import { Track } from "./ui/Track";
 
 export type Tool = "move" | "trimStart" | "trimEnd";
 
@@ -58,21 +59,16 @@ function App() {
   useSingletonModifierState(modifierState);
 
   const [_, setStateCounter] = useState<number>(0);
-  function rerender() {
+  function rerender(): void {
     setStateCounter((x) => x + 1);
   }
 
-  const [pressed, setPressed] = useLinkedState<CursorState | null>(
-    pressedState
-  );
-  const [tracks, setTracks] = useLinkedState<AudioTrack[]>(project.allTracks);
-  const [selected, setSelected] = useLinkedState<SelectionState | null>(
-    project.selected
-  );
-  const [selectionWidth, setSelectionWidth] = useLinkedState<null | number>(
+  const [pressed, setPressed] = useLinkedState(pressedState);
+  const [tracks, setTracks] = useLinkedState(project.allTracks);
+  const [selected, setSelected] = useLinkedState(project.selected);
+  const [selectionWidth, setSelectionWidth] = useLinkedState(
     project.selectionWidth
   );
-
   const [scaleFactor, setScaleFactor] = useLinkedState(project.scaleFactor);
   const secsToPx = useDerivedState(project.secsToPx);
   const pxToSecs = secsToPx.invert;
@@ -139,7 +135,7 @@ function App() {
     url: string,
     track: AudioTrack,
     name?: string
-  ) {
+  ): Promise<void> {
     try {
       // load clip
       const clip = await AudioClip.fromURL(url, name);
@@ -601,81 +597,14 @@ function App() {
             )}
             {tracks.map(function (track, i) {
               return (
-                <div
+                <Track
                   key={i}
-                  onDrop={function (ev) {
-                    ev.preventDefault();
-                    const url = ev.dataTransfer.getData("text");
-                    loadClipIntoTrack(url, track);
-                  }}
-                  onDragOver={function allowDrop(ev) {
-                    ev.preventDefault();
-                  }}
-                  onMouseEnter={function () {
-                    // console.log("Hovering over", i);
-                    if (pressed && pressed.status === "moving_clip") {
-                      setPressed((prev) => Object.assign({}, prev, { track }));
-                    }
-                  }}
-                  onMouseUp={() => {
-                    // console.log("COOl");
-                  }}
-                  style={{
-                    position: "relative",
-                    borderBottom: "1px solid black",
-                    height: CLIP_HEIGHT,
-                  }}
-                >
-                  {track.clips.map((clip, i) => {
-                    if (
-                      pressed &&
-                      pressed.status === "moving_clip" &&
-                      pressed.track !== track &&
-                      pressed.clip === clip
-                    ) {
-                      return null;
-                    }
-
-                    const isSelected =
-                      selected !== null &&
-                      selected.status === "clips" &&
-                      selected.test.has(clip);
-
-                    return (
-                      <Clip
-                        key={i}
-                        clip={clip}
-                        tool={tool}
-                        rerender={rerender}
-                        isSelected={isSelected}
-                        track={track}
-                        project={project}
-                        style={{
-                          position: "absolute",
-                          left: secsToPx(clip.startOffsetSec),
-                        }}
-                      />
-                    );
-                  })}
-                  {/* RENDER CLIP BEING MOVED */}
-                  {pressed &&
-                    pressed.status === "moving_clip" &&
-                    pressed.track === track && (
-                      <Clip
-                        key={i}
-                        clip={pressed.clip}
-                        tool={tool}
-                        rerender={rerender}
-                        isSelected={true}
-                        project={project}
-                        track={null}
-                        style={{
-                          position: "absolute",
-                          left: secsToPx(pressed.clip.startOffsetSec),
-                        }}
-                      />
-                    )}
-                </div>
+                  track={track}
+                  project={project}
+                  loadClipIntoTrack={loadClipIntoTrack}
+                  tool={tool}
+                  rerender={rerender}
+                />
               );
             })}
             <div
