@@ -23,6 +23,7 @@ export class AudioProject {
   // Should persist
   allTracks = LinkedState.of<Array<AudioTrack>>([]);
   solodTracks = LinkedState.of<Set<AudioTrack>>(new Set());
+  dspExpandedTracks = LinkedState.of<Set<AudioTrack>>(new Set());
 
   // the selected clip(s), track(s), etc
   selected = LinkedState.of<SelectionState | null>(null);

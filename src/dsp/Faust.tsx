@@ -1,15 +1,12 @@
-import createPanner from "./Panner.dsp";
+// import createPanner from "./Panner.dsp";
 import { TFaustUIItem, TFaustUIInputItem } from "@shren/faust-ui/src/types";
-
-import { AudioContext } from "standardized-audio-context";
 import React, { useEffect, useState } from "react";
-import { FaustAudioProcessorNode } from "faust-loader";
-
-const context = new AudioContext();
+import { FaustAudioProcessorNode, ProcessorLoader } from "faust-loader";
+import { audioContext } from "../globals";
 
 declare function exhaustive(x: never): never;
 
-interface INodeData {
+export interface INodeData {
   compile_options: string;
   filename: string;
   include_pathnames: Array<string>;
@@ -109,12 +106,11 @@ function FaustHSlider({ item }: { item: TFaustUIInputItem }) {
   );
 }
 
-function FaustModule({ ui }: { ui: Array<TFaustUIItem> }) {
+export function FaustModule({ ui }: { ui: Array<TFaustUIItem> }) {
   return (
     <div style={{ background: "gray" }}>
       {ui.map((item, i) => {
         return <FaustItem key={i} item={item} />;
-        // renderItem(item);
       })}
     </div>
   );
@@ -125,7 +121,9 @@ export function FaustTest() {
   const [ui, setUi] = useState<Array<TFaustUIItem>>([]);
   useEffect(() => {
     (async function () {
-      const panner = await createPanner(context);
+      const createPanner = await import("./Panner.dsp");
+
+      const panner = await createPanner.default(audioContext);
       if (!panner) {
         return;
       }
@@ -142,3 +140,37 @@ export function FaustTest() {
 
   return <FaustModule ui={ui} />;
 }
+
+type FaustEffectImport = Promise<{ default: ProcessorLoader }> | null;
+export abstract class FaustAudioEffect {
+  static importPromise: FaustEffectImport = import("./Panner.dsp");
+  node: FaustAudioProcessorNode;
+  data: INodeData;
+  ui: Array<TFaustUIItem>;
+
+  constructor(faustNode: FaustAudioProcessorNode) {
+    this.node = faustNode;
+    const nodeData: INodeData = JSON.parse((faustNode as any).getJSON());
+    this.data = nodeData;
+    this.ui = nodeData.ui;
+  }
+
+  static async create(): Promise<FaustAudioEffect | null> {
+    if (this.importPromise === null) {
+      throw new Error("no import promise specified!");
+    }
+    const mod = await this.importPromise;
+    const creator: ProcessorLoader = mod.default;
+    const node = await creator(audioContext);
+    if (!node) {
+      return null;
+    }
+    return new (this as any)(node);
+  }
+}
+
+export class PannerFaustAudioEffect extends FaustAudioEffect {
+  static importPromise = import("./Panner.dsp");
+}
+
+(window as any).PannerFaustAudioEffect = PannerFaustAudioEffect;

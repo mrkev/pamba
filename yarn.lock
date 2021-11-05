@@ -5986,10 +5986,9 @@ fastq@^1.6.0:
   dependencies:
     reusify "^1.0.4"
 
-faust-loader@^1.2.0:
+"faust-loader@https://github.com/mrkev/faust-loader#b1541b255df745cc5ba97850f0278e01095ae21d":
   version "1.2.0"
-  resolved "https://registry.yarnpkg.com/faust-loader/-/faust-loader-1.2.0.tgz#1cdd190c8bbea991595f42635c91dfeecde983de"
-  integrity sha512-pg3f0TR+xG0YgUzcYB8HkZm1KX9XE3TUiHJE/+jnj/hFVfV83sT+Gn81CZ86j0Muy1ZivXfZ80vKpVFDGmMJEg==
+  resolved "https://github.com/mrkev/faust-loader#b1541b255df745cc5ba97850f0278e01095ae21d"
   dependencies:
     fs-extra "^10.0.0"
     loader-utils "^2.0.0"

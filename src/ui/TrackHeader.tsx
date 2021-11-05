@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { CLIP_HEIGHT } from "../globals";
+import { CLIP_HEIGHT, EFFECT_HEIGHT } from "../globals";
 import type { AudioProject, SelectionState } from "../lib/AudioProject";
 import type { AudioTrack } from "../lib/AudioTrack";
 import { useDerivedState } from "../lib/DerivedState";
@@ -15,20 +15,20 @@ type Props = {
 export default function TrackHeader({ isSelected, track, project }: Props) {
   const [gain, setGain] = useState<number>(track.getCurrentGain().value);
   const [muted, setMuted] = useState<boolean>(false);
-  const [, setSelected] = useLinkedState<SelectionState | null>(
-    project.selected
-  );
-  const [solodTracks, setSolodTracks] = useLinkedState<Set<AudioTrack>>(
-    project.solodTracks
+  const [, setSelected] = useLinkedState(project.selected);
+  const [solodTracks, setSolodTracks] = useLinkedState(project.solodTracks);
+  const [dspExpandedTracks, setDspExpandedTracks] = useLinkedState(
+    project.dspExpandedTracks
   );
 
   const isSolod = solodTracks.has(track);
+  const isDspExpanded = dspExpandedTracks.has(track);
 
   return (
     <div
       style={{
         background: isSelected ? "#eee" : "white",
-        height: CLIP_HEIGHT,
+        height: CLIP_HEIGHT + (isDspExpanded ? EFFECT_HEIGHT : 0),
       }}
     >
       <div
@@ -112,6 +112,22 @@ export default function TrackHeader({ isSelected, track, project }: Props) {
           track.setGain(val);
         }}
       />
+      <button
+        style={isDspExpanded ? { background: "#5566EE" } : undefined}
+        onClick={function () {
+          setDspExpandedTracks((prev) => {
+            const res = new Set(prev);
+            if (prev.has(track)) {
+              res.delete(track);
+            } else {
+              res.add(track);
+            }
+            return res;
+          });
+        }}
+      >
+        Expand
+      </button>
     </div>
   );
 }

@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import "./App.css";
 import { CLIP_HEIGHT, CANVAS_WIDTH, CANVAS_HEIGHT } from "./globals";
 import { AudioClip } from "./lib/AudioClip";
-import { Clip } from "./ui/Clip";
 import { AudioTrack } from "./lib/AudioTrack";
 import { AnalizedPlayer } from "./AnalizedPlayer";
 import { usePambaFirebaseStoreRef } from "./firebase/useFirebase";
@@ -12,10 +11,9 @@ import { useMediaRecorder } from "./lib/useMediaRecorder";
 import { AudioProject, SelectionState } from "./lib/AudioProject";
 import { useLinkedState } from "./lib/LinkedState";
 import { modifierState, useSingletonModifierState } from "./ModifierState";
-import { CursorState, pressedState } from "./lib/linkedState/pressedState";
+import { pressedState } from "./lib/linkedState/pressedState";
 import { Axis } from "./Axis";
 import { useDerivedState } from "./lib/DerivedState";
-import { FaustTest } from "./dsp/Faust";
 import { Track } from "./ui/Track";
 
 export type Tool = "move" | "trimStart" | "trimEnd";
@@ -70,6 +68,7 @@ function App() {
     project.selectionWidth
   );
   const [scaleFactor, setScaleFactor] = useLinkedState(project.scaleFactor);
+  const [dspExpandedTracks] = useLinkedState(project.dspExpandedTracks);
   const secsToPx = useDerivedState(project.secsToPx);
   const pxToSecs = secsToPx.invert;
 
@@ -596,6 +595,7 @@ function App() {
               <Axis project={project} projectDiv={projectDiv}></Axis>
             )}
             {tracks.map(function (track, i) {
+              const isDspExpanded = dspExpandedTracks.has(track);
               return (
                 <Track
                   key={i}
@@ -604,6 +604,7 @@ function App() {
                   loadClipIntoTrack={loadClipIntoTrack}
                   tool={tool}
                   rerender={rerender}
+                  isDspExpanded={isDspExpanded}
                 />
               );
             })}
@@ -680,7 +681,6 @@ function App() {
         </div>
       </div>
       <pre>{allState}</pre>
-      <FaustTest />
     </RecoilRoot>
   );
 }

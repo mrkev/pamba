@@ -2,6 +2,8 @@ import { AudioClip } from "./AudioClip";
 import { audioContext } from "../globals";
 import { mixDown } from "../mixDown";
 import { addClip, deleteTime, removeClip, pushClip } from "./AudioTrackFn";
+import { FaustAudioEffect } from "../dsp/Faust";
+import { LinkedState } from "./LinkedState";
 
 let trackNo = 0;
 
@@ -14,6 +16,8 @@ export class AudioTrack {
   // - Sorted by start time.
   // - Non-overlapping clips.
   clips: Array<AudioClip> = [];
+
+  effects = LinkedState.of<Array<FaustAudioEffect>>([]);
 
   // if audo is playing, this is the soruce with the playing buffer
   private playingSource: AudioBufferSourceNode | null = null;
@@ -46,6 +50,16 @@ export class AudioTrack {
     this.outNode = node;
   }
 
+  // Topology of DSP:
+  // [ Source Node ]
+  //        V
+  // [ Gain Node ]
+  //        V
+  // [ ... Effects]
+  //        V
+  // [ _Hidden Gain Node (for soloing)]
+  //        V
+  // [ Out Node ]
   startPlayback(offset?: number): void {
     if (!this.outNode) {
       console.warn("No out node for this track!", this);
@@ -53,7 +67,15 @@ export class AudioTrack {
     }
     this.playingSource = this.getSourceNode();
     this.playingSource.connect(this.gainNode);
-    this.gainNode.connect(this._hiddenGainNode);
+    // Effects
+    let currentNode: AudioNode = this.gainNode;
+    const effects = this.effects.get();
+    for (let i = 0; i < effects.length; i++) {
+      const nextNode = effects[i].node;
+      currentNode.connect(nextNode);
+      currentNode = nextNode;
+    }
+    currentNode.connect(this._hiddenGainNode);
     this._hiddenGainNode.connect(this.outNode);
     this.playingSource.start(0, offset); // Play the sound now
   }
@@ -70,9 +92,19 @@ export class AudioTrack {
 
     this.playingSource.stop(0);
 
-    this.playingSource.disconnect(this.gainNode);
-    this.gainNode.disconnect(this._hiddenGainNode);
-    this._hiddenGainNode.disconnect(this.outNode);
+    const chain = [
+      this.playingSource,
+      this.gainNode,
+      ...this.effects.get().map((effect) => effect.node),
+      this._hiddenGainNode,
+      this.outNode,
+    ];
+
+    for (let i = 0; i < chain.length - 1; i++) {
+      const currentNode = chain[i];
+      const nextNode = chain[i + 1];
+      currentNode.disconnect(nextNode);
+    }
   }
 
   // TODO: I think I can keep 'trackBuffer' between plays
