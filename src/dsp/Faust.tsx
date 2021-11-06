@@ -20,7 +20,13 @@ export interface INodeData {
   version: string;
 }
 
-function FaustItem({ item }: { item: TFaustUIItem }) {
+function FaustItem({
+  item,
+  setParam,
+}: {
+  item: TFaustUIItem;
+  setParam: FaustNodeSetParamFn;
+}) {
   const { type } = item;
 
   switch (type) {
@@ -31,7 +37,7 @@ function FaustItem({ item }: { item: TFaustUIItem }) {
         <div style={{ display: "flex", flexDirection: "column" }}>
           <div>{label}</div>
           {items.map((item, i) => {
-            return <FaustItem key={i} item={item} />;
+            return <FaustItem key={i} item={item} setParam={setParam} />;
           })}
         </div>
       );
@@ -42,7 +48,7 @@ function FaustItem({ item }: { item: TFaustUIItem }) {
         <div>
           "hgroup"
           {item.items.map((item, i) => {
-            return <FaustItem key={i} item={item} />;
+            return <FaustItem key={i} item={item} setParam={setParam} />;
           })}
         </div>
       );
@@ -52,7 +58,7 @@ function FaustItem({ item }: { item: TFaustUIItem }) {
         <div>
           "tgroup"{" "}
           {item.items.map((item, i) => {
-            return <FaustItem key={i} item={item} />;
+            return <FaustItem key={i} item={item} setParam={setParam} />;
           })}
         </div>
       );
@@ -64,7 +70,7 @@ function FaustItem({ item }: { item: TFaustUIItem }) {
       return <div>"vbargraph"</div>;
 
     case "hslider": {
-      return <FaustHSlider item={item} />;
+      return <FaustHSlider item={item} setParam={setParam} />;
     }
 
     case "vslider":
@@ -84,8 +90,14 @@ function FaustItem({ item }: { item: TFaustUIItem }) {
   }
 }
 
-function FaustHSlider({ item }: { item: TFaustUIInputItem }) {
-  const { label, index, init, min, max, step } = item;
+function FaustHSlider({
+  item,
+  setParam,
+}: {
+  item: TFaustUIInputItem;
+  setParam: FaustNodeSetParamFn;
+}) {
+  const { label, index, init, min, max, step, address } = item;
   const [value, setValue] = useState(init);
   return (
     <React.Fragment>
@@ -99,18 +111,29 @@ function FaustHSlider({ item }: { item: TFaustUIInputItem }) {
         value={value}
         onChange={(e) => {
           const newVal = parseFloat(e.target.value);
-          setValue(newVal);
+          setValue(() => {
+            setParam(address, newVal);
+            return newVal;
+          });
         }}
       ></input>
     </React.Fragment>
   );
 }
 
-export function FaustModule({ ui }: { ui: Array<TFaustUIItem> }) {
+export type FaustNodeSetParamFn = (address: string, value: number) => void;
+
+export function FaustModule({
+  ui,
+  setParam,
+}: {
+  ui: Array<TFaustUIItem>;
+  setParam: FaustNodeSetParamFn;
+}) {
   return (
     <div style={{ background: "gray" }}>
       {ui.map((item, i) => {
-        return <FaustItem key={i} item={item} />;
+        return <FaustItem key={i} item={item} setParam={setParam} />;
       })}
     </div>
   );
@@ -138,7 +161,7 @@ export function FaustTest() {
     return null;
   }
 
-  return <FaustModule ui={ui} />;
+  return <FaustModule ui={ui} setParam={node.setParam} />;
 }
 
 type FaustEffectImport = Promise<{ default: ProcessorLoader }> | null;
@@ -150,6 +173,7 @@ export abstract class FaustAudioEffect {
 
   constructor(faustNode: FaustAudioProcessorNode) {
     this.node = faustNode;
+    (window as any).nn = faustNode;
     const nodeData: INodeData = JSON.parse((faustNode as any).getJSON());
     this.data = nodeData;
     this.ui = nodeData.ui;

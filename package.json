@@ -14,7 +14,7 @@
     "@types/react-dom": "^17.0.5",
     "d3": "^7.0.0",
     "d3-axis": "^3.0.0",
-    "faust-loader": "https://github.com/mrkev/faust-loader#b1541b255df745cc5ba97850f0278e01095ae21d",
+    "faust-loader": "https://github.com/mrkev/faust-loader#9ea3217039979af1aadd7b5517f7b2c2a25f0f7d",
     "firebase": "^8.6.2",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",

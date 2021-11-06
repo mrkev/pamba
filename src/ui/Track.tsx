@@ -120,7 +120,13 @@ export function Track({
           }}
         >
           {effects.map((effect, i) => {
-            return <FaustModule key={i} ui={effect.ui} />;
+            return (
+              <FaustModule
+                key={i}
+                ui={effect.ui}
+                setParam={effect.node.setParam}
+              />
+            );
           })}
           Effects will go here
           {
