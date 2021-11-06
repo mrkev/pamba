@@ -111,10 +111,12 @@ export function Track({
       {isDspExpanded && (
         <div
           style={{
+            color: "white",
             height: EFFECT_HEIGHT,
             background: "#444",
             display: "flex",
             flexDirection: "row",
+            alignItems: "center",
             // to keep the selection div from showing above this effect track
             zIndex: 1,
             // So it "sticks" when we scroll the timeline
@@ -125,15 +127,39 @@ export function Track({
             e.stopPropagation();
           }}
         >
+          {"↳"}
           {effects.map((effect, i) => {
             return (
-              <FaustModule
-                key={i}
-                ui={effect.ui}
-                setParam={effect.node.setParam}
-              />
+              <>
+                <FaustModule
+                  key={i}
+                  ui={effect.ui}
+                  setParam={effect.node.setParam}
+                  style={{
+                    alignSelf: "stretch",
+                    margin: "2px",
+                    borderRadius: "2px",
+                  }}
+                />
+                {"→"}
+              </>
             );
           })}
+
+          <div
+            style={{
+              alignSelf: "stretch",
+              margin: "2px",
+              borderRadius: "2px",
+              background: "gray",
+              border: "1px solid #333",
+              padding: 4,
+              fontSize: "14px",
+            }}
+          >
+            Output
+          </div>
+
           {
             <button
               onClick={async function () {

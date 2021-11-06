@@ -126,9 +126,11 @@ export type FaustNodeSetParamFn = (address: string, value: number) => void;
 export function FaustModule({
   ui,
   setParam,
+  style,
 }: {
   ui: Array<TFaustUIItem>;
   setParam: FaustNodeSetParamFn;
+  style?: React.CSSProperties;
 }) {
   return (
     <div
@@ -137,6 +139,7 @@ export function FaustModule({
         border: "1px solid #333",
         padding: 4,
         fontSize: "14px",
+        ...style,
       }}
     >
       {ui.map((item, i) => {

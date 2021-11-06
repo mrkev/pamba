@@ -149,10 +149,12 @@ export function Clip({
       onClick={onClipClick}
       style={{
         backgroundColor: "#ccffcc",
-        backgroundSize: `${totalBufferWidth}px ${height}px`,
+        //  -10 to clear the header a little better
+        backgroundSize: `${totalBufferWidth}px ${height - 10}px`,
         backgroundImage: "url('" + backgroundImageData + "')",
         backgroundRepeat: "no-repeat",
-        backgroundPosition: `${startTrimmedWidth * -1}px 0px`,
+        backgroundPosition: `${startTrimmedWidth * -1}px center`,
+        imageRendering: "pixelated",
         width,
         height,
         // pointerEvents: 'none',

@@ -453,7 +453,13 @@ function App() {
                 justifyContent: "right",
               }}
             >
-              {tool}
+              {tool === "move"
+                ? "move ⇄"
+                : tool === "trimStart"
+                ? "trimStart ⇥"
+                : tool === "trimEnd"
+                ? "trimEnd ⇤"
+                : tool}
               <button disabled={tracks.length === 0} onClick={togglePlayback}>
                 {isAudioPlaying ? "stop" : "start"}
               </button>
@@ -537,25 +543,6 @@ function App() {
               );
             })}
             <hr />
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "row",
-                justifyContent: "right",
-              }}
-            >
-              <input
-                type="range"
-                min={1}
-                max={20}
-                step={0.01}
-                value={scaleFactor}
-                onChange={(e) => {
-                  const val = parseFloat(e.target.value);
-                  setScaleFactor(val);
-                }}
-              />
-            </div>
           </div>
           <canvas
             style={{
@@ -655,9 +642,26 @@ function App() {
           >
             <div
               className="axis-spacer"
-              style={{ display: "block", height: "30px" }}
+              style={{
+                height: "30px",
+                display: "flex",
+                alignItems: "center",
+                flexDirection: "row",
+              }}
             >
               {/* Spacer for the axis */}
+
+              <input
+                type="range"
+                min={1}
+                max={20}
+                step={0.01}
+                value={scaleFactor}
+                onChange={(e) => {
+                  const val = parseFloat(e.target.value);
+                  setScaleFactor(val);
+                }}
+              />
             </div>
             {tracks.map((track, i) => {
               const isSelected =
