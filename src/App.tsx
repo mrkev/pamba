@@ -445,11 +445,19 @@ function App() {
           }}
         >
           <div style={{ flexGrow: 1 }}>
-            <button disabled={tracks.length === 0} onClick={togglePlayback}>
-              {isAudioPlaying ? "stop" : "start"}
-            </button>
-            {tool}
-            <br />
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                columnGap: "6px",
+                justifyContent: "right",
+              }}
+            >
+              {tool}
+              <button disabled={tracks.length === 0} onClick={togglePlayback}>
+                {isAudioPlaying ? "stop" : "start"}
+              </button>
+            </div>
             {/* <input
             value={""}
             type="file"
@@ -528,27 +536,26 @@ function App() {
                 </button>
               );
             })}
-            <input
-              type="range"
-              min={1}
-              max={20}
-              step={0.01}
-              value={scaleFactor}
-              onChange={(e) => {
-                const val = parseFloat(e.target.value);
-                setScaleFactor(val);
-              }}
-            />
-            <br />
             <hr />
-            <br />
-            Pressed:{" "}
-            {JSON.stringify(pressed, ["status", "clientX", "clientY"], 2)}
-            <br />
-            Cursor: {cursorPos} {selectionWidth}
-            <br />
-            Selected: {stringOfSelected(selected)}
-            <br />
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                justifyContent: "right",
+              }}
+            >
+              <input
+                type="range"
+                min={1}
+                max={20}
+                step={0.01}
+                value={scaleFactor}
+                onChange={(e) => {
+                  const val = parseFloat(e.target.value);
+                  setScaleFactor(val);
+                }}
+              />
+            </div>
           </div>
           <canvas
             style={{
@@ -677,6 +684,14 @@ function App() {
             </div>
           </div>
         </div>
+      </div>
+      <div>
+        Pressed: {JSON.stringify(pressed, ["status", "clientX", "clientY"], 2)}
+        <br />
+        Cursor: {cursorPos} {selectionWidth}
+        <br />
+        Selected: {stringOfSelected(selected)}
+        <br />
       </div>
       <pre>{allState}</pre>
     </RecoilRoot>
