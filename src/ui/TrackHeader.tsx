@@ -20,6 +20,7 @@ export default function TrackHeader({ isSelected, track, project }: Props) {
   const [dspExpandedTracks, setDspExpandedTracks] = useLinkedState(
     project.dspExpandedTracks
   );
+  const [trackEffects] = useLinkedState(track.effects);
 
   const isSolod = solodTracks.has(track);
   const isDspExpanded = dspExpandedTracks.has(track);
@@ -127,7 +128,8 @@ export default function TrackHeader({ isSelected, track, project }: Props) {
         }}
       >
         Expand
-      </button>
+      </button>{" "}
+      ({trackEffects.length})
     </div>
   );
 }

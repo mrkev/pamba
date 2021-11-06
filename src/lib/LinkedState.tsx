@@ -101,7 +101,6 @@ export function useLinkedState<S>(
     function (newVal) {
       // newVal instanceof Function
       if (newVal instanceof Function) {
-        console.log("HELLO WORLD");
         linkedState.set(newVal(linkedState.get()));
       } else {
         linkedState.set(newVal);

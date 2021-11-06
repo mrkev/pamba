@@ -160,6 +160,7 @@ export function Clip({
         borderLeft: border,
         borderRight: border,
         color: "white",
+        pointerEvents: "all",
         ...style,
       }}
     >

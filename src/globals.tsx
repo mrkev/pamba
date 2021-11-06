@@ -1,6 +1,7 @@
 export const sampleSize = 1024;
 export const audioContext = new AudioContext();
 export const CLIP_HEIGHT = 88;
+export const TRACK_SEPARATOR_HEIGHT = 3;
 export const EFFECT_HEIGHT = CLIP_HEIGHT + 36;
 
 export const PX_PER_SEC = 10;

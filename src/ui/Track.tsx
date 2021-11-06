@@ -1,6 +1,6 @@
 import { Tool } from "../App";
 import { FaustModule, PannerFaustAudioEffect } from "../dsp/Faust";
-import { CLIP_HEIGHT, EFFECT_HEIGHT } from "../globals";
+import { CLIP_HEIGHT, EFFECT_HEIGHT, TRACK_SEPARATOR_HEIGHT } from "../globals";
 import { AudioProject } from "../lib/AudioProject";
 import { AudioTrack } from "../lib/AudioTrack";
 import { useDerivedState } from "../lib/DerivedState";
@@ -54,8 +54,8 @@ export function Track({
         }}
         style={{
           position: "relative",
-          borderBottom: "1px solid black",
-          height: CLIP_HEIGHT,
+          height: CLIP_HEIGHT - TRACK_SEPARATOR_HEIGHT,
+          // pointerEvents: "none",
         }}
       >
         {track.clips.map((clip, i) => {
@@ -111,12 +111,18 @@ export function Track({
       {isDspExpanded && (
         <div
           style={{
-            position: "relative",
-            borderBottom: "1px solid black",
             height: EFFECT_HEIGHT,
             background: "#444",
             display: "flex",
             flexDirection: "row",
+            // to keep the selection div from showing above this effect track
+            zIndex: 1,
+            // So it "sticks" when we scroll the timeline
+            position: "sticky",
+            left: "0",
+          }}
+          onMouseDownCapture={(e) => {
+            e.stopPropagation();
           }}
         >
           {effects.map((effect, i) => {
@@ -128,7 +134,6 @@ export function Track({
               />
             );
           })}
-          Effects will go here
           {
             <button
               onClick={async function () {
@@ -144,6 +149,20 @@ export function Track({
           }
         </div>
       )}
+
+      {/* Bottom border */}
+      <div
+        style={{
+          height: TRACK_SEPARATOR_HEIGHT,
+          width: "100%",
+          background: "#BABABA",
+          // to keep the selection div from showing above this effect track
+          // So it "sticks" when we scroll the timeline
+          position: "sticky",
+          left: "0",
+          pointerEvents: "none",
+        }}
+      ></div>
     </>
   );
 }

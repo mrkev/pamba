@@ -292,13 +292,11 @@ function App() {
       }
     };
 
-    projectDiv.addEventListener("mousedown", mouseDownEvent, { capture: true });
+    projectDiv.addEventListener("mousedown", mouseDownEvent);
     document.addEventListener("mouseup", mouseUpEvent);
     document.addEventListener("mousemove", mouseMoveEvent);
     return () => {
-      projectDiv.removeEventListener("mousedown", mouseDownEvent, {
-        capture: true,
-      });
+      projectDiv.removeEventListener("mousedown", mouseDownEvent);
       document.removeEventListener("mouseup", mouseUpEvent);
       document.removeEventListener("mousemove", mouseMoveEvent);
     };

@@ -4,6 +4,7 @@ import { axisTop } from "d3-axis";
 import { scaleLinear } from "d3-scale";
 import { AudioProject } from "./lib/AudioProject";
 import { useDerivedState } from "./lib/DerivedState";
+import { useLinkedState } from "./lib/LinkedState";
 
 const formatter = new Intl.NumberFormat("en-US", {
   useGrouping: false,
@@ -44,11 +45,17 @@ export function Axis({
 }) {
   const [svg, setSvg] = useState<SVGSVGElement | null>(null);
   const secsToPx = useDerivedState(project.secsToPx);
+  // const [tracks] = useLinkedState(project.allTracks);
 
   useEffect(() => {
     if (!svg) {
       return;
     }
+
+    const d3svg = d3.select(svg);
+
+    // DRAW HORIZONTAL AXIS
+    // ie, timestamp ticks
 
     const pxToSecs = secsToPx.invert;
     const tickData: Array<{ s: number; px: number }> = [];
@@ -61,8 +68,6 @@ export function Axis({
     for (let i = 0; i < totalTime; i += STEP) {
       tickData.push({ s: i, px: secsToPx(i) });
     }
-
-    const d3svg = d3.select(svg);
 
     // // How wide the axis will be
     // const width = 100;
@@ -109,10 +114,35 @@ export function Axis({
       .text(({ s: i }) => formatSecs(i));
 
     ticks.exit().remove();
+
+    // // DRAW VERTICAL AXIS
+    // // ie, track borders
+
+    // const trackData: Array<{ i: number }> = [];
+    // // TODO: draw only visible window, not whole timeline
+    // const maxHeight = pxToSecs(projectDiv.scrollHeight);
+
+    // for (let i = 0; i < tracks.length; i++) {
+    //   trackData.push({ i });
+    // }
+
+    // const trackLines = d3svg.selectAll("line.track").data(trackData);
+    // trackLines
+    //   .enter()
+    //   .append("line")
+    //   .attr("class", "track")
+    //   .attr("x1", 0)
+    //   .attr("x2", "100%")
+    //   .attr("y1", ({ i }) => i * 10)
+    //   .attr("y2", ({ i }) => i * 10)
+    //   .attr("stroke", "#CBCBCB");
+
+    // trackLines.exit().remove();
   }, [projectDiv, secsToPx, svg]);
 
   return (
     <>
+      {/* Background grid */}
       <svg
         ref={(elem: SVGSVGElement) => setSvg(elem)}
         style={{
@@ -122,9 +152,10 @@ export function Axis({
           pointerEvents: "none",
         }}
       ></svg>
+      {/* Spacer to make the project content not overlap with the timestamps */}
       <div
         className="axis-spacer"
-        style={{ height: 30, display: "block" }}
+        style={{ height: 30, display: "block", pointerEvents: "none" }}
       ></div>
     </>
   );

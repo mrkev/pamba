@@ -100,7 +100,7 @@ function FaustHSlider({
   const { label, index, init, min, max, step, address } = item;
   const [value, setValue] = useState(init);
   return (
-    <React.Fragment>
+    <div style={{ display: "flex", flexDirection: "row", columnGap: 6 }}>
       <label htmlFor={`${index}`}>{label}</label>
       <input
         id={`${index}`}
@@ -117,7 +117,7 @@ function FaustHSlider({
           });
         }}
       ></input>
-    </React.Fragment>
+    </div>
   );
 }
 
@@ -131,7 +131,14 @@ export function FaustModule({
   setParam: FaustNodeSetParamFn;
 }) {
   return (
-    <div style={{ background: "gray" }}>
+    <div
+      style={{
+        background: "gray",
+        border: "1px solid #333",
+        padding: 4,
+        fontSize: "14px",
+      }}
+    >
       {ui.map((item, i) => {
         return <FaustItem key={i} item={item} setParam={setParam} />;
       })}
