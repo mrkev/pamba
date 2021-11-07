@@ -18,6 +18,8 @@ export type CursorState =
       // Original clientX/Y of event
       clientX: number;
       clientY: number;
+      // time at original click
+      startTime: number;
     }
   | {
       status: "resizing_clip";

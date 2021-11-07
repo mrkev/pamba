@@ -190,6 +190,7 @@ function App() {
           status: "selecting",
           clientX: e.clientX,
           clientY: e.clientY,
+          startTime: asSecs,
         });
       }
     };
@@ -216,20 +217,37 @@ function App() {
       }
 
       if (pressed.status === "selecting") {
+        const { startTime } = pressed;
         setPressed(null);
-        const curSel = selectionWidthRef.current;
-        if (curSel == null || curSel > 0) {
+        const selWidth = selectionWidthRef.current;
+
+        if (selWidth == null) {
           return;
         }
+
+        if (selWidth > 0) {
+          setSelected({
+            status: "time",
+            start: startTime,
+            end: startTime + selWidth,
+          });
+          return;
+        }
+
+        setSelected({
+          status: "time",
+          start: startTime + selWidth,
+          end: startTime,
+        });
 
         // Move the cursor to the beggining of the selection
         // and make the selection positive
         setCursorPos((pos) => {
-          player.setCursorPos(pos + curSel);
-          return pos + curSel;
+          player.setCursorPos(pos + selWidth);
+          return pos + selWidth;
         });
 
-        setSelectionWidth(Math.abs(curSel));
+        setSelectionWidth(Math.abs(selWidth));
       }
 
       if (pressed.status === "resizing_clip") {
@@ -324,6 +342,9 @@ function App() {
               setSelected(null);
             }
           }
+          if (selected.status === "time") {
+            // todo
+          }
 
           // console.log(selectionWidthRef.current);
           break;
@@ -347,17 +368,24 @@ function App() {
           console.log(e.code);
       }
       if (e.code === "Space") {
+        // todo: is there better way to prevent space from toggling the last
+        // pressed button?
+        if (document.activeElement instanceof HTMLButtonElement) {
+          (document.activeElement as any).blur();
+        }
         togglePlayback();
         e.preventDefault();
       }
     }
 
     document.addEventListener("keydown", keydownEvent);
-    document.addEventListener("keypress", keypressEvent);
+    document.addEventListener("keypress", keypressEvent, { capture: true });
     document.addEventListener("keyup", keyupEvent);
     return function () {
       document.removeEventListener("keydown", keydownEvent);
-      document.removeEventListener("keypress", keypressEvent);
+      document.removeEventListener("keypress", keypressEvent, {
+        capture: true,
+      });
       document.removeEventListener("keyup", keyupEvent);
     };
   }, [selected, togglePlayback]);
