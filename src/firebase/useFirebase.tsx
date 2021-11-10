@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import firebase from "firebase";
+import firebase from "firebase/compat/app";
+import "firebase/compat/auth";
+import "firebase/compat/storage";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
