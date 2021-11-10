@@ -30,7 +30,7 @@
     "build": "react-app-rewired build",
     "test": "react-app-rewired test",
     "eject": "react-app-rewired eject",
-    "deploy": "firebase deploy --only hosting"
+    "deploy": "yarn build && firebase deploy --only hosting"
   },
   "eslintConfig": {
     "extends": [
