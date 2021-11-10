@@ -3,12 +3,13 @@ import { useLinkedState } from "../lib/LinkedState";
 import { pressedState } from "../lib/linkedState/pressedState";
 import { modifierState } from "../ModifierState";
 
-import type React from "react";
+import React from "react";
 import type { Tool } from "../App";
-import type { AudioProject } from "../lib/AudioProject";
+import type { AudioProject, XScale } from "../lib/AudioProject";
 import type { AudioTrack } from "../lib/AudioTrack";
 import type { AudioClip } from "../lib/AudioClip";
 import { useDerivedState } from "../lib/DerivedState";
+import { scaleLinear } from "d3-scale";
 
 type Props = {
   clip: AudioClip;
@@ -55,7 +56,7 @@ export function Clip({
   const width = secsToPx(clip.durationSec);
   const totalBufferWidth = secsToPx(clip.lengthSec);
   const startTrimmedWidth = secsToPx(clip.trimStartSec);
-  const height = CLIP_HEIGHT;
+  const height = CLIP_HEIGHT - 3; // to clear the bottom track separator gridlines
   const [, setPressed] = useLinkedState(pressedState);
   const [, setSelectionWidth] = useLinkedState(project.selectionWidth);
   const [, setSelected] = useLinkedState(project.selected);
@@ -163,6 +164,8 @@ export function Clip({
         borderRight: border,
         color: "white",
         pointerEvents: "all",
+        display: "flex",
+        flexDirection: "column",
         ...style,
       }}
     >
@@ -176,6 +179,8 @@ export function Clip({
           fontSize: 10,
           whiteSpace: "nowrap",
           overflow: "hidden",
+          flexShrink: 0,
+          paddingBottom: "0px 0px 1px 0px",
         }}
       >
         {clip.name} ({Math.round(clip.durationSec * 100) / 100})
@@ -188,6 +193,63 @@ export function Clip({
         style={styles.resizerEnd}
         onMouseDown={(e) => onMouseDownToResize(e, "end")}
       ></div>
+      {/* <ClipAutomation clip={clip} secsToPx={secsToPx} /> */}
     </div>
+  );
+}
+
+// TODO: use this for DSP effects automation, but treat track gain as a "special"
+// gain that's automatable with fade-in, fade-out faders only? Ie, if I end up
+// showing it in the DSP chain, instead of showing the track header as a "utility"
+// effect with gain, mute, etc. show it as a "header utility" with "track gain",
+// mute, etc? That or generalize the special fade-in UI to any automation,
+// except the cool thing about the UI is you can't go past max=1
+function ClipAutomation({
+  clip,
+  secsToPx,
+}: {
+  clip: AudioClip;
+  secsToPx: XScale;
+}) {
+  const MAX_GAIN = 2;
+  const MIN_GAIN = 0;
+
+  const valToPcnt = (val: number) => {
+    const scale = scaleLinear()
+      .domain([MIN_GAIN, MAX_GAIN])
+      .range([0, 100]) as XScale;
+
+    return `${scale(val)}%`;
+  };
+
+  return (
+    <svg style={{}}>
+      {clip.gainAutomation.map(({ time, value }, i) => {
+        const [x1, y1] = [secsToPx(time), valToPcnt(value)];
+        const { time: time2, value: value2 } = clip.gainAutomation[i + 1] || {
+          time: clip.trimEndSec,
+          value,
+        };
+        const [x2, y2] = [secsToPx(time2), valToPcnt(value2)];
+
+        return (
+          <React.Fragment key={`point-line-${i}`}>
+            <circle
+              style={{ fill: "red", stroke: "red" }}
+              cx={x1}
+              cy={y1}
+              r={4}
+            ></circle>
+            <line
+              x1={x1}
+              y1={y1}
+              x2={x2}
+              y2={y2}
+              style={{ stroke: "red", strokeWidth: "2px" }}
+            />
+          </React.Fragment>
+        );
+      })}
+    </svg>
   );
 }

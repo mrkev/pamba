@@ -7,8 +7,10 @@ import { BaseClip } from "./BaseClip";
 export class AudioClip extends BaseClip {
   readonly buffer: AudioBuffer;
   readonly numberOfChannels: number;
-
   name: string;
+  gainAutomation: Array<{ time: number; value: number }> = [
+    { time: 0, value: 1 },
+  ];
 
   toString() {
     return `${this.startOffsetSec.toFixed(2)} [ ${this.trimStartSec.toFixed(

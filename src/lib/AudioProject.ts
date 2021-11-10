@@ -5,7 +5,7 @@ import { AudioClip } from "./AudioClip";
 import { scaleLinear } from "d3-scale";
 import type { ScaleLinear } from "d3-scale";
 
-type XScale = ScaleLinear<number, number>;
+export type XScale = ScaleLinear<number, number>;
 
 export type SelectionState =
   | {

@@ -110,6 +110,7 @@ export default function TrackHeader({ isSelected, track, project }: Props) {
         onChange={(e) => {
           const val = parseFloat(e.target.value);
           setGain(val);
+          console.log(val);
           track.setGain(val);
         }}
       />
