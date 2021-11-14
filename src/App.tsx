@@ -45,22 +45,22 @@ function App() {
   const playbackPosDiv = useRef<null | HTMLDivElement>(null);
   const [projectDiv, setProjectDiv] = useState<null | HTMLDivElement>(null);
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
-  const [cursorPos, setCursorPos] = useState(0);
-  const selectionWidthRef = useRef<null | number>(null);
   const [tool, setTool] = useState<Tool>("move");
   const [isRecording, setIsRecording] = useState(false);
   const firebaseStoreRef = usePambaFirebaseStoreRef();
   const [player] = useState<AnalizedPlayer>(() => new AnalizedPlayer());
   const [project] = useState(() => new AudioProject());
+
   (window as any).project = project;
 
   useSingletonModifierState(modifierState);
 
   const [_, setStateCounter] = useState<number>(0);
-  function rerender(): void {
+  const rerender = useCallback(function () {
     setStateCounter((x) => x + 1);
-  }
+  }, []);
 
+  const [cursorPos, setCursorPos] = useLinkedState(project.cursorPos);
   const [pressed, setPressed] = useLinkedState(pressedState);
   const [tracks, setTracks] = useLinkedState(project.allTracks);
   const [selected, setSelected] = useLinkedState(project.selected);
@@ -70,7 +70,6 @@ function App() {
   const [scaleFactor, setScaleFactor] = useLinkedState(project.scaleFactor);
   const [dspExpandedTracks] = useLinkedState(project.dspExpandedTracks);
   const secsToPx = useDerivedState(project.secsToPx);
-  const pxToSecs = secsToPx.invert;
 
   const togglePlayback = useCallback(
     function togglePlayback() {
@@ -154,6 +153,8 @@ function App() {
       return;
     }
 
+    const pxToSecs = secsToPx.invert;
+
     const mouseDownEvent = function (e: MouseEvent) {
       // currentTarget should always be the element the event is attatched to,
       // so our project div.
@@ -181,11 +182,10 @@ function App() {
           y: e.clientY + div.scrollTop - div.getBoundingClientRect().y,
         };
         const asSecs = pxToSecs(position.x);
-        player.setCursorPos(asSecs);
+        // player.setCursorPos(asSecs);
         setCursorPos(asSecs);
 
         setSelectionWidth(null);
-        selectionWidthRef.current = null;
         setPressed({
           status: "selecting",
           clientX: e.clientX,
@@ -219,7 +219,7 @@ function App() {
       if (pressed.status === "selecting") {
         const { startTime } = pressed;
         setPressed(null);
-        const selWidth = selectionWidthRef.current;
+        const selWidth = pxToSecs(e.clientX - pressed.clientX);
 
         if (selWidth == null) {
           return;
@@ -243,7 +243,7 @@ function App() {
         // Move the cursor to the beggining of the selection
         // and make the selection positive
         setCursorPos((pos) => {
-          player.setCursorPos(pos + selWidth);
+          // player.setCursorPos(pos + selWidth);
           return pos + selWidth;
         });
 
@@ -305,7 +305,6 @@ function App() {
       if (pressed.status === "selecting") {
         const deltaXSecs = pxToSecs(e.clientX - pressed.clientX);
         setSelectionWidth(deltaXSecs);
-        selectionWidthRef.current = deltaXSecs;
         setSelected(null);
       }
     };
@@ -318,7 +317,15 @@ function App() {
       document.removeEventListener("mouseup", mouseUpEvent);
       document.removeEventListener("mousemove", mouseMoveEvent);
     };
-  }, [player, pressed, projectDiv, setPressed, setSelected, setSelectionWidth]);
+  }, [
+    pressed,
+    projectDiv,
+    secsToPx,
+    setCursorPos,
+    setPressed,
+    setSelected,
+    setSelectionWidth,
+  ]);
 
   useEffect(() => {
     function keydownEvent(e: KeyboardEvent) {
@@ -389,6 +396,10 @@ function App() {
       document.removeEventListener("keyup", keyupEvent);
     };
   }, [selected, togglePlayback]);
+
+  useEffect(() => {
+    player.setCursorPos(cursorPos);
+  }, [cursorPos, player]);
 
   useEffect(() => {
     player.onFrame = function (playbackTime) {

@@ -35,6 +35,7 @@ export class AudioProject {
   solodTracks = LinkedState.of<Set<AudioTrack>>(new Set());
   dspExpandedTracks = LinkedState.of<Set<AudioTrack>>(new Set());
 
+  cursorPos = LinkedState.of<number>(0);
   // the selected clip(s), track(s), etc
   selected = LinkedState.of<SelectionState | null>(null);
   // the width of the selection at the playback cursor
@@ -69,6 +70,8 @@ export class AudioProject {
 
 /**
  * TODO:
- * - Implement solo-ing by adding a second gain node, or a "gate" node with just
- *   an on-off value, completley hidden for the user and just for the sake of solo-ing.
+ * - Backspace deletes time
+ * - Loop markers
+ * - Export audio
+ *
  */
