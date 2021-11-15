@@ -1,9 +1,10 @@
 import { AudioClip } from "./AudioClip";
-import { audioContext } from "../globals";
+import { liveAudioContext } from "../globals";
 import { mixDown } from "../mixDown";
 import { addClip, deleteTime, removeClip, pushClip } from "./AudioTrackFn";
 import { FaustAudioEffect } from "../dsp/Faust";
 import { LinkedState } from "./LinkedState";
+import { PannerFaustAudioEffect } from "../dsp/Faust";
 
 let trackNo = 0;
 
@@ -22,9 +23,9 @@ export class AudioTrack {
   // if audo is playing, this is the soruce with the playing buffer
   private playingSource: AudioBufferSourceNode | null = null;
   // The "volume" of the track
-  private gainNode: GainNode = new GainNode(audioContext);
+  private gainNode: GainNode = new GainNode(liveAudioContext);
   // Hidden gain node, just for solo-ing tracks.
-  private _hiddenGainNode = new GainNode(audioContext);
+  private _hiddenGainNode = new GainNode(liveAudioContext);
   private outNode: AudioNode | null = null;
 
   getCurrentGain(): AudioParam {
@@ -44,6 +45,15 @@ export class AudioTrack {
     this._hiddenGainNode.gain.value = 1;
   }
 
+  async addEffect() {
+    const effect = await PannerFaustAudioEffect.create(liveAudioContext);
+    if (effect == null) {
+      return;
+    }
+    const currentEffects = this.effects.get();
+    this.effects.set(currentEffects.concat(effect));
+  }
+
   //////////// Playback ////////////
 
   setAudioOut(node: AudioNode): void {
@@ -60,12 +70,12 @@ export class AudioTrack {
   // [ _Hidden Gain Node (for soloing)]
   //        V
   // [ Out Node ]
-  startPlayback(offset?: number): void {
+  startPlayback(context: AudioContext, offset?: number): void {
     if (!this.outNode) {
       console.warn("No out node for this track!", this);
       return;
     }
-    this.playingSource = this.getSourceNode();
+    this.playingSource = this.getSourceNode(context);
     this.playingSource.connect(this.gainNode);
     // Effects
     let currentNode: AudioNode = this.gainNode;
@@ -108,9 +118,9 @@ export class AudioTrack {
   }
 
   // TODO: I think I can keep 'trackBuffer' between plays
-  getSourceNode(): AudioBufferSourceNode {
+  getSourceNode(context: AudioContext): AudioBufferSourceNode {
     const trackBuffer = mixDown(this.clips, 2);
-    const sourceNode = audioContext.createBufferSource();
+    const sourceNode = context.createBufferSource();
     sourceNode.buffer = trackBuffer;
     sourceNode.loop = false;
     sourceNode.connect(this.gainNode);

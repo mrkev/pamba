@@ -1,5 +1,6 @@
 export const sampleSize = 1024;
-export const audioContext = new AudioContext();
+export const staticAudioContext = new AudioContext(); // we use to decode data
+export const liveAudioContext = new AudioContext(); // we play from this one
 export const CLIP_HEIGHT = 88;
 export const TRACK_SEPARATOR_HEIGHT = 3;
 export const EFFECT_HEIGHT = CLIP_HEIGHT + 36;

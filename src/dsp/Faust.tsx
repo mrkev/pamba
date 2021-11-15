@@ -2,7 +2,6 @@
 import { TFaustUIItem, TFaustUIInputItem } from "@shren/faust-ui/src/types";
 import React, { useEffect, useState } from "react";
 import { FaustAudioProcessorNode, ProcessorLoader } from "faust-loader";
-import { audioContext } from "../globals";
 
 declare function exhaustive(x: never): never;
 
@@ -149,14 +148,14 @@ export function FaustModule({
   );
 }
 
-export function FaustTest() {
+export function FaustTest({ context }: { context: AudioContext }) {
   const [node, setNode] = useState<null | FaustAudioProcessorNode>(null);
   const [ui, setUi] = useState<Array<TFaustUIItem>>([]);
   useEffect(() => {
     (async function () {
       const createPanner = await import("./Panner.dsp");
 
-      const panner = await createPanner.default(audioContext);
+      const panner = await createPanner.default(context);
       if (!panner) {
         return;
       }
@@ -189,13 +188,13 @@ export abstract class FaustAudioEffect {
     this.ui = nodeData.ui;
   }
 
-  static async create(): Promise<FaustAudioEffect | null> {
+  static async create(context: AudioContext): Promise<FaustAudioEffect | null> {
     if (this.importPromise === null) {
       throw new Error("no import promise specified!");
     }
     const mod = await this.importPromise;
     const creator: ProcessorLoader = mod.default;
-    const node = await creator(audioContext);
+    const node = await creator(context);
     if (!node) {
       return null;
     }

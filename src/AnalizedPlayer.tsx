@@ -1,4 +1,4 @@
-import { audioContext, sampleSize } from "./globals";
+import { liveAudioContext, sampleSize } from "./globals";
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from "./globals";
 // import SharedBufferWorkletNode from "./lib/shared-buffer-worklet-node";
 import { AudioTrack } from "./lib/AudioTrack";
@@ -12,20 +12,28 @@ import { AudioTrack } from "./lib/AudioTrack";
 //   logger.post('[ERROR] ' + errorData.detail);
 // };
 
+function getOfflineAudioContext(lenSec: number) {
+  return new OfflineAudioContext({
+    numberOfChannels: 2,
+    length: liveAudioContext.sampleRate * lenSec,
+    sampleRate: liveAudioContext.sampleRate,
+  });
+}
+
 export class AnalizedPlayer {
   amplitudeArray: Uint8Array = new Uint8Array();
 
   // Nodes
   sourceNodes: Array<AudioBufferSourceNode> = [];
-  analyserNode = audioContext.createAnalyser();
-  javascriptNode = audioContext.createScriptProcessor(sampleSize, 1, 1);
+  analyserNode = liveAudioContext.createAnalyser();
+  javascriptNode = liveAudioContext.createScriptProcessor(sampleSize, 1, 1);
   isAudioPlaying: boolean = false;
   mixDownNode: AudioWorkletNode = new AudioWorkletNode(
-    audioContext,
+    liveAudioContext,
     "mix-down-processor"
   );
   noiseNode: AudioWorkletNode = new AudioWorkletNode(
-    audioContext,
+    liveAudioContext,
     "white-noise-processor"
   );
   cursorAtPlaybackStart: number = 0;
@@ -43,7 +51,7 @@ export class AnalizedPlayer {
     // Create the array for the data values  // array to hold time domain data
     this.amplitudeArray = new Uint8Array(this.analyserNode.frequencyBinCount);
 
-    this.mixDownNode.connect(audioContext.destination);
+    this.mixDownNode.connect(liveAudioContext.destination);
     this.mixDownNode.connect(this.analyserNode);
 
     // setup the event handler that is triggered every time enough samples have been collected
@@ -55,7 +63,7 @@ export class AnalizedPlayer {
       if (this.isAudioPlaying === true) {
         requestAnimationFrame(() => {
           const timePassed =
-            audioContext.currentTime - this.CTX_PLAY_START_TIME;
+            liveAudioContext.currentTime - this.CTX_PLAY_START_TIME;
           const currentTimeInBuffer = this.cursorAtPlaybackStart + timePassed;
           this.drawTimeDomain(this.amplitudeArray, currentTimeInBuffer);
           if (this.onFrame) this.onFrame(currentTimeInBuffer);
@@ -101,16 +109,16 @@ export class AnalizedPlayer {
     }
 
     this.analyserNode.connect(this.javascriptNode);
-    this.javascriptNode.connect(audioContext.destination);
+    this.javascriptNode.connect(liveAudioContext.destination);
 
     this.cursorAtPlaybackStart = this.cursorPos;
 
     for (let track of tracks) {
-      track.startPlayback(this.cursorPos);
+      track.startPlayback(liveAudioContext, this.cursorPos);
     }
     this.playingTracks = tracks;
 
-    this.CTX_PLAY_START_TIME = audioContext.currentTime;
+    this.CTX_PLAY_START_TIME = liveAudioContext.currentTime;
     this.isAudioPlaying = true;
   }
 
@@ -128,7 +136,7 @@ export class AnalizedPlayer {
     }
     this.isAudioPlaying = false;
     this.analyserNode.disconnect(this.javascriptNode);
-    this.javascriptNode.disconnect(audioContext.destination);
+    this.javascriptNode.disconnect(liveAudioContext.destination);
   }
 
   setCursorPos(seconds: number) {

@@ -1,5 +1,5 @@
 import { Tool } from "../App";
-import { FaustModule, PannerFaustAudioEffect } from "../dsp/Faust";
+import { FaustModule } from "../dsp/Faust";
 import { CLIP_HEIGHT, EFFECT_HEIGHT, TRACK_SEPARATOR_HEIGHT } from "../globals";
 import { AudioProject } from "../lib/AudioProject";
 import { AudioTrack } from "../lib/AudioTrack";
@@ -30,7 +30,7 @@ export function Track({
   const [pressed, setPressed] = useLinkedState(pressedState);
   const [selected] = useLinkedState(project.selected);
   const secsToPx = useDerivedState(project.secsToPx);
-  const [effects, setEffects] = useLinkedState(track.effects);
+  const [effects] = useLinkedState(track.effects);
 
   return (
     <>
@@ -163,11 +163,7 @@ export function Track({
           {
             <button
               onClick={async function () {
-                const effect = await PannerFaustAudioEffect.create();
-                if (effect == null) {
-                  return;
-                }
-                setEffects((prev) => prev.concat(effect));
+                await track.addEffect();
               }}
             >
               add panner

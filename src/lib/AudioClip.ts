@@ -1,6 +1,6 @@
 import { loadSound } from "./loadSound";
 import { dataURLForWaveform } from "./waveform";
-import { audioContext } from "../globals";
+import { staticAudioContext } from "../globals";
 import { BaseClip } from "./BaseClip";
 
 // A clip of audio
@@ -60,7 +60,7 @@ export class AudioClip extends BaseClip {
   }
 
   static async fromURL(url: string, name?: string) {
-    const buffer = await loadSound(audioContext, url);
+    const buffer = await loadSound(staticAudioContext, url);
     return new AudioClip(buffer, name || url);
   }
 }

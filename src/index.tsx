@@ -4,7 +4,7 @@ import "./index.css";
 // import App from "./App";
 
 // import reportWebVitals from "./reportWebVitals";
-import { audioContext } from "./globals";
+import { liveAudioContext } from "./globals";
 
 // import WorkletDemoBuilder from "../../assets/WorkletDemoBuilder.js";
 
@@ -31,17 +31,21 @@ import { audioContext } from "./globals";
 
 // WorkletDemoBuilder(PageData, demoCode);
 
+async function initAudioContext(audioContext: AudioContext) {
+  await audioContext.audioWorklet.addModule("white-noise-processor.js");
+  console.log("LOADED", "white-noise-processor.js");
+  await audioContext.audioWorklet.addModule(
+    "shared-buffer-worklet-processor.js"
+  );
+  console.log("LOADED", "shared-buffer-worklet-processor.js");
+  await audioContext.audioWorklet.addModule("mix-down-processor.js");
+  console.log("LOADED", "mix-down-processor.js");
+}
+
 async function init() {
   try {
-    await audioContext.audioWorklet.addModule("white-noise-processor.js");
-    console.log("LOADED", "white-noise-processor.js");
-    await audioContext.audioWorklet.addModule(
-      "shared-buffer-worklet-processor.js"
-    );
-    console.log("LOADED", "shared-buffer-worklet-processor.js");
-    await audioContext.audioWorklet.addModule("mix-down-processor.js");
-    console.log("LOADED", "mix-down-processor.js");
-
+    await initAudioContext(liveAudioContext);
+    // We wait to load the app since some modules might import liveAudioContext
     const App = (await import("./App")).default;
 
     ReactDOM.render(

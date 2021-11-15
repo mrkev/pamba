@@ -1,6 +1,7 @@
-import { audioContext } from "./globals";
+import { staticAudioContext } from "./globals";
 import { AudioClip } from "./lib/AudioClip";
 
+// Unused. We do live playback now .
 // from https://stackoverflow.com/questions/57155167/web-audio-api-playing-synchronized-sounds
 export function mixDown(
   clipList: Array<AudioClip>,
@@ -20,7 +21,7 @@ export function mixDown(
   }
 
   //create a buffer using the totalLength and sampleRate of the first buffer node
-  let finalMix = audioContext.createBuffer(
+  let finalMix = staticAudioContext.createBuffer(
     numberOfChannels,
     totalLength,
     clipList[0].sampleRate
