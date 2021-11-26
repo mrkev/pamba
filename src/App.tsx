@@ -318,7 +318,15 @@ function App() {
             >
               <button
                 onClick={async function () {
-                  const result = await player.bounceAll(tracks);
+                  const bounceAll = !selectionWidth || selectionWidth === 0;
+
+                  const result = await (bounceAll
+                    ? player.bounceTracks(tracks)
+                    : player.bounceTracks(
+                        tracks,
+                        cursorPos,
+                        cursorPos + selectionWidth
+                      ));
                   const wav = bufferToWav(result);
                   const blob = new Blob([new DataView(wav)], {
                     type: "audio/wav",
@@ -333,7 +341,9 @@ function App() {
                   });
                 }}
               >
-                bounce
+                {selectionWidth && selectionWidth > 0
+                  ? "bounce selected"
+                  : "bounce all"}
               </button>
               {tool === "move"
                 ? "move ⇄"

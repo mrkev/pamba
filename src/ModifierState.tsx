@@ -18,6 +18,8 @@ export const modifierState: ModifierState = {
   alt: false,
 };
 
+(window as any).ms = modifierState;
+
 export function useSingletonModifierState(singleton: ModifierState) {
   useEffect(() => {
     function keydownEvent(e: KeyboardEvent) {

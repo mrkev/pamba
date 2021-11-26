@@ -144,8 +144,36 @@ export class AnalizedPlayer {
     this.cursorPos = seconds;
   }
 
-  async bounceAll(tracks: Array<AudioTrack>): Promise<AudioBuffer> {
-    const offlineAudioContext = getOfflineAudioContext(10);
+  async bounceTracks(
+    tracks: Array<AudioTrack>,
+    startSec: number = 0,
+    endSec?: number
+  ): Promise<AudioBuffer> {
+    let end = endSec;
+    // If no end is provided, bounce to the full duration of the track. We go
+    // through each clip and find when the last one ends.
+    if (endSec == null) {
+      for (let track of tracks) {
+        for (let clip of track.clips) {
+          end =
+            end == null || clip.endOffsetSec > end ? clip.endOffsetSec : end;
+          console.log("endOffsetSec", clip.endOffsetSec, end);
+        }
+      }
+    }
+
+    console.log(end);
+    // If we have no clips or no tracks, end will still be null. For now, we'll
+    // just throw. I could also return an empty AudioBuffer though.
+    if (end == null) {
+      throw new Error("Bouncing an empty track!");
+    }
+
+    if (end <= startSec) {
+      throw new Error("Attempted to render negative or null length");
+    }
+
+    const offlineAudioContext = getOfflineAudioContext(end - startSec);
     await initAudioContext(offlineAudioContext);
     const offlineMixDownNode: AudioWorkletNode = new AudioWorkletNode(
       offlineAudioContext,
@@ -158,7 +186,7 @@ export class AnalizedPlayer {
     }
 
     for (let track of tracks) {
-      track.startPlaybackForBounce(offlineAudioContext, 0);
+      track.startPlaybackForBounce(offlineAudioContext, startSec);
     }
 
     const result = await offlineAudioContext.startRendering();
