@@ -2,6 +2,7 @@ import { liveAudioContext, sampleSize } from "./globals";
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from "./globals";
 // import SharedBufferWorkletNode from "./lib/shared-buffer-worklet-node";
 import { AudioTrack } from "./lib/AudioTrack";
+import { initAudioContext } from "./lib/initAudioContext";
 
 // sbwNode.onInitialized = () => {
 //   oscillator.connect(sbwNode).connect(context.destination);
@@ -141,5 +142,26 @@ export class AnalizedPlayer {
 
   setCursorPos(seconds: number) {
     this.cursorPos = seconds;
+  }
+
+  async bounceAll(tracks: Array<AudioTrack>): Promise<AudioBuffer> {
+    const offlineAudioContext = getOfflineAudioContext(10);
+    await initAudioContext(offlineAudioContext);
+    const offlineMixDownNode: AudioWorkletNode = new AudioWorkletNode(
+      offlineAudioContext,
+      "mix-down-processor"
+    );
+    offlineMixDownNode.connect(offlineAudioContext.destination);
+
+    for (let track of tracks) {
+      track.setAudioOut(offlineMixDownNode);
+    }
+
+    for (let track of tracks) {
+      track.startPlaybackForBounce(offlineAudioContext, 0);
+    }
+
+    const result = await offlineAudioContext.startRendering();
+    return result;
   }
 }

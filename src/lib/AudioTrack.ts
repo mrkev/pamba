@@ -90,6 +90,28 @@ export class AudioTrack {
     this.playingSource.start(0, offset); // Play the sound now
   }
 
+  startPlaybackForBounce(context: OfflineAudioContext, offset?: number): void {
+    if (!this.outNode) {
+      console.warn("No out node for bounce on track:", this);
+      return;
+    }
+
+    this.playingSource = this.getSourceNode(context);
+    this.playingSource.connect(this.outNode);
+    // this.playingSource.connect(this.gainNode);
+    // // Effects
+    // let currentNode: AudioNode = this.gainNode;
+    // const effects = this.effects.get();
+    // for (let i = 0; i < effects.length; i++) {
+    //   const nextNode = effects[i].node;
+    //   currentNode.connect(nextNode);
+    //   currentNode = nextNode;
+    // }
+    // currentNode.connect(this._hiddenGainNode);
+    // this._hiddenGainNode.connect(this.outNode);
+    this.playingSource.start(0, offset); // Play the sound now
+  }
+
   stopPlayback(): void {
     if (!this.playingSource) {
       console.warn("Stopping but no playingSource on track", this);
@@ -118,12 +140,11 @@ export class AudioTrack {
   }
 
   // TODO: I think I can keep 'trackBuffer' between plays
-  getSourceNode(context: AudioContext): AudioBufferSourceNode {
+  private getSourceNode(context: BaseAudioContext): AudioBufferSourceNode {
     const trackBuffer = mixDown(this.clips, 2);
     const sourceNode = context.createBufferSource();
     sourceNode.buffer = trackBuffer;
     sourceNode.loop = false;
-    sourceNode.connect(this.gainNode);
     return sourceNode;
   }
 

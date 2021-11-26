@@ -15,6 +15,7 @@ import { Axis } from "./Axis";
 import { useDerivedState } from "./lib/DerivedState";
 import { Track } from "./ui/Track";
 import { useAppProjectMouseEvents } from "./ui/useAppProjectMouseEvents";
+import bufferToWav from "audiobuffer-to-wav";
 
 export type Tool = "move" | "trimStart" | "trimEnd";
 
@@ -64,6 +65,7 @@ function App() {
   const [selected, setSelected] = useLinkedState(project.selected);
   const [scaleFactor, setScaleFactor] = useLinkedState(project.scaleFactor);
   const [dspExpandedTracks] = useLinkedState(project.dspExpandedTracks);
+  const [bounceURL, setBounceURL] = useState<string | null>(null);
   const secsToPx = useDerivedState(project.secsToPx);
 
   const [pressed, cursorPos, selectionWidth] = useAppProjectMouseEvents({
@@ -314,6 +316,25 @@ function App() {
                 justifyContent: "right",
               }}
             >
+              <button
+                onClick={async function () {
+                  const result = await player.bounceAll(tracks);
+                  const wav = bufferToWav(result);
+                  const blob = new Blob([new DataView(wav)], {
+                    type: "audio/wav",
+                  });
+                  const exportUrl = window.URL.createObjectURL(blob);
+
+                  setBounceURL((prev) => {
+                    if (prev) {
+                      window.URL.revokeObjectURL(prev);
+                    }
+                    return exportUrl;
+                  });
+                }}
+              >
+                bounce
+              </button>
               {tool === "move"
                 ? "move ⇄"
                 : tool === "trimStart"
@@ -550,6 +571,11 @@ function App() {
           </div>
         </div>
       </div>
+      {bounceURL && (
+        <a href={bounceURL} download={"bounce.wav"}>
+          Download bounce
+        </a>
+      )}
       <div>
         Pressed: {JSON.stringify(pressed, ["status", "clientX", "clientY"], 2)}
         <br />
