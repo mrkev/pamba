@@ -259,27 +259,86 @@ function App() {
     [tracks, isAudioPlaying, player, project.solodTracks]
   );
 
-  useEffect(function () {
-    window.addEventListener(
-      "wheel",
-      function (e) {
-        if (e.ctrlKey) {
-          // Your zoom/scale factor
+  const [viewportStartSecs, setViewportStartSecs] = useLinkedState(
+    project.viewportStartSecs
+  );
 
-          // setScaleFactor((prev) => ((e.deltaY + 100) / 100) * prev);
+  useEffect(() => {
+    if (!projectDiv) {
+      return;
+    }
 
-          e.preventDefault();
-        } else {
-          // Your trackpad X and Y positions
-          // posX -= e.deltaX * 2;
-          // posY -= e.deltaY * 2;
-        }
+    projectDiv.scrollTo({ left: viewportStartSecs });
+  }, [projectDiv, viewportStartSecs]);
 
-        // render();
-      },
-      { passive: false }
-    );
-  });
+  useEffect(() => {
+    if (!projectDiv) {
+      return;
+    }
+
+    // var tx = 0;
+    // var ty = 0;
+
+    const onWheel = function (e: WheelEvent) {
+      // both pinches and two-finger pans trigger the wheel event trackpads.
+      // ctrlKey is true for pinches though, so we can use it to differentiate
+      // one from the other.
+      // console.log("wheel", e);
+      if (e.ctrlKey) {
+        const sDelta = Math.exp(-e.deltaY / 100);
+        const newScale = scaleFactor * Math.exp(-e.deltaY / 100);
+        setScaleFactor(newScale);
+        const widthUpToMouse = (e as any).layerX as number;
+        const deltaX = widthUpToMouse - widthUpToMouse * sDelta;
+        const newStart = viewportStartSecs - deltaX;
+        console.log("deltaX", deltaX, "sDelta", sDelta);
+        setViewportStartSecs(newStart);
+
+        // setScaleFactor((prev) => {
+        //   const s = Math.exp(-e.deltaY / 100);
+        //   return prev * s;
+        // });
+        // setViewportStartSecs((prev) => {});
+        e.preventDefault();
+      } else {
+        // const div = projectDiv;
+        const start = Math.max(viewportStartSecs + e.deltaX, 0);
+        setViewportStartSecs(start);
+        // div.scrollBy(e.deltaX, e.deltaY);
+
+        // e.preventDefault();
+        // e.preventDefault();
+        // // we just allow the div to scroll, no need to do it ourselves
+        // // // natural scrolling direction (vs inverted)
+        // const natural = true;
+        // var direction = natural ? -1 : 1;
+        // tx += e.deltaX * direction;
+        // // ty += e.deltaY * direction;
+        // projectDiv.scrollTo({ left: -tx });
+        // console.log("SCROLL", tx);
+      }
+
+      // console.log(tx, ty, scale);
+    };
+
+    const onScroll = (e: Event) => {
+      // console.log(e as any);
+      e.preventDefault();
+    };
+
+    projectDiv.addEventListener("wheel", onWheel, { capture: true });
+    projectDiv.addEventListener("scroll", onScroll, { capture: true });
+    return () => {
+      projectDiv.removeEventListener("wheel", onWheel, { capture: true });
+      projectDiv.addEventListener("scroll", onScroll, { capture: true });
+    };
+  }, [
+    projectDiv,
+    scaleFactor,
+    setScaleFactor,
+    setViewportStartSecs,
+    viewportStartSecs,
+  ]);
 
   const allState = tracks
     .map((track, i) => {
@@ -471,7 +530,7 @@ function App() {
               position: "relative",
               background: "#ddd",
               paddingBottom: CLIP_HEIGHT,
-              overflowX: "scroll",
+              overflowX: "hidden",
               width: "100%",
             }}
           >
@@ -545,13 +604,13 @@ function App() {
 
               <input
                 type="range"
-                min={1}
-                max={20}
+                min={Math.log(1)}
+                max={Math.log(100)}
                 step={0.01}
-                value={scaleFactor}
+                value={Math.log(scaleFactor)}
                 onChange={(e) => {
                   const val = parseFloat(e.target.value);
-                  setScaleFactor(val);
+                  setScaleFactor(Math.exp(val));
                 }}
               />
             </div>

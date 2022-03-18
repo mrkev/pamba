@@ -42,6 +42,7 @@ export class AudioProject {
   selectionWidth = LinkedState.of<number | null>(null);
 
   scaleFactor = LinkedState.of<number>(10);
+  viewportStartSecs = LinkedState.of(0); // the first second visible in the project div
   // 1 sec corresponds to 10 px
   secsToPx = DerivedState.from(
     [this.scaleFactor],
