@@ -97,7 +97,7 @@ export function useLinkedState<S>(
     [apiState]
   );
 
-  const setter = useCallback(
+  const setter: StateDispath<S> = useCallback(
     function (newVal) {
       // newVal instanceof Function
       if (newVal instanceof Function) {

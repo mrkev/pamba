@@ -1,23 +1,23 @@
 import React from "react";
-import ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client";
 import "./index.css";
 // import App from "./App";
 
 // import reportWebVitals from "./reportWebVitals";
 import { liveAudioContext } from "./globals";
 import { initAudioContext } from "./lib/initAudioContext";
+import nullthrows from "./lib/nullthrows";
 
 async function init() {
   try {
     await initAudioContext(liveAudioContext);
     // We wait to load the app since some modules might import liveAudioContext
     const App = (await import("./App")).default;
-
-    ReactDOM.render(
+    const root = createRoot(nullthrows(document.getElementById("root")));
+    root.render(
       <React.StrictMode>
         <App />
-      </React.StrictMode>,
-      document.getElementById("root")
+      </React.StrictMode>
     );
   } catch (e) {
     console.trace(e);
