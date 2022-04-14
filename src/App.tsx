@@ -6,7 +6,6 @@ import { AudioTrack } from "./lib/AudioTrack";
 import { AnalizedPlayer } from "./AnalizedPlayer";
 import { usePambaFirebaseStoreRef } from "./firebase/useFirebase";
 import TrackHeader from "./ui/TrackHeader";
-import { RecoilRoot } from "recoil";
 import { useMediaRecorder } from "./lib/useMediaRecorder";
 import { AudioProject, SelectionState } from "./lib/AudioProject";
 import { useLinkedState } from "./lib/LinkedState";
@@ -347,7 +346,7 @@ function App() {
     .join("\n");
 
   return (
-    <RecoilRoot>
+    <>
       <div className="App">
         {/* <div
         ref={(elem) => {
@@ -654,7 +653,7 @@ function App() {
         <br />
       </div>
       <pre>{allState}</pre>
-    </RecoilRoot>
+    </>
   );
 }
 

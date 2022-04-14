@@ -41,9 +41,9 @@ module.exports = override(
         },
       },
     ],
-  }),
-  addDecoratorsLegacy(),
-  addBabelPlugin("babel-plugin-parameter-decorator"),
-  addBabelPlugin("babel-plugin-transform-typescript-metadata"),
-  addBabelPreset(["@babel/preset-typescript"])
+  })
+  // addDecoratorsLegacy()
+  // addBabelPlugin("babel-plugin-parameter-decorator"),
+  // addBabelPlugin("babel-plugin-transform-typescript-metadata"),
+  // addBabelPreset(["@babel/preset-typescript"])
 );
