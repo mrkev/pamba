@@ -15,6 +15,7 @@ import { useDerivedState } from "./lib/DerivedState";
 import { Track } from "./ui/Track";
 import { useAppProjectMouseEvents } from "./ui/useAppProjectMouseEvents";
 import bufferToWav from "audiobuffer-to-wav";
+import { useAppProjectKeyboardEvents } from "./useAppProjectKeyboardEvents";
 
 export type Tool = "move" | "trimStart" | "trimEnd";
 
@@ -45,12 +46,12 @@ function App() {
   const playbackPosDiv = useRef<null | HTMLDivElement>(null);
   const [projectDiv, setProjectDiv] = useState<null | HTMLDivElement>(null);
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
-  const [tool, setTool] = useState<Tool>("move");
   const [isRecording, setIsRecording] = useState(false);
+  const [bounceURL, setBounceURL] = useState<string | null>(null);
   const firebaseStoreRef = usePambaFirebaseStoreRef();
   const [player] = useState<AnalizedPlayer>(() => new AnalizedPlayer());
-  const [project] = useState(() => new AudioProject());
 
+  const [project] = useState(() => new AudioProject());
   (window as any).project = project;
 
   useSingletonModifierState(modifierState);
@@ -61,17 +62,11 @@ function App() {
   }, []);
 
   const [tracks, setTracks] = useLinkedState(project.allTracks);
-  const [selected, setSelected] = useLinkedState(project.selected);
+  const [selected] = useLinkedState(project.selected);
   const [scaleFactor, setScaleFactor] = useLinkedState(project.scaleFactor);
   const [dspExpandedTracks] = useLinkedState(project.dspExpandedTracks);
-  const [bounceURL, setBounceURL] = useState<string | null>(null);
+  const [tool] = useLinkedState(project.pointerTool);
   const secsToPx = useDerivedState(project.secsToPx);
-
-  const [pressed, cursorPos, selectionWidth] = useAppProjectMouseEvents({
-    project,
-    projectDiv,
-    rerender,
-  });
 
   const togglePlayback = useCallback(
     function togglePlayback() {
@@ -85,32 +80,13 @@ function App() {
     [isAudioPlaying, player]
   );
 
-  function removeClip(clip: AudioClip, track: AudioTrack) {
-    track.removeClip(clip);
-    if (selected && selected.status === "clips") {
-      // TODO: remove clip from selected clips
-    }
-  }
+  const [pressed, cursorPos, selectionWidth] = useAppProjectMouseEvents({
+    project,
+    projectDiv,
+    rerender,
+  });
 
-  function removeTrack(track: AudioTrack) {
-    setTracks((tracks) => {
-      const pos = tracks.indexOf(track);
-      if (pos === -1) {
-        return tracks;
-      }
-      const copy = tracks.map((x) => x);
-      copy.splice(pos, 1);
-      if (
-        selected &&
-        selected.status === "tracks" &&
-        selected.test.has(track)
-      ) {
-        // TODO: remove track from selected tracks
-      }
-
-      return copy;
-    });
-  }
+  useAppProjectKeyboardEvents(project, togglePlayback);
 
   const loadClip = useCallback(
     async function loadClip(url: string, name?: string) {
@@ -130,11 +106,7 @@ function App() {
   );
 
   const loadClipIntoTrack = useCallback(
-    async function loadClipIntoTrack(
-      url: string,
-      track: AudioTrack,
-      name?: string
-    ): Promise<void> {
+    async function loadClipIntoTrack(url: string, track: AudioTrack, name?: string): Promise<void> {
       try {
         // load clip
         const clip = await AudioClip.fromURL(url, name);
@@ -149,76 +121,6 @@ function App() {
   );
 
   const mediaRecorder = useMediaRecorder(loadClip);
-
-  useEffect(() => {
-    function keydownEvent(e: KeyboardEvent) {
-      // console.log(e.code);
-      switch (e.code) {
-        case "Backspace":
-          if (!selected) {
-            return;
-          }
-          if (selected.status === "clips") {
-            for (let { clip, track } of selected.clips) {
-              console.log("remove", selected);
-              removeClip(clip, track);
-              setSelected(null);
-            }
-          }
-          if (selected.status === "tracks") {
-            for (let track of selected.tracks) {
-              console.log("remove", selected);
-              removeTrack(track);
-              setSelected(null);
-            }
-          }
-          if (selected.status === "time") {
-            // todo
-          }
-
-          // console.log(selectionWidthRef.current);
-          break;
-      }
-    }
-
-    function keyupEvent(e: KeyboardEvent) {}
-
-    function keypressEvent(e: KeyboardEvent) {
-      switch (e.code) {
-        case "KeyM":
-          setTool("move");
-          break;
-        case "KeyS":
-          setTool("trimStart");
-          break;
-        case "KeyE":
-          setTool("trimEnd");
-          break;
-        default:
-          console.log(e.code);
-      }
-      if (e.code === "Space") {
-        // todo: is there better way to prevent space from toggling the last
-        // pressed button?
-        if (document.activeElement instanceof HTMLButtonElement) {
-          (document.activeElement as any).blur();
-        }
-        togglePlayback();
-        e.preventDefault();
-      }
-    }
-
-    document.addEventListener("keydown", keydownEvent);
-    document.addEventListener("keypress", keypressEvent, { capture: true });
-    document.addEventListener("keyup", keyupEvent);
-    return function () {
-      document.removeEventListener("keydown", keydownEvent);
-      document.removeEventListener("keypress", keypressEvent, {
-        capture: true,
-      });
-      document.removeEventListener("keyup", keyupEvent);
-    };
-  }, [selected, togglePlayback]);
 
   useEffect(() => {
     player.setCursorPos(cursorPos);
@@ -240,27 +142,22 @@ function App() {
     }
   }, [player, secsToPx]);
 
-  useEffect(
-    function () {
-      if (tracks.length < 1) {
-        console.log("NO AUDIO BUFFER");
-        return;
-      }
-      if (isAudioPlaying === false) {
-        return;
-      }
-      if (isAudioPlaying === true) {
-        player.playTracks(tracks);
-      }
+  useEffect(() => {
+    if (tracks.length < 1) {
+      console.log("NO AUDIO BUFFER");
+      return;
+    }
+    if (isAudioPlaying === false) {
+      return;
+    }
+    if (isAudioPlaying === true) {
+      player.playTracks(tracks);
+    }
 
-      return () => player.stopSound();
-    },
-    [tracks, isAudioPlaying, player, project.solodTracks]
-  );
+    return () => player.stopSound();
+  }, [tracks, isAudioPlaying, player, project.solodTracks]);
 
-  const [viewportStartSecs, setViewportStartSecs] = useLinkedState(
-    project.viewportStartSecs
-  );
+  const [viewportStartSecs, setViewportStartSecs] = useLinkedState(project.viewportStartSecs);
 
   useEffect(() => {
     if (!projectDiv) {
@@ -331,13 +228,7 @@ function App() {
       projectDiv.removeEventListener("wheel", onWheel, { capture: true });
       projectDiv.addEventListener("scroll", onScroll, { capture: true });
     };
-  }, [
-    projectDiv,
-    scaleFactor,
-    setScaleFactor,
-    setViewportStartSecs,
-    viewportStartSecs,
-  ]);
+  }, [projectDiv, scaleFactor, setScaleFactor, setViewportStartSecs, viewportStartSecs]);
 
   const allState = tracks
     .map((track, i) => {
@@ -380,11 +271,7 @@ function App() {
 
                   const result = await (bounceAll
                     ? player.bounceTracks(tracks)
-                    : player.bounceTracks(
-                        tracks,
-                        cursorPos,
-                        cursorPos + selectionWidth
-                      ));
+                    : player.bounceTracks(tracks, cursorPos, cursorPos + selectionWidth));
                   const wav = bufferToWav(result);
                   const blob = new Blob([new DataView(wav)], {
                     type: "audio/wav",
@@ -399,9 +286,7 @@ function App() {
                   });
                 }}
               >
-                {selectionWidth && selectionWidth > 0
-                  ? "bounce selected"
-                  : "bounce all"}
+                {selectionWidth && selectionWidth > 0 ? "bounce selected" : "bounce all"}
               </button>
               {tool === "move"
                 ? "move ⇄"
@@ -436,11 +321,9 @@ function App() {
                     return;
                   }
                   // Push to child path.
-                  const snapshot = await firebaseStoreRef
-                    .child("images/" + file.name)
-                    .put(file, {
-                      contentType: file.type,
-                    });
+                  const snapshot = await firebaseStoreRef.child("images/" + file.name).put(file, {
+                    contentType: file.type,
+                  });
 
                   console.log("Uploaded", snapshot.totalBytes, "bytes.");
                   console.log("File metadata:", snapshot.metadata);
@@ -467,21 +350,15 @@ function App() {
               </button>
             )}
             <br />
-            {[
-              "viper.mp3",
-              "drums.mp3",
-              "clav.mp3",
-              "bassguitar.mp3",
-              "horns.mp3",
-              "leadguitar.mp3",
-            ].map(function (url, i) {
+            {["viper.mp3", "drums.mp3", "clav.mp3", "bassguitar.mp3", "horns.mp3", "leadguitar.mp3"].map(function (
+              url,
+              i
+            ) {
               return (
                 <button
                   key={i}
                   draggable
-                  onDragStart={function (
-                    ev: React.DragEvent<HTMLButtonElement>
-                  ) {
+                  onDragStart={function (ev: React.DragEvent<HTMLButtonElement>) {
                     ev.dataTransfer.setData("text", url);
                   }}
                   onClick={function () {
@@ -533,9 +410,7 @@ function App() {
               width: "100%",
             }}
           >
-            {projectDiv && (
-              <Axis project={project} projectDiv={projectDiv}></Axis>
-            )}
+            {projectDiv && <Axis project={project} projectDiv={projectDiv}></Axis>}
             {tracks.map(function (track, i) {
               const isDspExpanded = dspExpandedTracks.has(track);
               return (
@@ -561,10 +436,7 @@ function App() {
                   selectionWidth == null || selectionWidth >= 0
                     ? secsToPx(cursorPos)
                     : secsToPx(cursorPos + selectionWidth),
-                width:
-                  selectionWidth == null || selectionWidth === 0
-                    ? 1
-                    : secsToPx(Math.abs(selectionWidth)),
+                width: selectionWidth == null || selectionWidth === 0 ? 1 : secsToPx(Math.abs(selectionWidth)),
                 top: 0,
               }}
             ></div>
@@ -613,18 +485,8 @@ function App() {
               />
             </div>
             {tracks.map((track, i) => {
-              const isSelected =
-                selected !== null &&
-                selected.status === "tracks" &&
-                selected.test.has(track);
-              return (
-                <TrackHeader
-                  key={i}
-                  isSelected={isSelected}
-                  track={track}
-                  project={project}
-                />
-              );
+              const isSelected = selected !== null && selected.status === "tracks" && selected.test.has(track);
+              return <TrackHeader key={i} isSelected={isSelected} track={track} project={project} />;
             })}
             <div>
               <button

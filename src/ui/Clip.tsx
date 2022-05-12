@@ -1,5 +1,5 @@
 import { CLIP_HEIGHT } from "../globals";
-import { useChangeListener, useLinkedState } from "../lib/LinkedState";
+import { useLinkedState } from "../lib/LinkedState";
 import { pressedState } from "../lib/linkedState/pressedState";
 import { modifierState } from "../ModifierState";
 
