@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { CLIP_HEIGHT, EFFECT_HEIGHT } from "../globals";
-import type { AudioProject, SelectionState } from "../lib/AudioProject";
+import { AudioProject, SelectionState } from "../lib/AudioProject";
 import type { AudioTrack } from "../lib/AudioTrack";
 import { useDerivedState } from "../lib/DerivedState";
 import { useLinkedState } from "../lib/LinkedState";
@@ -17,9 +17,7 @@ export default function TrackHeader({ isSelected, track, project }: Props) {
   const [muted, setMuted] = useState<boolean>(false);
   const [, setSelected] = useLinkedState(project.selected);
   const [solodTracks, setSolodTracks] = useLinkedState(project.solodTracks);
-  const [dspExpandedTracks, setDspExpandedTracks] = useLinkedState(
-    project.dspExpandedTracks
-  );
+  const [dspExpandedTracks, setDspExpandedTracks] = useLinkedState(project.dspExpandedTracks);
   const [trackEffects] = useLinkedState(track.effects);
 
   const isSolod = solodTracks.has(track);
@@ -56,8 +54,7 @@ export default function TrackHeader({ isSelected, track, project }: Props) {
           });
         }}
       >
-        <button onClick={() => project.removeTrack(track)}>x</button>{" "}
-        {track.name}
+        <button onClick={() => AudioProject.removeTrack(project, track)}>x</button> {track.name}
       </div>
       <button
         style={isSolod ? { background: "#5566EE" } : undefined}

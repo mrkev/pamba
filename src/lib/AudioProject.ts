@@ -57,9 +57,11 @@ export class AudioProject {
         .range([0, 100 * factor]) as XScale
   );
 
-  removeTrack(track: AudioTrack) {
-    const tracks = this.allTracks.get();
-    const selected = this.selected.get();
+  //////// Methods on Projects ////////
+
+  static removeTrack(project: AudioProject, track: AudioTrack) {
+    const tracks = project.allTracks.get();
+    const selected = project.selected.get();
     const pos = tracks.indexOf(track);
     if (pos === -1) {
       return;
@@ -67,10 +69,26 @@ export class AudioProject {
     const copy = tracks.map((x) => x);
     copy.splice(pos, 1);
     if (selected && selected.status === "tracks" && selected.test.has(track)) {
-      // TODO: remove track from selected tracks
+      selected.test.delete(track);
+      const newSelected = {
+        ...selected,
+        tracks: selected.tracks.filter((selectoin) => selectoin !== track),
+      };
+      project.selected.set(newSelected);
     }
 
-    this.allTracks.set(copy);
+    project.allTracks.set(copy);
+  }
+
+  static removeClip(project: AudioProject, track: AudioTrack, clip: AudioClip) {
+    const selected = project.selected.get();
+    track.removeClip(clip);
+    if (selected && selected.status === "clips") {
+      project.selected.set({
+        ...selected,
+        clips: selected.clips.filter((selection) => selection.clip !== clip),
+      });
+    }
   }
 }
 
