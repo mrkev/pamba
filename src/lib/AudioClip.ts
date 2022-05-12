@@ -8,16 +8,12 @@ export class AudioClip extends BaseClip {
   readonly buffer: AudioBuffer;
   readonly numberOfChannels: number;
   name: string;
-  gainAutomation: Array<{ time: number; value: number }> = [
-    { time: 0, value: 1 },
-  ];
+  gainAutomation: Array<{ time: number; value: number }> = [{ time: 0, value: 1 }];
 
-  toString() {
-    return `${this.startOffsetSec.toFixed(2)} [ ${this.trimStartSec.toFixed(
-      2
-    )} | ${this.name} | ${this.trimEndSec.toFixed(
-      2
-    )} ] ${this.endOffsetSec.toFixed(2)}`;
+  override toString() {
+    return `${this.startOffsetSec.toFixed(2)} [ ${this.trimStartSec.toFixed(2)} | ${
+      this.name
+    } | ${this.trimEndSec.toFixed(2)} ] ${this.endOffsetSec.toFixed(2)}`;
   }
 
   // Let's not pre-compute this since we don't know the acutal dimensions
@@ -36,7 +32,7 @@ export class AudioClip extends BaseClip {
     this.name = name;
   }
 
-  clone() {
+  override clone() {
     const newClip = new AudioClip(this.buffer, this.name);
     newClip.startOffsetSec = this.startOffsetSec;
     newClip.trimStartSec = this.trimStartSec;

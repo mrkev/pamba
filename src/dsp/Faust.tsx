@@ -21,13 +21,7 @@ export interface INodeData {
   version: string;
 }
 
-function FaustItem({
-  item,
-  setParam,
-}: {
-  item: TFaustUIItem;
-  setParam: FaustNodeSetParamFn;
-}) {
+function FaustItem({ item, setParam }: { item: TFaustUIItem; setParam: FaustNodeSetParamFn }) {
   const { type } = item;
 
   switch (type) {
@@ -91,13 +85,7 @@ function FaustItem({
   }
 }
 
-function FaustHSlider({
-  item,
-  setParam,
-}: {
-  item: TFaustUIInputItem;
-  setParam: FaustNodeSetParamFn;
-}) {
+function FaustHSlider({ item, setParam }: { item: TFaustUIInputItem; setParam: FaustNodeSetParamFn }) {
   const { label, index, init, min, max, step, address } = item;
   const [value, setValue] = useState(init);
   return (
@@ -205,7 +193,7 @@ export abstract class FaustAudioEffect {
 }
 
 export class PannerFaustAudioEffect extends FaustAudioEffect {
-  static importPromise = import("./Panner.dsp");
+  static override importPromise = import("./Panner.dsp");
 }
 
 (window as any).PannerFaustAudioEffect = PannerFaustAudioEffect;

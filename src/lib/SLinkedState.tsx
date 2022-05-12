@@ -3,10 +3,7 @@ import { LinkedState } from "./LinkedState";
 // import { Serializable, JsonProperty } from "typescript-json-serializer";
 // import { deserialize, serialize } from "typescript-json-serializer";
 
-export class SLinkedState<S extends any>
-  extends LinkedState<S>
-  implements Serializable
-{
+export class SLinkedState<S extends any> extends LinkedState<S> implements Serializable {
   __serialize(): Serialized<SLinkedState<S>> {
     const x = new Serializable();
     const res = x.__serialize.call(this);
@@ -21,7 +18,7 @@ export class SLinkedState<S extends any>
     return new this(json.val);
   }
 
-  static of<T>(val: T) {
+  static override of<T>(val: T) {
     return new this<T>(val);
   }
 }
