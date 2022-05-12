@@ -1,5 +1,5 @@
 import { AudioTrack } from "./AudioTrack";
-import { LinkedState } from "./LinkedState";
+import { LinkedSet, LinkedState } from "./LinkedState";
 import { DerivedState } from "./DerivedState";
 import { AudioClip } from "./AudioClip";
 import { scaleLinear } from "d3-scale";
@@ -35,7 +35,7 @@ export class AudioProject {
   allTracks = LinkedState.of<Array<AudioTrack>>([]);
 
   // Track status
-  solodTracks = LinkedState.of<Set<AudioTrack>>(new Set());
+  solodTracks = LinkedSet.create<Set<AudioTrack>>();
   dspExpandedTracks = LinkedState.of<Set<AudioTrack>>(new Set());
 
   // Editor status

@@ -3,7 +3,7 @@ import { CLIP_HEIGHT, EFFECT_HEIGHT } from "../globals";
 import { AudioProject, SelectionState } from "../lib/AudioProject";
 import type { AudioTrack } from "../lib/AudioTrack";
 import { useDerivedState } from "../lib/DerivedState";
-import { useLinkedState } from "../lib/LinkedState";
+import { useLinkedSet, useLinkedState } from "../lib/LinkedState";
 import { modifierState } from "../ModifierState";
 
 type Props = {
@@ -16,9 +16,9 @@ export default function TrackHeader({ isSelected, track, project }: Props) {
   const [gain, setGain] = useState<number>(track.getCurrentGain().value);
   const [muted, setMuted] = useState<boolean>(false);
   const [, setSelected] = useLinkedState(project.selected);
-  const [solodTracks, setSolodTracks] = useLinkedState(project.solodTracks);
   const [dspExpandedTracks, setDspExpandedTracks] = useLinkedState(project.dspExpandedTracks);
   const [trackEffects] = useLinkedState(track.effects);
+  const solodTracks = useLinkedSet(project.solodTracks);
 
   const isSolod = solodTracks.has(track);
   const isDspExpanded = dspExpandedTracks.has(track);
@@ -59,26 +59,21 @@ export default function TrackHeader({ isSelected, track, project }: Props) {
       <button
         style={isSolod ? { background: "#5566EE" } : undefined}
         onClick={function () {
-          setSolodTracks((prev) => {
-            const res = new Set(prev);
-            if (prev.has(track)) {
-              res.delete(track);
+          if (solodTracks.has(track)) {
+            solodTracks.delete(track);
+          } else {
+            solodTracks.add(track);
+          }
+
+          const tracks = project.allTracks.get();
+
+          for (const track of tracks) {
+            if (solodTracks.size === 0 || solodTracks.has(track)) {
+              track._hidden_setIsMutedByApplication(false);
             } else {
-              res.add(track);
+              track._hidden_setIsMutedByApplication(true);
             }
-
-            const tracks = project.allTracks.get();
-
-            for (const track of tracks) {
-              if (res.size === 0 || res.has(track)) {
-                track._hidden_setIsMutedByApplication(false);
-              } else {
-                track._hidden_setIsMutedByApplication(true);
-              }
-            }
-
-            return res;
-          });
+          }
         }}
       >
         S
