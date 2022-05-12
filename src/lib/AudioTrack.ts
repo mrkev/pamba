@@ -16,8 +16,7 @@ export class AudioTrack {
   // Invariants:
   // - Sorted by start time.
   // - Non-overlapping clips.
-  clips: Array<AudioClip> = [];
-
+  clips = LinkedState.of<Array<AudioClip>>([]);
   effects = LinkedState.of<Array<FaustAudioEffect>>([]);
 
   // if audo is playing, this is the soruce with the playing buffer
@@ -141,7 +140,7 @@ export class AudioTrack {
 
   // TODO: I think I can keep 'trackBuffer' between plays
   private getSourceNode(context: BaseAudioContext): AudioBufferSourceNode {
-    const trackBuffer = mixDown(this.clips, 2);
+    const trackBuffer = mixDown(this.clips.get(), 2);
     const sourceNode = context.createBufferSource();
     sourceNode.buffer = trackBuffer;
     sourceNode.loop = false;
@@ -158,29 +157,36 @@ export class AudioTrack {
   }
 
   toString() {
-    return this.clips.map((c) => c.toString()).join("\n");
+    return this.clips
+      .get()
+      .map((c) => c.toString())
+      .join("\n");
   }
 
   //////////// CLIPS ////////////
 
   addClip(newClip: AudioClip) {
-    addClip(newClip, this.clips);
+    const clips = addClip(newClip, this.clips.get());
+    this.clips.set(clips);
     this.mutations++;
   }
 
   // Adds a clip right after the last clip
   pushClip(newClip: AudioClip): void {
-    pushClip(newClip, this.clips);
+    const clips = pushClip(newClip, this.clips.get());
+    this.clips.set(clips);
     this.mutations++;
   }
 
   removeClip(clip: AudioClip): void {
-    removeClip(clip, this.clips);
+    const clips = removeClip(clip, this.clips.get());
+    this.clips.set(clips);
     this.mutations++;
   }
 
   deleteTime(startSec: number, endSec: number): void {
-    deleteTime(startSec, endSec, this.clips);
+    const clips = deleteTime(startSec, endSec, this.clips.get());
+    this.clips.set(clips);
     this.mutations++;
   }
 }

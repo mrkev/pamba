@@ -113,40 +113,41 @@ function App() {
     });
   }
 
-  const loadClip = useCallback(async function loadClip(
-    url: string,
-    name?: string
-  ) {
-    try {
-      console.log("LOAD CLIP");
-      // load clip
-      const clip = await AudioClip.fromURL(url, name);
-      const newTrack = AudioTrack.fromClip(clip);
-      setTracks((tracks) => tracks.concat([newTrack]));
-      console.log("loaded");
-    } catch (e) {
-      console.trace(e);
-      return;
-    }
-  },
-  []);
+  const loadClip = useCallback(
+    async function loadClip(url: string, name?: string) {
+      try {
+        console.log("LOAD CLIP");
+        // load clip
+        const clip = await AudioClip.fromURL(url, name);
+        const newTrack = AudioTrack.fromClip(clip);
+        setTracks((tracks) => tracks.concat([newTrack]));
+        console.log("loaded");
+      } catch (e) {
+        console.trace(e);
+        return;
+      }
+    },
+    [setTracks]
+  );
 
-  const loadClipIntoTrack = useCallback(async function loadClipIntoTrack(
-    url: string,
-    track: AudioTrack,
-    name?: string
-  ): Promise<void> {
-    try {
-      // load clip
-      const clip = await AudioClip.fromURL(url, name);
-      track.pushClip(clip);
-      setTracks((tracks) => [...tracks]);
-    } catch (e) {
-      console.trace(e);
-      return;
-    }
-  },
-  []);
+  const loadClipIntoTrack = useCallback(
+    async function loadClipIntoTrack(
+      url: string,
+      track: AudioTrack,
+      name?: string
+    ): Promise<void> {
+      try {
+        // load clip
+        const clip = await AudioClip.fromURL(url, name);
+        track.pushClip(clip);
+        setTracks((tracks) => [...tracks]);
+      } catch (e) {
+        console.trace(e);
+        return;
+      }
+    },
+    [setTracks]
+  );
 
   const mediaRecorder = useMediaRecorder(loadClip);
 

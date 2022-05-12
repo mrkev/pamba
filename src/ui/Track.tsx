@@ -31,6 +31,7 @@ export function Track({
   const [selected] = useLinkedState(project.selected);
   const secsToPx = useDerivedState(project.secsToPx);
   const [effects] = useLinkedState(track.effects);
+  const [clips] = useLinkedState(track.clips);
 
   return (
     <>
@@ -58,7 +59,7 @@ export function Track({
           // pointerEvents: "none",
         }}
       >
-        {track.clips.map((clip, i) => {
+        {clips.map((clip, i) => {
           if (
             pressed &&
             pressed.status === "moving_clip" &&

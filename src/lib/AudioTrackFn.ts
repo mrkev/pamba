@@ -38,7 +38,10 @@ export function assertClipInvariants(clips: Array<BaseClip>) {
   }
 }
 
-export function addClip(newClip: BaseClip, clips: Array<BaseClip>) {
+export function addClip<Clip extends BaseClip>(
+  newClip: Clip,
+  clips: Array<Clip>
+): Array<Clip> {
   // Essentially, we want to insert in order, sorted
   // by the startOffsetSec of each clip.
   let i = 0;
@@ -87,19 +90,20 @@ export function addClip(newClip: BaseClip, clips: Array<BaseClip>) {
   //   next.startOffsetSec = newClip.endOffsetSec;
   // }
   assertClipInvariants(clips);
+  return [...clips];
 }
 
 /**
  * deletes/trims clips as necessary to make the time from
  * startSec to endSec is blank
  */
-export function deleteTime(
+export function deleteTime<Clip extends BaseClip>(
   startSec: number,
   endSec: number,
-  clips: Array<BaseClip>
-): void {
+  clips: Array<Clip>
+): Array<Clip> {
   if (startSec === endSec) {
-    return;
+    return clips;
   }
 
   if (startSec > endSec) {
@@ -163,18 +167,25 @@ export function deleteTime(
   }
 
   assertClipInvariants(clips);
+  return [...clips];
 }
 
+// TODO: idea, LinkedArray and LinkedMap, for collection linked state?
 /**
- * Deletes a clip
+ * Deletes a clip.
+ * Returns new array if modified, same if unchaged.
  */
-export function removeClip(clip: BaseClip, clips: Array<BaseClip>): void {
+export function removeClip<Clip extends BaseClip>(
+  clip: Clip,
+  clips: Array<Clip>
+): Array<Clip> {
   const i = clips.indexOf(clip);
   if (i === -1) {
-    return;
+    return clips;
   }
   clips.splice(i, 1);
   assertClipInvariants(clips);
+  return [...clips];
 }
 
 /**
@@ -211,7 +222,10 @@ export function splitClip<T extends BaseClip>(
 /**
  * Adds a clip right after the last clip
  */
-export function pushClip(newClip: BaseClip, clips: Array<BaseClip>): void {
+export function pushClip<Clip extends BaseClip>(
+  newClip: Clip,
+  clips: Array<Clip>
+): Array<Clip> {
   const lastClip = clips.length > 0 ? clips[clips.length - 1] : null;
 
   if (!lastClip) {
@@ -222,4 +236,5 @@ export function pushClip(newClip: BaseClip, clips: Array<BaseClip>): void {
 
   clips.push(newClip);
   assertClipInvariants(clips);
+  return [...clips];
 }

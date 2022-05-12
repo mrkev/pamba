@@ -154,7 +154,7 @@ export class AnalizedPlayer {
     // through each clip and find when the last one ends.
     if (endSec == null) {
       for (let track of tracks) {
-        for (let clip of track.clips) {
+        for (let clip of track.clips.get()) {
           end =
             end == null || clip.endOffsetSec > end ? clip.endOffsetSec : end;
           console.log("endOffsetSec", clip.endOffsetSec, end);

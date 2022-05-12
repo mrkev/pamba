@@ -3,7 +3,9 @@ import { TFaustUIItem, TFaustUIInputItem } from "@shren/faust-ui/src/types";
 import React, { useEffect, useState } from "react";
 import { FaustAudioProcessorNode, ProcessorLoader } from "faust-loader";
 
-declare function exhaustive(x: never): never;
+function exhaustive(x: never): never {
+  throw new Error("exhaustive violation");
+}
 
 export interface INodeData {
   compile_options: string;
@@ -164,7 +166,7 @@ export function FaustTest({ context }: { context: AudioContext }) {
       setNode(panner || null);
       setUi(ui);
     })();
-  }, []);
+  }, [context]);
 
   if (!node || !ui) {
     return null;
