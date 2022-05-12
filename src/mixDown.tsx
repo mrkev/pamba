@@ -3,10 +3,7 @@ import { AudioClip } from "./lib/AudioClip";
 
 // Unused. We do live playback now .
 // from https://stackoverflow.com/questions/57155167/web-audio-api-playing-synchronized-sounds
-export function mixDown(
-  clipList: Array<AudioClip>,
-  numberOfChannels = 2
-): AudioBuffer | null {
+export function mixDown(clipList: ReadonlyArray<AudioClip>, numberOfChannels = 2): AudioBuffer | null {
   if (clipList.length === 0) {
     return null;
   }
@@ -21,11 +18,7 @@ export function mixDown(
   }
 
   //create a buffer using the totalLength and sampleRate of the first buffer node
-  let finalMix = staticAudioContext.createBuffer(
-    numberOfChannels,
-    totalLength,
-    clipList[0].sampleRate
-  );
+  let finalMix = staticAudioContext.createBuffer(numberOfChannels, totalLength, clipList[0].sampleRate);
 
   // The spec doesn't quite specify if getChannelData() returns a reference or a
   // copy, so let's call it as little as possible just in case.

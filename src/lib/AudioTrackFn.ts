@@ -1,22 +1,18 @@
 import { BaseClip } from "./BaseClip";
 import nullthrows from "./nullthrows";
 
-export function printClips(clips: Array<BaseClip>) {
+export function printClips(clips: ReadonlyArray<BaseClip>) {
   return clips.map((c) => c.toString()).join("\n");
 }
 
-export function assertClipInvariants(clips: Array<BaseClip>) {
+export function assertClipInvariants(clips: ReadonlyArray<BaseClip>) {
   let cStart = 0;
   let cEnd = 0;
   for (let i = 0; i < clips.length; i++) {
     const clip = clips[i];
     if (clip.startOffsetSec < cStart) {
       // console.log(`Out of place clip at position ${i}!`, clip, clips);
-      throw new Error(
-        "Failed invariant: clips are not sorted.\n" +
-          "They look like this:\n" +
-          printClips(clips)
-      );
+      throw new Error("Failed invariant: clips are not sorted.\n" + "They look like this:\n" + printClips(clips));
     }
 
     if (cEnd > clip.startOffsetSec) {
@@ -26,11 +22,7 @@ export function assertClipInvariants(clips: Array<BaseClip>) {
       //   cEnd
       // );
       // console.log(`${cEnd} > ${clip.startOffsetSec}`);
-      throw new Error(
-        "Failed invariant: clips overlap.\n" +
-          "They look like this:\n" +
-          printClips(clips)
-      );
+      throw new Error("Failed invariant: clips overlap.\n" + "They look like this:\n" + printClips(clips));
     }
 
     cStart = clip.startOffsetSec;
@@ -38,10 +30,7 @@ export function assertClipInvariants(clips: Array<BaseClip>) {
   }
 }
 
-export function addClip<Clip extends BaseClip>(
-  newClip: Clip,
-  clips: Array<Clip>
-): Array<Clip> {
+export function addClip<Clip extends BaseClip>(newClip: Clip, clips: ReadonlyArray<Clip>): ReadonlyArray<Clip> {
   // Essentially, we want to insert in order, sorted
   // by the startOffsetSec of each clip.
   let i = 0;
@@ -76,7 +65,8 @@ export function addClip<Clip extends BaseClip>(
   deleteTime(newClip.startOffsetSec, newClip.endOffsetSec, clips);
 
   // Insert the clip
-  clips.splice(i, 0, newClip);
+  const clone = [...clips];
+  clone.splice(i, 0, newClip);
 
   // if (prev && prev.endOffsetSec > newClip.startOffsetSec) {
   //   // TODO: delete time range within current clip and insert it.
@@ -89,8 +79,8 @@ export function addClip<Clip extends BaseClip>(
   // if (next && next.startOffsetSec < newClip.endOffsetSec) {
   //   next.startOffsetSec = newClip.endOffsetSec;
   // }
-  assertClipInvariants(clips);
-  return [...clips];
+  assertClipInvariants(clone);
+  return clone;
 }
 
 /**
@@ -100,8 +90,8 @@ export function addClip<Clip extends BaseClip>(
 export function deleteTime<Clip extends BaseClip>(
   startSec: number,
   endSec: number,
-  clips: Array<Clip>
-): Array<Clip> {
+  clips: ReadonlyArray<Clip>
+): ReadonlyArray<Clip> {
   if (startSec === endSec) {
     return clips;
   }
@@ -115,10 +105,8 @@ export function deleteTime<Clip extends BaseClip>(
   for (let i = 0; i < clips.length; i++) {
     const current = clips[i];
 
-    const remStart =
-      startSec < current.startOffsetSec && current.startOffsetSec < endSec;
-    const remEnd =
-      startSec < current.endOffsetSec && current.endOffsetSec < endSec;
+    const remStart = startSec < current.startOffsetSec && current.startOffsetSec < endSec;
+    const remEnd = startSec < current.endOffsetSec && current.endOffsetSec < endSec;
 
     // remove the whole clip
     if (remStart && remEnd) {
@@ -175,17 +163,15 @@ export function deleteTime<Clip extends BaseClip>(
  * Deletes a clip.
  * Returns new array if modified, same if unchaged.
  */
-export function removeClip<Clip extends BaseClip>(
-  clip: Clip,
-  clips: Array<Clip>
-): Array<Clip> {
+export function removeClip<Clip extends BaseClip>(clip: Clip, clips: ReadonlyArray<Clip>): ReadonlyArray<Clip> {
   const i = clips.indexOf(clip);
   if (i === -1) {
     return clips;
   }
-  clips.splice(i, 1);
+  const clone = [...clips];
+  clone.splice(i, 1);
   assertClipInvariants(clips);
-  return [...clips];
+  return clone;
 }
 
 /**
@@ -194,8 +180,8 @@ export function removeClip<Clip extends BaseClip>(
 export function splitClip<T extends BaseClip>(
   clip: T,
   timeSec: number,
-  clips: Array<BaseClip>
-): [T, BaseClip] | null {
+  clips: ReadonlyArray<T>
+): [T, BaseClip, ReadonlyArray<T>] | null {
   if (timeSec > clip.endOffsetSec || timeSec < clip.startOffsetSec) {
     return null;
   }
@@ -208,24 +194,22 @@ export function splitClip<T extends BaseClip>(
   //         [         clip         |     clipAfter    ]
   // ^0:00   ^clip.startOffsetSec   ^timeSec
 
-  const clipAfter = clip.clone();
+  const clipAfter: T = clip.clone() as any; // todo
 
   clipAfter.trimToOffsetSec(timeSec);
   clip.endOffsetSec = timeSec;
 
-  clips.splice(i + 1, 0, clipAfter);
+  const clone = [...clips];
+  clone.splice(i + 1, 0, clipAfter);
 
   assertClipInvariants(clips);
-  return [clip, clipAfter];
+  return [clip, clipAfter, clone];
 }
 
 /**
  * Adds a clip right after the last clip
  */
-export function pushClip<Clip extends BaseClip>(
-  newClip: Clip,
-  clips: Array<Clip>
-): Array<Clip> {
+export function pushClip<Clip extends BaseClip>(newClip: Clip, clips: ReadonlyArray<Clip>): ReadonlyArray<Clip> {
   const lastClip = clips.length > 0 ? clips[clips.length - 1] : null;
 
   if (!lastClip) {
@@ -234,7 +218,8 @@ export function pushClip<Clip extends BaseClip>(
     newClip.startOffsetSec = lastClip.endOffsetSec;
   }
 
-  clips.push(newClip);
+  const clone = [...clips];
+  clone.push(newClip);
   assertClipInvariants(clips);
-  return [...clips];
+  return clone;
 }
