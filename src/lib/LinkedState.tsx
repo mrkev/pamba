@@ -1,81 +1,50 @@
 import { useEffect, useState, useCallback } from "react";
-import { Serializable, SerializableT, Serialized } from "./Serializable";
-// import { Serializable, JsonProperty } from "typescript-json-serializer";
-import { deserialize, serialize } from "typescript-json-serializer";
-
-// @Serializable()
-// class Foo {
-//   @JsonProperty() bar: number;
-//   baz: string;
-//   constructor(bar: number) {
-//     this.bar = bar;
-//     this.baz = bar + "asdf";
-//   }
-// }
-
-// (window as any).foo = new Foo(2);
-// (window as any).deserialize = deserialize;
-// (window as any).serialize = serialize;
-// debugger;
 
 type StateDispath<S> = (value: S | ((prevState: S) => S)) => void;
 type StateChangeHandler<S> = (value: S) => void;
 
-// @Serializable()
-export class LinkedState<S> {
-  protected val: S;
-  private handlers: Set<StateChangeHandler<S>> = new Set();
+// Subbables are things one can subscribe to
+
+export interface Subbable<S> {
+  _subscriptors: Set<StateChangeHandler<S>>;
+}
+
+export function subscribe<S>(
+  subbable: Subbable<S>,
+  cb: StateChangeHandler<S>
+): () => void {
+  subbable._subscriptors.add(cb);
+  return () => subbable._subscriptors.delete(cb);
+}
+
+export function notify<S>(subbable: Subbable<S>, value: S) {
+  subbable._subscriptors.forEach((cb) => {
+    cb(value);
+  });
+}
+
+// Linked state is a Subbable
+
+export class LinkedState<S> implements Subbable<S> {
+  private _value: S;
+  _subscriptors: Set<StateChangeHandler<S>> = new Set();
   constructor(initialValue: S) {
-    this.val = initialValue;
+    this._value = initialValue;
   }
 
   static of<T>(val: T) {
     return new this<T>(val);
   }
 
-  set(val: S): void {
-    this.val = val;
-    this.handlers.forEach((cb) => {
-      cb(val);
-    });
+  set(value: S): void {
+    this._value = value;
+    notify(this, this._value);
   }
+
   get(): S {
-    return this.val;
-  }
-
-  // Executes these handlers on change
-  addStateChangeHandler(cb: StateChangeHandler<S>): () => void {
-    this.handlers.add(cb);
-    return () => {
-      this.handlers.delete(cb);
-    };
+    return this._value;
   }
 }
-
-export class SLinkedState<S extends any>
-  extends LinkedState<S>
-  implements Serializable
-{
-  __serialize(): Serialized<SLinkedState<S>> {
-    const x = new Serializable();
-    const res = x.__serialize.call(this);
-    return res;
-  }
-
-  static __parse<T>(s: Serialized<SLinkedState<T>>): SLinkedState<T> {
-    const json = JSON.parse(s);
-    if (json.__c !== this.name) {
-      throw new Error("wrong serialized type");
-    }
-    return new this(json.val);
-  }
-
-  static of<T>(val: T) {
-    return new this<T>(val);
-  }
-}
-
-(window as any).SLinkedState = SLinkedState;
 
 export function useLinkedState<S>(
   linkedState: LinkedState<S>
@@ -83,22 +52,20 @@ export function useLinkedState<S>(
   const [state, setState] = useState<S>(() => linkedState.get());
 
   useEffect(() => {
-    return linkedState.addStateChangeHandler((newVal) =>
-      setState(() => newVal)
-    );
+    return subscribe(linkedState, (newVal) => {
+      setState(() => newVal);
+    });
   }, [linkedState]);
 
+  // TODO: why is this necessary?
   const apiState = linkedState.get();
-  useEffect(
-    function () {
-      // console.log("API => React", apiState);
-      setState(() => apiState);
-    },
-    [apiState]
-  );
+  useEffect(() => {
+    // console.log("API => React", apiState);
+    setState(() => apiState);
+  }, [apiState]);
 
   const setter: StateDispath<S> = useCallback(
-    function (newVal) {
+    (newVal) => {
       // newVal instanceof Function
       if (newVal instanceof Function) {
         linkedState.set(newVal(linkedState.get()));
@@ -110,4 +77,13 @@ export function useLinkedState<S>(
   );
 
   return [state, setter];
+}
+
+export function useChangeListener<S extends Subbable<S>>(subbable: S): void {
+  const [_, setState] = useState<number>(0);
+  useEffect(() => {
+    return subscribe(subbable, (_) => {
+      setState((prev) => prev + 1);
+    });
+  }, [subbable]);
 }

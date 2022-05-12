@@ -90,7 +90,6 @@ function App() {
     if (selected && selected.status === "clips") {
       // TODO: remove clip from selected clips
     }
-    setStateCounter((c) => c + 1);
   }
 
   function removeTrack(track: AudioTrack) {
@@ -546,7 +545,6 @@ function App() {
                   project={project}
                   loadClipIntoTrack={loadClipIntoTrack}
                   tool={tool}
-                  rerender={rerender}
                   isDspExpanded={isDspExpanded}
                 />
               );

@@ -1,5 +1,5 @@
 import { CLIP_HEIGHT } from "../globals";
-import { useLinkedState } from "../lib/LinkedState";
+import { useChangeListener, useLinkedState } from "../lib/LinkedState";
 import { pressedState } from "../lib/linkedState/pressedState";
 import { modifierState } from "../ModifierState";
 
@@ -124,7 +124,7 @@ export function Clip({
       const asSec = pxToSecs(pxFromStartOfClip);
       clip.trimStartSec += asSec;
       clip.startOffsetSec += asSec;
-      console.log("asdfasdf");
+      // console.log("asdfasdf");
       rerender();
     }
     if (tool === "trimEnd") {
@@ -132,8 +132,8 @@ export function Clip({
       const secsFromStartPos = pxToSecs(pxFromStartOfClip);
       const secsFromZero = clip.trimStartSec + secsFromStartPos;
       clip.trimEndSec = secsFromZero;
-      console.log("pxFromStartOfClip", pxFromStartOfClip, secsFromZero, "s");
-      console.log("clip.endPosSec", clip.trimEndSec);
+      // console.log("pxFromStartOfClip", pxFromStartOfClip, secsFromZero, "s");
+      // console.log("clip.endPosSec", clip.trimEndSec);
       rerender();
     }
   }

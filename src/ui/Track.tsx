@@ -1,3 +1,4 @@
+import { useCallback, useState } from "react";
 import { Tool } from "../App";
 import { FaustModule } from "../dsp/Faust";
 import { CLIP_HEIGHT, EFFECT_HEIGHT, TRACK_SEPARATOR_HEIGHT } from "../globals";
@@ -13,7 +14,6 @@ export function Track({
   project,
   loadClipIntoTrack,
   tool,
-  rerender,
   isDspExpanded,
 }: {
   track: AudioTrack;
@@ -24,7 +24,6 @@ export function Track({
     name?: string
   ) => Promise<void>;
   tool: Tool;
-  rerender: () => void; // get rid of this
   isDspExpanded: boolean;
 }): React.ReactElement {
   const [pressed, setPressed] = useLinkedState(pressedState);
@@ -32,6 +31,10 @@ export function Track({
   const secsToPx = useDerivedState(project.secsToPx);
   const [effects] = useLinkedState(track.effects);
   const [clips] = useLinkedState(track.clips);
+  const [_, setStateCounter] = useState(0);
+  const rerender = useCallback(function () {
+    setStateCounter((x) => x + 1);
+  }, []);
 
   return (
     <>

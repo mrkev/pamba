@@ -13,7 +13,9 @@
 // +--startOffsetSec--+
 // +--endOffsetSec-----------------------------+
 
-export class BaseClip {
+import { notify, Subbable } from "./LinkedState";
+
+export class BaseClip implements Subbable<BaseClip> {
   // A BaseClip represents media that has a certain length (in frames), but has
   // been trimmed to be of another length.
   readonly lengthSec: number; // seconds, whole buffer
@@ -72,9 +74,11 @@ export class BaseClip {
   }
   set startOffsetSec(secs: number) {
     this._startOffsetSec = secs;
+    this.didMutate();
   }
   set startOffsetFr(frs: number) {
     this._startOffsetSec = this.frToSec(frs);
+    this.didMutate();
   }
 
   // on the timeline, the x position where + width (duration)
@@ -98,6 +102,7 @@ export class BaseClip {
     const delta = this.endOffsetSec - newEnd;
     this._trimEndSec = this._trimEndSec - delta;
     // TODO: verify if I have to do anything with trimStartSec
+    this.didMutate();
   }
 
   //
@@ -119,9 +124,11 @@ export class BaseClip {
     }
 
     this._trimEndSec = s;
+    this.didMutate();
   }
   set trimEndFr(f: number) {
     this._trimEndSec = this.frToSec(f);
+    this.didMutate();
   }
 
   get durationSec() {
@@ -146,9 +153,11 @@ export class BaseClip {
     }
 
     this._trimStartSec = s;
+    this.didMutate();
   }
   set trimStartFr(f: number) {
     this._trimStartSec = this.frToSec(f);
+    this.didMutate();
   }
 
   moveToOffsetSec(s: number) {
@@ -168,5 +177,12 @@ export class BaseClip {
 
     this.startOffsetSec = timeSec;
     this.trimStartSec = this.trimStartSec + delta;
+  }
+
+  // Clips are subbable
+  _subscriptors: Set<(value: BaseClip) => void> = new Set();
+  // On mutation, they notify their subscribers that they changed
+  private didMutate() {
+    notify(this, this);
   }
 }

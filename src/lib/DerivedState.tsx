@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { LinkedState } from "./LinkedState";
+import { LinkedState, subscribe } from "./LinkedState";
 
 type StateChangeHandler<S> = (value: S) => void;
 
@@ -21,7 +21,7 @@ export class DerivedState<F extends Function> {
     this.transform = transform;
     for (let i = 0; i < this.dependencies.length; i++) {
       const dependency = this.dependencies[i];
-      dependency.addStateChangeHandler((newState) => {
+      subscribe(dependency, (newState) => {
         // TODO: coalece. If multiple deps change, call my handlers only once
         // like setState.
         this.handlers.forEach((cb: StateChangeHandler<FnDst<F>>) => {
