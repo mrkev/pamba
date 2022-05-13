@@ -5,10 +5,11 @@ import { DerivedState } from "./DerivedState";
 import { AudioClip } from "./AudioClip";
 import { scaleLinear } from "d3-scale";
 import type { ScaleLinear } from "d3-scale";
-import { Tool } from "../App";
 import { LinkedArray } from "./LinkedArray";
 
 export type XScale = ScaleLinear<number, number>;
+
+export type Tool = "move" | "trimStart" | "trimEnd";
 
 export type SelectionState =
   | {

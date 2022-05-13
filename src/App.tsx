@@ -1,62 +1,35 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import "./App.css";
-import { CLIP_HEIGHT, CANVAS_WIDTH, CANVAS_HEIGHT } from "./globals";
+import { CLIP_HEIGHT } from "./globals";
 import { AudioClip } from "./lib/AudioClip";
 import { AudioTrack } from "./lib/AudioTrack";
 import { AnalizedPlayer } from "./AnalizedPlayer";
 import { usePambaFirebaseStoreRef } from "./firebase/useFirebase";
 import TrackHeader from "./ui/TrackHeader";
-import { useMediaRecorder } from "./lib/useMediaRecorder";
-import { AudioProject, SelectionState } from "./lib/AudioProject";
+import { AudioProject } from "./lib/AudioProject";
 import { useLinkedState } from "./lib/LinkedState";
-import { modifierState, useSingletonModifierState } from "./ModifierState";
+import { modifierState, useSingletonKeyboardModifierState } from "./ModifierState";
 import { Axis } from "./Axis";
 import { useDerivedState } from "./lib/DerivedState";
 import { Track } from "./ui/Track";
 import { useAppProjectMouseEvents } from "./ui/useAppProjectMouseEvents";
-import bufferToWav from "audiobuffer-to-wav";
 import { useAppProjectKeyboardEvents } from "./useAppProjectKeyboardEvents";
 import { useLinkedSet } from "./lib/LinkedSet";
 import { useLinkedArray } from "./lib/LinkedArray";
-
-export type Tool = "move" | "trimStart" | "trimEnd";
-
-function stringOfSelected(sel: SelectionState | null): string {
-  if (!sel) {
-    return "";
-  }
-
-  switch (sel.status) {
-    case "clips":
-      return JSON.stringify({
-        ...sel,
-        clips: sel.clips.map(({ clip }) => clip.toString()),
-      });
-
-    case "tracks":
-      return JSON.stringify({
-        ...sel,
-        tracks: sel.tracks.map((track) => track.toString()),
-      });
-  }
-
-  return JSON.stringify(sel);
-}
+import { DebugData } from "./DebugData";
+import { ToolHeader } from "./ToolHeader";
 
 function App() {
   const ctxRef = useRef<null | CanvasRenderingContext2D>(null);
   const playbackPosDiv = useRef<null | HTMLDivElement>(null);
   const [projectDiv, setProjectDiv] = useState<null | HTMLDivElement>(null);
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
-  const [isRecording, setIsRecording] = useState(false);
-  const [bounceURL, setBounceURL] = useState<string | null>(null);
   const firebaseStoreRef = usePambaFirebaseStoreRef();
   const [player] = useState<AnalizedPlayer>(() => new AnalizedPlayer());
-
   const [project] = useState(() => new AudioProject());
   (window as any).project = project;
 
-  useSingletonModifierState(modifierState);
+  useSingletonKeyboardModifierState(modifierState);
 
   const [_, setStateCounter] = useState<number>(0);
   const rerender = useCallback(function () {
@@ -67,7 +40,6 @@ function App() {
   const [selected] = useLinkedState(project.selected);
   const [scaleFactor, setScaleFactor] = useLinkedState(project.scaleFactor);
   const [dspExpandedTracks] = useLinkedSet(project.dspExpandedTracks);
-  const [tool] = useLinkedState(project.pointerTool);
   const secsToPx = useDerivedState(project.secsToPx);
 
   const togglePlayback = useCallback(
@@ -82,32 +54,13 @@ function App() {
     [isAudioPlaying, player]
   );
 
-  const [pressed, cursorPos, selectionWidth] = useAppProjectMouseEvents({
+  const [cursorPos, selectionWidth] = useAppProjectMouseEvents({
     project,
     projectDiv,
     rerender,
   });
 
   useAppProjectKeyboardEvents(project, togglePlayback);
-
-  const loadClip = useCallback(
-    async function loadClip(url: string, name?: string) {
-      try {
-        console.log("LOAD CLIP");
-        // load clip
-        const clip = await AudioClip.fromURL(url, name);
-        const newTrack = AudioTrack.fromClip(clip);
-        tracks.push(newTrack);
-        console.log("loaded");
-      } catch (e) {
-        console.trace(e);
-        return;
-      }
-    },
-    [tracks]
-  );
-
-  const mediaRecorder = useMediaRecorder(loadClip);
 
   useEffect(() => {
     player.setCursorPos(cursorPos);
@@ -217,12 +170,6 @@ function App() {
     };
   }, [projectDiv, scaleFactor, setScaleFactor, setViewportStartSecs, viewportStartSecs]);
 
-  const allState = tracks
-    .map((track, i) => {
-      return `Track ${i}:\n${track.toString()}\n`;
-    })
-    .join("\n");
-
   return (
     <>
       <div className="App">
@@ -236,146 +183,14 @@ function App() {
           // });
         }}
       ></div> */}
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "row",
-            width: "100%",
-          }}
-        >
-          <div style={{ flexGrow: 1 }}>
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "row",
-                columnGap: "6px",
-                justifyContent: "right",
-              }}
-            >
-              <button
-                onClick={async function () {
-                  const bounceAll = !selectionWidth || selectionWidth === 0;
-
-                  const result = await (bounceAll
-                    ? player.bounceTracks(tracks._getRaw())
-                    : player.bounceTracks(tracks._getRaw(), cursorPos, cursorPos + selectionWidth));
-                  const wav = bufferToWav(result);
-                  const blob = new Blob([new DataView(wav)], {
-                    type: "audio/wav",
-                  });
-                  const exportUrl = window.URL.createObjectURL(blob);
-
-                  setBounceURL((prev) => {
-                    if (prev) {
-                      window.URL.revokeObjectURL(prev);
-                    }
-                    return exportUrl;
-                  });
-                }}
-              >
-                {selectionWidth && selectionWidth > 0 ? "bounce selected" : "bounce all"}
-              </button>
-              {tool === "move"
-                ? "move ⇄"
-                : tool === "trimStart"
-                ? "trimStart ⇥"
-                : tool === "trimEnd"
-                ? "trimEnd ⇤"
-                : tool}
-              <button disabled={tracks.length === 0} onClick={togglePlayback}>
-                {isAudioPlaying ? "stop" : "start"}
-              </button>
-            </div>
-            {/* <input
-            value={""}
-            type="file"
-            accept="audio/*"
-            onChange={function (e) {
-              const files = e.target.files || [];
-              const url = URL.createObjectURL(files[0]);
-              loadClip(url, files[0].name);
-            }}
-          /> */}
-            {firebaseStoreRef && (
-              <input
-                value={""}
-                type="file"
-                accept="audio/*"
-                onChange={async function (e) {
-                  const file = (e.target.files || [])[0];
-                  if (!file) {
-                    console.log("NO FILE");
-                    return;
-                  }
-                  // Push to child path.
-                  const snapshot = await firebaseStoreRef.child("images/" + file.name).put(file, {
-                    contentType: file.type,
-                  });
-
-                  console.log("Uploaded", snapshot.totalBytes, "bytes.");
-                  console.log("File metadata:", snapshot.metadata);
-                  // Let's get a download URL for the file.
-                  const url = await snapshot.ref.getDownloadURL();
-                  console.log("File available at", url);
-                  loadClip(url, file.name);
-                }}
-              />
-            )}
-            {mediaRecorder && (
-              <button
-                onClick={function () {
-                  if (!isRecording) {
-                    mediaRecorder.start();
-                    setIsRecording(true);
-                  } else {
-                    mediaRecorder.stop();
-                    setIsRecording(false);
-                  }
-                }}
-              >
-                {!isRecording ? "record" : "stop recording"}
-              </button>
-            )}
-            <br />
-            {["viper.mp3", "drums.mp3", "clav.mp3", "bassguitar.mp3", "horns.mp3", "leadguitar.mp3"].map(function (
-              url,
-              i
-            ) {
-              return (
-                <button
-                  key={i}
-                  draggable
-                  onDragStart={function (ev: React.DragEvent<HTMLButtonElement>) {
-                    ev.dataTransfer.setData("text", url);
-                  }}
-                  onClick={function () {
-                    loadClip(url);
-                  }}
-                >
-                  load {url}
-                </button>
-              );
-            })}
-            <hr />
-          </div>
-          <canvas
-            style={{
-              background: "black",
-              width: CANVAS_WIDTH,
-              height: CANVAS_HEIGHT,
-            }}
-            width={CANVAS_WIDTH + "px"}
-            height={CANVAS_HEIGHT + "px"}
-            ref={(canvas) => {
-              if (canvas == null) {
-                return;
-              }
-              const ctx = canvas.getContext("2d");
-              player.canvasCtx = ctx;
-              ctxRef.current = ctx;
-            }}
-          ></canvas>
-        </div>
+        <ToolHeader
+          project={project}
+          player={player}
+          togglePlayback={togglePlayback}
+          isAudioPlaying={isAudioPlaying}
+          firebaseStoreRef={firebaseStoreRef}
+          ctxRef={ctxRef}
+        />
 
         <div
           id="container"
@@ -400,7 +215,7 @@ function App() {
             {projectDiv && <Axis project={project} projectDiv={projectDiv}></Axis>}
             {tracks.map(function (track, i) {
               const isDspExpanded = dspExpandedTracks.has(track);
-              return <Track key={i} track={track} project={project} tool={tool} isDspExpanded={isDspExpanded} />;
+              return <Track key={i} track={track} project={project} isDspExpanded={isDspExpanded} />;
             })}
             <div
               // ref={cursorPosDiv}
@@ -478,20 +293,7 @@ function App() {
           </div>
         </div>
       </div>
-      {bounceURL && (
-        <a href={bounceURL} download={"bounce.wav"}>
-          Download bounce
-        </a>
-      )}
-      <div>
-        Pressed: {JSON.stringify(pressed, ["status", "clientX", "clientY"], 2)}
-        <br />
-        Cursor: {cursorPos} {selectionWidth}
-        <br />
-        Selected: {stringOfSelected(selected)}
-        <br />
-      </div>
-      <pre>{allState}</pre>
+      <DebugData project={project} />
     </>
   );
 }

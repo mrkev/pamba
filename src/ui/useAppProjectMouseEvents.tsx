@@ -12,13 +12,11 @@ export function useAppProjectMouseEvents({
   project: AudioProject;
   projectDiv: HTMLDivElement | null;
   rerender: () => void;
-}): [SelectionState | null, number, number | null] {
+}): [number, number | null] {
   const [pressed, setPressed] = useLinkedState(pressedState);
   const [cursorPos, setCursorPos] = useLinkedState(project.cursorPos);
+  const [selectionWidth, setSelectionWidth] = useLinkedState(project.selectionWidth);
   const [selected, setSelected] = useLinkedState(project.selected);
-  const [selectionWidth, setSelectionWidth] = useLinkedState(
-    project.selectionWidth
-  );
   const secsToPx = useDerivedState(project.secsToPx);
 
   useEffect(() => {
@@ -32,10 +30,7 @@ export function useAppProjectMouseEvents({
       // currentTarget should always be the element the event is attatched to,
       // so our project div.
       const { target, currentTarget } = e;
-      if (
-        !(target instanceof HTMLDivElement) ||
-        !(currentTarget instanceof HTMLDivElement)
-      ) {
+      if (!(target instanceof HTMLDivElement) || !(currentTarget instanceof HTMLDivElement)) {
         console.log("WOOP");
         return;
       }
@@ -74,10 +69,7 @@ export function useAppProjectMouseEvents({
       }
 
       if (pressed.status === "moving_clip") {
-        pressed.track.deleteTime(
-          pressed.clip.startOffsetSec,
-          pressed.clip.endOffsetSec
-        );
+        pressed.track.deleteTime(pressed.clip.startOffsetSec, pressed.clip.endOffsetSec);
         pressed.originalTrack.removeClip(pressed.clip);
         pressed.track.addClip(pressed.clip);
 
@@ -134,10 +126,7 @@ export function useAppProjectMouseEvents({
       }
       if (pressed.status === "moving_clip") {
         const deltaXSecs = pxToSecs(e.clientX - pressed.clientX);
-        const newOffset = Math.max(
-          0,
-          pressed.originalClipOffsetSec + deltaXSecs
-        );
+        const newOffset = Math.max(0, pressed.originalClipOffsetSec + deltaXSecs);
         pressed.clip.startOffsetSec = newOffset;
         rerender();
       }
@@ -146,10 +135,7 @@ export function useAppProjectMouseEvents({
         const deltaXSecs = pxToSecs(e.clientX - pressed.clientX);
         if (pressed.from === "end") {
           // We can't trim a clip to end before it's beggining
-          let newEndPosSec = Math.max(
-            0,
-            pressed.originalClipEndPosSec + deltaXSecs
-          );
+          let newEndPosSec = Math.max(0, pressed.originalClipEndPosSec + deltaXSecs);
           // and also prevent it from extending beyond its original length
           newEndPosSec = Math.min(newEndPosSec, pressed.clip.lengthSec);
 
@@ -157,10 +143,7 @@ export function useAppProjectMouseEvents({
         } else if (pressed.from === "start") {
           // Can't trim past the length of the clip, so
           // clamp it on one side to that.
-          let newTrimStartSec = Math.min(
-            pressed.clip.lengthSec,
-            pressed.originalClipStartPosSec + deltaXSecs
-          );
+          let newTrimStartSec = Math.min(pressed.clip.lengthSec, pressed.originalClipStartPosSec + deltaXSecs);
           // let's not allow extending the begging back before 0
           newTrimStartSec = Math.max(newTrimStartSec, 0);
 
@@ -190,16 +173,7 @@ export function useAppProjectMouseEvents({
       document.removeEventListener("mouseup", mouseUpEvent);
       document.removeEventListener("mousemove", mouseMoveEvent);
     };
-  }, [
-    pressed,
-    projectDiv,
-    rerender,
-    secsToPx,
-    setCursorPos,
-    setPressed,
-    setSelected,
-    setSelectionWidth,
-  ]);
+  }, [pressed, projectDiv, rerender, secsToPx, setCursorPos, setPressed, setSelected, setSelectionWidth]);
 
-  return [selected, cursorPos, selectionWidth];
+  return [cursorPos, selectionWidth];
 }

@@ -1,9 +1,8 @@
 import { useCallback, useState } from "react";
-import { Tool } from "../App";
 import { FaustModule } from "../dsp/Faust";
 import { CLIP_HEIGHT, EFFECT_HEIGHT, TRACK_SEPARATOR_HEIGHT } from "../globals";
 import { AudioClip } from "../lib/AudioClip";
-import { AudioProject } from "../lib/AudioProject";
+import { AudioProject, Tool } from "../lib/AudioProject";
 import { AudioTrack } from "../lib/AudioTrack";
 import { useDerivedState } from "../lib/DerivedState";
 import { useLinkedState } from "../lib/LinkedState";
@@ -13,16 +12,15 @@ import { Clip } from "./Clip";
 export function Track({
   track,
   project,
-  tool,
   isDspExpanded,
 }: {
   track: AudioTrack;
   project: AudioProject;
-  tool: Tool;
   isDspExpanded: boolean;
 }): React.ReactElement {
   const [pressed, setPressed] = useLinkedState(pressedState);
   const [selected] = useLinkedState(project.selected);
+  const [tool] = useLinkedState(project.pointerTool);
   const secsToPx = useDerivedState(project.secsToPx);
   const [effects] = useLinkedState(track.effects);
   const [clips] = useLinkedState(track.clips);

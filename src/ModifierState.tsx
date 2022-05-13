@@ -20,7 +20,7 @@ export const modifierState: ModifierState = {
 
 (window as any).ms = modifierState;
 
-export function useSingletonModifierState(singleton: ModifierState) {
+export function useSingletonKeyboardModifierState(singleton: ModifierState) {
   useEffect(() => {
     function keydownEvent(e: KeyboardEvent) {
       // console.log(e.code);

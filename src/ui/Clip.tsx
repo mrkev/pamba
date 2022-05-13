@@ -4,8 +4,7 @@ import { pressedState } from "../lib/linkedState/pressedState";
 import { modifierState } from "../ModifierState";
 
 import React from "react";
-import type { Tool } from "../App";
-import type { AudioProject, XScale } from "../lib/AudioProject";
+import type { AudioProject, Tool, XScale } from "../lib/AudioProject";
 import type { AudioTrack } from "../lib/AudioTrack";
 import type { AudioClip } from "../lib/AudioClip";
 import { useDerivedState } from "../lib/DerivedState";
@@ -42,15 +41,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
 };
 
-export function Clip({
-  clip,
-  tool,
-  rerender,
-  isSelected,
-  style = {},
-  project,
-  track,
-}: Props) {
+export function Clip({ clip, tool, rerender, isSelected, style = {}, project, track }: Props) {
   const secsToPx = useDerivedState(project.secsToPx);
   const pxToSecs = secsToPx.invert;
   const width = secsToPx(clip.durationSec);
@@ -61,10 +52,7 @@ export function Clip({
   const [, setSelectionWidth] = useLinkedState(project.selectionWidth);
   const [, setSelected] = useLinkedState(project.selected);
 
-  function onMouseDownToResize(
-    e: React.MouseEvent<HTMLDivElement>,
-    from: "start" | "end"
-  ) {
+  function onMouseDownToResize(e: React.MouseEvent<HTMLDivElement>, from: "start" | "end") {
     e.stopPropagation();
     if (tool !== "move") {
       return;
@@ -185,14 +173,8 @@ export function Clip({
       >
         {clip.name} ({Math.round(clip.durationSec * 100) / 100})
       </div>
-      <div
-        style={styles.resizerStart}
-        onMouseDown={(e) => onMouseDownToResize(e, "start")}
-      ></div>
-      <div
-        style={styles.resizerEnd}
-        onMouseDown={(e) => onMouseDownToResize(e, "end")}
-      ></div>
+      <div style={styles.resizerStart} onMouseDown={(e) => onMouseDownToResize(e, "start")}></div>
+      <div style={styles.resizerEnd} onMouseDown={(e) => onMouseDownToResize(e, "end")}></div>
       {/* <ClipAutomation clip={clip} secsToPx={secsToPx} /> */}
     </div>
   );
@@ -204,20 +186,12 @@ export function Clip({
 // effect with gain, mute, etc. show it as a "header utility" with "track gain",
 // mute, etc? That or generalize the special fade-in UI to any automation,
 // except the cool thing about the UI is you can't go past max=1
-function ClipAutomation({
-  clip,
-  secsToPx,
-}: {
-  clip: AudioClip;
-  secsToPx: XScale;
-}) {
+function ClipAutomation({ clip, secsToPx }: { clip: AudioClip; secsToPx: XScale }) {
   const MAX_GAIN = 2;
   const MIN_GAIN = 0;
 
   const valToPcnt = (val: number) => {
-    const scale = scaleLinear()
-      .domain([MIN_GAIN, MAX_GAIN])
-      .range([0, 100]) as XScale;
+    const scale = scaleLinear().domain([MIN_GAIN, MAX_GAIN]).range([0, 100]) as XScale;
 
     return `${scale(val)}%`;
   };
@@ -234,19 +208,8 @@ function ClipAutomation({
 
         return (
           <React.Fragment key={`point-line-${i}`}>
-            <circle
-              style={{ fill: "red", stroke: "red" }}
-              cx={x1}
-              cy={y1}
-              r={4}
-            ></circle>
-            <line
-              x1={x1}
-              y1={y1}
-              x2={x2}
-              y2={y2}
-              style={{ stroke: "red", strokeWidth: "2px" }}
-            />
+            <circle style={{ fill: "red", stroke: "red" }} cx={x1} cy={y1} r={4}></circle>
+            <line x1={x1} y1={y1} x2={x2} y2={y2} style={{ stroke: "red", strokeWidth: "2px" }} />
           </React.Fragment>
         );
       })}
