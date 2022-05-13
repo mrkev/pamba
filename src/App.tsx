@@ -63,7 +63,7 @@ function App() {
     setStateCounter((x) => x + 1);
   }, []);
 
-  const [tracks, setTracks] = useLinkedArray(project.allTracks);
+  const [tracks] = useLinkedArray(project.allTracks);
   const [selected] = useLinkedState(project.selected);
   const [scaleFactor, setScaleFactor] = useLinkedState(project.scaleFactor);
   const [dspExpandedTracks] = useLinkedSet(project.dspExpandedTracks);
@@ -98,7 +98,6 @@ function App() {
         const clip = await AudioClip.fromURL(url, name);
         const newTrack = AudioTrack.fromClip(clip);
         tracks.push(newTrack);
-        // setTracks((tracks) => tracks.concat([newTrack]));
         console.log("loaded");
       } catch (e) {
         console.trace(e);
@@ -470,7 +469,7 @@ function App() {
             <div>
               <button
                 onClick={() => {
-                  setTracks((tracks) => tracks.concat([new AudioTrack()]));
+                  tracks.push(new AudioTrack());
                 }}
               >
                 new track

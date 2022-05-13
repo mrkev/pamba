@@ -1,10 +1,7 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import * as d3 from "d3";
-import { axisTop } from "d3-axis";
-import { scaleLinear } from "d3-scale";
 import { AudioProject } from "./lib/AudioProject";
 import { useDerivedState } from "./lib/DerivedState";
-import { useLinkedState } from "./lib/LinkedState";
 
 const formatter = new Intl.NumberFormat("en-US", {
   useGrouping: false,
@@ -12,9 +9,7 @@ const formatter = new Intl.NumberFormat("en-US", {
 });
 
 function formatSecs(secs: number) {
-  return `${formatter.format(Math.floor(secs / 60))}:${formatter.format(
-    secs % 60
-  )}`;
+  return `${formatter.format(Math.floor(secs / 60))}:${formatter.format(secs % 60)}`;
 }
 
 const MIN_TICK_DISTANCE = 60; // 60px
@@ -36,13 +31,7 @@ function getStepForRes(dist: number): number {
   }
 }
 
-export function Axis({
-  project,
-  projectDiv,
-}: {
-  project: AudioProject;
-  projectDiv: HTMLDivElement;
-}) {
+export function Axis({ project, projectDiv }: { project: AudioProject; projectDiv: HTMLDivElement }) {
   const [svg, setSvg] = useState<SVGSVGElement | null>(null);
   const secsToPx = useDerivedState(project.secsToPx);
   // const [tracks] = useLinkedState(project.allTracks);
@@ -153,10 +142,7 @@ export function Axis({
         }}
       ></svg>
       {/* Spacer to make the project content not overlap with the timestamps */}
-      <div
-        className="axis-spacer"
-        style={{ height: 30, display: "block", pointerEvents: "none" }}
-      ></div>
+      <div className="axis-spacer" style={{ height: 30, display: "block", pointerEvents: "none" }}></div>
     </>
   );
 }

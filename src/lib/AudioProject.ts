@@ -33,22 +33,25 @@ export type SelectionState =
     };
 
 export class AudioProject {
-  // Track status - Should persist
+  // Track data - should persist //
   allTracks = LinkedArray.create<AudioTrack>();
 
-  // Track status
+  // Track status //
   solodTracks = LinkedSet.create<AudioTrack>();
   dspExpandedTracks = LinkedSet.create<AudioTrack>();
 
-  // Editor status
+  // Pointer //
   pointerTool = LinkedState.of<Tool>("move");
-  cursorPos = LinkedState.of<number>(0);
+  cursorPos = LinkedState.of(0);
+
+  // Selection //
+
   // the selected clip(s), track(s), etc
   selected = LinkedState.of<SelectionState | null>(null);
   // the width of the selection at the playback cursor
   selectionWidth = LinkedState.of<number | null>(null);
   // the zoom level
-  scaleFactor = LinkedState.of<number>(10);
+  scaleFactor = LinkedState.of(10);
   viewportStartSecs = LinkedState.of(0); // the first second visible in the project div
   // 1 sec corresponds to 10 px
   secsToPx = DerivedState.from(
