@@ -29,14 +29,8 @@ export class AnalizedPlayer {
   analyserNode = liveAudioContext.createAnalyser();
   javascriptNode = liveAudioContext.createScriptProcessor(sampleSize, 1, 1);
   isAudioPlaying: boolean = false;
-  mixDownNode: AudioWorkletNode = new AudioWorkletNode(
-    liveAudioContext,
-    "mix-down-processor"
-  );
-  noiseNode: AudioWorkletNode = new AudioWorkletNode(
-    liveAudioContext,
-    "white-noise-processor"
-  );
+  mixDownNode: AudioWorkletNode = new AudioWorkletNode(liveAudioContext, "mix-down-processor");
+  noiseNode: AudioWorkletNode = new AudioWorkletNode(liveAudioContext, "white-noise-processor");
   cursorAtPlaybackStart: number = 0;
   cursorPos: number = 0;
 
@@ -63,8 +57,7 @@ export class AnalizedPlayer {
       // draw the display if the audio is playing
       if (this.isAudioPlaying === true) {
         requestAnimationFrame(() => {
-          const timePassed =
-            liveAudioContext.currentTime - this.CTX_PLAY_START_TIME;
+          const timePassed = liveAudioContext.currentTime - this.CTX_PLAY_START_TIME;
           const currentTimeInBuffer = this.cursorAtPlaybackStart + timePassed;
           this.drawTimeDomain(this.amplitudeArray, currentTimeInBuffer);
           if (this.onFrame) this.onFrame(currentTimeInBuffer);
@@ -103,8 +96,8 @@ export class AnalizedPlayer {
     ctx.fillText(String(playbackTime), 20, 20);
   }
 
-  playingTracks: Array<AudioTrack> | null = null;
-  playTracks(tracks: Array<AudioTrack>) {
+  playingTracks: ReadonlyArray<AudioTrack> | null = null;
+  playTracks(tracks: ReadonlyArray<AudioTrack>) {
     for (let track of tracks) {
       track.setAudioOut(this.mixDownNode);
     }
@@ -144,19 +137,14 @@ export class AnalizedPlayer {
     this.cursorPos = seconds;
   }
 
-  async bounceTracks(
-    tracks: Array<AudioTrack>,
-    startSec: number = 0,
-    endSec?: number
-  ): Promise<AudioBuffer> {
+  async bounceTracks(tracks: ReadonlyArray<AudioTrack>, startSec: number = 0, endSec?: number): Promise<AudioBuffer> {
     let end = endSec;
     // If no end is provided, bounce to the full duration of the track. We go
     // through each clip and find when the last one ends.
     if (endSec == null) {
       for (let track of tracks) {
         for (let clip of track.clips.get()) {
-          end =
-            end == null || clip.endOffsetSec > end ? clip.endOffsetSec : end;
+          end = end == null || clip.endOffsetSec > end ? clip.endOffsetSec : end;
           console.log("endOffsetSec", clip.endOffsetSec, end);
         }
       }
@@ -175,10 +163,7 @@ export class AnalizedPlayer {
 
     const offlineAudioContext = getOfflineAudioContext(end - startSec);
     await initAudioContext(offlineAudioContext);
-    const offlineMixDownNode: AudioWorkletNode = new AudioWorkletNode(
-      offlineAudioContext,
-      "mix-down-processor"
-    );
+    const offlineMixDownNode: AudioWorkletNode = new AudioWorkletNode(offlineAudioContext, "mix-down-processor");
     offlineMixDownNode.connect(offlineAudioContext.destination);
 
     for (let track of tracks) {

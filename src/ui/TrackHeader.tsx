@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { CLIP_HEIGHT, EFFECT_HEIGHT } from "../globals";
-import { AudioProject, SelectionState } from "../lib/AudioProject";
+import { AudioProject } from "../lib/AudioProject";
 import type { AudioTrack } from "../lib/AudioTrack";
-import { useDerivedState } from "../lib/DerivedState";
-import { useLinkedSet, useLinkedState } from "../lib/LinkedState";
+import { useLinkedState } from "../lib/LinkedState";
+import { useLinkedSet } from "../lib/LinkedSet";
 import { modifierState } from "../ModifierState";
 
 type Props = {
@@ -16,9 +16,9 @@ export default function TrackHeader({ isSelected, track, project }: Props) {
   const [gain, setGain] = useState<number>(track.getCurrentGain().value);
   const [muted, setMuted] = useState<boolean>(false);
   const [, setSelected] = useLinkedState(project.selected);
-  const [dspExpandedTracks, setDspExpandedTracks] = useLinkedState(project.dspExpandedTracks);
+  const [dspExpandedTracks] = useLinkedSet(project.dspExpandedTracks);
   const [trackEffects] = useLinkedState(track.effects);
-  const solodTracks = useLinkedSet(project.solodTracks);
+  const [solodTracks] = useLinkedSet(project.solodTracks);
 
   const isSolod = solodTracks.has(track);
   const isDspExpanded = dspExpandedTracks.has(track);
@@ -65,9 +65,7 @@ export default function TrackHeader({ isSelected, track, project }: Props) {
             solodTracks.add(track);
           }
 
-          const tracks = project.allTracks.get();
-
-          for (const track of tracks) {
+          for (const track of project.allTracks._getRaw()) {
             if (solodTracks.size === 0 || solodTracks.has(track)) {
               track._hidden_setIsMutedByApplication(false);
             } else {
@@ -109,15 +107,11 @@ export default function TrackHeader({ isSelected, track, project }: Props) {
       <button
         style={isDspExpanded ? { background: "#5566EE" } : undefined}
         onClick={function () {
-          setDspExpandedTracks((prev) => {
-            const res = new Set(prev);
-            if (prev.has(track)) {
-              res.delete(track);
-            } else {
-              res.add(track);
-            }
-            return res;
-          });
+          if (dspExpandedTracks.has(track)) {
+            dspExpandedTracks.delete(track);
+          } else {
+            dspExpandedTracks.add(track);
+          }
         }}
       >
         Expand

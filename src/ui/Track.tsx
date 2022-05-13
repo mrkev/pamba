@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import { Tool } from "../App";
 import { FaustModule } from "../dsp/Faust";
 import { CLIP_HEIGHT, EFFECT_HEIGHT, TRACK_SEPARATOR_HEIGHT } from "../globals";
+import { AudioClip } from "../lib/AudioClip";
 import { AudioProject } from "../lib/AudioProject";
 import { AudioTrack } from "../lib/AudioTrack";
 import { useDerivedState } from "../lib/DerivedState";
@@ -12,17 +13,11 @@ import { Clip } from "./Clip";
 export function Track({
   track,
   project,
-  loadClipIntoTrack,
   tool,
   isDspExpanded,
 }: {
   track: AudioTrack;
   project: AudioProject;
-  loadClipIntoTrack: (
-    url: string,
-    track: AudioTrack,
-    name?: string
-  ) => Promise<void>;
   tool: Tool;
   isDspExpanded: boolean;
 }): React.ReactElement {
@@ -34,6 +29,17 @@ export function Track({
   const [_, setStateCounter] = useState(0);
   const rerender = useCallback(function () {
     setStateCounter((x) => x + 1);
+  }, []);
+
+  const loadClipIntoTrack = useCallback(async (url: string, track: AudioTrack, name?: string): Promise<void> => {
+    try {
+      // load clip
+      const clip = await AudioClip.fromURL(url, name);
+      track.pushClip(clip);
+    } catch (e) {
+      console.trace(e);
+      return;
+    }
   }, []);
 
   return (
@@ -63,19 +69,11 @@ export function Track({
         }}
       >
         {clips.map((clip, i) => {
-          if (
-            pressed &&
-            pressed.status === "moving_clip" &&
-            pressed.track !== track &&
-            pressed.clip === clip
-          ) {
+          if (pressed && pressed.status === "moving_clip" && pressed.track !== track && pressed.clip === clip) {
             return null;
           }
 
-          const isSelected =
-            selected !== null &&
-            selected.status === "clips" &&
-            selected.test.has(clip);
+          const isSelected = selected !== null && selected.status === "clips" && selected.test.has(clip);
 
           return (
             <Clip
@@ -94,22 +92,20 @@ export function Track({
           );
         })}
         {/* RENDER CLIP BEING MOVED */}
-        {pressed &&
-          pressed.status === "moving_clip" &&
-          pressed.track === track && (
-            <Clip
-              clip={pressed.clip}
-              tool={tool}
-              rerender={rerender}
-              isSelected={true}
-              project={project}
-              track={null}
-              style={{
-                position: "absolute",
-                left: secsToPx(pressed.clip.startOffsetSec),
-              }}
-            />
-          )}
+        {pressed && pressed.status === "moving_clip" && pressed.track === track && (
+          <Clip
+            clip={pressed.clip}
+            tool={tool}
+            rerender={rerender}
+            isSelected={true}
+            project={project}
+            track={null}
+            style={{
+              position: "absolute",
+              left: secsToPx(pressed.clip.startOffsetSec),
+            }}
+          />
+        )}
       </div>
       {/* EFFECT RACK */}
       {isDspExpanded && (

@@ -16,6 +16,8 @@ import { Track } from "./ui/Track";
 import { useAppProjectMouseEvents } from "./ui/useAppProjectMouseEvents";
 import bufferToWav from "audiobuffer-to-wav";
 import { useAppProjectKeyboardEvents } from "./useAppProjectKeyboardEvents";
+import { useLinkedSet } from "./lib/LinkedSet";
+import { useLinkedArray } from "./lib/LinkedArray";
 
 export type Tool = "move" | "trimStart" | "trimEnd";
 
@@ -61,10 +63,10 @@ function App() {
     setStateCounter((x) => x + 1);
   }, []);
 
-  const [tracks, setTracks] = useLinkedState(project.allTracks);
+  const [tracks, setTracks] = useLinkedArray(project.allTracks);
   const [selected] = useLinkedState(project.selected);
   const [scaleFactor, setScaleFactor] = useLinkedState(project.scaleFactor);
-  const [dspExpandedTracks] = useLinkedState(project.dspExpandedTracks);
+  const [dspExpandedTracks] = useLinkedSet(project.dspExpandedTracks);
   const [tool] = useLinkedState(project.pointerTool);
   const secsToPx = useDerivedState(project.secsToPx);
 
@@ -95,29 +97,15 @@ function App() {
         // load clip
         const clip = await AudioClip.fromURL(url, name);
         const newTrack = AudioTrack.fromClip(clip);
-        setTracks((tracks) => tracks.concat([newTrack]));
+        tracks.push(newTrack);
+        // setTracks((tracks) => tracks.concat([newTrack]));
         console.log("loaded");
       } catch (e) {
         console.trace(e);
         return;
       }
     },
-    [setTracks]
-  );
-
-  const loadClipIntoTrack = useCallback(
-    async function loadClipIntoTrack(url: string, track: AudioTrack, name?: string): Promise<void> {
-      try {
-        // load clip
-        const clip = await AudioClip.fromURL(url, name);
-        track.pushClip(clip);
-        setTracks((tracks) => [...tracks]);
-      } catch (e) {
-        console.trace(e);
-        return;
-      }
-    },
-    [setTracks]
+    [tracks]
   );
 
   const mediaRecorder = useMediaRecorder(loadClip);
@@ -151,7 +139,7 @@ function App() {
       return;
     }
     if (isAudioPlaying === true) {
-      player.playTracks(tracks);
+      player.playTracks(tracks._getRaw());
     }
 
     return () => player.stopSound();
@@ -270,8 +258,8 @@ function App() {
                   const bounceAll = !selectionWidth || selectionWidth === 0;
 
                   const result = await (bounceAll
-                    ? player.bounceTracks(tracks)
-                    : player.bounceTracks(tracks, cursorPos, cursorPos + selectionWidth));
+                    ? player.bounceTracks(tracks._getRaw())
+                    : player.bounceTracks(tracks._getRaw(), cursorPos, cursorPos + selectionWidth));
                   const wav = bufferToWav(result);
                   const blob = new Blob([new DataView(wav)], {
                     type: "audio/wav",
@@ -413,16 +401,7 @@ function App() {
             {projectDiv && <Axis project={project} projectDiv={projectDiv}></Axis>}
             {tracks.map(function (track, i) {
               const isDspExpanded = dspExpandedTracks.has(track);
-              return (
-                <Track
-                  key={i}
-                  track={track}
-                  project={project}
-                  loadClipIntoTrack={loadClipIntoTrack}
-                  tool={tool}
-                  isDspExpanded={isDspExpanded}
-                />
-              );
+              return <Track key={i} track={track} project={project} tool={tool} isDspExpanded={isDspExpanded} />;
             })}
             <div
               // ref={cursorPosDiv}

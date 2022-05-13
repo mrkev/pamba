@@ -1,10 +1,12 @@
 import { AudioTrack } from "./AudioTrack";
-import { LinkedSet, LinkedState } from "./LinkedState";
+import { LinkedState } from "./LinkedState";
+import { LinkedSet } from "./LinkedSet";
 import { DerivedState } from "./DerivedState";
 import { AudioClip } from "./AudioClip";
 import { scaleLinear } from "d3-scale";
 import type { ScaleLinear } from "d3-scale";
 import { Tool } from "../App";
+import { LinkedArray } from "./LinkedArray";
 
 export type XScale = ScaleLinear<number, number>;
 
@@ -32,11 +34,11 @@ export type SelectionState =
 
 export class AudioProject {
   // Track status - Should persist
-  allTracks = LinkedState.of<Array<AudioTrack>>([]);
+  allTracks = LinkedArray.create<AudioTrack>();
 
   // Track status
-  solodTracks = LinkedSet.create<Set<AudioTrack>>();
-  dspExpandedTracks = LinkedState.of<Set<AudioTrack>>(new Set());
+  solodTracks = LinkedSet.create<AudioTrack>();
+  dspExpandedTracks = LinkedSet.create<AudioTrack>();
 
   // Editor status
   pointerTool = LinkedState.of<Tool>("move");
@@ -60,14 +62,14 @@ export class AudioProject {
   //////// Methods on Projects ////////
 
   static removeTrack(project: AudioProject, track: AudioTrack) {
-    const tracks = project.allTracks.get();
+    const tracks = project.allTracks._getRaw();
     const selected = project.selected.get();
     const pos = tracks.indexOf(track);
     if (pos === -1) {
       return;
     }
-    const copy = tracks.map((x) => x);
-    copy.splice(pos, 1);
+
+    project.allTracks.splice(pos, 1);
     if (selected && selected.status === "tracks" && selected.test.has(track)) {
       selected.test.delete(track);
       const newSelected = {
@@ -76,8 +78,6 @@ export class AudioProject {
       };
       project.selected.set(newSelected);
     }
-
-    project.allTracks.set(copy);
   }
 
   static removeClip(project: AudioProject, track: AudioTrack, clip: AudioClip) {
