@@ -1,12 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import "./App.css";
 import { CLIP_HEIGHT } from "./globals";
-import { AudioClip } from "./lib/AudioClip";
 import { AudioTrack } from "./lib/AudioTrack";
 import { AnalizedPlayer } from "./AnalizedPlayer";
 import { usePambaFirebaseStoreRef } from "./firebase/useFirebase";
 import TrackHeader from "./ui/TrackHeader";
-import { AudioProject } from "./lib/AudioProject";
+import { AudioProject, AudioRenderer } from "./lib/AudioProject";
 import { useLinkedState } from "./lib/LinkedState";
 import { modifierState, useSingletonKeyboardModifierState } from "./ModifierState";
 import { Axis } from "./Axis";
@@ -27,6 +26,9 @@ function App() {
   const firebaseStoreRef = usePambaFirebaseStoreRef();
   const [player] = useState<AnalizedPlayer>(() => new AnalizedPlayer());
   const [project] = useState(() => new AudioProject());
+  // Maybe merge player and renderer?
+  const [renderer] = useState(() => new AudioRenderer());
+
   (window as any).project = project;
 
   useSingletonKeyboardModifierState(modifierState);
@@ -190,6 +192,7 @@ function App() {
           isAudioPlaying={isAudioPlaying}
           firebaseStoreRef={firebaseStoreRef}
           ctxRef={ctxRef}
+          renderer={renderer}
         />
 
         <div

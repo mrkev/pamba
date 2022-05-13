@@ -6,6 +6,8 @@ import { AudioClip } from "./AudioClip";
 import { scaleLinear } from "d3-scale";
 import type { ScaleLinear } from "d3-scale";
 import { LinkedArray } from "./LinkedArray";
+import { AnalizedPlayer } from "../AnalizedPlayer";
+import bufferToWav from "audiobuffer-to-wav";
 
 export type XScale = ScaleLinear<number, number>;
 
@@ -93,6 +95,34 @@ export class AudioProject {
         clips: selected.clips.filter((selection) => selection.clip !== clip),
       });
     }
+  }
+}
+
+export class AudioRenderer {
+  bounceURL = LinkedState.of<string | null>(null);
+
+  static async bounceSelection(renderer: AudioRenderer, project: AudioProject, player: AnalizedPlayer) {
+    const selectionWidth = project.selectionWidth.get();
+    const tracks = project.allTracks._getRaw();
+    const cursorPos = project.cursorPos.get();
+    const currentBounceURL = renderer.bounceURL.get();
+
+    const bounceAll = !selectionWidth || selectionWidth === 0;
+
+    const result = await (bounceAll
+      ? player.bounceTracks(tracks)
+      : player.bounceTracks(tracks, cursorPos, cursorPos + selectionWidth));
+    const wav = bufferToWav(result);
+    const blob = new Blob([new DataView(wav)], {
+      type: "audio/wav",
+    });
+    const exportUrl = window.URL.createObjectURL(blob);
+
+    if (currentBounceURL != null) {
+      window.URL.revokeObjectURL(currentBounceURL);
+    }
+
+    renderer.bounceURL.set(exportUrl);
   }
 }
 

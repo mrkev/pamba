@@ -1,9 +1,8 @@
 import React, { useCallback, useState } from "react";
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from "./globals";
 import { AnalizedPlayer } from "./AnalizedPlayer";
-import { AudioProject } from "./lib/AudioProject";
+import { AudioProject, AudioRenderer } from "./lib/AudioProject";
 import { useLinkedState } from "./lib/LinkedState";
-import bufferToWav from "audiobuffer-to-wav";
 import { useLinkedArray } from "./lib/LinkedArray";
 import { AudioClip } from "./lib/AudioClip";
 import { AudioTrack } from "./lib/AudioTrack";
@@ -12,6 +11,7 @@ import { useMediaRecorder } from "./lib/useMediaRecorder";
 export function ToolHeader({
   project,
   player,
+  renderer,
   togglePlayback,
   isAudioPlaying,
   firebaseStoreRef,
@@ -19,16 +19,16 @@ export function ToolHeader({
 }: {
   project: AudioProject;
   player: AnalizedPlayer;
+  renderer: AudioRenderer;
   togglePlayback: () => void;
   isAudioPlaying: boolean;
   firebaseStoreRef: any;
   ctxRef: React.MutableRefObject<CanvasRenderingContext2D | null>;
 }) {
-  const [cursorPos] = useLinkedState(project.cursorPos);
   const [selectionWidth] = useLinkedState(project.selectionWidth);
   const [tracks] = useLinkedArray(project.allTracks);
   const [tool] = useLinkedState(project.pointerTool);
-  const [bounceURL, setBounceURL] = useState<string | null>(null);
+  const [bounceURL] = useLinkedState<string | null>(renderer.bounceURL);
   const [isRecording, setIsRecording] = useState(false);
 
   const loadClip = useCallback(
@@ -68,24 +68,8 @@ export function ToolHeader({
           }}
         >
           <button
-            onClick={async function () {
-              const bounceAll = !selectionWidth || selectionWidth === 0;
-
-              const result = await (bounceAll
-                ? player.bounceTracks(tracks._getRaw())
-                : player.bounceTracks(tracks._getRaw(), cursorPos, cursorPos + selectionWidth));
-              const wav = bufferToWav(result);
-              const blob = new Blob([new DataView(wav)], {
-                type: "audio/wav",
-              });
-              const exportUrl = window.URL.createObjectURL(blob);
-
-              setBounceURL((prev) => {
-                if (prev) {
-                  window.URL.revokeObjectURL(prev);
-                }
-                return exportUrl;
-              });
+            onClick={() => {
+              AudioRenderer.bounceSelection(renderer, project, player);
             }}
           >
             {selectionWidth && selectionWidth > 0 ? "bounce selected" : "bounce all"}
