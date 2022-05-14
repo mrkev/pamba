@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { AudioProject, SelectionState } from "../lib/AudioProject";
+import { AudioProject } from "../lib/AudioProject";
 import { useDerivedState } from "../lib/DerivedState";
 import { useLinkedState } from "../lib/LinkedState";
 import { pressedState } from "../lib/linkedState/pressedState";
@@ -12,11 +12,11 @@ export function useAppProjectMouseEvents({
   project: AudioProject;
   projectDiv: HTMLDivElement | null;
   rerender: () => void;
-}): [number, number | null] {
+}): void {
   const [pressed, setPressed] = useLinkedState(pressedState);
-  const [cursorPos, setCursorPos] = useLinkedState(project.cursorPos);
-  const [selectionWidth, setSelectionWidth] = useLinkedState(project.selectionWidth);
-  const [selected, setSelected] = useLinkedState(project.selected);
+  const [, setCursorPos] = useLinkedState(project.cursorPos);
+  const [, setSelectionWidth] = useLinkedState(project.selectionWidth);
+  const [, setSelected] = useLinkedState(project.selected);
   const secsToPx = useDerivedState(project.secsToPx);
 
   useEffect(() => {
@@ -174,6 +174,4 @@ export function useAppProjectMouseEvents({
       document.removeEventListener("mousemove", mouseMoveEvent);
     };
   }, [pressed, projectDiv, rerender, secsToPx, setCursorPos, setPressed, setSelected, setSelectionWidth]);
-
-  return [cursorPos, selectionWidth];
 }

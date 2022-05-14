@@ -1,8 +1,8 @@
-import { useCallback, useState } from "react";
+import React, { useCallback, useState } from "react";
 import { FaustModule } from "../dsp/Faust";
 import { CLIP_HEIGHT, EFFECT_HEIGHT, TRACK_SEPARATOR_HEIGHT } from "../globals";
 import { AudioClip } from "../lib/AudioClip";
-import { AudioProject, Tool } from "../lib/AudioProject";
+import { AudioProject } from "../lib/AudioProject";
 import { AudioTrack } from "../lib/AudioTrack";
 import { useDerivedState } from "../lib/DerivedState";
 import { useLinkedState } from "../lib/LinkedState";
@@ -24,7 +24,7 @@ export function Track({
   const secsToPx = useDerivedState(project.secsToPx);
   const [effects] = useLinkedState(track.effects);
   const [clips] = useLinkedState(track.clips);
-  const [_, setStateCounter] = useState(0);
+  const [, setStateCounter] = useState(0);
   const rerender = useCallback(function () {
     setStateCounter((x) => x + 1);
   }, []);
@@ -128,9 +128,8 @@ export function Track({
           {"↳"}
           {effects.map((effect, i) => {
             return (
-              <>
+              <React.Fragment key={i}>
                 <FaustModule
-                  key={i}
                   ui={effect.ui}
                   setParam={effect.node.setParam}
                   style={{
@@ -140,7 +139,7 @@ export function Track({
                   }}
                 />
                 {"→"}
-              </>
+              </React.Fragment>
             );
           })}
 
@@ -158,15 +157,7 @@ export function Track({
             Output
           </div>
 
-          {
-            <button
-              onClick={async function () {
-                await track.addEffect();
-              }}
-            >
-              add panner
-            </button>
-          }
+          {<button onClick={() => track.addEffect()}>add panner</button>}
         </div>
       )}
 
