@@ -61,7 +61,7 @@ export class LinkedSet<S> implements Set<S>, Subbable<ReadonlySet<S>> {
   }
 
   // Set<S> interface
-  forEach(callbackfn: (value: S, value2: S, set: Set<S>) => void, thisArg?: any): void {
+  forEach(_callbackfn: (value: S, value2: S, set: Set<S>) => void, _thisArg?: any): void {
     throw new Error("Method not implemented.");
   }
 
@@ -104,7 +104,7 @@ export class LinkedSet<S> implements Set<S>, Subbable<ReadonlySet<S>> {
 // TODO: currently I clone in the link set to see if anything changed
 // I can also not clone and just have a state counter here or something.
 export function useLinkedSet<S>(linkedSet: LinkedSet<S>): [LinkedSet<S>, StateDispath<ReadonlySet<S>>] {
-  const [_, setState] = useState(() => linkedSet._getRaw());
+  const [, setState] = useState(() => linkedSet._getRaw());
 
   useEffect(() => {
     return subscribe(linkedSet, (newVal) => {

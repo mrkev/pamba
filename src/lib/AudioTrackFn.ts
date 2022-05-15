@@ -136,10 +136,10 @@ export function deleteTime<Clip extends BaseClip>(
       endSec < current.endOffsetSec
     ) {
       // console.log("CLIPS HERE\n", printClips(clips));
-      const [_, after] = nullthrows(splitClip(current, startSec, clips));
+      const [, after] = nullthrows(splitClip(current, startSec, clips));
       // console.log("CLIPS HERE\n", printClips(clips));
 
-      const [before, __] = nullthrows(splitClip(after, endSec, clips));
+      const [before] = nullthrows(splitClip(after, endSec, clips));
       // console.log("CLIPS HERE\n", printClips(clips));
 
       // console.log("BEFORE", before.toString(), "aaaaaaaa", __.toString());

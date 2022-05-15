@@ -76,12 +76,12 @@ export function useLinkedState<S>(linkedState: LinkedState<S>): [S, StateDispath
 
 /////////// NOT DONE OR USED ///////////////
 
-type Json = string | number | boolean | null | Json[] | { [key: string]: Json };
+// type Json = string | number | boolean | null | Json[] | { [key: string]: Json };
 
 type Map<T> = { [key: string]: T };
 
-function useChangeListener<S extends Subbable<S>>(subbable: S): void {
-  const [_, setState] = useState<number>(0);
+function _useChangeListener<S extends Subbable<S>>(subbable: S): void {
+  const [, setState] = useState<number>(0);
   useEffect(() => {
     return subscribe(subbable, (_) => {
       setState((prev) => prev + 1);
@@ -94,7 +94,7 @@ function useChangeListener<S extends Subbable<S>>(subbable: S): void {
 // LinkedSet X
 // LinkedRecord
 
-class LinkedRecord<R extends Map<unknown>> implements Subbable<R> {
+class _LinkedRecord<R extends Map<unknown>> implements Subbable<R> {
   _subscriptors: Set<StateChangeHandler<R>> = new Set();
 
   // Note: this could have linked states
@@ -166,7 +166,7 @@ class LinkedRecord<R extends Map<unknown>> implements Subbable<R> {
   }
 }
 
-class LinkedArray2<S> implements Subbable<S[]> {
+class _LinkedArray2<S> implements Subbable<S[]> {
   private _value: S[];
   _subscriptors: Set<StateChangeHandler<S[]>> = new Set();
   private constructor(initialValue: S[] = []) {
@@ -210,7 +210,7 @@ class LinkedArray2<S> implements Subbable<S[]> {
   // }
 }
 
-class LinkedMap<S> implements Subbable<Map<S>> {
+class _LinkedMap<S> implements Subbable<Map<S>> {
   private _value: Map<S>;
   _subscriptors: Set<StateChangeHandler<Map<S>>> = new Set();
   private constructor(initialValue: Map<S> = {}) {
