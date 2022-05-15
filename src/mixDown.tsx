@@ -1,7 +1,7 @@
 import { staticAudioContext } from "./globals";
 import { AudioClip } from "./lib/AudioClip";
 
-// Unused. We do live playback now .
+// Mixes clips
 // from https://stackoverflow.com/questions/57155167/web-audio-api-playing-synchronized-sounds
 export function mixDown(clipList: ReadonlyArray<AudioClip>, numberOfChannels = 2): AudioBuffer | null {
   if (clipList.length === 0) {

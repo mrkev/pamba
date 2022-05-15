@@ -1,7 +1,7 @@
 import React from "react";
-import { AudioProject, SelectionState } from "./lib/AudioProject";
-import { useLinkedState } from "./lib/LinkedState";
-import { useLinkedArray } from "./lib/LinkedArray";
+import { AudioProject, SelectionState } from "../lib/AudioProject";
+import { useLinkedState } from "../lib/LinkedState";
+import { useLinkedArray } from "../lib/LinkedArray";
 
 export function stringOfSelected(sel: SelectionState | null): string {
   if (!sel) {

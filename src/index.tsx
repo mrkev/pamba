@@ -12,7 +12,7 @@ async function init() {
   try {
     await initAudioContext(liveAudioContext);
     // We wait to load the app since some modules might import liveAudioContext
-    const App = (await import("./App")).default;
+    const App = (await import("./ui/App")).default;
     const root = createRoot(nullthrows(document.getElementById("root")));
     root.render(
       <React.StrictMode>

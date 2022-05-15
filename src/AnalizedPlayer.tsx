@@ -108,12 +108,38 @@ export class AnalizedPlayer {
     this.cursorAtPlaybackStart = this.cursorPos;
 
     for (let track of tracks) {
-      track.startPlayback(liveAudioContext, this.cursorPos);
+      // just guessing the latency here. There must be a better way to
+      // address the latency of calling for playback and playback acutally
+      // happening
+      const LATENCY = 25;
+      track.startPlayback(liveAudioContext, this.cursorPos + LATENCY);
     }
     this.playingTracks = tracks;
 
     this.CTX_PLAY_START_TIME = liveAudioContext.currentTime;
     this.isAudioPlaying = true;
+  }
+
+  /**
+   * Adds a track to playback if we're already playing all tracks
+   */
+  addTrackToPlayback(track: AudioTrack) {
+    if (!this.playingTracks) {
+      // TODO: mke playing tracks and isAudioPlaying the same state
+      throw new Error("No tracks playing");
+    }
+    track.setAudioOut(this.mixDownNode);
+    this.playingTracks = this.playingTracks.concat(track);
+    track.startPlayback(liveAudioContext, this.cursorPos);
+  }
+
+  removeTrackFromPlayback(track: AudioTrack) {
+    if (!this.playingTracks) {
+      // TODO: mke playing tracks and isAudioPlaying the same state
+      throw new Error("No tracks playing");
+    }
+    track.stopPlayback();
+    this.playingTracks = this.playingTracks.filter((t) => t !== track);
   }
 
   stopSound() {
@@ -137,7 +163,11 @@ export class AnalizedPlayer {
     this.cursorPos = seconds;
   }
 
-  async bounceTracks(tracks: ReadonlyArray<AudioTrack>, startSec: number = 0, endSec?: number): Promise<AudioBuffer> {
+  static async bounceTracks(
+    tracks: ReadonlyArray<AudioTrack>,
+    startSec: number = 0,
+    endSec?: number
+  ): Promise<AudioBuffer> {
     let end = endSec;
     // If no end is provided, bounce to the full duration of the track. We go
     // through each clip and find when the last one ends.

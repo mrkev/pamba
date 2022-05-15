@@ -1,15 +1,20 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { AnalizedPlayer } from "./AnalizedPlayer";
+import { AnalizedPlayer } from "../AnalizedPlayer";
 import "./App.css";
 import { DebugData } from "./DebugData";
-import { usePambaFirebaseStoreRef } from "./firebase/useFirebase";
-import { AudioProject, AudioRenderer } from "./lib/AudioProject";
-import { useLinkedArray } from "./lib/LinkedArray";
-import { useLinkedState } from "./lib/LinkedState";
-import { modifierState, useSingletonKeyboardModifierState } from "./ModifierState";
+import { usePambaFirebaseStoreRef } from "../firebase/useFirebase";
+import { AudioProject, AudioRenderer } from "../lib/AudioProject";
+import { useLinkedArray } from "../lib/LinkedArray";
+import { modifierState, useSingletonKeyboardModifierState } from "../ModifierState";
 import { TimelineView } from "./TimelineView";
 import { ToolHeader } from "./ToolHeader";
-import { useAppProjectKeyboardEvents } from "./useAppProjectKeyboardEvents";
+import { useAppProjectKeyboardEvents } from "../useAppProjectKeyboardEvents";
+// /* eslint-disable import/no-webpack-loader-syntax */
+// // @ts-ignore
+// import Worker from "worker-loader!./../wrk/myworker.js";
+
+// // ...
+// const myWorker = new Worker();
 
 function App() {
   const ctxRef = useRef<null | CanvasRenderingContext2D>(null);
@@ -21,9 +26,6 @@ function App() {
   const [renderer] = useState(() => new AudioRenderer());
 
   (window as any).project = project;
-
-  useSingletonKeyboardModifierState(modifierState);
-  const [cursorPos] = useLinkedState(project.cursorPos);
 
   const [tracks] = useLinkedArray(project.allTracks);
 
@@ -39,11 +41,8 @@ function App() {
     [isAudioPlaying, player]
   );
 
-  useAppProjectKeyboardEvents(project, togglePlayback);
-
-  useEffect(() => {
-    player.setCursorPos(cursorPos);
-  }, [cursorPos, player]);
+  useSingletonKeyboardModifierState(modifierState);
+  useAppProjectKeyboardEvents(project, player, togglePlayback);
 
   useEffect(() => {
     if (tracks.length < 1) {
@@ -63,6 +62,18 @@ function App() {
   return (
     <>
       <div className="App">
+        {/* <button
+          onClick={() => {
+            console.log("TEST WORKER");
+            var w = new Worker("myworker.js");
+            w.postMessage("hi"); // send "hi" to the worker
+            w.onmessage = function (ev) {
+              console.log(ev.data); // prints "ho"
+            };
+          }}
+        >
+          test
+        </button> */}
         <ToolHeader
           project={project}
           player={player}

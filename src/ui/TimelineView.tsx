@@ -1,16 +1,16 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { AnalizedPlayer } from "./AnalizedPlayer";
+import { AnalizedPlayer } from "../AnalizedPlayer";
 import { Axis } from "./Axis";
-import { CLIP_HEIGHT } from "./globals";
-import { AudioProject } from "./lib/AudioProject";
-import { AudioTrack } from "./lib/AudioTrack";
-import { useDerivedState } from "./lib/DerivedState";
-import { useLinkedArray } from "./lib/LinkedArray";
-import { useLinkedSet } from "./lib/LinkedSet";
-import { useLinkedState } from "./lib/LinkedState";
-import { Track } from "./ui/Track";
-import TrackHeader from "./ui/TrackHeader";
-import { useAppProjectMouseEvents } from "./ui/useAppProjectMouseEvents";
+import { CLIP_HEIGHT } from "../globals";
+import { AudioProject } from "../lib/AudioProject";
+
+import { useDerivedState } from "../lib/DerivedState";
+import { useLinkedArray } from "../lib/LinkedArray";
+import { useLinkedSet } from "../lib/LinkedSet";
+import { useLinkedState } from "../lib/LinkedState";
+import { Track } from "./Track";
+import TrackHeader from "./TrackHeader";
+import { useAppProjectMouseEvents } from "./useAppProjectMouseEvents";
 
 export function TimelineView({ project, player }: { project: AudioProject; player: AnalizedPlayer }) {
   const playbackPosDiv = useRef<null | HTMLDivElement>(null);
@@ -23,6 +23,11 @@ export function TimelineView({ project, player }: { project: AudioProject; playe
   const [cursorPos] = useLinkedState(project.cursorPos);
   const [selectionWidth] = useLinkedState(project.selectionWidth);
   const [viewportStartSecs, setViewportStartSecs] = useLinkedState(project.viewportStartSecs);
+
+  useEffect(() => {
+    console.log("SET CURSOR POS", cursorPos);
+    player.setCursorPos(cursorPos);
+  }, [cursorPos, player]);
 
   const [, setStateCounter] = useState<number>(0);
   const rerender = useCallback(function () {
@@ -210,12 +215,12 @@ export function TimelineView({ project, player }: { project: AudioProject; playe
         </div>
         {tracks.map((track, i) => {
           const isSelected = selected !== null && selected.status === "tracks" && selected.test.has(track);
-          return <TrackHeader key={i} isSelected={isSelected} track={track} project={project} />;
+          return <TrackHeader key={i} isSelected={isSelected} track={track} project={project} player={player} />;
         })}
         <div>
           <button
             onClick={() => {
-              tracks.push(new AudioTrack());
+              AudioProject.addTrack(project, player);
             }}
           >
             new track

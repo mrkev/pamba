@@ -1,9 +1,14 @@
 import { useEffect } from "react";
+import { AnalizedPlayer } from "./AnalizedPlayer";
 import { AudioProject } from "./lib/AudioProject";
 import { useLinkedState } from "./lib/LinkedState";
 
-export function useAppProjectKeyboardEvents(project: AudioProject, togglePlayback: () => void): void {
-  const [_, setTool] = useLinkedState(project.pointerTool);
+export function useAppProjectKeyboardEvents(
+  project: AudioProject,
+  player: AnalizedPlayer,
+  togglePlayback: () => void
+): void {
+  const [, setTool] = useLinkedState(project.pointerTool);
   const [selected, setSelected] = useLinkedState(project.selected);
 
   useEffect(() => {
@@ -24,7 +29,7 @@ export function useAppProjectKeyboardEvents(project: AudioProject, togglePlaybac
           if (selected.status === "tracks") {
             for (let track of selected.tracks) {
               console.log("remove", selected);
-              AudioProject.removeTrack(project, track);
+              AudioProject.removeTrack(project, player, track);
               setSelected(null);
             }
           }
@@ -72,5 +77,5 @@ export function useAppProjectKeyboardEvents(project: AudioProject, togglePlaybac
       document.removeEventListener("keypress", keypressEvent, { capture: true });
       document.removeEventListener("keyup", keyupEvent);
     };
-  }, [project, selected, setSelected, setTool, togglePlayback]);
+  }, [player, project, selected, setSelected, setTool, togglePlayback]);
 }

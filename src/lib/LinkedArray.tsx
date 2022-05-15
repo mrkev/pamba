@@ -156,6 +156,11 @@ export class LinkedArray<S> implements ArrayWithoutIndexer<S>, Subbable<Readonly
     return this._array.map(callbackfn, thisArg);
   }
 
+  // Array<S> interface
+  indexOf(searchElement: S, fromIndex?: number): number {
+    return this._array.indexOf(searchElement, fromIndex);
+  }
+
   [Symbol.unscopables](): {
     copyWithin: boolean;
     entries: boolean;
@@ -185,9 +190,6 @@ export class LinkedArray<S> implements ArrayWithoutIndexer<S>, Subbable<Readonly
     throw new Error("Method not implemented.");
   }
 
-  indexOf(searchElement: S, fromIndex?: number): number {
-    throw new Error("Method not implemented.");
-  }
   lastIndexOf(searchElement: S, fromIndex?: number): number {
     throw new Error("Method not implemented.");
   }

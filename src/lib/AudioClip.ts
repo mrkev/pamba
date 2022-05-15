@@ -2,6 +2,39 @@ import { loadSound } from "./loadSound";
 import { dataURLForWaveform } from "./waveform";
 import { staticAudioContext } from "../globals";
 import { BaseClip } from "./BaseClip";
+import { HighlightSpanKind } from "typescript";
+
+class SharedAudioBuffer implements AudioBuffer {
+  channels: Float32Array[] = [];
+  readonly length: number;
+  readonly duration: number;
+  readonly numberOfChannels: number;
+  readonly sampleRate: number;
+  constructor(audioBuffer: AudioBuffer) {
+    for (let c = 0; c < audioBuffer.numberOfChannels; c++) {
+      // TODO: Can I already shere these buffers?
+      const floats = audioBuffer.getChannelData(c);
+      const sharedFloats = new Float32Array(new SharedArrayBuffer(floats.buffer.byteLength));
+      sharedFloats.set(floats, 0);
+      this.channels.push(sharedFloats);
+    }
+
+    this.length = audioBuffer.length;
+    this.duration = audioBuffer.duration;
+    this.numberOfChannels = audioBuffer.numberOfChannels;
+    this.sampleRate = audioBuffer.sampleRate;
+  }
+
+  copyFromChannel(destination: Float32Array, channelNumber: number, bufferOffset?: number): void {
+    throw new Error("Method not implemented.");
+  }
+  copyToChannel(source: Float32Array, channelNumber: number, bufferOffset?: number): void {
+    throw new Error("Method not implemented.");
+  }
+  getChannelData(channel: number): Float32Array {
+    return this.channels[channel];
+  }
+}
 
 // A clip of audio
 export class AudioClip extends BaseClip {

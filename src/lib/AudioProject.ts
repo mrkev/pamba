@@ -67,15 +67,32 @@ export class AudioProject {
 
   //////// Methods on Projects ////////
 
-  static removeTrack(project: AudioProject, track: AudioTrack) {
-    const tracks = project.allTracks._getRaw();
+  static addTrack(project: AudioProject, player: AnalizedPlayer, track?: AudioTrack) {
+    const newTrack = track ?? new AudioTrack();
+    project.allTracks.push(newTrack);
+    if (player.isAudioPlaying) {
+      console.log("ADDED TO PLAYBACK");
+      player.addTrackToPlayback(newTrack);
+    }
+    return newTrack;
+  }
+
+  static removeTrack(project: AudioProject, player: AnalizedPlayer, track: AudioTrack) {
     const selected = project.selected.get();
-    const pos = tracks.indexOf(track);
+    const pos = project.allTracks.indexOf(track);
     if (pos === -1) {
       return;
     }
 
     project.allTracks.splice(pos, 1);
+
+    // Remove it from playback
+    if (player.isAudioPlaying) {
+      console.log("ADDED TO PLAYBACK");
+      player.removeTrackFromPlayback(track);
+    }
+
+    // Update selected
     if (selected && selected.status === "tracks" && selected.test.has(track)) {
       selected.test.delete(track);
       const newSelected = {
@@ -101,7 +118,7 @@ export class AudioProject {
 export class AudioRenderer {
   bounceURL = LinkedState.of<string | null>(null);
 
-  static async bounceSelection(renderer: AudioRenderer, project: AudioProject, player: AnalizedPlayer) {
+  static async bounceSelection(renderer: AudioRenderer, project: AudioProject) {
     const selectionWidth = project.selectionWidth.get();
     const tracks = project.allTracks._getRaw();
     const cursorPos = project.cursorPos.get();
@@ -110,8 +127,8 @@ export class AudioRenderer {
     const bounceAll = !selectionWidth || selectionWidth === 0;
 
     const result = await (bounceAll
-      ? player.bounceTracks(tracks)
-      : player.bounceTracks(tracks, cursorPos, cursorPos + selectionWidth));
+      ? AnalizedPlayer.bounceTracks(tracks)
+      : AnalizedPlayer.bounceTracks(tracks, cursorPos, cursorPos + selectionWidth));
     const wav = bufferToWav(result);
     const blob = new Blob([new DataView(wav)], {
       type: "audio/wav",

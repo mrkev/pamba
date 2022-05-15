@@ -1,12 +1,12 @@
 import React, { useCallback, useState } from "react";
-import { CANVAS_WIDTH, CANVAS_HEIGHT } from "./globals";
-import { AnalizedPlayer } from "./AnalizedPlayer";
-import { AudioProject, AudioRenderer } from "./lib/AudioProject";
-import { useLinkedState } from "./lib/LinkedState";
-import { useLinkedArray } from "./lib/LinkedArray";
-import { AudioClip } from "./lib/AudioClip";
-import { AudioTrack } from "./lib/AudioTrack";
-import { useMediaRecorder } from "./lib/useMediaRecorder";
+import { CANVAS_WIDTH, CANVAS_HEIGHT } from "../globals";
+import { AnalizedPlayer } from "../AnalizedPlayer";
+import { AudioProject, AudioRenderer } from "../lib/AudioProject";
+import { useLinkedState } from "../lib/LinkedState";
+import { useLinkedArray } from "../lib/LinkedArray";
+import { AudioClip } from "../lib/AudioClip";
+import { AudioTrack } from "../lib/AudioTrack";
+import { useMediaRecorder } from "../lib/useMediaRecorder";
 
 export function ToolHeader({
   project,
@@ -38,14 +38,14 @@ export function ToolHeader({
         // load clip
         const clip = await AudioClip.fromURL(url, name);
         const newTrack = AudioTrack.fromClip(clip);
-        tracks.push(newTrack);
+        AudioProject.addTrack(project, player, newTrack);
         console.log("loaded");
       } catch (e) {
         console.trace(e);
         return;
       }
     },
-    [tracks]
+    [player, project]
   );
 
   const mediaRecorder = useMediaRecorder(loadClip);
@@ -69,7 +69,7 @@ export function ToolHeader({
         >
           <button
             onClick={() => {
-              AudioRenderer.bounceSelection(renderer, project, player);
+              AudioRenderer.bounceSelection(renderer, project);
             }}
           >
             {selectionWidth && selectionWidth > 0 ? "bounce selected" : "bounce all"}

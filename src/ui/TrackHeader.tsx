@@ -5,14 +5,16 @@ import type { AudioTrack } from "../lib/AudioTrack";
 import { useLinkedState } from "../lib/LinkedState";
 import { useLinkedSet } from "../lib/LinkedSet";
 import { modifierState } from "../ModifierState";
+import { AnalizedPlayer } from "../AnalizedPlayer";
 
 type Props = {
   isSelected: boolean;
   track: AudioTrack;
   project: AudioProject;
+  player: AnalizedPlayer;
 };
 
-export default function TrackHeader({ isSelected, track, project }: Props) {
+export default function TrackHeader({ isSelected, track, project, player }: Props) {
   const [gain, setGain] = useState<number>(track.getCurrentGain().value);
   const [muted, setMuted] = useState<boolean>(false);
   const [, setSelected] = useLinkedState(project.selected);
@@ -54,7 +56,7 @@ export default function TrackHeader({ isSelected, track, project }: Props) {
           });
         }}
       >
-        <button onClick={() => AudioProject.removeTrack(project, track)}>x</button> {track.name}
+        <button onClick={() => AudioProject.removeTrack(project, player, track)}>x</button> {track.name}
       </div>
       <button
         style={isSolod ? { background: "#5566EE" } : undefined}
