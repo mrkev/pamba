@@ -10,7 +10,6 @@ export function useAppProjectKeyboardEvents(
   renderer: AudioRenderer
 ): void {
   const [, setTool] = useLinkedState(project.pointerTool);
-  const [selected, setSelected] = useLinkedState(project.selected);
 
   useEffect(() => {
     function keydownEvent(e: KeyboardEvent) {
@@ -57,5 +56,5 @@ export function useAppProjectKeyboardEvents(
       document.removeEventListener("keypress", keypressEvent, { capture: true });
       document.removeEventListener("keyup", keyupEvent);
     };
-  }, [player, project, renderer, selected, setSelected, setTool]);
+  }, [player, project, renderer, setTool]);
 }

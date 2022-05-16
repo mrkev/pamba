@@ -161,6 +161,15 @@ export class LinkedArray<S> implements ArrayWithoutIndexer<S>, Subbable<Readonly
     return this._array.indexOf(searchElement, fromIndex);
   }
 
+  // not in standard arrays
+  public remove(searchElement: S): S | null {
+    const index = this.indexOf(searchElement);
+    if (index === -1) {
+      return null;
+    }
+    return this.splice(index, 1)[0];
+  }
+
   [Symbol.unscopables](): {
     copyWithin: boolean;
     entries: boolean;

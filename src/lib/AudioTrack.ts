@@ -2,11 +2,10 @@ import { AudioClip } from "./AudioClip";
 import { liveAudioContext } from "../globals";
 import { mixDown } from "../mixDown";
 import { addClip, deleteTime, removeClip, pushClip } from "./AudioTrackFn";
-import { FaustAudioEffect } from "../dsp/Faust";
-import { LinkedState } from "./LinkedState";
-import { PannerFaustAudioEffect } from "../dsp/Faust";
+import { FAUST_EFFECTS, FaustAudioEffect, FaustEffectThunk } from "../dsp/Faust";
 import { JsonObject, JsonProperty, JsonSerializer } from "typescript-json-serializer";
 import { TrackThread } from "./TrackThread";
+import { LinkedArray } from "./LinkedArray";
 
 let trackNo = 0;
 
@@ -19,8 +18,8 @@ export class AudioTrack {
   // Invariants:
   // - Sorted by start time.
   // - Non-overlapping clips.
-  clips = LinkedState.of<Array<AudioClip>>([]);
-  effects = LinkedState.of<Array<FaustAudioEffect>>([]);
+  clips = LinkedArray.create<AudioClip>();
+  effects = LinkedArray.create<FaustAudioEffect>();
 
   private thread = new TrackThread();
 
@@ -59,13 +58,12 @@ export class AudioTrack {
     this._hiddenGainNode.gain.value = 1;
   }
 
-  async addEffect() {
-    const effect = await PannerFaustAudioEffect.create(liveAudioContext);
+  async addEffect(effectDSP: FaustEffectThunk) {
+    const effect = await FaustAudioEffect.create(liveAudioContext, effectDSP);
     if (effect == null) {
       return;
     }
-    const currentEffects = this.effects.get();
-    this.effects.set(currentEffects.concat(effect));
+    this.effects.push(effect);
   }
 
   //////////// Playback ////////////
@@ -93,7 +91,7 @@ export class AudioTrack {
     this.playingSource.connect(this.gainNode);
     // Effects
     let currentNode: AudioNode = this.gainNode;
-    const effects = this.effects.get();
+    const effects = this.effects._getRaw();
     for (let i = 0; i < effects.length; i++) {
       const nextNode = effects[i].node;
       currentNode.connect(nextNode);
@@ -148,7 +146,7 @@ export class AudioTrack {
     const chain = [
       this.playingSource,
       this.gainNode,
-      ...this.effects.get().map((effect) => effect.node),
+      ...this.effects._getRaw().map((effect) => effect.node),
       this._hiddenGainNode,
       this.outNode,
     ];
@@ -162,7 +160,7 @@ export class AudioTrack {
 
   // TODO: I think I can keep 'trackBuffer' between plays
   private getSourceNode(context: BaseAudioContext): AudioBufferSourceNode {
-    const trackBuffer = mixDown(this.clips.get(), 2);
+    const trackBuffer = mixDown(this.clips._getRaw(), 2);
     const sourceNode = context.createBufferSource();
     sourceNode.buffer = trackBuffer;
     sourceNode.loop = false;
@@ -180,7 +178,7 @@ export class AudioTrack {
 
   toString() {
     return this.clips
-      .get()
+      ._getRaw()
       .map((c) => c.toString())
       .join("\n");
   }
@@ -188,27 +186,27 @@ export class AudioTrack {
   //////////// CLIPS ////////////
 
   addClip(newClip: AudioClip) {
-    const clips = addClip(newClip, this.clips.get());
-    this.clips.set(clips);
+    const clips = addClip(newClip, this.clips._getRaw());
+    this.clips._setRaw(clips);
     this.mutations++;
   }
 
   // Adds a clip right after the last clip
   pushClip(newClip: AudioClip): void {
-    const clips = pushClip(newClip, this.clips.get());
-    this.clips.set(clips);
+    const clips = pushClip(newClip, this.clips._getRaw());
+    this.clips._setRaw(clips);
     this.mutations++;
   }
 
   removeClip(clip: AudioClip): void {
-    const clips = removeClip(clip, this.clips.get());
-    this.clips.set(clips);
+    const clips = removeClip(clip, this.clips._getRaw());
+    this.clips._setRaw(clips);
     this.mutations++;
   }
 
   deleteTime(startSec: number, endSec: number): void {
-    const clips = deleteTime(startSec, endSec, this.clips.get());
-    this.clips.set(clips);
+    const clips = deleteTime(startSec, endSec, this.clips._getRaw());
+    this.clips._setRaw(clips);
     this.mutations++;
   }
 }

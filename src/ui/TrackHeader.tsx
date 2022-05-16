@@ -6,6 +6,7 @@ import { useLinkedState } from "../lib/LinkedState";
 import { useLinkedSet } from "../lib/LinkedSet";
 import { modifierState } from "../ModifierState";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
+import { useLinkedArray } from "../lib/LinkedArray";
 
 type Props = {
   isSelected: boolean;
@@ -19,7 +20,7 @@ export default function TrackHeader({ isSelected, track, project, player }: Prop
   const [muted, setMuted] = useState<boolean>(false);
   const [, setSelected] = useLinkedState(project.selected);
   const [dspExpandedTracks] = useLinkedSet(project.dspExpandedTracks);
-  const [trackEffects] = useLinkedState(track.effects);
+  const [trackEffects] = useLinkedArray(track.effects);
   const [solodTracks] = useLinkedSet(project.solodTracks);
 
   const isSolod = solodTracks.has(track);

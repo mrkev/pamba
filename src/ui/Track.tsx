@@ -1,10 +1,12 @@
 import React, { useCallback, useState } from "react";
-import { FaustModule } from "../dsp/Faust";
+import { FAUST_EFFECTS } from "../dsp/Faust";
+import FaustEffectModule from "../dsp/FaustEffectModule";
 import { CLIP_HEIGHT, EFFECT_HEIGHT, TRACK_SEPARATOR_HEIGHT } from "../globals";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioProject } from "../lib/AudioProject";
 import { AudioTrack } from "../lib/AudioTrack";
 import { useDerivedState } from "../lib/DerivedState";
+import { useLinkedArray } from "../lib/LinkedArray";
 import { useLinkedState } from "../lib/LinkedState";
 import { pressedState } from "../lib/linkedState/pressedState";
 import { Clip } from "./Clip";
@@ -22,8 +24,8 @@ export function Track({
   const [selected] = useLinkedState(project.selected);
   const [tool] = useLinkedState(project.pointerTool);
   const secsToPx = useDerivedState(project.secsToPx);
-  const [effects] = useLinkedState(track.effects);
-  const [clips] = useLinkedState(track.clips);
+  const [effects] = useLinkedArray(track.effects);
+  const [clips] = useLinkedArray(track.clips);
   const [, setStateCounter] = useState(0);
   const rerender = useCallback(function () {
     setStateCounter((x) => x + 1);
@@ -129,13 +131,15 @@ export function Track({
           {effects.map((effect, i) => {
             return (
               <React.Fragment key={i}>
-                <FaustModule
-                  ui={effect.ui}
-                  setParam={effect.node.setParam}
+                <FaustEffectModule
+                  effect={effect}
                   style={{
                     alignSelf: "stretch",
                     margin: "2px",
                     borderRadius: "2px",
+                  }}
+                  onClickRemove={(effect) => {
+                    track.effects.remove(effect);
                   }}
                 />
                 {"→"}
@@ -157,7 +161,8 @@ export function Track({
             Output
           </div>
 
-          {<button onClick={() => track.addEffect()}>add panner</button>}
+          {<button onClick={() => track.addEffect(FAUST_EFFECTS.PANNER)}>add panner</button>}
+          {<button onClick={() => track.addEffect(FAUST_EFFECTS.REVERB)}>add reverb</button>}
         </div>
       )}
 
