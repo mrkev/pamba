@@ -5,11 +5,14 @@ import { addClip, deleteTime, removeClip, pushClip } from "./AudioTrackFn";
 import { FaustAudioEffect } from "../dsp/Faust";
 import { LinkedState } from "./LinkedState";
 import { PannerFaustAudioEffect } from "../dsp/Faust";
+import { JsonObject, JsonProperty, JsonSerializer } from "typescript-json-serializer";
+import { TrackThread } from "../ui/TrackThread";
 
 let trackNo = 0;
 
+@JsonObject()
 export class AudioTrack {
-  name: string = `Track ${trackNo++}`;
+  @JsonProperty() name: string = `Track ${trackNo++}`;
   // Idea: can we use a mutation counter to keep track of state changes?
   mutations: number = 0;
   // A track is a collection of non-overalping clips.
@@ -19,6 +22,8 @@ export class AudioTrack {
   clips = LinkedState.of<Array<AudioClip>>([]);
   effects = LinkedState.of<Array<FaustAudioEffect>>([]);
 
+  private thread = new TrackThread();
+
   // if audo is playing, this is the soruce with the playing buffer
   private playingSource: AudioBufferSourceNode | null = null;
   // The "volume" of the track
@@ -27,8 +32,18 @@ export class AudioTrack {
   private _hiddenGainNode = new GainNode(liveAudioContext);
   private outNode: AudioNode | null = null;
 
+  static empty() {
+    return new AudioTrack();
+  }
+
   getCurrentGain(): AudioParam {
     return this.gainNode.gain;
+  }
+
+  serialize() {
+    const defaultSerializer = new JsonSerializer();
+    const data = defaultSerializer.serialize(this);
+    return data;
   }
 
   setGain(val: number): void {
@@ -158,7 +173,7 @@ export class AudioTrack {
 
   // New track with a single clip
   static fromClip(clip: AudioClip) {
-    const track = new AudioTrack();
+    const track = AudioTrack.empty();
     track.pushClip(clip);
     return track;
   }

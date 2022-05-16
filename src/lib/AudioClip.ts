@@ -2,21 +2,23 @@ import { loadSound } from "./loadSound";
 import { dataURLForWaveform } from "./waveform";
 import { staticAudioContext } from "../globals";
 import { BaseClip } from "./BaseClip";
-import { HighlightSpanKind } from "typescript";
+import nullthrows from "./nullthrows";
 
 class SharedAudioBuffer implements AudioBuffer {
-  channels: Float32Array[] = [];
+  channels: SharedArrayBuffer[] = [];
   readonly length: number;
   readonly duration: number;
   readonly numberOfChannels: number;
   readonly sampleRate: number;
+
   constructor(audioBuffer: AudioBuffer) {
     for (let c = 0; c < audioBuffer.numberOfChannels; c++) {
       // TODO: Can I already shere these buffers?
       const floats = audioBuffer.getChannelData(c);
-      const sharedFloats = new Float32Array(new SharedArrayBuffer(floats.buffer.byteLength));
+      const sab = new SharedArrayBuffer(floats.buffer.byteLength);
+      const sharedFloats = new Float32Array(sab);
       sharedFloats.set(floats, 0);
-      this.channels.push(sharedFloats);
+      this.channels.push(sab);
     }
 
     this.length = audioBuffer.length;
@@ -26,19 +28,20 @@ class SharedAudioBuffer implements AudioBuffer {
   }
 
   copyFromChannel(destination: Float32Array, channelNumber: number, bufferOffset?: number): void {
-    throw new Error("Method not implemented.");
+    destination.set(this.getChannelData(channelNumber), bufferOffset);
   }
   copyToChannel(source: Float32Array, channelNumber: number, bufferOffset?: number): void {
-    throw new Error("Method not implemented.");
+    const channel = this.getChannelData(channelNumber);
+    channel.set(source, bufferOffset);
   }
   getChannelData(channel: number): Float32Array {
-    return this.channels[channel];
+    return nullthrows(new Float32Array(this.channels[channel]), `Channel ${channel} does not exist`);
   }
 }
 
 // A clip of audio
 export class AudioClip extends BaseClip {
-  readonly buffer: AudioBuffer;
+  readonly buffer: SharedAudioBuffer;
   readonly numberOfChannels: number;
   name: string;
   gainAutomation: Array<{ time: number; value: number }> = [{ time: 0, value: 1 }];
@@ -60,7 +63,7 @@ export class AudioClip extends BaseClip {
     // todo, should convert buffer.length to seconds myself? Are buffer.duration
     // and buffer.length always congruent?
     super({ lengthSec: buffer.duration, sampleRate: buffer.sampleRate });
-    this.buffer = buffer;
+    this.buffer = new SharedAudioBuffer(buffer);
     this.numberOfChannels = buffer.numberOfChannels;
     this.name = name;
   }

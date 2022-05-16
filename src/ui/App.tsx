@@ -8,12 +8,12 @@ import { modifierState, useSingletonKeyboardModifierState } from "../ModifierSta
 import { TimelineView } from "./TimelineView";
 import { ToolHeader } from "./ToolHeader";
 import { useAppProjectKeyboardEvents } from "../useAppProjectKeyboardEvents";
-// /* eslint-disable import/no-webpack-loader-syntax */
-// // @ts-ignore
-// import Worker from "worker-loader!./../wrk/myworker.js";
+import { TrackThread } from "./TrackThread";
 
-// // ...
-// const myWorker = new Worker();
+var w = new TrackThread();
+var sab = new SharedArrayBuffer(1024);
+var arr = new Int32Array(sab);
+w.postMessage({ kind: "set", sab });
 
 function App() {
   const firebaseStoreRef = usePambaFirebaseStoreRef();
@@ -34,18 +34,15 @@ function App() {
   return (
     <>
       <div className="App">
-        {/* <button
+        <button
           onClick={() => {
+            arr[1] = 329;
             console.log("TEST WORKER");
-            var w = new Worker("myworker.js");
-            w.postMessage("hi"); // send "hi" to the worker
-            w.onmessage = function (ev) {
-              console.log(ev.data); // prints "ho"
-            };
+            w.postMessage({ kind: "log" });
           }}
         >
           test
-        </button> */}
+        </button>
         <ToolHeader project={project} player={player} firebaseStoreRef={firebaseStoreRef} renderer={renderer} />
         <TimelineView project={project} player={player} />
       </div>
