@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from "../globals";
 import { AnalizedPlayer } from "../AnalizedPlayer";
 import { AudioProject, AudioRenderer } from "../lib/AudioProject";
@@ -14,14 +14,13 @@ export function ToolHeader({
   renderer,
 
   firebaseStoreRef,
-  ctxRef,
 }: {
   project: AudioProject;
   player: AnalizedPlayer;
   renderer: AudioRenderer;
   firebaseStoreRef: any;
-  ctxRef: React.MutableRefObject<CanvasRenderingContext2D | null>;
 }) {
+  const ctxRef = useRef<null | CanvasRenderingContext2D>(null);
   const [selectionWidth] = useLinkedState(project.selectionWidth);
   const [tracks] = useLinkedArray(project.allTracks);
   const [tool] = useLinkedState(project.pointerTool);

@@ -69,7 +69,7 @@ export class AudioTrack {
   // [ _Hidden Gain Node (for soloing)]
   //        V
   // [ Out Node ]
-  startPlayback(context: AudioContext, offset?: number): void {
+  prepareForPlayback(context: AudioContext): void {
     if (!this.outNode) {
       console.warn("No out node for this track!", this);
       return;
@@ -86,6 +86,13 @@ export class AudioTrack {
     }
     currentNode.connect(this._hiddenGainNode);
     this._hiddenGainNode.connect(this.outNode);
+  }
+
+  // NOTE: needs to be called right after .prepareForPlayback
+  startPlayback(offset?: number) {
+    if (!this.playingSource) {
+      throw new Error("Track is not ready for playback!");
+    }
     this.playingSource.start(0, offset); // Play the sound now
   }
 

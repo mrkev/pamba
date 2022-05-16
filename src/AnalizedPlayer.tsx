@@ -32,7 +32,6 @@ export class AnalizedPlayer {
   mixDownNode: AudioWorkletNode = new AudioWorkletNode(liveAudioContext, "mix-down-processor");
   noiseNode: AudioWorkletNode = new AudioWorkletNode(liveAudioContext, "white-noise-processor");
   cursorAtPlaybackStart: number = 0;
-  cursorPos: number = 0;
 
   canvasCtx: CanvasRenderingContext2D | null = null;
   onFrame: ((playbackTime: number) => void) | null = null;
@@ -97,7 +96,8 @@ export class AnalizedPlayer {
   }
 
   playingTracks: ReadonlyArray<AudioTrack> | null = null;
-  playTracks(tracks: ReadonlyArray<AudioTrack>) {
+  // Position of the cursor; where the playback is going to start
+  playTracks(tracks: ReadonlyArray<AudioTrack>, cursorPos: number) {
     for (let track of tracks) {
       track.setAudioOut(this.mixDownNode);
     }
@@ -105,14 +105,16 @@ export class AnalizedPlayer {
     this.analyserNode.connect(this.javascriptNode);
     this.javascriptNode.connect(liveAudioContext.destination);
 
-    this.cursorAtPlaybackStart = this.cursorPos;
+    this.cursorAtPlaybackStart = cursorPos;
 
+    // .prepareForPlayback can take a while, especially on slow computers,
+    // so we prepare all before we acutally play to keep tracks as much in
+    // sync as possible
     for (let track of tracks) {
-      // just guessing the latency here. There must be a better way to
-      // address the latency of calling for playback and playback acutally
-      // happening
-      const LATENCY = 25;
-      track.startPlayback(liveAudioContext, this.cursorPos + LATENCY);
+      track.prepareForPlayback(liveAudioContext);
+    }
+    for (let track of tracks) {
+      track.startPlayback(cursorPos);
     }
     this.playingTracks = tracks;
 
@@ -121,16 +123,18 @@ export class AnalizedPlayer {
   }
 
   /**
-   * Adds a track to playback if we're already playing all tracks
+   * Adds a track to playback if we're already playing all tracks.
    */
-  addTrackToPlayback(track: AudioTrack) {
+  addTrackToPlayback(track: AudioTrack, startAt: number) {
     if (!this.playingTracks) {
       // TODO: mke playing tracks and isAudioPlaying the same state
       throw new Error("No tracks playing");
     }
     track.setAudioOut(this.mixDownNode);
     this.playingTracks = this.playingTracks.concat(track);
-    track.startPlayback(liveAudioContext, this.cursorPos);
+    const LATENCY = 10;
+    track.prepareForPlayback(liveAudioContext);
+    track.startPlayback(startAt + LATENCY);
   }
 
   removeTrackFromPlayback(track: AudioTrack) {
@@ -157,10 +161,6 @@ export class AnalizedPlayer {
     this.isAudioPlaying = false;
     this.analyserNode.disconnect(this.javascriptNode);
     this.javascriptNode.disconnect(liveAudioContext.destination);
-  }
-
-  setCursorPos(seconds: number) {
-    this.cursorPos = seconds;
   }
 
   static async bounceTracks(

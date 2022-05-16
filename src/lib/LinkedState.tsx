@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { exhaustive } from "../dsp/exhaustive";
 
 export type StateDispath<S> = (value: S | ((prevState: S) => S)) => void;
 export type StateChangeHandler<S> = (value: S) => void;
@@ -14,10 +15,33 @@ export function subscribe<S>(subbable: Subbable<S>, cb: StateChangeHandler<S>): 
   return () => subbable._subscriptors.delete(cb);
 }
 
-export function notify<S>(subbable: Subbable<S>, value: S) {
-  subbable._subscriptors.forEach((cb) => {
-    cb(value);
-  });
+export function notify<S>(subbable: Subbable<S>, value: S, priority: "task" | "microtask" | "immediate" = "immediate") {
+  switch (priority) {
+    case "immediate":
+      subbable._subscriptors.forEach((cb) => {
+        cb(value);
+      });
+      break;
+
+    case "task":
+      window.setTimeout(() => {
+        subbable._subscriptors.forEach((cb) => {
+          cb(value);
+        });
+      }, 0);
+      break;
+
+    case "microtask":
+      Promise.resolve().then(() => {
+        subbable._subscriptors.forEach((cb) => {
+          cb(value);
+        });
+      });
+      break;
+
+    default:
+      exhaustive(priority);
+  }
 }
 
 // Linked state is a Subbable, a single atomic primitive
@@ -34,8 +58,11 @@ export class LinkedState<S> implements Subbable<S> {
   }
 
   set(value: Readonly<S>): void {
+    performance.mark("0");
     this._value = value;
     notify(this, this._value);
+    performance.mark("1");
+    performance.measure("a", "0", "1");
   }
 
   get(): Readonly<S> {

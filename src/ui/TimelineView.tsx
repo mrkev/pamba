@@ -24,11 +24,6 @@ export function TimelineView({ project, player }: { project: AudioProject; playe
   const [selectionWidth] = useLinkedState(project.selectionWidth);
   const [viewportStartSecs, setViewportStartSecs] = useLinkedState(project.viewportStartSecs);
 
-  useEffect(() => {
-    console.log("SET CURSOR POS", cursorPos);
-    player.setCursorPos(cursorPos);
-  }, [cursorPos, player]);
-
   const [, setStateCounter] = useState<number>(0);
   const rerender = useCallback(function () {
     setStateCounter((x) => x + 1);

@@ -2,10 +2,7 @@
 import { TFaustUIItem, TFaustUIInputItem } from "@shren/faust-ui/src/types";
 import React, { useEffect, useState } from "react";
 import { FaustAudioProcessorNode, ProcessorLoader } from "faust-loader";
-
-function exhaustive(x: never): never {
-  throw new Error("exhaustive violation");
-}
+import { exhaustive } from "./exhaustive";
 
 export interface INodeData {
   compile_options: string;
