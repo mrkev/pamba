@@ -4,7 +4,7 @@
   "private": true,
   "dependencies": {
     "@babel/helper-environment-visitor": "^7.16.7",
-    "@shren/faust-ui": "^1.1.1",
+    "@shren/faust-ui": "1.0.4",
     "@testing-library/jest-dom": "^5.16.4",
     "@testing-library/react": "^13.2.0",
     "@testing-library/user-event": "^14.2.0",

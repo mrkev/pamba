@@ -117,6 +117,7 @@ export class AudioProject {
 
 export class AudioRenderer {
   bounceURL = LinkedState.of<string | null>(null);
+  isAudioPlaying = LinkedState.of(false);
 
   static async bounceSelection(renderer: AudioRenderer, project: AudioProject) {
     const selectionWidth = project.selectionWidth.get();
@@ -140,6 +141,16 @@ export class AudioRenderer {
     }
 
     renderer.bounceURL.set(exportUrl);
+  }
+
+  static togglePlayback(renderer: AudioRenderer, project: AudioProject, player: AnalizedPlayer) {
+    if (renderer.isAudioPlaying.get()) {
+      player.stopSound();
+      renderer.isAudioPlaying.set(false);
+    } else {
+      player.playTracks(project.allTracks._getRaw());
+      renderer.isAudioPlaying.set(true);
+    }
   }
 }
 

@@ -1,12 +1,12 @@
 import { useEffect } from "react";
 import { AnalizedPlayer } from "./AnalizedPlayer";
-import { AudioProject } from "./lib/AudioProject";
+import { AudioProject, AudioRenderer } from "./lib/AudioProject";
 import { useLinkedState } from "./lib/LinkedState";
 
 export function useAppProjectKeyboardEvents(
   project: AudioProject,
   player: AnalizedPlayer,
-  togglePlayback: () => void
+  renderer: AudioRenderer
 ): void {
   const [, setTool] = useLinkedState(project.pointerTool);
   const [selected, setSelected] = useLinkedState(project.selected);
@@ -42,7 +42,7 @@ export function useAppProjectKeyboardEvents(
       }
     }
 
-    function keyupEvent(e: KeyboardEvent) {}
+    function keyupEvent(_e: KeyboardEvent) {}
 
     function keypressEvent(e: KeyboardEvent) {
       switch (e.code) {
@@ -64,7 +64,7 @@ export function useAppProjectKeyboardEvents(
         if (document.activeElement instanceof HTMLButtonElement) {
           (document.activeElement as any).blur();
         }
-        togglePlayback();
+        AudioRenderer.togglePlayback(renderer, project, player);
         e.preventDefault();
       }
     }
@@ -77,5 +77,5 @@ export function useAppProjectKeyboardEvents(
       document.removeEventListener("keypress", keypressEvent, { capture: true });
       document.removeEventListener("keyup", keyupEvent);
     };
-  }, [player, project, selected, setSelected, setTool, togglePlayback]);
+  }, [player, project, renderer, selected, setSelected, setTool]);
 }

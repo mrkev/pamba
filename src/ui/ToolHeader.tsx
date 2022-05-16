@@ -12,16 +12,13 @@ export function ToolHeader({
   project,
   player,
   renderer,
-  togglePlayback,
-  isAudioPlaying,
+
   firebaseStoreRef,
   ctxRef,
 }: {
   project: AudioProject;
   player: AnalizedPlayer;
   renderer: AudioRenderer;
-  togglePlayback: () => void;
-  isAudioPlaying: boolean;
   firebaseStoreRef: any;
   ctxRef: React.MutableRefObject<CanvasRenderingContext2D | null>;
 }) {
@@ -29,6 +26,8 @@ export function ToolHeader({
   const [tracks] = useLinkedArray(project.allTracks);
   const [tool] = useLinkedState(project.pointerTool);
   const [bounceURL] = useLinkedState<string | null>(renderer.bounceURL);
+  const [isAudioPlaying] = useLinkedState(renderer.isAudioPlaying);
+
   const [isRecording, setIsRecording] = useState(false);
 
   const loadClip = useCallback(
@@ -81,7 +80,10 @@ export function ToolHeader({
           )}
 
           {tool === "move" ? "move ⇄" : tool === "trimStart" ? "trimStart ⇥" : tool === "trimEnd" ? "trimEnd ⇤" : tool}
-          <button disabled={tracks.length === 0} onClick={togglePlayback}>
+          <button
+            disabled={tracks.length === 0}
+            onClick={() => AudioRenderer.togglePlayback(renderer, project, player)}
+          >
             {isAudioPlaying ? "stop" : "start"}
           </button>
         </div>

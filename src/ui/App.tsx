@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { AnalizedPlayer } from "../AnalizedPlayer";
 import "./App.css";
 import { DebugData } from "./DebugData";
@@ -18,7 +18,6 @@ import { useAppProjectKeyboardEvents } from "../useAppProjectKeyboardEvents";
 
 function App() {
   const ctxRef = useRef<null | CanvasRenderingContext2D>(null);
-  const [isAudioPlaying, setIsAudioPlaying] = useState(false);
   const firebaseStoreRef = usePambaFirebaseStoreRef();
   const [player] = useState<AnalizedPlayer>(() => new AnalizedPlayer());
   const [project] = useState(() => new AudioProject());
@@ -29,32 +28,34 @@ function App() {
 
   const [tracks] = useLinkedArray(project.allTracks);
 
-  const togglePlayback = useCallback(
-    function togglePlayback() {
-      if (isAudioPlaying) {
-        player.stopSound();
-        setIsAudioPlaying(false);
-      } else {
-        setIsAudioPlaying(true);
-      }
-    },
-    [isAudioPlaying, player]
-  );
+  const [isAudioPlaying] = useState(false);
+
+  // const togglePlayback = useCallback(
+  //   function togglePlayback() {
+  //     if (isAudioPlaying) {
+  //       player.stopSound();
+  //       setIsAudioPlaying(false);
+  //     } else {
+  //       setIsAudioPlaying(true);
+  //     }
+  //   },
+  //   [isAudioPlaying, player]
+  // );
 
   useSingletonKeyboardModifierState(modifierState);
-  useAppProjectKeyboardEvents(project, player, togglePlayback);
+  useAppProjectKeyboardEvents(project, player, renderer);
 
   useEffect(() => {
-    if (tracks.length < 1) {
-      console.log("NO AUDIO BUFFER");
-      return;
-    }
-    if (isAudioPlaying === false) {
-      return;
-    }
-    if (isAudioPlaying === true) {
-      player.playTracks(tracks._getRaw());
-    }
+    // if (tracks.length < 1) {
+    //   console.log("NO AUDIO BUFFER");
+    //   return;
+    // }
+    // if (isAudioPlaying === false) {
+    //   return;
+    // }
+    // if (isAudioPlaying === true) {
+    //   player.playTracks(tracks._getRaw());
+    // }
 
     return () => player.stopSound();
   }, [tracks, isAudioPlaying, player, project.solodTracks]);
@@ -77,8 +78,6 @@ function App() {
         <ToolHeader
           project={project}
           player={player}
-          togglePlayback={togglePlayback}
-          isAudioPlaying={isAudioPlaying}
           firebaseStoreRef={firebaseStoreRef}
           ctxRef={ctxRef}
           renderer={renderer}
