@@ -1,7 +1,8 @@
 import { useEffect } from "react";
-import { AnalizedPlayer } from "./AnalizedPlayer";
-import { AudioProject, AudioRenderer } from "./lib/AudioProject";
-import { useLinkedState } from "./lib/LinkedState";
+import { AnalizedPlayer } from "../lib/AnalizedPlayer";
+import { AudioProject, ProjectSelection } from "../lib/AudioProject";
+import { AudioRenderer } from "../lib/AudioRenderer";
+import { useLinkedState } from "../lib/LinkedState";
 
 export function useAppProjectKeyboardEvents(
   project: AudioProject,
@@ -16,28 +17,7 @@ export function useAppProjectKeyboardEvents(
       // console.log(e.code);
       switch (e.code) {
         case "Backspace":
-          if (!selected) {
-            return;
-          }
-          if (selected.status === "clips") {
-            for (let { clip, track } of selected.clips) {
-              console.log("remove", selected);
-              AudioProject.removeClip(project, track, clip);
-              setSelected(null);
-            }
-          }
-          if (selected.status === "tracks") {
-            for (let track of selected.tracks) {
-              console.log("remove", selected);
-              AudioProject.removeTrack(project, player, track);
-              setSelected(null);
-            }
-          }
-          if (selected.status === "time") {
-            // todo
-          }
-
-          // console.log(selectionWidthRef.current);
+          ProjectSelection.deleteSelection(project, player);
           break;
       }
     }

@@ -6,7 +6,7 @@ import { FaustAudioEffect } from "../dsp/Faust";
 import { LinkedState } from "./LinkedState";
 import { PannerFaustAudioEffect } from "../dsp/Faust";
 import { JsonObject, JsonProperty, JsonSerializer } from "typescript-json-serializer";
-import { TrackThread } from "../ui/TrackThread";
+import { TrackThread } from "./TrackThread";
 
 let trackNo = 0;
 

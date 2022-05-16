@@ -1,8 +1,8 @@
-import { liveAudioContext, sampleSize } from "./globals";
-import { CANVAS_WIDTH, CANVAS_HEIGHT } from "./globals";
+import { liveAudioContext, sampleSize } from "../globals";
+import { CANVAS_WIDTH, CANVAS_HEIGHT } from "../globals";
 // import SharedBufferWorkletNode from "./lib/shared-buffer-worklet-node";
-import { AudioTrack } from "./lib/AudioTrack";
-import { initAudioContext } from "./lib/initAudioContext";
+import { AudioTrack } from "./AudioTrack";
+import { initAudioContext } from "./initAudioContext";
 
 // sbwNode.onInitialized = () => {
 //   oscillator.connect(sbwNode).connect(context.destination);

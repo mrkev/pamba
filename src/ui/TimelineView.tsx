@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { AnalizedPlayer } from "../AnalizedPlayer";
+import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import { Axis } from "./Axis";
 import { CLIP_HEIGHT } from "../globals";
 import { AudioProject } from "../lib/AudioProject";
@@ -10,7 +10,7 @@ import { useLinkedSet } from "../lib/LinkedSet";
 import { useLinkedState } from "../lib/LinkedState";
 import { Track } from "./Track";
 import TrackHeader from "./TrackHeader";
-import { useAppProjectMouseEvents } from "./useAppProjectMouseEvents";
+import { useAppProjectMouseEvents } from "../input/useAppProjectMouseEvents";
 
 export function TimelineView({ project, player }: { project: AudioProject; player: AnalizedPlayer }) {
   const playbackPosDiv = useRef<null | HTMLDivElement>(null);

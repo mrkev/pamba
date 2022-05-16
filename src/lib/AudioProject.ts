@@ -6,8 +6,8 @@ import { AudioClip } from "./AudioClip";
 import { scaleLinear } from "d3-scale";
 import type { ScaleLinear } from "d3-scale";
 import { LinkedArray } from "./LinkedArray";
-import { AnalizedPlayer } from "../AnalizedPlayer";
-import bufferToWav from "audiobuffer-to-wav";
+import { AnalizedPlayer } from "./AnalizedPlayer";
+import { exhaustive } from "../dsp/exhaustive";
 
 export type XScale = ScaleLinear<number, number>;
 
@@ -116,49 +116,36 @@ export class AudioProject {
   }
 }
 
-export class AudioRenderer {
-  bounceURL = LinkedState.of<string | null>(null);
-  isAudioPlaying = LinkedState.of(false);
-
-  static async bounceSelection(renderer: AudioRenderer, project: AudioProject) {
-    const selectionWidth = project.selectionWidth.get();
-    const tracks = project.allTracks._getRaw();
-    const cursorPos = project.cursorPos.get();
-    const currentBounceURL = renderer.bounceURL.get();
-
-    const bounceAll = !selectionWidth || selectionWidth === 0;
-
-    const result = await (bounceAll
-      ? AnalizedPlayer.bounceTracks(tracks)
-      : AnalizedPlayer.bounceTracks(tracks, cursorPos, cursorPos + selectionWidth));
-    const wav = bufferToWav(result);
-    const blob = new Blob([new DataView(wav)], {
-      type: "audio/wav",
-    });
-    const exportUrl = window.URL.createObjectURL(blob);
-
-    if (currentBounceURL != null) {
-      window.URL.revokeObjectURL(currentBounceURL);
+export class ProjectSelection {
+  static deleteSelection(project: AudioProject, player: AnalizedPlayer) {
+    const selected = project.selected.get();
+    if (!selected) {
+      return;
     }
-
-    renderer.bounceURL.set(exportUrl);
-  }
-
-  static togglePlayback(renderer: AudioRenderer, project: AudioProject, player: AnalizedPlayer) {
-    if (renderer.isAudioPlaying.get()) {
-      player.stopSound();
-      renderer.isAudioPlaying.set(false);
-    } else {
-      player.playTracks(project.allTracks._getRaw(), project.cursorPos.get());
-      renderer.isAudioPlaying.set(true);
+    const { status } = selected;
+    switch (status) {
+      case "clips": {
+        for (let { clip, track } of selected.clips) {
+          console.log("remove", selected);
+          AudioProject.removeClip(project, track, clip);
+          project.selected.set(null);
+        }
+        break;
+      }
+      case "tracks": {
+        for (let track of selected.tracks) {
+          console.log("remove", selected);
+          AudioProject.removeTrack(project, player, track);
+          project.selected.set(null);
+        }
+        break;
+      }
+      case "time": {
+        // todo
+        break;
+      }
+      default:
+        exhaustive(status);
     }
   }
 }
-
-/**
- * TODO:
- * - Backspace deletes time
- * - Loop markers
- * - Export audio
- *
- */

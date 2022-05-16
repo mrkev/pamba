@@ -1,7 +1,8 @@
 import React, { useCallback, useRef, useState } from "react";
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from "../globals";
-import { AnalizedPlayer } from "../AnalizedPlayer";
-import { AudioProject, AudioRenderer } from "../lib/AudioProject";
+import { AnalizedPlayer } from "../lib/AnalizedPlayer";
+import { AudioProject } from "../lib/AudioProject";
+import { AudioRenderer } from "../lib/AudioRenderer";
 import { useLinkedState } from "../lib/LinkedState";
 import { useLinkedArray } from "../lib/LinkedArray";
 import { AudioClip } from "../lib/AudioClip";

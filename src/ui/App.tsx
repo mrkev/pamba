@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { AnalizedPlayer } from "../AnalizedPlayer";
+import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import "./App.css";
 import { DebugData } from "./DebugData";
 import { usePambaFirebaseStoreRef } from "../firebase/useFirebase";
-import { AudioProject, AudioRenderer } from "../lib/AudioProject";
+import { AudioProject } from "../lib/AudioProject";
+import { AudioRenderer } from "../lib/AudioRenderer";
 import { modifierState, useSingletonKeyboardModifierState } from "../ModifierState";
 import { TimelineView } from "./TimelineView";
 import { ToolHeader } from "./ToolHeader";
-import { useAppProjectKeyboardEvents } from "../useAppProjectKeyboardEvents";
-import { TrackThread } from "./TrackThread";
+import { useAppProjectKeyboardEvents } from "../input/useAppProjectKeyboardEvents";
+import { TrackThread } from "../lib/TrackThread";
 
 var w = new TrackThread();
 var sab = new SharedArrayBuffer(1024);

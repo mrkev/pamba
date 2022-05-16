@@ -5,7 +5,7 @@ import type { AudioTrack } from "../lib/AudioTrack";
 import { useLinkedState } from "../lib/LinkedState";
 import { useLinkedSet } from "../lib/LinkedSet";
 import { modifierState } from "../ModifierState";
-import { AnalizedPlayer } from "../AnalizedPlayer";
+import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 
 type Props = {
   isSelected: boolean;
