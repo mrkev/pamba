@@ -116,10 +116,13 @@ function _useChangeListener<S extends Subbable<S>>(subbable: S): void {
   }, [subbable]);
 }
 
-// LinkedMap
-// LinkedArray
+// LinkedMap X
+// LinkedArray X
 // LinkedSet X
-// LinkedRecord
+// LinkedRecord (TODO)
+// - Keys don't change
+// - Listens to changes of keys
+// - is this just automatically creating a map of string -> LinkedState?
 
 class _LinkedRecord<R extends Map<unknown>> implements Subbable<R> {
   _subscriptors: Set<StateChangeHandler<R>> = new Set();
@@ -191,80 +194,4 @@ class _LinkedRecord<R extends Map<unknown>> implements Subbable<R> {
     }
     return ls;
   }
-}
-
-class _LinkedArray2<S> implements Subbable<S[]> {
-  private _value: S[];
-  _subscriptors: Set<StateChangeHandler<S[]>> = new Set();
-  private constructor(initialValue: S[] = []) {
-    this._value = initialValue;
-  }
-
-  static of<T>(initialValue: T[]) {
-    return new this<T>(initialValue);
-  }
-
-  push(...values: S[]): void {
-    this._value = this._value.concat(...values);
-    notify(this, this._value);
-  }
-
-  removeAll(value: S): void {
-    this._value = this._value.filter((x) => x !== value);
-    notify(this, this._value);
-  }
-
-  set(index: number, value: S): void {
-    this._value = [...this._value];
-    this._value[index] = value;
-    notify(this, this._value);
-  }
-
-  get(): readonly S[] {
-    return this._value;
-  }
-
-  // TODO
-
-  // getLS(index: number): LinkedState<S | null> {
-  //   const child = this._value[index] ?? null;
-  //   const result = LinkedState.of(child);
-  //   TO
-
-  //   if (child === null) {
-  //     return null;
-  //   }
-  // }
-}
-
-class _LinkedMap<S> implements Subbable<Map<S>> {
-  private _value: Map<S>;
-  _subscriptors: Set<StateChangeHandler<Map<S>>> = new Set();
-  private constructor(initialValue: Map<S> = {}) {
-    this._value = initialValue;
-  }
-
-  static of<T>(initialValue: Map<T>) {
-    return new this<T>(initialValue);
-  }
-
-  set(key: string, value: S): void {
-    this._value = { ...this._value };
-    this._value[key] = value;
-    notify(this, this._value);
-  }
-
-  get(): Map<S> {
-    return this._value;
-  }
-
-  // getLS(key: string): LinkedState<S | null> {
-  //   const child = this._value[key] ?? null;
-  //   const result = LinkedState.of(child);
-  //   TO;
-
-  //   if (child === null) {
-  //     return null;
-  //   }
-  // }
 }

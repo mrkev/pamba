@@ -7,6 +7,7 @@ import { AudioProject } from "../lib/AudioProject";
 import { AudioTrack } from "../lib/AudioTrack";
 import { useDerivedState } from "../lib/DerivedState";
 import { useLinkedArray } from "../lib/LinkedArray";
+import { useLinkedMap } from "../lib/LinkedMap";
 import { useLinkedState } from "../lib/LinkedState";
 import { pressedState } from "../lib/linkedState/pressedState";
 import { Clip } from "./Clip";
@@ -24,7 +25,6 @@ export function Track({
   const [selected] = useLinkedState(project.selected);
   const [tool] = useLinkedState(project.pointerTool);
   const secsToPx = useDerivedState(project.secsToPx);
-  const [effects] = useLinkedArray(track.effects);
   const [clips] = useLinkedArray(track.clips);
   const [, setStateCounter] = useState(0);
   const rerender = useCallback(function () {
@@ -210,8 +210,8 @@ const EffectRack = React.memo(function ({ track, project }: { track: AudioTrack;
         Output
       </div>
 
-      {<button onClick={() => track.addEffect(FAUST_EFFECTS.PANNER)}>add panner</button>}
-      {<button onClick={() => track.addEffect(FAUST_EFFECTS.REVERB)}>add reverb</button>}
+      <button onClick={() => track.addEffect(FAUST_EFFECTS.PANNER)}>add panner</button>
+      <button onClick={() => track.addEffect(FAUST_EFFECTS.REVERB)}>add reverb</button>
     </div>
   );
 });

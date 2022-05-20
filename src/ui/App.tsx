@@ -29,7 +29,11 @@ function App() {
   useAppProjectKeyboardEvents(project, player, renderer);
 
   useEffect(() => {
-    return () => player.stopSound();
+    return () => {
+      if (player.isAudioPlaying) {
+        player.stopSound();
+      }
+    };
   }, [player]);
 
   return (

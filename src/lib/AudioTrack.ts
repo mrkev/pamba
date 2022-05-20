@@ -2,7 +2,7 @@ import { AudioClip } from "./AudioClip";
 import { liveAudioContext } from "../globals";
 import { mixDown } from "../mixDown";
 import { addClip, deleteTime, removeClip, pushClip } from "./AudioTrackFn";
-import { FAUST_EFFECTS, FaustAudioEffect, FaustEffectThunk } from "../dsp/Faust";
+import { FaustAudioEffect, FaustEffectThunk } from "../dsp/Faust";
 import { JsonObject, JsonProperty, JsonSerializer } from "typescript-json-serializer";
 import { TrackThread } from "./TrackThread";
 import { LinkedArray } from "./LinkedArray";

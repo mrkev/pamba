@@ -11,6 +11,7 @@ import { useLinkedState } from "../lib/LinkedState";
 import { Track } from "./Track";
 import TrackHeader from "./TrackHeader";
 import { useAppProjectMouseEvents } from "../input/useAppProjectMouseEvents";
+import { useLinkedMap } from "../lib/LinkedMap";
 
 export function TimelineView({ project, player }: { project: AudioProject; player: AnalizedPlayer }) {
   const playbackPosDiv = useRef<null | HTMLDivElement>(null);

@@ -3,6 +3,7 @@ import { AudioProject, SelectionState } from "../lib/AudioProject";
 import { useLinkedState } from "../lib/LinkedState";
 import { useLinkedArray } from "../lib/LinkedArray";
 import { exhaustive } from "../dsp/exhaustive";
+import { useLinkedMap } from "../lib/LinkedMap";
 
 export function stringOfSelected(sel: SelectionState | null): string {
   if (!sel) {
@@ -43,6 +44,7 @@ export function DebugData({ project }: { project: AudioProject }) {
   const [cursorPos] = useLinkedState(project.cursorPos);
   const [selectionWidth] = useLinkedState(project.selectionWidth);
   const [tracks] = useLinkedArray(project.allTracks);
+  const [timeMarkers] = useLinkedMap(project.timeMarkers);
 
   const allState = tracks
     .map((track, i) => {
@@ -59,6 +61,18 @@ export function DebugData({ project }: { project: AudioProject }) {
         <br />
       </div>
       <pre>{allState}</pre>
+      {timeMarkers.map((value, key) => (
+        <div key={key}>
+          {key}: {value}
+        </div>
+      ))}
+      <button
+        onClick={() => {
+          timeMarkers.set(Math.random(), "HELLO");
+        }}
+      >
+        timeMarker/LinkedMap Test
+      </button>
     </>
   );
 }

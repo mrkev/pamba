@@ -9,6 +9,7 @@ import { LinkedArray } from "./LinkedArray";
 import { AnalizedPlayer } from "./AnalizedPlayer";
 import { exhaustive } from "../dsp/exhaustive";
 import { FaustAudioEffect } from "../dsp/Faust";
+import { LinkedMap } from "./LinkedMap";
 
 export type XScale = ScaleLinear<number, number>;
 
@@ -42,6 +43,7 @@ export type SelectionState =
     };
 
 export class AudioProject {
+  timeMarkers: LinkedMap<number, string> = LinkedMap.create<number, string>();
   // Track data - should persist //
   allTracks = LinkedArray.create<AudioTrack>();
 
