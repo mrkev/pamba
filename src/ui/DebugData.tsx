@@ -2,13 +2,15 @@ import React from "react";
 import { AudioProject, SelectionState } from "../lib/AudioProject";
 import { useLinkedState } from "../lib/LinkedState";
 import { useLinkedArray } from "../lib/LinkedArray";
+import { exhaustive } from "../dsp/exhaustive";
 
 export function stringOfSelected(sel: SelectionState | null): string {
   if (!sel) {
     return "";
   }
 
-  switch (sel.status) {
+  const { status } = sel;
+  switch (status) {
     case "clips":
       return JSON.stringify({
         ...sel,
@@ -20,6 +22,17 @@ export function stringOfSelected(sel: SelectionState | null): string {
         ...sel,
         tracks: sel.tracks.map((track) => track.toString()),
       });
+
+    case "effects":
+      return JSON.stringify({
+        ...sel,
+        effects: sel.effects.map(({ effect }) => effect.data.name),
+      });
+    case "time":
+      return "time";
+
+    default:
+      exhaustive(status);
   }
 
   return JSON.stringify(sel);

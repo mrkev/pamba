@@ -3087,10 +3087,10 @@
   resolved "https://registry.yarnpkg.com/@shren/faust-ui/-/faust-ui-1.0.4.tgz#45ab6ccb6581d58feecdbf92071526ed78743758"
   integrity sha512-r6Yjf5oWdjNh19epw9bKFi/2KstmlBUX4QA+RsPZAqJJ8hMAvMRdVjvrYum5WLqfRsfhMFfFsc4JN17XZLFdQg==
 
-"@shren/faustwasm@^0.0.17":
-  version "0.0.17"
-  resolved "https://registry.yarnpkg.com/@shren/faustwasm/-/faustwasm-0.0.17.tgz#705c3cf59eb1403f064ce5689f982d52e680a751"
-  integrity sha512-joFIUrHxPaqy3mBY00cgm/bEfVYZjV5c3gv0ajbFx0EWzbOkgVKz4BBhNaKKCjX6KCClZUlH8UXLsURILnCNAQ==
+"@shren/typed-event-emitter@^1.1.1":
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/@shren/typed-event-emitter/-/typed-event-emitter-1.1.1.tgz#01e63a15fc43c52e40bb32af7edb985e2dd25c6d"
+  integrity sha512-HOXIwJiFHsRkTUNskVRzr+gV7I83MxCHHy1JU2Jc7+y/+lojffrN7+kReC1kbOLnerSA9KQxoCtT1+hlNENLrA==
 
 "@sinclair/typebox@^0.23.3":
   version "0.23.5"

@@ -209,4 +209,10 @@ export class AudioTrack {
     this.clips._setRaw(clips);
     this.mutations++;
   }
+
+  ///////////// statics
+
+  static removeEffect(track: AudioTrack, effect: FaustAudioEffect) {
+    track.effects.remove(effect);
+  }
 }

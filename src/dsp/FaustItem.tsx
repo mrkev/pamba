@@ -9,11 +9,15 @@ export function FaustGroup({
   setParam,
   isTopLevel = false,
   onClickRemove,
+  onHeaderClick,
+  isSelected = false,
 }: {
   item: TFaustUIGroup;
   setParam: FaustNodeSetParamFn;
   isTopLevel?: boolean;
   onClickRemove?: () => void;
+  onHeaderClick?: () => void;
+  isSelected?: boolean;
 }) {
   const { items, label, type } = item;
 
@@ -37,9 +41,9 @@ export function FaustGroup({
         display: "flex",
         flexDirection: "column",
         height: "100%",
-        borderLeft: "1px solid black",
+        borderLeft: isTopLevel ? undefined : "1px solid black",
         // borderLeft: "1px solid black",
-        padding: "0px 4px",
+        padding: isTopLevel ? "0px" : "0px 4px",
         columnGap: 6,
         background: "gray",
         fontSize: 12,
@@ -53,7 +57,9 @@ export function FaustGroup({
             flexDirection: "row",
             justifyContent: "space-between",
             alignItems: "center",
+            background: isSelected ? "#555" : undefined,
           }}
+          onClick={onHeaderClick}
         >
           <div>{label}</div>
           <button onClick={onClickRemove}>x</button>
@@ -76,20 +82,19 @@ export function FaustItem({ item, setParam }: { item: TFaustUIItem; setParam: Fa
 
   switch (type) {
     case "vgroup": {
-      const { items, label } = item;
-
-      return (
-        <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-          <div>{label}</div>
-          {items.map((item, i) => {
-            return <FaustItem key={i} item={item} setParam={setParam} />;
-          })}
-        </div>
-      );
+      return <FaustGroup item={item} setParam={setParam} />;
     }
 
     case "hgroup": {
       return <FaustGroup item={item} setParam={setParam} />;
+    }
+
+    case "hslider": {
+      return <FaustSlider item={item} setParam={setParam} direction="horizontal" />;
+    }
+
+    case "vslider": {
+      return <FaustSlider item={item} setParam={setParam} direction="vertical" />;
     }
 
     case "tgroup":
@@ -107,14 +112,6 @@ export function FaustItem({ item, setParam }: { item: TFaustUIItem; setParam: Fa
 
     case "vbargraph":
       return <div>"vbargraph"</div>;
-
-    case "hslider": {
-      return <FaustSlider item={item} setParam={setParam} direction="horizontal" />;
-    }
-
-    case "vslider": {
-      return <FaustSlider item={item} setParam={setParam} direction="vertical" />;
-    }
 
     case "button":
       return <button>"button"</button>;

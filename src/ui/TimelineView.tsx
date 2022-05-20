@@ -89,6 +89,7 @@ export function TimelineView({ project, player }: { project: AudioProject; playe
         // setViewportStartSecs((prev) => {});
         e.preventDefault();
       } else {
+        console.log("timeline");
         // const div = projectDiv;
         const start = Math.max(viewportStartSecs + e.deltaX, 0);
         setViewportStartSecs(start);
@@ -114,11 +115,11 @@ export function TimelineView({ project, player }: { project: AudioProject; playe
       e.preventDefault();
     };
 
-    projectDiv.addEventListener("wheel", onWheel, { capture: true });
-    projectDiv.addEventListener("scroll", onScroll, { capture: true });
+    projectDiv.addEventListener("wheel", onWheel, { capture: false });
+    projectDiv.addEventListener("scroll", onScroll, { capture: false });
     return () => {
-      projectDiv.removeEventListener("wheel", onWheel, { capture: true });
-      projectDiv.addEventListener("scroll", onScroll, { capture: true });
+      projectDiv.removeEventListener("wheel", onWheel, { capture: false });
+      projectDiv.addEventListener("scroll", onScroll, { capture: false });
     };
   }, [projectDiv, scaleFactor, setScaleFactor, setViewportStartSecs, viewportStartSecs]);
 

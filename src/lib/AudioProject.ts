@@ -8,6 +8,7 @@ import type { ScaleLinear } from "d3-scale";
 import { LinkedArray } from "./LinkedArray";
 import { AnalizedPlayer } from "./AnalizedPlayer";
 import { exhaustive } from "../dsp/exhaustive";
+import { FaustAudioEffect } from "../dsp/Faust";
 
 export type XScale = ScaleLinear<number, number>;
 
@@ -23,6 +24,11 @@ export type SelectionState =
       status: "tracks";
       tracks: Array<AudioTrack>;
       test: Set<AudioTrack>;
+    }
+  | {
+      status: "effects";
+      effects: Array<{ effect: FaustAudioEffect; track: AudioTrack }>;
+      test: Set<FaustAudioEffect>;
     }
   // Not sure if have is a good idea, since user might want to select time
   // and then select a track to operaate on (ie, delete on track 1, then same
@@ -136,6 +142,14 @@ export class ProjectSelection {
         for (let track of selected.tracks) {
           console.log("remove", selected);
           AudioProject.removeTrack(project, player, track);
+          project.selected.set(null);
+        }
+        break;
+      }
+      case "effects": {
+        for (let { track, effect } of selected.effects) {
+          console.log("remove", selected);
+          AudioTrack.removeEffect(track, effect);
           project.selected.set(null);
         }
         break;

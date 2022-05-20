@@ -6,13 +6,15 @@ export default function FaustEffectModule({
   effect,
   style,
   onClickRemove,
+  onHeaderClick,
+  isSelected,
 }: {
   effect: FaustAudioEffect;
   style?: React.CSSProperties;
   onClickRemove: (effect: FaustAudioEffect) => void;
+  onHeaderClick: (effect: FaustAudioEffect) => void;
+  isSelected: boolean;
 }) {
-  console.log(effect.ui);
-
   // Use the top-most group as the overall wrapper, with the close button etc
   if ((effect.ui.length === 1 && effect.ui[0].type === "hgroup") || effect.ui[0].type === "vgroup") {
     const item = effect.ui[0];
@@ -24,6 +26,10 @@ export default function FaustEffectModule({
         onClickRemove={() => {
           onClickRemove(effect);
         }}
+        onHeaderClick={() => {
+          onHeaderClick(effect);
+        }}
+        isSelected={isSelected}
       />
     );
   }
