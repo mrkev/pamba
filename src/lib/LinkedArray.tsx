@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useCallback, useEffect, useState } from "react";
 import { Subbable, StateChangeHandler, notify, StateDispath, subscribe } from "./LinkedState";
 

@@ -79,10 +79,8 @@ export function useLinkedState<S>(linkedState: LinkedState<S>): [S, StateDispath
     });
   }, [linkedState]);
 
-  // TODO: why is this necessary?
   const apiState = linkedState.get();
   useEffect(() => {
-    // console.log("API => React", apiState);
     setState(() => apiState);
   }, [apiState]);
 

@@ -4,10 +4,10 @@ import FaustEffectModule from "../dsp/FaustEffectModule";
 import { CLIP_HEIGHT, EFFECT_HEIGHT, TRACK_SEPARATOR_HEIGHT } from "../globals";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioProject } from "../lib/AudioProject";
+import { AudioRenderer } from "../lib/AudioRenderer";
 import { AudioTrack } from "../lib/AudioTrack";
 import { useDerivedState } from "../lib/DerivedState";
 import { useLinkedArray } from "../lib/LinkedArray";
-import { useLinkedMap } from "../lib/LinkedMap";
 import { useLinkedState } from "../lib/LinkedState";
 import { pressedState } from "../lib/linkedState/pressedState";
 import { Clip } from "./Clip";
@@ -16,9 +16,11 @@ export function Track({
   track,
   project,
   isDspExpanded,
+  renderer,
 }: {
   track: AudioTrack;
   project: AudioProject;
+  renderer: AudioRenderer;
   isDspExpanded: boolean;
 }): React.ReactElement {
   const [pressed, setPressed] = useLinkedState(pressedState);
@@ -108,7 +110,7 @@ export function Track({
         )}
       </div>
       {/* EFFECT RACK */}
-      {isDspExpanded && <EffectRack track={track} project={project} />}
+      {isDspExpanded && <EffectRack track={track} project={project} renderer={renderer} />}
 
       {/* Bottom border */}
       <div
@@ -145,10 +147,19 @@ const styles = {
   },
 } as const;
 
-const EffectRack = React.memo(function ({ track, project }: { track: AudioTrack; project: AudioProject }) {
+const EffectRack = React.memo(function ({
+  track,
+  project,
+  renderer,
+}: {
+  track: AudioTrack;
+  project: AudioProject;
+  renderer: AudioRenderer;
+}) {
   const [effects] = useLinkedArray(track.effects);
   const [selected] = useLinkedState(project.selected);
   const rackRef = useRef<HTMLDivElement | null>(null);
+  const [isAudioPlaying] = useLinkedState(renderer.isAudioPlaying);
 
   useEffect(function () {
     const div = rackRef.current;
@@ -177,6 +188,7 @@ const EffectRack = React.memo(function ({ track, project }: { track: AudioTrack;
         return (
           <React.Fragment key={i}>
             <FaustEffectModule
+              canDelete={!isAudioPlaying}
               effect={effect}
               style={{
                 alignSelf: "stretch",

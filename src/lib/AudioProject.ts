@@ -10,6 +10,7 @@ import { AnalizedPlayer } from "./AnalizedPlayer";
 import { exhaustive } from "../dsp/exhaustive";
 import { FaustAudioEffect } from "../dsp/Faust";
 import { LinkedMap } from "./LinkedMap";
+import { modifierState } from "../ModifierState";
 
 export type XScale = ScaleLinear<number, number>;
 
@@ -125,6 +126,26 @@ export class AudioProject {
 }
 
 export class ProjectSelection {
+  static selectTrack(project: AudioProject, track: AudioTrack) {
+    const selected = project.selected.get();
+    const selectAdd = modifierState.meta || modifierState.shift;
+    if (selectAdd && selected?.status === "tracks") {
+      const next = { ...selected };
+      next.tracks.push(track);
+      next.test.add(track);
+      project.selected.set(next);
+    } else {
+      project.selected.set({
+        status: "tracks",
+        tracks: [track],
+        test: new Set([track]),
+      });
+    }
+  }
+
+  /**
+   * Deletes whatever is selected
+   */
   static deleteSelection(project: AudioProject, player: AnalizedPlayer) {
     const selected = project.selected.get();
     if (!selected) {

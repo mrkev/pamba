@@ -9,37 +9,36 @@ import { modifierState, useSingletonKeyboardModifierState } from "../ModifierSta
 import { TimelineView } from "./TimelineView";
 import { ToolHeader } from "./ToolHeader";
 import { useAppProjectKeyboardEvents } from "../input/useAppProjectKeyboardEvents";
-import { TrackThread } from "../lib/TrackThread";
+// import { TrackThread } from "../lib/TrackThread";
 
-var w = new TrackThread();
-var sab = new SharedArrayBuffer(1024);
-var arr = new Int32Array(sab);
-w.postMessage({ kind: "set", sab });
+// var w = new TrackThread();
+// var sab = new SharedArrayBuffer(1024);
+// var arr = new Int32Array(sab);
+// w.postMessage({ kind: "set", sab });
 
 function App() {
   const firebaseStoreRef = usePambaFirebaseStoreRef();
-  const [player] = useState<AnalizedPlayer>(() => new AnalizedPlayer());
   const [project] = useState(() => new AudioProject());
   // IDEA: Maybe merge player and renderer?
-  const [renderer] = useState(() => new AudioRenderer());
+  const [renderer] = useState(() => new AudioRenderer(new AnalizedPlayer()));
 
   (window as any).project = project;
 
   useSingletonKeyboardModifierState(modifierState);
-  useAppProjectKeyboardEvents(project, player, renderer);
+  useAppProjectKeyboardEvents(project, renderer.analizedPlayer, renderer);
 
   useEffect(() => {
     return () => {
-      if (player.isAudioPlaying) {
-        player.stopSound();
+      if (renderer.analizedPlayer.isAudioPlaying) {
+        renderer.analizedPlayer.stopSound();
       }
     };
-  }, [player]);
+  }, [renderer.analizedPlayer]);
 
   return (
     <>
       <div className="App">
-        <button
+        {/* <button
           onClick={() => {
             arr[1] = 329;
             console.log("TEST WORKER");
@@ -47,9 +46,14 @@ function App() {
           }}
         >
           test
-        </button>
-        <ToolHeader project={project} player={player} firebaseStoreRef={firebaseStoreRef} renderer={renderer} />
-        <TimelineView project={project} player={player} />
+        </button> */}
+        <ToolHeader
+          project={project}
+          player={renderer.analizedPlayer}
+          firebaseStoreRef={firebaseStoreRef}
+          renderer={renderer}
+        />
+        <TimelineView project={project} player={renderer.analizedPlayer} renderer={renderer} />
       </div>
       <DebugData project={project} />
     </>

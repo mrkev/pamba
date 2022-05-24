@@ -3,15 +3,14 @@ import { liveAudioContext } from "../globals";
 import { mixDown } from "../mixDown";
 import { addClip, deleteTime, removeClip, pushClip } from "./AudioTrackFn";
 import { FaustAudioEffect, FaustEffectThunk } from "../dsp/Faust";
-import { JsonObject, JsonProperty, JsonSerializer } from "typescript-json-serializer";
 import { TrackThread } from "./TrackThread";
 import { LinkedArray } from "./LinkedArray";
+import { LinkedState } from "./LinkedState";
 
 let trackNo = 0;
 
-@JsonObject()
 export class AudioTrack {
-  @JsonProperty() name: string = `Track ${trackNo++}`;
+  name = LinkedState.of(`Track ${trackNo++}`);
   // Idea: can we use a mutation counter to keep track of state changes?
   mutations: number = 0;
   // A track is a collection of non-overalping clips.
@@ -37,12 +36,6 @@ export class AudioTrack {
 
   getCurrentGain(): AudioParam {
     return this.gainNode.gain;
-  }
-
-  serialize() {
-    const defaultSerializer = new JsonSerializer();
-    const data = defaultSerializer.serialize(this);
-    return data;
   }
 
   setGain(val: number): void {

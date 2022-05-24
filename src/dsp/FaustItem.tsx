@@ -11,12 +11,14 @@ export function FaustGroup({
   onClickRemove,
   onHeaderClick,
   isSelected = false,
+  canDelete = true,
 }: {
   item: TFaustUIGroup;
   setParam: FaustNodeSetParamFn;
   isTopLevel?: boolean;
   onClickRemove?: () => void;
   onHeaderClick?: () => void;
+  canDelete?: boolean;
   isSelected?: boolean;
 }) {
   const { items, label, type } = item;
@@ -62,7 +64,9 @@ export function FaustGroup({
           onClick={onHeaderClick}
         >
           <div>{label}</div>
-          <button onClick={onClickRemove}>x</button>
+          <button disabled={!canDelete} onClick={onClickRemove}>
+            x
+          </button>
         </div>
       ) : (
         <div>{label}</div>

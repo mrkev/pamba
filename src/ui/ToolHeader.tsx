@@ -143,6 +143,7 @@ export function ToolHeader({
             <button
               key={i}
               draggable
+              disabled={isAudioPlaying}
               onDragStart={function (ev: React.DragEvent<HTMLButtonElement>) {
                 ev.dataTransfer.setData("text", url);
               }}

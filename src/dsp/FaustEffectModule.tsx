@@ -7,12 +7,14 @@ export default function FaustEffectModule({
   style,
   onClickRemove,
   onHeaderClick,
+  canDelete,
   isSelected,
 }: {
   effect: FaustAudioEffect;
   style?: React.CSSProperties;
   onClickRemove: (effect: FaustAudioEffect) => void;
   onHeaderClick: (effect: FaustAudioEffect) => void;
+  canDelete: boolean;
   isSelected: boolean;
 }) {
   // Use the top-most group as the overall wrapper, with the close button etc
@@ -23,6 +25,7 @@ export default function FaustEffectModule({
         item={item}
         setParam={effect.node.setParam}
         isTopLevel={true}
+        canDelete={canDelete}
         onClickRemove={() => {
           onClickRemove(effect);
         }}

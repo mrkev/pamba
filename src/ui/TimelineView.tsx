@@ -12,8 +12,17 @@ import { Track } from "./Track";
 import TrackHeader from "./TrackHeader";
 import { useAppProjectMouseEvents } from "../input/useAppProjectMouseEvents";
 import { useLinkedMap } from "../lib/LinkedMap";
+import { AudioRenderer } from "../lib/AudioRenderer";
 
-export function TimelineView({ project, player }: { project: AudioProject; player: AnalizedPlayer }) {
+export function TimelineView({
+  project,
+  player,
+  renderer,
+}: {
+  project: AudioProject;
+  player: AnalizedPlayer;
+  renderer: AudioRenderer;
+}) {
   const playbackPosDiv = useRef<null | HTMLDivElement>(null);
   const [projectDiv, setProjectDiv] = useState<null | HTMLDivElement>(null);
   const [tracks] = useLinkedArray(project.allTracks);
@@ -148,7 +157,7 @@ export function TimelineView({ project, player }: { project: AudioProject; playe
         {projectDiv && <Axis project={project} projectDiv={projectDiv}></Axis>}
         {tracks.map(function (track, i) {
           const isDspExpanded = dspExpandedTracks.has(track);
-          return <Track key={i} track={track} project={project} isDspExpanded={isDspExpanded} />;
+          return <Track key={i} track={track} project={project} isDspExpanded={isDspExpanded} renderer={renderer} />;
         })}
         <div
           // ref={cursorPosDiv}
