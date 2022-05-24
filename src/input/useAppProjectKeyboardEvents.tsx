@@ -3,6 +3,7 @@ import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import { AudioProject, ProjectSelection } from "../lib/AudioProject";
 import { AudioRenderer } from "../lib/AudioRenderer";
 import { useLinkedState } from "../lib/LinkedState";
+import { modifierState } from "../ModifierState";
 
 export function useAppProjectKeyboardEvents(
   project: AudioProject,
@@ -10,6 +11,8 @@ export function useAppProjectKeyboardEvents(
   renderer: AudioRenderer
 ): void {
   const [, setTool] = useLinkedState(project.pointerTool);
+  const [, setRenameState] = useLinkedState(project.currentlyRenaming);
+  const [selected] = useLinkedState(project.selected);
 
   useEffect(() => {
     function keydownEvent(e: KeyboardEvent) {
@@ -27,13 +30,29 @@ export function useAppProjectKeyboardEvents(
       switch (e.code) {
         case "KeyM":
           setTool("move");
+          document.body.style.cursor = "auto";
           break;
         case "KeyS":
           setTool("trimStart");
+          document.body.style.cursor = "e-resize";
           break;
         case "KeyE":
           setTool("trimEnd");
+          document.body.style.cursor = "w-resize";
           break;
+
+        case "Enter": {
+          if (selected?.status !== "tracks") {
+            break;
+          }
+
+          // Rename
+          setRenameState({
+            status: "track",
+            track: selected.tracks[0],
+          });
+          break;
+        }
         default:
           console.log(e.code);
       }
@@ -49,11 +68,11 @@ export function useAppProjectKeyboardEvents(
     }
 
     document.addEventListener("keydown", keydownEvent);
-    document.addEventListener("keypress", keypressEvent, { capture: true });
+    document.addEventListener("keypress", keypressEvent);
     document.addEventListener("keyup", keyupEvent);
     return function () {
       document.removeEventListener("keydown", keydownEvent);
-      document.removeEventListener("keypress", keypressEvent, { capture: true });
+      document.removeEventListener("keypress", keypressEvent);
       document.removeEventListener("keyup", keyupEvent);
     };
   }, [player, project, renderer, setTool]);

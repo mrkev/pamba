@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CLIP_HEIGHT, EFFECT_HEIGHT } from "../globals";
 import { AudioProject, ProjectSelection } from "../lib/AudioProject";
 import type { AudioTrack } from "../lib/AudioTrack";
@@ -6,6 +6,7 @@ import { useLinkedState } from "../lib/LinkedState";
 import { useLinkedSet } from "../lib/LinkedSet";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import { useLinkedArray } from "../lib/LinkedArray";
+import { useRef } from "react";
 
 type Props = {
   isSelected: boolean;
@@ -20,10 +21,26 @@ export default function TrackHeader({ isSelected, track, project, player }: Prop
   const [dspExpandedTracks] = useLinkedSet(project.dspExpandedTracks);
   const [trackEffects] = useLinkedArray(track.effects);
   const [solodTracks] = useLinkedSet(project.solodTracks);
-  const [trackName] = useLinkedState(track.name);
+  const [trackName, setTrackName] = useLinkedState(track.name);
+  const [renameState, setRenameState] = useLinkedState(project.currentlyRenaming);
+  const renameInputRef = useRef<HTMLInputElement | null>(null);
 
   const isSolod = solodTracks.has(track);
   const isDspExpanded = dspExpandedTracks.has(track);
+
+  const isTrackBeingRenamed = renameState?.status === "track" && renameState.track === track;
+  useEffect(() => {
+    if (isTrackBeingRenamed) {
+      const stopRenaming = function () {
+        setRenameState(null);
+      };
+      document.addEventListener("mouseup", stopRenaming);
+      renameInputRef.current?.focus();
+      return () => {
+        document.removeEventListener("mouseup", stopRenaming);
+      };
+    }
+  }, [isTrackBeingRenamed, setRenameState]);
 
   return (
     <div
@@ -40,8 +57,35 @@ export default function TrackHeader({ isSelected, track, project, player }: Prop
           cursor: "pointer",
         }}
         onClick={() => ProjectSelection.selectTrack(project, track)}
+        onDoubleClick={() =>
+          setRenameState({
+            status: "track",
+            track,
+          })
+        }
       >
-        <button onClick={() => AudioProject.removeTrack(project, player, track)}>x</button> {trackName}
+        <button onClick={() => AudioProject.removeTrack(project, player, track)}>x</button>{" "}
+        {isTrackBeingRenamed ? (
+          <input
+            ref={renameInputRef}
+            style={{ width: 90 }}
+            type="text"
+            value={trackName}
+            onChange={(e) => setTrackName(e.target.value)}
+            onKeyDown={(e) => e.stopPropagation()}
+            onKeyUp={(e) => e.stopPropagation()}
+            onKeyPress={(e) => {
+              e.stopPropagation();
+              if (e.key === "Enter") {
+                setRenameState(null);
+              }
+            }}
+            onClick={(e) => e.stopPropagation()}
+            onMouseUp={(e) => e.stopPropagation()}
+          />
+        ) : (
+          trackName
+        )}
       </div>
       <button
         style={isSolod ? { background: "#5566EE" } : undefined}

@@ -43,6 +43,11 @@ export type SelectionState =
       end: number;
     };
 
+export type RenameState = {
+  status: "track";
+  track: AudioTrack;
+};
+
 export class AudioProject {
   timeMarkers: LinkedMap<number, string> = LinkedMap.create<number, string>();
   // Track data - should persist //
@@ -60,6 +65,8 @@ export class AudioProject {
 
   // the selected clip(s), track(s), etc
   selected = LinkedState.of<SelectionState | null>(null);
+  // the thing we're currently renaming, if any
+  currentlyRenaming = LinkedState.of<RenameState | null>(null);
   // the width of the selection at the playback cursor
   selectionWidth = LinkedState.of<number | null>(null);
   // the zoom level
