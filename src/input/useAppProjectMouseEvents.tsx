@@ -137,6 +137,7 @@ export function useAppProjectMouseEvents({
           const deltaXSecs = pxToSecs(e.clientX - pressed.clientX);
           const newOffset = Math.max(0, pressed.originalClipOffsetSec + deltaXSecs);
           pressed.clip.startOffsetSec = newOffset;
+          // TODO: rerender track to fix the visual bug
           pressed.clip.notifyUpdate();
           break;
         }
