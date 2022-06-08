@@ -3,6 +3,7 @@ import React from "react";
 import { exhaustive } from "./exhaustive";
 import { FaustSlider } from "./FaustSlider";
 import { FaustNodeSetParamFn } from "./Faust";
+import "./faust.css";
 
 export function FaustGroup({
   item,
@@ -45,7 +46,7 @@ export function FaustGroup({
         height: "100%",
         borderLeft: isTopLevel ? undefined : "1px solid black",
         // borderLeft: "1px solid black",
-        padding: isTopLevel ? "0px" : "0px 4px",
+        padding: isTopLevel ? "0px 0px 4px 0px" : "2px 4px",
         columnGap: 6,
         background: "gray",
         fontSize: 12,
@@ -59,14 +60,18 @@ export function FaustGroup({
             flexDirection: "row",
             justifyContent: "space-between",
             alignItems: "center",
+            padding: "0px 4px",
             background: isSelected ? "#555" : undefined,
           }}
           onClick={onHeaderClick}
         >
           <div>{label}</div>
-          <button disabled={!canDelete} onClick={onClickRemove}>
-            x
-          </button>
+          <div>
+            <button disabled>bypass</button>
+            <button disabled={!canDelete} onClick={onClickRemove}>
+              x
+            </button>
+          </div>
         </div>
       ) : (
         <div>{label}</div>

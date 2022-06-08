@@ -1,9 +1,10 @@
 import React from "react";
 import { AudioProject, SelectionState } from "../lib/AudioProject";
-import { useLinkedState } from "../lib/LinkedState";
-import { useLinkedArray } from "../lib/LinkedArray";
+import { useLinkedState } from "../lib/state/LinkedState";
+import { useLinkedArray } from "../lib/state/LinkedArray";
 import { exhaustive } from "../dsp/exhaustive";
-import { useLinkedMap } from "../lib/LinkedMap";
+import { useLinkedMap } from "../lib/state/LinkedMap";
+import { pressedState } from "../lib/linkedState/pressedState";
 
 export function stringOfSelected(sel: SelectionState | null): string {
   if (!sel) {
@@ -45,6 +46,7 @@ export function DebugData({ project }: { project: AudioProject }) {
   const [selectionWidth] = useLinkedState(project.selectionWidth);
   const [tracks] = useLinkedArray(project.allTracks);
   const [timeMarkers] = useLinkedMap(project.timeMarkers);
+  const [pressed] = useLinkedState(pressedState);
 
   const allState = tracks
     .map((track, i) => {
@@ -59,6 +61,7 @@ export function DebugData({ project }: { project: AudioProject }) {
         <br />
         Selected: {stringOfSelected(selected)}
         <br />
+        Pressed: {pressed?.status}
       </div>
       <pre>{allState}</pre>
       {timeMarkers.map((value, key) => (

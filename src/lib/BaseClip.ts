@@ -13,9 +13,7 @@
 // +--startOffsetSec--+
 // +--endOffsetSec-----------------------------+
 
-import { notify, Subbable } from "./LinkedState";
-
-export class BaseClip implements Subbable<BaseClip> {
+export class BaseClip {
   // A BaseClip represents media that has a certain length (in frames), but has
   // been trimmed to be of another length.
   readonly lengthSec: number; // seconds, whole buffer
@@ -39,13 +37,7 @@ export class BaseClip implements Subbable<BaseClip> {
     return `${this.startOffsetSec} [ ${this.trimStartSec} | -- | ${this.trimEndSec} ] ${this.endOffsetSec}`;
   }
 
-  constructor({
-    lengthSec,
-    sampleRate,
-  }: {
-    lengthSec: number;
-    sampleRate: number;
-  }) {
+  constructor({ lengthSec, sampleRate }: { lengthSec: number; sampleRate: number }) {
     // By default, there is no trim and the clip has offset 0
     this.lengthSec = lengthSec;
     this.sampleRate = sampleRate;
@@ -74,11 +66,9 @@ export class BaseClip implements Subbable<BaseClip> {
   }
   set startOffsetSec(secs: number) {
     this._startOffsetSec = secs;
-    this.didMutate();
   }
   set startOffsetFr(frs: number) {
     this._startOffsetSec = this.frToSec(frs);
-    this.didMutate();
   }
 
   // on the timeline, the x position where + width (duration)
@@ -102,7 +92,6 @@ export class BaseClip implements Subbable<BaseClip> {
     const delta = this.endOffsetSec - newEnd;
     this._trimEndSec = this._trimEndSec - delta;
     // TODO: verify if I have to do anything with trimStartSec
-    this.didMutate();
   }
 
   //
@@ -124,11 +113,9 @@ export class BaseClip implements Subbable<BaseClip> {
     }
 
     this._trimEndSec = s;
-    this.didMutate();
   }
   set trimEndFr(f: number) {
     this._trimEndSec = this.frToSec(f);
-    this.didMutate();
   }
 
   get durationSec() {
@@ -153,11 +140,9 @@ export class BaseClip implements Subbable<BaseClip> {
     }
 
     this._trimStartSec = s;
-    this.didMutate();
   }
   set trimStartFr(f: number) {
     this._trimStartSec = this.frToSec(f);
-    this.didMutate();
   }
 
   moveToOffsetSec(s: number) {
@@ -177,12 +162,5 @@ export class BaseClip implements Subbable<BaseClip> {
 
     this.startOffsetSec = timeSec;
     this.trimStartSec = this.trimStartSec + delta;
-  }
-
-  // Clips are subbable
-  _subscriptors: Set<(value: BaseClip) => void> = new Set();
-  // On mutation, they notify their subscribers that they changed
-  private didMutate() {
-    notify(this, this);
   }
 }

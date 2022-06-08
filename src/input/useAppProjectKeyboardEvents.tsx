@@ -2,8 +2,7 @@ import { useEffect } from "react";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import { AudioProject, ProjectSelection } from "../lib/AudioProject";
 import { AudioRenderer } from "../lib/AudioRenderer";
-import { useLinkedState } from "../lib/LinkedState";
-import { modifierState } from "../ModifierState";
+import { useLinkedState } from "../lib/state/LinkedState";
 
 export function useAppProjectKeyboardEvents(
   project: AudioProject,
@@ -45,7 +44,6 @@ export function useAppProjectKeyboardEvents(
           if (selected?.status !== "tracks") {
             break;
           }
-
           // Rename
           setRenameState({
             status: "track",
@@ -75,5 +73,5 @@ export function useAppProjectKeyboardEvents(
       document.removeEventListener("keypress", keypressEvent);
       document.removeEventListener("keyup", keyupEvent);
     };
-  }, [player, project, renderer, setTool]);
+  }, [player, project, renderer, selected, setRenameState, setTool]);
 }

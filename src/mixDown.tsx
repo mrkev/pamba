@@ -1,5 +1,5 @@
 import { staticAudioContext } from "./globals";
-import { AudioClip } from "./lib/AudioClip";
+import AudioClip from "./lib/AudioClip";
 
 // Mixes clips
 // from https://stackoverflow.com/questions/57155167/web-audio-api-playing-synchronized-sounds

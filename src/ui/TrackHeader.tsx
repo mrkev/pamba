@@ -2,10 +2,10 @@ import { useEffect, useState } from "react";
 import { CLIP_HEIGHT, EFFECT_HEIGHT } from "../globals";
 import { AudioProject, ProjectSelection } from "../lib/AudioProject";
 import type { AudioTrack } from "../lib/AudioTrack";
-import { useLinkedState } from "../lib/LinkedState";
-import { useLinkedSet } from "../lib/LinkedSet";
+import { useLinkedState } from "../lib/state/LinkedState";
+import { useLinkedSet } from "../lib/state/LinkedSet";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
-import { useLinkedArray } from "../lib/LinkedArray";
+import { useLinkedArray } from "../lib/state/LinkedArray";
 import { useRef } from "react";
 
 type Props = {

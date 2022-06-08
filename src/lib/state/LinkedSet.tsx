@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { Subbable, StateChangeHandler, notify, subscribe, StateDispath } from "./LinkedState";
+import { StateChangeHandler, StateDispath } from "./LinkedState";
+import { Subbable, notify, subscribe } from "./Subbable";
 
 export class LinkedSet<S> implements Set<S>, Subbable<ReadonlySet<S>> {
   private _set: ReadonlySet<S>;

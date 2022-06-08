@@ -3,9 +3,9 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT } from "../globals";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import { AudioProject } from "../lib/AudioProject";
 import { AudioRenderer } from "../lib/AudioRenderer";
-import { useLinkedState } from "../lib/LinkedState";
-import { useLinkedArray } from "../lib/LinkedArray";
-import { AudioClip } from "../lib/AudioClip";
+import { useLinkedState } from "../lib/state/LinkedState";
+import { useLinkedArray } from "../lib/state/LinkedArray";
+import AudioClip from "../lib/AudioClip";
 import { AudioTrack } from "../lib/AudioTrack";
 import { useMediaRecorder } from "../lib/useMediaRecorder";
 

@@ -1,15 +1,15 @@
 import { AudioTrack } from "./AudioTrack";
-import { LinkedState } from "./LinkedState";
-import { LinkedSet } from "./LinkedSet";
-import { DerivedState } from "./DerivedState";
-import { AudioClip } from "./AudioClip";
+import { LinkedState } from "./state/LinkedState";
+import { LinkedSet } from "./state/LinkedSet";
+import { DerivedState } from "./state/DerivedState";
+import AudioClip from "./AudioClip";
 import { scaleLinear } from "d3-scale";
 import type { ScaleLinear } from "d3-scale";
-import { LinkedArray } from "./LinkedArray";
+import { LinkedArray } from "./state/LinkedArray";
 import { AnalizedPlayer } from "./AnalizedPlayer";
 import { exhaustive } from "../dsp/exhaustive";
 import { FaustAudioEffect } from "../dsp/Faust";
-import { LinkedMap } from "./LinkedMap";
+import { LinkedMap } from "./state/LinkedMap";
 import { modifierState } from "../ModifierState";
 
 export type XScale = ScaleLinear<number, number>;

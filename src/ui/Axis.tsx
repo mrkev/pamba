@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import * as d3 from "d3";
 import { AudioProject } from "../lib/AudioProject";
-import { useDerivedState } from "../lib/DerivedState";
+import { useDerivedState } from "../lib/state/DerivedState";
 
 const formatter = new Intl.NumberFormat("en-US", {
   useGrouping: false,

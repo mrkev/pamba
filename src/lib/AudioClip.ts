@@ -3,13 +3,21 @@ import { dataURLForWaveform } from "./waveform";
 import { staticAudioContext } from "../globals";
 import { BaseClip } from "./BaseClip";
 import { SharedAudioBuffer } from "./SharedAudioBuffer";
+import { notify, Subbable } from "./state/Subbable";
 
 // A clip of audio
-export class AudioClip extends BaseClip {
+export default class AudioClip extends BaseClip implements Subbable<AudioClip> {
   readonly buffer: SharedAudioBuffer;
   readonly numberOfChannels: number;
   name: string;
   gainAutomation: Array<{ time: number; value: number }> = [{ time: 0, value: 1 }];
+
+  // AudioClips are subbable
+  _subscriptors: Set<(value: BaseClip) => void> = new Set();
+  // On mutation, they notify their subscribers that they changed
+  private notifyUpdate() {
+    notify(this, this);
+  }
 
   override toString() {
     return `${this.startOffsetSec.toFixed(2)} [ ${this.trimStartSec.toFixed(2)} | ${
@@ -31,6 +39,15 @@ export class AudioClip extends BaseClip {
     this.buffer = new SharedAudioBuffer(buffer);
     this.numberOfChannels = buffer.numberOfChannels;
     this.name = name;
+  }
+
+  /// MutationHashable ///
+  _hash: number = 0;
+  _getMutationHash(): number {
+    throw new Error("Method not implemented.");
+  }
+  _didMutate(): void {
+    throw new Error("Method not implemented.");
   }
 
   override clone() {

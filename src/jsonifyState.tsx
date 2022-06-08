@@ -1,12 +1,8 @@
-import { AudioClip } from "./lib/AudioClip";
+import AudioClip from "./lib/AudioClip";
 import { AudioTrack } from "./lib/AudioTrack";
 
 export function jsonifyState(val: unknown): any {
-  if (
-    typeof val === "number" ||
-    typeof val === "string" ||
-    typeof val === "undefined"
-  ) {
+  if (typeof val === "number" || typeof val === "string" || typeof val === "undefined") {
     return val;
   }
 

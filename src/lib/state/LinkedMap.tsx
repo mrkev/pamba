@@ -1,22 +1,17 @@
 import { useCallback, useEffect, useState } from "react";
-import { notify, StateChangeHandler, StateDispath, Subbable, subscribe } from "./LinkedState";
+import { StateChangeHandler, StateDispath } from "./LinkedState";
+import { MutationHashable } from "./MutationHashable";
+import { notify, Subbable, subscribe } from "./Subbable";
 
-export abstract class MutationHashable {
-  private _hash = 0;
-  _getMutationHash(): number {
-    return this._hash;
-  }
-  _didMutate() {
-    this._hash = (this._hash + 1) % Number.MAX_SAFE_INTEGER;
-  }
-}
-
-export class LinkedMap<K, V> extends MutationHashable implements Map<K, V>, Subbable<ReadonlyMap<K, V>> {
-  _subscriptors = new Set<StateChangeHandler<ReadonlyMap<K, V>>>();
+export class LinkedMap<K, V> implements MutationHashable, Map<K, V>, Subbable<ReadonlyMap<K, V>> {
   private _map = new Map<K, V>();
+
+  _subscriptors = new Set<StateChangeHandler<ReadonlyMap<K, V>>>();
+  _hash: number = 0;
+
   _setRaw(map: ReadonlyMap<K, V>) {
     this._map = new Map(map);
-    this._didMutate();
+    MutationHashable.mutated(this);
     notify(this, this._map);
   }
 
@@ -25,7 +20,6 @@ export class LinkedMap<K, V> extends MutationHashable implements Map<K, V>, Subb
   }
 
   private constructor(initialValue: Map<K, V>) {
-    super();
     this._map = initialValue;
   }
 
@@ -47,14 +41,14 @@ export class LinkedMap<K, V> extends MutationHashable implements Map<K, V>, Subb
   // Map<K, V> interface, mutates
   clear(): void {
     this._map.clear();
-    this._didMutate();
+    MutationHashable.mutated(this);
     notify(this, this._map);
   }
 
   // Map<K, V> interface, mutates
   delete(key: K): boolean {
     const result = this._map.delete(key);
-    this._didMutate();
+    MutationHashable.mutated(this);
     notify(this, this._map);
     return result;
   }
@@ -77,7 +71,7 @@ export class LinkedMap<K, V> extends MutationHashable implements Map<K, V>, Subb
   // Map<K, V> interface, mutates
   set(key: K, value: V): this {
     this._map.set(key, value);
-    this._didMutate();
+    MutationHashable.mutated(this);
     notify(this, this._map);
     return this;
   }
@@ -114,7 +108,7 @@ export class LinkedMap<K, V> extends MutationHashable implements Map<K, V>, Subb
 }
 
 export function useLinkedMap<K, V>(linkedMap: LinkedMap<K, V>): [LinkedMap<K, V>, StateDispath<ReadonlyMap<K, V>>] {
-  const [, setHash] = useState(() => linkedMap._getMutationHash());
+  const [, setHash] = useState(() => MutationHashable.getMutationHash(linkedMap));
 
   useEffect(() => {
     return subscribe(linkedMap, () => {

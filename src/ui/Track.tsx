@@ -2,13 +2,13 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { FAUST_EFFECTS } from "../dsp/Faust";
 import FaustEffectModule from "../dsp/FaustEffectModule";
 import { CLIP_HEIGHT, EFFECT_HEIGHT, TRACK_SEPARATOR_HEIGHT } from "../globals";
-import { AudioClip } from "../lib/AudioClip";
+import AudioClip from "../lib/AudioClip";
 import { AudioProject } from "../lib/AudioProject";
 import { AudioRenderer } from "../lib/AudioRenderer";
 import { AudioTrack } from "../lib/AudioTrack";
-import { useDerivedState } from "../lib/DerivedState";
-import { useLinkedArray } from "../lib/LinkedArray";
-import { useLinkedState } from "../lib/LinkedState";
+import { useDerivedState } from "../lib/state/DerivedState";
+import { useLinkedArray } from "../lib/state/LinkedArray";
+import { useLinkedState } from "../lib/state/LinkedState";
 import { pressedState } from "../lib/linkedState/pressedState";
 import { Clip } from "./Clip";
 
@@ -122,7 +122,12 @@ export function Track({
           // So it "sticks" when we scroll the timeline
           position: "sticky",
           left: "0",
-          pointerEvents: "none",
+          // pointerEvents: "none",
+          cursor: "ns-resize",
+        }}
+        onMouseDown={(e) => {
+          console.log("HI");
+          setPressed({ status: "resizing_track", clientX: e.clientX, clientY: e.clientY, track });
         }}
       ></div>
     </>
@@ -144,10 +149,11 @@ const styles = {
     left: "0",
     overscrollBehavior: "none",
     overflowX: "scroll",
+    padding: "6px 0px 11px 0px",
   },
 } as const;
 
-const EffectRack = React.memo(function ({
+const EffectRack = React.memo(function EffectRack({
   track,
   project,
   renderer,

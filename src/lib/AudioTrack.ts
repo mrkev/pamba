@@ -1,11 +1,11 @@
-import { AudioClip } from "./AudioClip";
-import { liveAudioContext } from "../globals";
+import AudioClip from "./AudioClip";
+import { CLIP_HEIGHT, liveAudioContext } from "../globals";
 import { mixDown } from "../mixDown";
 import { addClip, deleteTime, removeClip, pushClip } from "./AudioTrackFn";
 import { FaustAudioEffect, FaustEffectThunk } from "../dsp/Faust";
 import { TrackThread } from "./TrackThread";
-import { LinkedArray } from "./LinkedArray";
-import { LinkedState } from "./LinkedState";
+import { LinkedArray } from "./state/LinkedArray";
+import { LinkedState } from "./state/LinkedState";
 
 let trackNo = 0;
 
@@ -29,6 +29,10 @@ export class AudioTrack {
   // Hidden gain node, just for solo-ing tracks.
   private _hiddenGainNode = new GainNode(liveAudioContext);
   private outNode: AudioNode | null = null;
+
+  // Display //
+
+  public trackHeight = LinkedState.of<number>(CLIP_HEIGHT);
 
   static empty() {
     return new AudioTrack();

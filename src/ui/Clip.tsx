@@ -1,13 +1,13 @@
 import { CLIP_HEIGHT } from "../globals";
-import { useLinkedState } from "../lib/LinkedState";
+import { useLinkedState } from "../lib/state/LinkedState";
 import { pressedState } from "../lib/linkedState/pressedState";
 import { modifierState } from "../ModifierState";
 
 import React from "react";
 import type { AudioProject, Tool, XScale } from "../lib/AudioProject";
 import type { AudioTrack } from "../lib/AudioTrack";
-import type { AudioClip } from "../lib/AudioClip";
-import { useDerivedState } from "../lib/DerivedState";
+import type AudioClip from "../lib/AudioClip";
+import { useDerivedState } from "../lib/state/DerivedState";
 import { scaleLinear } from "d3-scale";
 
 type Props = {
@@ -186,7 +186,7 @@ export function Clip({ clip, tool, rerender, isSelected, style = {}, project, tr
 // effect with gain, mute, etc. show it as a "header utility" with "track gain",
 // mute, etc? That or generalize the special fade-in UI to any automation,
 // except the cool thing about the UI is you can't go past max=1
-function ClipAutomation({ clip, secsToPx }: { clip: AudioClip; secsToPx: XScale }) {
+function _ClipAutomation({ clip, secsToPx }: { clip: AudioClip; secsToPx: XScale }) {
   const MAX_GAIN = 2;
   const MIN_GAIN = 0;
 

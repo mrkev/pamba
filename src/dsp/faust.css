@@ -1,0 +1,4 @@
+.faust-toplevel-group div:first-child {
+  /* background-color: red; */
+  border-left: 1px solid black;
+}

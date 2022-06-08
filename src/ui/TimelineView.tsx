@@ -4,14 +4,13 @@ import { Axis } from "./Axis";
 import { CLIP_HEIGHT } from "../globals";
 import { AudioProject } from "../lib/AudioProject";
 
-import { useDerivedState } from "../lib/DerivedState";
-import { useLinkedArray } from "../lib/LinkedArray";
-import { useLinkedSet } from "../lib/LinkedSet";
-import { useLinkedState } from "../lib/LinkedState";
+import { useDerivedState } from "../lib/state/DerivedState";
+import { useLinkedArray } from "../lib/state/LinkedArray";
+import { useLinkedSet } from "../lib/state/LinkedSet";
+import { useLinkedState } from "../lib/state/LinkedState";
 import { Track } from "./Track";
 import TrackHeader from "./TrackHeader";
 import { useAppProjectMouseEvents } from "../input/useAppProjectMouseEvents";
-import { useLinkedMap } from "../lib/LinkedMap";
 import { AudioRenderer } from "../lib/AudioRenderer";
 
 export function TimelineView({

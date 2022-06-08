@@ -1,5 +1,5 @@
 import { Serializable, Serialized } from "./Serializable";
-import { LinkedState } from "./LinkedState";
+import { LinkedState } from "./state/LinkedState";
 // import { Serializable, JsonProperty } from "typescript-json-serializer";
 // import { deserialize, serialize } from "typescript-json-serializer";
 

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { useCallback, useEffect, useState } from "react";
-import { Subbable, StateChangeHandler, notify, StateDispath, subscribe } from "./LinkedState";
+import { StateChangeHandler, StateDispath } from "./LinkedState";
+import { Subbable, notify, subscribe } from "./Subbable";
 
 // .sort, .reverse, .fill, .copyWithin operate in place and return the array. SubbableArray
 // is not quite an array so the return types don't match.

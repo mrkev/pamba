@@ -1,4 +1,4 @@
-import { LinkedState } from "./LinkedState";
+import { LinkedState } from "./state/LinkedState";
 import { AnalizedPlayer } from "./AnalizedPlayer";
 import bufferToWav from "audiobuffer-to-wav";
 import { AudioProject } from "./AudioProject";

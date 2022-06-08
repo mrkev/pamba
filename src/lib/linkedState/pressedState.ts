@@ -1,6 +1,6 @@
-import { AudioClip } from "../AudioClip";
+import AudioClip from "../AudioClip";
 import { AudioTrack } from "../AudioTrack";
-import { LinkedState } from "../LinkedState";
+import { LinkedState } from "../state/LinkedState";
 
 export type CursorState =
   | {
@@ -30,7 +30,12 @@ export type CursorState =
       clip: AudioClip;
       clientX: number;
       clientY: number;
+    }
+  | {
+      status: "resizing_track";
+      track: AudioTrack;
+      clientX: number;
+      clientY: number;
     };
 
-export const pressedState: LinkedState<CursorState | null> =
-  LinkedState.of<CursorState | null>(null);
+export const pressedState: LinkedState<CursorState | null> = LinkedState.of<CursorState | null>(null);
