@@ -86,10 +86,6 @@ export function Track({
               isSelected={isSelected}
               track={track}
               project={project}
-              style={{
-                position: "absolute",
-                left: secsToPx(clip.startOffsetSec),
-              }}
             />
           );
         })}

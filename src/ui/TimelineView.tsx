@@ -1,17 +1,16 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import { AnalizedPlayer } from "../lib/AnalizedPlayer";
-import { Axis } from "./Axis";
+import React, { useEffect, useRef, useState } from "react";
 import { CLIP_HEIGHT } from "../globals";
+import { useAppProjectMouseEvents } from "../input/useAppProjectMouseEvents";
+import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import { AudioProject } from "../lib/AudioProject";
-
+import { AudioRenderer } from "../lib/AudioRenderer";
 import { useDerivedState } from "../lib/state/DerivedState";
 import { useLinkedArray } from "../lib/state/LinkedArray";
 import { useLinkedSet } from "../lib/state/LinkedSet";
 import { useLinkedState } from "../lib/state/LinkedState";
+import { Axis } from "./Axis";
 import { Track } from "./Track";
 import TrackHeader from "./TrackHeader";
-import { useAppProjectMouseEvents } from "../input/useAppProjectMouseEvents";
-import { AudioRenderer } from "../lib/AudioRenderer";
 
 export function TimelineView({
   project,
@@ -33,11 +32,6 @@ export function TimelineView({
   const [selectionWidth] = useLinkedState(project.selectionWidth);
   const [viewportStartSecs, setViewportStartSecs] = useLinkedState(project.viewportStartSecs);
 
-  const [, setStateCounter] = useState<number>(0);
-  const rerender = useCallback(function () {
-    setStateCounter((x) => x + 1);
-  }, []);
-
   useEffect(() => {
     const pbdiv = playbackPosDiv.current;
     if (pbdiv) {
@@ -57,7 +51,6 @@ export function TimelineView({
   useAppProjectMouseEvents({
     project,
     projectDiv,
-    rerender,
   });
 
   useEffect(() => {

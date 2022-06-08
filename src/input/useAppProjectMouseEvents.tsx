@@ -8,11 +8,9 @@ import { pressedState } from "../lib/linkedState/pressedState";
 export function useAppProjectMouseEvents({
   project,
   projectDiv,
-  rerender,
 }: {
   project: AudioProject;
   projectDiv: HTMLDivElement | null;
-  rerender: () => void;
 }): void {
   const [pressed, setPressed] = useLinkedState(pressedState);
   const [, setCursorPos] = useLinkedState(project.cursorPos);
@@ -139,7 +137,7 @@ export function useAppProjectMouseEvents({
           const deltaXSecs = pxToSecs(e.clientX - pressed.clientX);
           const newOffset = Math.max(0, pressed.originalClipOffsetSec + deltaXSecs);
           pressed.clip.startOffsetSec = newOffset;
-          rerender();
+          pressed.clip.notifyUpdate();
           break;
         }
 
@@ -167,7 +165,7 @@ export function useAppProjectMouseEvents({
             pressed.clip.startOffsetSec = newOffset;
           }
 
-          rerender();
+          pressed.clip.notifyUpdate();
           break;
         }
 
@@ -194,5 +192,5 @@ export function useAppProjectMouseEvents({
       document.removeEventListener("mouseup", mouseUpEvent);
       document.removeEventListener("mousemove", mouseMoveEvent);
     };
-  }, [pressed, projectDiv, rerender, secsToPx, setCursorPos, setPressed, setSelected, setSelectionWidth]);
+  }, [pressed, projectDiv, secsToPx, setCursorPos, setPressed, setSelected, setSelectionWidth]);
 }

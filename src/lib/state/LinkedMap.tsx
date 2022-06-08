@@ -3,7 +3,7 @@ import { StateChangeHandler, StateDispath } from "./LinkedState";
 import { MutationHashable } from "./MutationHashable";
 import { notify, Subbable, subscribe } from "./Subbable";
 
-export class LinkedMap<K, V> implements MutationHashable, Map<K, V>, Subbable<ReadonlyMap<K, V>> {
+export class LinkedMap<K, V> implements Map<K, V>, Subbable<ReadonlyMap<K, V>>, MutationHashable {
   private _map = new Map<K, V>();
 
   _subscriptors = new Set<StateChangeHandler<ReadonlyMap<K, V>>>();
@@ -108,13 +108,7 @@ export class LinkedMap<K, V> implements MutationHashable, Map<K, V>, Subbable<Re
 }
 
 export function useLinkedMap<K, V>(linkedMap: LinkedMap<K, V>): [LinkedMap<K, V>, StateDispath<ReadonlyMap<K, V>>] {
-  const [, setHash] = useState(() => MutationHashable.getMutationHash(linkedMap));
-
-  useEffect(() => {
-    return subscribe(linkedMap, () => {
-      setHash((prev) => (prev + 1) % Number.MAX_SAFE_INTEGER);
-    });
-  }, [linkedMap]);
+  useSubscribeToSubbableMutationHashable(linkedMap);
 
   const setter: StateDispath<ReadonlyMap<K, V>> = useCallback(
     function (newVal) {
@@ -128,4 +122,16 @@ export function useLinkedMap<K, V>(linkedMap: LinkedMap<K, V>): [LinkedMap<K, V>
   );
 
   return [linkedMap, setter];
+}
+
+export function useSubscribeToSubbableMutationHashable<T extends MutationHashable & Subbable<any>>(obj: T): T {
+  const [, setHash] = useState(() => MutationHashable.getMutationHash(obj));
+
+  useEffect(() => {
+    return subscribe(obj, () => {
+      setHash((prev) => (prev + 1) % Number.MAX_SAFE_INTEGER);
+    });
+  }, [obj]);
+
+  return obj;
 }

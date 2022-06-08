@@ -9,6 +9,7 @@ import type { AudioTrack } from "../lib/AudioTrack";
 import type AudioClip from "../lib/AudioClip";
 import { useDerivedState } from "../lib/state/DerivedState";
 import { scaleLinear } from "d3-scale";
+import { useSubscribeToSubbableMutationHashable } from "../lib/state/LinkedMap";
 
 type Props = {
   clip: AudioClip;
@@ -51,6 +52,8 @@ export function Clip({ clip, tool, rerender, isSelected, style = {}, project, tr
   const [, setPressed] = useLinkedState(pressedState);
   const [, setSelectionWidth] = useLinkedState(project.selectionWidth);
   const [, setSelected] = useLinkedState(project.selected);
+
+  useSubscribeToSubbableMutationHashable(clip);
 
   function onMouseDownToResize(e: React.MouseEvent<HTMLDivElement>, from: "start" | "end") {
     e.stopPropagation();
@@ -154,6 +157,8 @@ export function Clip({ clip, tool, rerender, isSelected, style = {}, project, tr
         pointerEvents: "all",
         display: "flex",
         flexDirection: "column",
+        position: "absolute",
+        left: secsToPx(clip.startOffsetSec),
         ...style,
       }}
     >

@@ -4,20 +4,14 @@ import { staticAudioContext } from "../globals";
 import { BaseClip } from "./BaseClip";
 import { SharedAudioBuffer } from "./SharedAudioBuffer";
 import { notify, Subbable } from "./state/Subbable";
+import { MutationHashable } from "./state/MutationHashable";
 
 // A clip of audio
-export default class AudioClip extends BaseClip implements Subbable<AudioClip> {
+export default class AudioClip extends BaseClip implements Subbable<AudioClip>, MutationHashable {
   readonly buffer: SharedAudioBuffer;
   readonly numberOfChannels: number;
   name: string;
   gainAutomation: Array<{ time: number; value: number }> = [{ time: 0, value: 1 }];
-
-  // AudioClips are subbable
-  _subscriptors: Set<(value: BaseClip) => void> = new Set();
-  // On mutation, they notify their subscribers that they changed
-  private notifyUpdate() {
-    notify(this, this);
-  }
 
   override toString() {
     return `${this.startOffsetSec.toFixed(2)} [ ${this.trimStartSec.toFixed(2)} | ${
@@ -43,11 +37,15 @@ export default class AudioClip extends BaseClip implements Subbable<AudioClip> {
 
   /// MutationHashable ///
   _hash: number = 0;
-  _getMutationHash(): number {
-    throw new Error("Method not implemented.");
-  }
-  _didMutate(): void {
-    throw new Error("Method not implemented.");
+
+  /// Subbable ///
+
+  // AudioClips are subbable
+  _subscriptors: Set<(value: BaseClip) => void> = new Set();
+  // On mutation, they notify their subscribers that they changed
+  public notifyUpdate() {
+    MutationHashable.mutated(this);
+    notify(this, this);
   }
 
   override clone() {
