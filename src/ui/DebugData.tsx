@@ -6,6 +6,8 @@ import { exhaustive } from "../dsp/exhaustive";
 import { useLinkedMap } from "../lib/state/LinkedMap";
 import { pressedState } from "../lib/linkedState/pressedState";
 
+const styles = {};
+
 export function stringOfSelected(sel: SelectionState | null): string {
   if (!sel) {
     return "";
@@ -55,7 +57,16 @@ export function DebugData({ project }: { project: AudioProject }) {
     .join("\n");
 
   return (
-    <>
+    <div
+      style={{
+        fontSize: 12,
+        position: "absolute",
+        bottom: 0,
+        background: "rgba(233,233,233,0.3)",
+        pointerEvents: "none",
+        border: "1px solid black",
+      }}
+    >
       <div>
         Cursor: {cursorPos} {selectionWidth}
         <br />
@@ -76,6 +87,6 @@ export function DebugData({ project }: { project: AudioProject }) {
       >
         timeMarker/LinkedMap Test
       </button>
-    </>
+    </div>
   );
 }

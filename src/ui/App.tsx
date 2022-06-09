@@ -37,8 +37,7 @@ function App() {
 
   return (
     <>
-      <div className="App">
-        {/* <button
+      {/* <button
           onClick={() => {
             arr[1] = 329;
             console.log("TEST WORKER");
@@ -47,14 +46,14 @@ function App() {
         >
           test
         </button> */}
-        <ToolHeader
-          project={project}
-          player={renderer.analizedPlayer}
-          firebaseStoreRef={firebaseStoreRef}
-          renderer={renderer}
-        />
-        <TimelineView project={project} player={renderer.analizedPlayer} renderer={renderer} />
-      </div>
+      <ToolHeader
+        project={project}
+        player={renderer.analizedPlayer}
+        firebaseStoreRef={firebaseStoreRef}
+        renderer={renderer}
+      />
+      <TimelineView project={project} player={renderer.analizedPlayer} renderer={renderer} />
+
       <DebugData project={project} />
     </>
   );

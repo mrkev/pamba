@@ -3,7 +3,7 @@ import { useLinkedState } from "../lib/state/LinkedState";
 import { pressedState } from "../lib/linkedState/pressedState";
 import { modifierState } from "../ModifierState";
 
-import React from "react";
+import React, { useEffect } from "react";
 import type { AudioProject, Tool, XScale } from "../lib/AudioProject";
 import type { AudioTrack } from "../lib/AudioTrack";
 import type AudioClip from "../lib/AudioClip";
@@ -53,7 +53,9 @@ export function Clip({ clip, tool, rerender, isSelected, style = {}, project, tr
   const [, setSelectionWidth] = useLinkedState(project.selectionWidth);
   const [, setSelected] = useLinkedState(project.selected);
 
-  useSubscribeToSubbableMutationHashable(clip);
+  useSubscribeToSubbableMutationHashable(clip, () => {
+    rerender();
+  });
 
   function onMouseDownToResize(e: React.MouseEvent<HTMLDivElement>, from: "start" | "end") {
     e.stopPropagation();
@@ -115,17 +117,14 @@ export function Clip({ clip, tool, rerender, isSelected, style = {}, project, tr
       const asSec = pxToSecs(pxFromStartOfClip);
       clip.trimStartSec += asSec;
       clip.startOffsetSec += asSec;
-      // console.log("asdfasdf");
-      rerender();
+      clip.notifyUpdate();
     }
     if (tool === "trimEnd") {
       const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
       const secsFromStartPos = pxToSecs(pxFromStartOfClip);
       const secsFromZero = clip.trimStartSec + secsFromStartPos;
       clip.trimEndSec = secsFromZero;
-      // console.log("pxFromStartOfClip", pxFromStartOfClip, secsFromZero, "s");
-      // console.log("clip.endPosSec", clip.trimEndSec);
-      rerender();
+      clip.notifyUpdate();
     }
   }
 

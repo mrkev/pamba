@@ -124,14 +124,18 @@ export function useLinkedMap<K, V>(linkedMap: LinkedMap<K, V>): [LinkedMap<K, V>
   return [linkedMap, setter];
 }
 
-export function useSubscribeToSubbableMutationHashable<T extends MutationHashable & Subbable<any>>(obj: T): T {
+export function useSubscribeToSubbableMutationHashable<T extends MutationHashable & Subbable<any>>(
+  obj: T,
+  cb?: () => void
+): T {
   const [, setHash] = useState(() => MutationHashable.getMutationHash(obj));
 
   useEffect(() => {
     return subscribe(obj, () => {
       setHash((prev) => (prev + 1) % Number.MAX_SAFE_INTEGER);
+      cb?.();
     });
-  }, [obj]);
+  }, [cb, obj]);
 
   return obj;
 }

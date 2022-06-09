@@ -66,15 +66,6 @@ export function useLinkedState<S>(linkedState: LinkedState<S>): [S, StateDispath
 
 type Map<T> = { [key: string]: T };
 
-function _useChangeListener<S extends Subbable<S>>(subbable: S): void {
-  const [, setState] = useState<number>(0);
-  useEffect(() => {
-    return subscribe(subbable, (_) => {
-      setState((prev) => prev + 1);
-    });
-  }, [subbable]);
-}
-
 // LinkedMap X
 // LinkedArray X
 // LinkedSet X

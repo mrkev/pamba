@@ -6,7 +6,6 @@ import AudioClip from "../lib/AudioClip";
 import { AudioProject } from "../lib/AudioProject";
 import { AudioRenderer } from "../lib/AudioRenderer";
 import { AudioTrack } from "../lib/AudioTrack";
-import { useDerivedState } from "../lib/state/DerivedState";
 import { useLinkedArray } from "../lib/state/LinkedArray";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { pressedState } from "../lib/linkedState/pressedState";
@@ -26,7 +25,6 @@ export function Track({
   const [pressed, setPressed] = useLinkedState(pressedState);
   const [selected] = useLinkedState(project.selected);
   const [tool] = useLinkedState(project.pointerTool);
-  const secsToPx = useDerivedState(project.secsToPx);
   const [clips] = useLinkedArray(track.clips);
   const [, setStateCounter] = useState(0);
   const rerender = useCallback(function () {
@@ -91,18 +89,7 @@ export function Track({
         })}
         {/* RENDER CLIP BEING MOVED */}
         {pressed && pressed.status === "moving_clip" && pressed.track === track && (
-          <Clip
-            clip={pressed.clip}
-            tool={tool}
-            rerender={rerender}
-            isSelected={true}
-            project={project}
-            track={null}
-            style={{
-              position: "absolute",
-              left: secsToPx(pressed.clip.startOffsetSec),
-            }}
-          />
+          <Clip clip={pressed.clip} tool={tool} rerender={rerender} isSelected={true} project={project} track={null} />
         )}
       </div>
       {/* EFFECT RACK */}

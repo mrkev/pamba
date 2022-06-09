@@ -132,6 +132,7 @@ export function TimelineView({
         width: "100%",
         display: "flex",
         flexDirection: "row",
+        flexGrow: 1,
       }}
     >
       {/* The whole width of this div is 90s */}
