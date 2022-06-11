@@ -46,6 +46,7 @@ export function TimelineView({
   const playbackPosDiv = useRef<null | HTMLDivElement>(null);
   const [projectDiv, setProjectDiv] = useState<null | HTMLDivElement>(null);
   const [tracks] = useLinkedArray(project.allTracks);
+  const [selected] = useLinkedState(project.selected);
   const [scaleFactor, setScaleFactor] = useLinkedState(project.scaleFactor);
   const [dspExpandedTracks] = useLinkedSet(project.dspExpandedTracks);
   const secsToPx = useDerivedState(project.secsToPx);
@@ -201,21 +202,12 @@ export function TimelineView({
             display: "flex",
             alignItems: "center",
             flexDirection: "row",
+            justifyContent: "space-evenly",
           }}
         >
-          {/* Spacer for the axis */}
+          {"↑"}
 
-          <input
-            type="range"
-            min={Math.log(1)}
-            max={Math.log(100)}
-            step={0.01}
-            value={Math.log(scaleFactor)}
-            onChange={(e) => {
-              const val = parseFloat(e.target.value);
-              setScaleFactor(Math.exp(val));
-            }}
-          />
+          <BounceButton project={project} renderer={renderer} />
         </div>
         {tracks.map((track, i) => {
           return <TrackHeader key={i} track={track} project={project} player={player} />;
@@ -228,8 +220,32 @@ export function TimelineView({
           >
             new track
           </button>
+          <input
+            type="range"
+            min={Math.log(1)}
+            max={Math.log(100)}
+            step={0.01}
+            value={Math.log(scaleFactor)}
+            onChange={(e) => {
+              const val = parseFloat(e.target.value);
+              setScaleFactor(Math.exp(val));
+            }}
+          />
         </div>
       </div>
     </div>
+  );
+}
+
+function BounceButton({ project, renderer }: { project: AudioProject; renderer: AudioRenderer }) {
+  const [selectionWidth] = useLinkedState(project.selectionWidth);
+  return (
+    <button
+      onClick={() => {
+        AudioRenderer.bounceSelection(renderer, project);
+      }}
+    >
+      {selectionWidth && selectionWidth > 0 ? "bounce selected" : "bounce all"}
+    </button>
   );
 }

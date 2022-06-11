@@ -1,16 +1,15 @@
+import React from "react";
+import { css } from "@linaria/core";
+import { scaleLinear } from "d3-scale";
 import { CLIP_HEIGHT } from "../globals";
-import { useLinkedState } from "../lib/state/LinkedState";
-import { pressedState } from "../lib/linkedState/pressedState";
-import { modifierState } from "../ModifierState";
-
-import React, { useEffect } from "react";
+import type AudioClip from "../lib/AudioClip";
 import type { AudioProject, Tool, XScale } from "../lib/AudioProject";
 import type { AudioTrack } from "../lib/AudioTrack";
-import type AudioClip from "../lib/AudioClip";
+import { pressedState } from "../lib/linkedState/pressedState";
 import { useDerivedState } from "../lib/state/DerivedState";
-import { scaleLinear } from "d3-scale";
 import { useSubscribeToSubbableMutationHashable } from "../lib/state/LinkedMap";
-import { css } from "@linaria/core";
+import { useLinkedState } from "../lib/state/LinkedState";
+import { modifierState } from "../ModifierState";
 
 type Props = {
   clip: AudioClip;

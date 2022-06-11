@@ -16,19 +16,6 @@ function ToolDisplay({ project }: { project: AudioProject }) {
   );
 }
 
-function BounceButton({ project, renderer }: { project: AudioProject; renderer: AudioRenderer }) {
-  const [selectionWidth] = useLinkedState(project.selectionWidth);
-  return (
-    <button
-      onClick={() => {
-        AudioRenderer.bounceSelection(renderer, project);
-      }}
-    >
-      {selectionWidth && selectionWidth > 0 ? "bounce selected" : "bounce all"}
-    </button>
-  );
-}
-
 export function ToolHeader({
   project,
   player,
@@ -83,7 +70,7 @@ export function ToolHeader({
             justifyContent: "right",
           }}
         >
-          <BounceButton project={project} renderer={renderer} />
+          {/* <BounceButton project={project} renderer={renderer} /> */}
           {bounceURL && (
             <a href={bounceURL} download={"bounce.wav"}>
               Download bounce

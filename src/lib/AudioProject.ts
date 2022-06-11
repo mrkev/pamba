@@ -12,6 +12,12 @@ import { FaustAudioEffect } from "../dsp/Faust";
 import { LinkedMap } from "./state/LinkedMap";
 import { modifierState } from "../ModifierState";
 
+/**
+ * TODO:
+ * - Make timeline view track separator taller, like the one on the TrackHeader
+ *   so it's easier to grab.
+ */
+
 export type XScale = ScaleLinear<number, number>;
 
 export type Tool = "move" | "trimStart" | "trimEnd";

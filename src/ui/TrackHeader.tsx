@@ -24,7 +24,11 @@ const styles = {
     font-weight: bold;
     padding: 1px 6px;
     height: 16px;
-    border: 1px solid black;
+    border: none;
+    background: #d3d3d3;
+    cursor: pointer;
+    margin-left: 2px;
+    // border: 1px solid black;
   `,
   utilitySlider: css`
     appearance: none;
@@ -37,6 +41,11 @@ const styles = {
       cursor: ew-resize;
       background: black;
     }
+  `,
+  actionButton: css`
+    cursor: pointer;
+    border: none;
+    background: #d3d3d3;
   `,
 } as const;
 
@@ -100,7 +109,7 @@ export default function TrackHeader({ track, project, player }: Props) {
     >
       <div
         style={{
-          background: isSelected ? "#eee" : "white",
+          // background: isSelected ? "#eee" : "white",
           height: height - TRACK_SEPARATOR_HEIGHT,
           position: "relative",
           userSelect: "none",
@@ -111,13 +120,16 @@ export default function TrackHeader({ track, project, player }: Props) {
       >
         <div
           style={{
-            background: isSelected ? "#333" : "#eee",
+            background: isSelected ? "#333" : "white",
             color: isSelected ? "white" : "black",
             userSelect: "none",
             cursor: "pointer",
             display: "flex",
             flexDirection: "row",
             justifyContent: "space-between",
+            alignItems: "center",
+            fontSize: "0.8em",
+            paddingLeft: "4px",
           }}
           onClick={() => ProjectSelection.selectTrack(project, track)}
         >
@@ -127,7 +139,9 @@ export default function TrackHeader({ track, project, player }: Props) {
             setValue={setTrackName}
             renameState={renameStateDescriptor}
           />
-          <button onClick={() => AudioProject.removeTrack(project, player, track)}>x</button>{" "}
+          <button className={styles.actionButton} onClick={() => AudioProject.removeTrack(project, player, track)}>
+            x
+          </button>{" "}
         </div>
         <div style={{ display: "flex", flexDirection: "row", alignItems: "center" }}>
           <button
@@ -188,8 +202,11 @@ export default function TrackHeader({ track, project, player }: Props) {
         </div>
         <div style={{ flexGrow: 1 }}></div>
         <button
+          className={styles.actionButton}
           style={{
-            background: isDspExpanded ? "#5566EE" : undefined,
+            background: isDspExpanded ? "#444" : undefined,
+            color: isDspExpanded ? "white" : undefined,
+            fontSize: "0.8em",
           }}
           onClick={function () {
             if (dspExpandedTracks.has(track)) {
@@ -199,7 +216,7 @@ export default function TrackHeader({ track, project, player }: Props) {
             }
           }}
         >
-          Expand ({trackEffects.length})
+          DSP ({trackEffects.length})
         </button>
       </div>
       {isDspExpanded ? (

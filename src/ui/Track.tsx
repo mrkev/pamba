@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { FAUST_EFFECTS } from "../dsp/Faust";
 import FaustEffectModule from "../dsp/FaustEffectModule";
 import { EFFECT_HEIGHT, TRACK_SEPARATOR_HEIGHT } from "../globals";
 import AudioClip from "../lib/AudioClip";
