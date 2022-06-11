@@ -5,6 +5,11 @@
   "dependencies": {
     "@babel/core": "^7.16.0",
     "@babel/helper-environment-visitor": "7.18.2",
+    "@linaria/babel-preset": "^3.0.0-beta.20",
+    "@linaria/core": "^3.0.0-beta.20",
+    "@linaria/react": "^3.0.0-beta.20",
+    "@linaria/shaker": "^3.0.0-beta.20",
+    "@linaria/webpack-loader": "^3.0.0-beta.20",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.5.3",
     "@shren/faust-ui": "1.0.4",
     "@shren/typed-event-emitter": "1.1.1",

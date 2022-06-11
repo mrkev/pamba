@@ -53,7 +53,6 @@ function App() {
         renderer={renderer}
       />
       <TimelineView project={project} player={renderer.analizedPlayer} renderer={renderer} />
-
       <DebugData project={project} />
     </>
   );

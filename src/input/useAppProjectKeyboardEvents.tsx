@@ -9,8 +9,6 @@ export function useAppProjectKeyboardEvents(
   player: AnalizedPlayer,
   renderer: AudioRenderer
 ): void {
-  const [, setTool] = useLinkedState(project.pointerTool);
-  const [, setRenameState] = useLinkedState(project.currentlyRenaming);
   const [selected] = useLinkedState(project.selected);
 
   useEffect(() => {
@@ -28,15 +26,15 @@ export function useAppProjectKeyboardEvents(
     function keypressEvent(e: KeyboardEvent) {
       switch (e.code) {
         case "KeyM":
-          setTool("move");
+          project.pointerTool.set("move");
           document.body.style.cursor = "auto";
           break;
         case "KeyS":
-          setTool("trimStart");
+          project.pointerTool.set("trimStart");
           document.body.style.cursor = "e-resize";
           break;
         case "KeyE":
-          setTool("trimEnd");
+          project.pointerTool.set("trimEnd");
           document.body.style.cursor = "w-resize";
           break;
 
@@ -45,7 +43,7 @@ export function useAppProjectKeyboardEvents(
             break;
           }
           // Rename
-          setRenameState({
+          project.currentlyRenaming.set({
             status: "track",
             track: selected.tracks[0],
           });
@@ -73,5 +71,5 @@ export function useAppProjectKeyboardEvents(
       document.removeEventListener("keypress", keypressEvent);
       document.removeEventListener("keyup", keyupEvent);
     };
-  }, [player, project, renderer, selected, setRenameState, setTool]);
+  }, [player, project, renderer, selected]);
 }

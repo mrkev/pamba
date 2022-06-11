@@ -6,6 +6,8 @@ import { FaustAudioEffect, FaustEffectThunk } from "../dsp/Faust";
 import { TrackThread } from "./TrackThread";
 import { LinkedArray } from "./state/LinkedArray";
 import { LinkedState } from "./state/LinkedState";
+import { AudioProject } from "./AudioProject";
+import { pressedState } from "./linkedState/pressedState";
 
 let trackNo = 0;
 

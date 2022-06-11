@@ -136,6 +136,7 @@ export class ProjectSelection {
   static selectTrack(project: AudioProject, track: AudioTrack) {
     const selected = project.selected.get();
     const selectAdd = modifierState.meta || modifierState.shift;
+    console.log("SELECTADD", selectAdd, modifierState);
     if (selectAdd && selected?.status === "tracks") {
       const next = { ...selected };
       next.tracks.push(track);

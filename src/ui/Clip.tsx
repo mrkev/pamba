@@ -10,6 +10,7 @@ import type AudioClip from "../lib/AudioClip";
 import { useDerivedState } from "../lib/state/DerivedState";
 import { scaleLinear } from "d3-scale";
 import { useSubscribeToSubbableMutationHashable } from "../lib/state/LinkedMap";
+import { css } from "@linaria/core";
 
 type Props = {
   clip: AudioClip;
@@ -21,25 +22,29 @@ type Props = {
   track: AudioTrack | null; // null if clip is being rendered for move
 };
 
-const styles: Record<string, React.CSSProperties> = {
-  resizerEnd: {
-    width: 10,
-    background: "rgba(0,0,0,0)",
-    height: "100%",
-    position: "absolute",
-    right: -5,
-    top: 0,
-    cursor: "ew-resize",
-  },
-  resizerStart: {
-    width: 10,
-    background: "rgba(0,0,0,0)",
-    height: "100%",
-    position: "absolute",
-    left: -5,
-    top: 0,
-    cursor: "ew-resize",
-  },
+const styles = {
+  resizerEnd: css`
+    ${{
+      width: 10,
+      background: "rgba(0,0,0,0)",
+      height: "100%",
+      position: "absolute",
+      right: -5,
+      top: 0,
+      cursor: "ew-resize",
+    }}
+  `,
+  resizerStart: css`
+    ${{
+      width: 10,
+      background: "rgba(0,0,0,0)",
+      height: "100%",
+      position: "absolute",
+      left: -5,
+      top: 0,
+      cursor: "ew-resize",
+    }}
+  `,
 };
 
 export function Clip({ clip, tool, rerender, isSelected, style = {}, project, track }: Props) {
@@ -143,8 +148,8 @@ export function Clip({ clip, tool, rerender, isSelected, style = {}, project, tr
         //  -10 to clear the header a little better
         backgroundSize: `${totalBufferWidth}px ${height - 10}px`,
         backgroundImage: "url('" + backgroundImageData + "')",
-        backgroundRepeat: "no-repeat",
         backgroundPosition: `${startTrimmedWidth * -1}px center`,
+        backgroundRepeat: "no-repeat",
         imageRendering: "pixelated",
         width,
         height,
@@ -177,8 +182,8 @@ export function Clip({ clip, tool, rerender, isSelected, style = {}, project, tr
       >
         {clip.name} ({Math.round(clip.durationSec * 100) / 100})
       </div>
-      <div style={styles.resizerStart} onMouseDown={(e) => onMouseDownToResize(e, "start")}></div>
-      <div style={styles.resizerEnd} onMouseDown={(e) => onMouseDownToResize(e, "end")}></div>
+      <div className={styles.resizerStart} onMouseDown={(e) => onMouseDownToResize(e, "start")}></div>
+      <div className={styles.resizerEnd} onMouseDown={(e) => onMouseDownToResize(e, "end")}></div>
       {/* <ClipAutomation clip={clip} secsToPx={secsToPx} /> */}
     </div>
   );

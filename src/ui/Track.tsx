@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { FAUST_EFFECTS } from "../dsp/Faust";
 import FaustEffectModule from "../dsp/FaustEffectModule";
-import { CLIP_HEIGHT, EFFECT_HEIGHT, TRACK_SEPARATOR_HEIGHT } from "../globals";
+import { EFFECT_HEIGHT, TRACK_SEPARATOR_HEIGHT } from "../globals";
 import AudioClip from "../lib/AudioClip";
 import { AudioProject } from "../lib/AudioProject";
 import { AudioRenderer } from "../lib/AudioRenderer";
@@ -26,6 +26,7 @@ export function Track({
   const [selected] = useLinkedState(project.selected);
   const [tool] = useLinkedState(project.pointerTool);
   const [clips] = useLinkedArray(track.clips);
+  const [height] = useLinkedState(track.trackHeight);
   const [, setStateCounter] = useState(0);
   const rerender = useCallback(function () {
     setStateCounter((x) => x + 1);
@@ -64,7 +65,7 @@ export function Track({
         }}
         style={{
           position: "relative",
-          height: CLIP_HEIGHT - TRACK_SEPARATOR_HEIGHT,
+          height: height - TRACK_SEPARATOR_HEIGHT,
           // pointerEvents: "none",
         }}
       >

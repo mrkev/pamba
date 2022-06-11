@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { CLIP_HEIGHT, EFFECT_HEIGHT } from "../globals";
+import { EFFECT_HEIGHT, TRACK_SEPARATOR_HEIGHT } from "../globals";
 import { AudioProject, ProjectSelection } from "../lib/AudioProject";
 import type { AudioTrack } from "../lib/AudioTrack";
 import { useLinkedState } from "../lib/state/LinkedState";
@@ -7,6 +7,8 @@ import { useLinkedSet } from "../lib/state/LinkedSet";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import { useLinkedArray } from "../lib/state/LinkedArray";
 import { useRef } from "react";
+import { RenamableLabel } from "./RenamableLabel";
+import { pressedState } from "../lib/linkedState/pressedState";
 
 type Props = {
   isSelected: boolean;
@@ -23,6 +25,8 @@ export default function TrackHeader({ isSelected, track, project, player }: Prop
   const [solodTracks] = useLinkedSet(project.solodTracks);
   const [trackName, setTrackName] = useLinkedState(track.name);
   const [renameState, setRenameState] = useLinkedState(project.currentlyRenaming);
+  const [height] = useLinkedState(track.trackHeight);
+  const [, setPressed] = useLinkedState(pressedState);
   const renameInputRef = useRef<HTMLInputElement | null>(null);
 
   const isSolod = solodTracks.has(track);
@@ -42,11 +46,24 @@ export default function TrackHeader({ isSelected, track, project, player }: Prop
     }
   }, [isTrackBeingRenamed, setRenameState]);
 
+  function onMouseDownToResize(e: React.MouseEvent<HTMLDivElement>) {
+    e.stopPropagation();
+
+    setPressed({
+      status: "resizing_track",
+      track: track,
+      clientX: e.clientX,
+      clientY: e.clientY,
+    });
+  }
+
   return (
     <div
       style={{
         background: isSelected ? "#eee" : "white",
-        height: CLIP_HEIGHT + (isDspExpanded ? EFFECT_HEIGHT : 0),
+        height: height + (isDspExpanded ? EFFECT_HEIGHT : 0),
+        position: "relative",
+        userSelect: "none",
       }}
     >
       <div
@@ -55,37 +72,22 @@ export default function TrackHeader({ isSelected, track, project, player }: Prop
           color: isSelected ? "white" : "black",
           userSelect: "none",
           cursor: "pointer",
+          display: "flex",
+          flexDirection: "row",
+          justifyContent: "space-between",
         }}
         onClick={() => ProjectSelection.selectTrack(project, track)}
-        onDoubleClick={() =>
-          setRenameState({
-            status: "track",
-            track,
-          })
-        }
       >
+        <RenamableLabel
+          project={project}
+          value={trackName}
+          setValue={setTrackName}
+          renameState={{
+            status: "track",
+            track: track,
+          }}
+        />
         <button onClick={() => AudioProject.removeTrack(project, player, track)}>x</button>{" "}
-        {isTrackBeingRenamed ? (
-          <input
-            ref={renameInputRef}
-            style={{ width: 90 }}
-            type="text"
-            value={trackName}
-            onChange={(e) => setTrackName(e.target.value)}
-            onKeyDown={(e) => e.stopPropagation()}
-            onKeyUp={(e) => e.stopPropagation()}
-            onKeyPress={(e) => {
-              e.stopPropagation();
-              if (e.key === "Enter") {
-                setRenameState(null);
-              }
-            }}
-            onClick={(e) => e.stopPropagation()}
-            onMouseUp={(e) => e.stopPropagation()}
-          />
-        ) : (
-          trackName
-        )}
       </div>
       <button
         style={isSolod ? { background: "#5566EE" } : undefined}
@@ -148,6 +150,18 @@ export default function TrackHeader({ isSelected, track, project, player }: Prop
         Expand
       </button>{" "}
       ({trackEffects.length})
+      <div
+        style={{
+          background: "rgba(0,0,0,0)",
+          height: TRACK_SEPARATOR_HEIGHT * 1.5,
+          position: "absolute",
+          bottom: 0,
+          width: "100%",
+          left: 0,
+          cursor: "ns-resize",
+        }}
+        onMouseDown={onMouseDownToResize}
+      ></div>
     </div>
   );
 }
