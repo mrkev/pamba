@@ -9,12 +9,36 @@ import { useLinkedArray } from "../lib/state/LinkedArray";
 import { useRef } from "react";
 import { RenamableLabel } from "./RenamableLabel";
 import { pressedState } from "../lib/linkedState/pressedState";
+import { css } from "@linaria/core";
+import { FAUST_EFFECTS } from "../dsp/Faust";
 
 type Props = {
   track: AudioTrack;
   project: AudioProject;
   player: AnalizedPlayer;
 };
+
+const styles = {
+  utilityButton: css`
+    font-size: 10px;
+    font-weight: bold;
+    padding: 1px 6px;
+    height: 16px;
+    border: 1px solid black;
+  `,
+  utilitySlider: css`
+    appearance: none;
+    background: #d3d3d3;
+
+    &::-webkit-slider-thumb {
+      width: 1px;
+      appearance: none;
+      height: 16px;
+      cursor: ew-resize;
+      background: black;
+    }
+  `,
+} as const;
 
 export default function TrackHeader({ track, project, player }: Props) {
   const [gain, setGain] = useState<number>(track.getCurrentGain().value);
@@ -63,107 +87,174 @@ export default function TrackHeader({ track, project, player }: Props) {
       track: track,
       clientX: e.clientX,
       clientY: e.clientY,
+      originalHeight: height,
     });
   }
 
   return (
     <div
       style={{
-        background: isSelected ? "#eee" : "white",
-        height: height + (isDspExpanded ? EFFECT_HEIGHT : 0),
         position: "relative",
-        userSelect: "none",
+        borderBottom: `${TRACK_SEPARATOR_HEIGHT}px solid #BABABA`,
       }}
     >
       <div
         style={{
-          background: isSelected ? "#333" : "#eee",
-          color: isSelected ? "white" : "black",
+          background: isSelected ? "#eee" : "white",
+          height: height - TRACK_SEPARATOR_HEIGHT,
+          position: "relative",
           userSelect: "none",
-          cursor: "pointer",
           display: "flex",
-          flexDirection: "row",
-          justifyContent: "space-between",
+          flexDirection: "column",
+          borderBottom: isDspExpanded ? `${TRACK_SEPARATOR_HEIGHT}px solid #444444` : undefined,
         }}
-        onClick={() => ProjectSelection.selectTrack(project, track)}
       >
-        <RenamableLabel
-          project={project}
-          value={trackName}
-          setValue={setTrackName}
-          renameState={renameStateDescriptor}
-        />
-        <button onClick={() => AudioProject.removeTrack(project, player, track)}>x</button>{" "}
-      </div>
-      <button
-        style={isSolod ? { background: "#5566EE" } : undefined}
-        onClick={function () {
-          if (solodTracks.has(track)) {
-            solodTracks.delete(track);
-          } else {
-            solodTracks.add(track);
-          }
+        <div
+          style={{
+            background: isSelected ? "#333" : "#eee",
+            color: isSelected ? "white" : "black",
+            userSelect: "none",
+            cursor: "pointer",
+            display: "flex",
+            flexDirection: "row",
+            justifyContent: "space-between",
+          }}
+          onClick={() => ProjectSelection.selectTrack(project, track)}
+        >
+          <RenamableLabel
+            project={project}
+            value={trackName}
+            setValue={setTrackName}
+            renameState={renameStateDescriptor}
+          />
+          <button onClick={() => AudioProject.removeTrack(project, player, track)}>x</button>{" "}
+        </div>
+        <div style={{ display: "flex", flexDirection: "row", alignItems: "center" }}>
+          <button
+            className={styles.utilityButton}
+            style={isSolod ? { background: "#DDCC33" } : undefined}
+            onClick={function () {
+              if (solodTracks.has(track)) {
+                solodTracks.delete(track);
+              } else {
+                solodTracks.add(track);
+              }
 
-          for (const track of project.allTracks._getRaw()) {
-            if (solodTracks.size === 0 || solodTracks.has(track)) {
-              track._hidden_setIsMutedByApplication(false);
+              for (const track of project.allTracks._getRaw()) {
+                if (solodTracks.size === 0 || solodTracks.has(track)) {
+                  track._hidden_setIsMutedByApplication(false);
+                } else {
+                  track._hidden_setIsMutedByApplication(true);
+                }
+              }
+            }}
+          >
+            S
+          </button>
+          <button
+            className={styles.utilityButton}
+            style={muted ? { background: "#5566EE" } : undefined}
+            onClick={function () {
+              setMuted((prev) => {
+                if (!prev) {
+                  track.setGain(0);
+                } else {
+                  track.setGain(gain);
+                }
+                return !prev;
+              });
+            }}
+          >
+            M
+          </button>
+          <input
+            style={{
+              flexGrow: 1,
+              width: "50px",
+            }}
+            className={styles.utilitySlider}
+            type="range"
+            max={2}
+            min={0}
+            step="any"
+            value={gain}
+            onChange={(e) => {
+              const val = parseFloat(e.target.value);
+              setGain(val);
+              console.log(val);
+              track.setGain(val);
+            }}
+          />
+        </div>
+        <div style={{ flexGrow: 1 }}></div>
+        <button
+          style={{
+            background: isDspExpanded ? "#5566EE" : undefined,
+          }}
+          onClick={function () {
+            if (dspExpandedTracks.has(track)) {
+              dspExpandedTracks.delete(track);
             } else {
-              track._hidden_setIsMutedByApplication(true);
+              dspExpandedTracks.add(track);
             }
-          }
-        }}
-      >
-        S
-      </button>
-      <button
-        style={muted ? { background: "#5566EE" } : undefined}
-        onClick={function () {
-          setMuted((prev) => {
-            if (!prev) {
-              track.setGain(0);
-            } else {
-              track.setGain(gain);
-            }
-            return !prev;
-          });
-        }}
-      >
-        M
-      </button>
-      <input
-        type="range"
-        max={2}
-        min={0}
-        step="any"
-        value={gain}
-        onChange={(e) => {
-          const val = parseFloat(e.target.value);
-          setGain(val);
-          console.log(val);
-          track.setGain(val);
-        }}
-      />
-      <button
-        style={isDspExpanded ? { background: "#5566EE" } : undefined}
-        onClick={function () {
-          if (dspExpandedTracks.has(track)) {
-            dspExpandedTracks.delete(track);
-          } else {
-            dspExpandedTracks.add(track);
-          }
-        }}
-      >
-        Expand
-      </button>{" "}
-      ({trackEffects.length})
+          }}
+        >
+          Expand ({trackEffects.length})
+        </button>
+      </div>
+      {isDspExpanded ? (
+        <div
+          style={{
+            background: isSelected ? "#eee" : "white",
+            height: EFFECT_HEIGHT + 17 - TRACK_SEPARATOR_HEIGHT,
+            position: "relative",
+            userSelect: "none",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          <input style={{ width: "100%", border: "none" }} type="search" placeholder="Search..." />
+          <select
+            multiple
+            style={{ flexGrow: 1 }}
+            onKeyPress={(e) => {
+              const event = new MouseEvent("dblclick");
+              e.target.dispatchEvent(event);
+              console.log((e.target as any).value);
+
+              console.log("EEEEEEEE ");
+              e.stopPropagation();
+              // if (e.key === "Enter") {
+              //   track.addEffect(FAUST_EFFECTS.PANNER);
+              // }
+            }}
+          >
+            <option onDoubleClick={() => track.addEffect(FAUST_EFFECTS.PANNER)}>Panner</option>
+            <option onDoubleClick={() => track.addEffect(FAUST_EFFECTS.REVERB)}>Reverb</option>
+
+            {/* <optgroup label="4-legged pets">
+              <option value="dog">Dog</option>
+              <option value="cat">Cat</option>
+              <option value="hamster" disabled>
+                Hamster
+              </option>
+            </optgroup>
+            <optgroup label="Flying pets">
+              <option value="parrot">Parrot</option>
+              <option value="macaw">Macaw</option>
+              <option value="albatross">Albatross</option>
+            </optgroup> */}
+          </select>
+        </div>
+      ) : null}
       <div
         style={{
           background: "rgba(0,0,0,0)",
-          height: TRACK_SEPARATOR_HEIGHT * 1.5,
+          height: TRACK_SEPARATOR_HEIGHT * 2,
           position: "absolute",
-          bottom: 0,
-          width: "100%",
+          bottom: -TRACK_SEPARATOR_HEIGHT * 1.5,
           left: 0,
+          width: "100%",
           cursor: "ns-resize",
         }}
         onMouseDown={onMouseDownToResize}

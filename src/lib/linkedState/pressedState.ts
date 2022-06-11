@@ -31,11 +31,12 @@ export type CursorState =
       clientX: number;
       clientY: number;
     }
-  | {
+  | Readonly<{
       status: "resizing_track";
       track: AudioTrack;
+      originalHeight: number;
       clientX: number;
       clientY: number;
-    };
+    }>;
 
 export const pressedState: LinkedState<CursorState | null> = LinkedState.of<CursorState | null>(null);

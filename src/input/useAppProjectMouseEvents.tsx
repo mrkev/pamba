@@ -3,6 +3,7 @@ import { exhaustive } from "../dsp/exhaustive";
 import { AudioProject } from "../lib/AudioProject";
 import { useDerivedState } from "../lib/state/DerivedState";
 import { pressedState } from "../lib/linkedState/pressedState";
+import { MIN_TRACK_HEIGHT } from "../globals";
 
 export function useAppProjectMouseEvents({
   project,
@@ -138,6 +139,13 @@ export function useAppProjectMouseEvents({
           break;
         }
 
+        case "resizing_track": {
+          const delta = e.clientY - pressed.clientY;
+          const newHeight = Math.max(MIN_TRACK_HEIGHT, pressed.originalHeight + delta);
+          pressed.track.trackHeight.set(newHeight);
+          break;
+        }
+
         case "resizing_clip": {
           const deltaXSecs = pxToSecs(e.clientX - pressed.clientX);
           if (pressed.from === "end") {
@@ -170,9 +178,6 @@ export function useAppProjectMouseEvents({
           const deltaXSecs = pxToSecs(e.clientX - pressed.clientX);
           project.selectionWidth.set(deltaXSecs);
           project.selected.set(null);
-          break;
-        }
-        case "resizing_track": {
           break;
         }
 

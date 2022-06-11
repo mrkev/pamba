@@ -10,6 +10,7 @@ import { useLinkedArray } from "../lib/state/LinkedArray";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { pressedState } from "../lib/linkedState/pressedState";
 import { Clip } from "./Clip";
+import { css } from "@linaria/core";
 
 export function Track({
   track,
@@ -111,7 +112,13 @@ export function Track({
         }}
         onMouseDown={(e) => {
           console.log("HI");
-          setPressed({ status: "resizing_track", clientX: e.clientX, clientY: e.clientY, track });
+          setPressed({
+            status: "resizing_track",
+            clientX: e.clientX,
+            clientY: e.clientY,
+            track,
+            originalHeight: height,
+          });
         }}
       ></div>
     </>
@@ -119,22 +126,24 @@ export function Track({
 }
 
 const styles = {
-  effectRack: {
-    color: "white",
-    height: EFFECT_HEIGHT,
-    background: "#444",
-    display: "flex",
-    flexDirection: "row",
-    alignItems: "center",
-    // to keep the selection div from showing above this effect track
-    zIndex: 1,
-    // So it "sticks" when we scroll the timeline
-    position: "sticky",
-    left: "0",
-    overscrollBehavior: "none",
-    overflowX: "scroll",
-    padding: "6px 0px 11px 0px",
-  },
+  effectRack: css`
+    ${{
+      color: "white",
+      background: "#444",
+      display: "flex",
+      flexDirection: "row",
+      alignItems: "stretch",
+      // to keep the selection div from showing above this effect track
+      zIndex: 1,
+      // So it "sticks" when we scroll the timeline
+      position: "sticky",
+      left: "0",
+      overscrollBehavior: "none",
+      overflowX: "scroll",
+      padding: "6px 25% 11px 4px",
+      gap: "4px",
+    }}
+  `,
 } as const;
 
 const EffectRack = React.memo(function EffectRack({
@@ -167,7 +176,10 @@ const EffectRack = React.memo(function EffectRack({
 
   return (
     <div
-      style={styles.effectRack}
+      style={{
+        height: EFFECT_HEIGHT,
+      }}
+      className={styles.effectRack}
       onMouseDownCapture={(e) => {
         e.stopPropagation();
       }}
@@ -210,10 +222,22 @@ const EffectRack = React.memo(function EffectRack({
         }}
       >
         Output
+        {/* <meter
+          style={{ transform: "rotate(270deg)" }}
+          id="fuel"
+          min="0"
+          max="100"
+          low={33}
+          high={66}
+          optimum={80}
+          value="50"
+        >
+          at 50/100
+        </meter> */}
       </div>
 
-      <button onClick={() => track.addEffect(FAUST_EFFECTS.PANNER)}>add panner</button>
-      <button onClick={() => track.addEffect(FAUST_EFFECTS.REVERB)}>add reverb</button>
+      {/* <button onClick={() => track.addEffect(FAUST_EFFECTS.PANNER)}>add panner</button>
+      <button onClick={() => track.addEffect(FAUST_EFFECTS.REVERB)}>add reverb</button> */}
     </div>
   );
 });

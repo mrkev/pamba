@@ -152,7 +152,7 @@ export function Clip({ clip, tool, rerender, isSelected, style = {}, project, tr
         backgroundRepeat: "no-repeat",
         imageRendering: "pixelated",
         width,
-        height,
+        height: "100%",
         // pointerEvents: 'none',
         userSelect: "none",
         borderLeft: border,

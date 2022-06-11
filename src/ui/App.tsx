@@ -18,7 +18,11 @@ import { useAppProjectKeyboardEvents } from "../input/useAppProjectKeyboardEvent
 
 function App() {
   const firebaseStoreRef = usePambaFirebaseStoreRef();
-  const [project] = useState(() => new AudioProject());
+  const [project] = useState(() => {
+    const audioProject = new AudioProject();
+    AudioProject.addTrack(audioProject);
+    return audioProject;
+  });
   // IDEA: Maybe merge player and renderer?
   const [renderer] = useState(() => new AudioRenderer(new AnalizedPlayer()));
 
