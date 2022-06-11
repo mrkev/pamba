@@ -12,6 +12,28 @@ import { Axis } from "./Axis";
 import { Track } from "./Track";
 import TrackHeader from "./TrackHeader";
 
+function TimelineCursor({ project }: { project: AudioProject }) {
+  const secsToPx = useDerivedState(project.secsToPx);
+  const [cursorPos] = useLinkedState(project.cursorPos);
+  const [selectionWidth] = useLinkedState(project.selectionWidth);
+  return (
+    <div
+      // ref={cursorPosDiv}
+      style={{
+        backdropFilter: "invert(100%)",
+        height: "100%",
+        position: "absolute",
+        userSelect: "none",
+        pointerEvents: "none",
+        left:
+          selectionWidth == null || selectionWidth >= 0 ? secsToPx(cursorPos) : secsToPx(cursorPos + selectionWidth),
+        width: selectionWidth == null || selectionWidth === 0 ? 1 : secsToPx(Math.abs(selectionWidth)),
+        top: 0,
+      }}
+    ></div>
+  );
+}
+
 export function TimelineView({
   project,
   player,
@@ -24,12 +46,10 @@ export function TimelineView({
   const playbackPosDiv = useRef<null | HTMLDivElement>(null);
   const [projectDiv, setProjectDiv] = useState<null | HTMLDivElement>(null);
   const [tracks] = useLinkedArray(project.allTracks);
-  const [selected] = useLinkedState(project.selected);
   const [scaleFactor, setScaleFactor] = useLinkedState(project.scaleFactor);
   const [dspExpandedTracks] = useLinkedSet(project.dspExpandedTracks);
   const secsToPx = useDerivedState(project.secsToPx);
-  const [cursorPos] = useLinkedState(project.cursorPos);
-  const [selectionWidth] = useLinkedState(project.selectionWidth);
+
   const [viewportStartSecs, setViewportStartSecs] = useLinkedState(project.viewportStartSecs);
 
   useEffect(() => {
@@ -152,22 +172,7 @@ export function TimelineView({
           const isDspExpanded = dspExpandedTracks.has(track);
           return <Track key={i} track={track} project={project} isDspExpanded={isDspExpanded} renderer={renderer} />;
         })}
-        <div
-          // ref={cursorPosDiv}
-          style={{
-            backdropFilter: "invert(100%)",
-            height: "100%",
-            position: "absolute",
-            userSelect: "none",
-            pointerEvents: "none",
-            left:
-              selectionWidth == null || selectionWidth >= 0
-                ? secsToPx(cursorPos)
-                : secsToPx(cursorPos + selectionWidth),
-            width: selectionWidth == null || selectionWidth === 0 ? 1 : secsToPx(Math.abs(selectionWidth)),
-            top: 0,
-          }}
-        ></div>
+        <TimelineCursor project={project} />
         <div
           ref={playbackPosDiv}
           style={{
@@ -213,8 +218,7 @@ export function TimelineView({
           />
         </div>
         {tracks.map((track, i) => {
-          const isSelected = selected !== null && selected.status === "tracks" && selected.test.has(track);
-          return <TrackHeader key={i} isSelected={isSelected} track={track} project={project} player={player} />;
+          return <TrackHeader key={i} track={track} project={project} player={player} />;
         })}
         <div>
           <button

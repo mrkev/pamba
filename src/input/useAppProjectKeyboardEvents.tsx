@@ -9,8 +9,6 @@ export function useAppProjectKeyboardEvents(
   player: AnalizedPlayer,
   renderer: AudioRenderer
 ): void {
-  const [selected] = useLinkedState(project.selected);
-
   useEffect(() => {
     function keydownEvent(e: KeyboardEvent) {
       // console.log(e.code);
@@ -39,6 +37,7 @@ export function useAppProjectKeyboardEvents(
           break;
 
         case "Enter": {
+          const selected = project.selected.get();
           if (selected?.status !== "tracks") {
             break;
           }
@@ -71,5 +70,5 @@ export function useAppProjectKeyboardEvents(
       document.removeEventListener("keypress", keypressEvent);
       document.removeEventListener("keyup", keyupEvent);
     };
-  }, [player, project, renderer, selected]);
+  }, [player, project, renderer]);
 }

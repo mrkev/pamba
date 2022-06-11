@@ -26,6 +26,11 @@ export class LinkedState<S> implements Subbable<S> {
     performance.measure("a", "0", "1");
   }
 
+  setDyn(cb: (prevState: S) => S) {
+    const newVal = cb(this.get());
+    this.set(newVal);
+  }
+
   get(): Readonly<S> {
     return this._value;
   }

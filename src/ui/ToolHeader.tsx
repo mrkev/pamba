@@ -9,6 +9,26 @@ import AudioClip from "../lib/AudioClip";
 import { AudioTrack } from "../lib/AudioTrack";
 import { useMediaRecorder } from "../lib/useMediaRecorder";
 
+function ToolDisplay({ project }: { project: AudioProject }) {
+  const [tool] = useLinkedState(project.pointerTool);
+  return (
+    <>{tool === "move" ? "move ⇄" : tool === "trimStart" ? "trimStart ⇥" : tool === "trimEnd" ? "trimEnd ⇤" : tool}</>
+  );
+}
+
+function BounceButton({ project, renderer }: { project: AudioProject; renderer: AudioRenderer }) {
+  const [selectionWidth] = useLinkedState(project.selectionWidth);
+  return (
+    <button
+      onClick={() => {
+        AudioRenderer.bounceSelection(renderer, project);
+      }}
+    >
+      {selectionWidth && selectionWidth > 0 ? "bounce selected" : "bounce all"}
+    </button>
+  );
+}
+
 export function ToolHeader({
   project,
   player,
@@ -22,12 +42,9 @@ export function ToolHeader({
   firebaseStoreRef: any;
 }) {
   const ctxRef = useRef<null | CanvasRenderingContext2D>(null);
-  const [selectionWidth] = useLinkedState(project.selectionWidth);
   const [tracks] = useLinkedArray(project.allTracks);
-  const [tool] = useLinkedState(project.pointerTool);
   const [bounceURL] = useLinkedState<string | null>(renderer.bounceURL);
   const [isAudioPlaying] = useLinkedState(renderer.isAudioPlaying);
-
   const [isRecording, setIsRecording] = useState(false);
 
   const loadClip = useCallback(
@@ -66,20 +83,13 @@ export function ToolHeader({
             justifyContent: "right",
           }}
         >
-          <button
-            onClick={() => {
-              AudioRenderer.bounceSelection(renderer, project);
-            }}
-          >
-            {selectionWidth && selectionWidth > 0 ? "bounce selected" : "bounce all"}
-          </button>
+          <BounceButton project={project} renderer={renderer} />
           {bounceURL && (
             <a href={bounceURL} download={"bounce.wav"}>
               Download bounce
             </a>
           )}
-
-          {tool === "move" ? "move ⇄" : tool === "trimStart" ? "trimStart ⇥" : tool === "trimEnd" ? "trimEnd ⇤" : tool}
+          <ToolDisplay project={project} />
           <button
             disabled={tracks.length === 0}
             onClick={() => AudioRenderer.togglePlayback(renderer, project, player)}

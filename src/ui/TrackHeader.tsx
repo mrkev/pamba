@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { EFFECT_HEIGHT, TRACK_SEPARATOR_HEIGHT } from "../globals";
 import { AudioProject, ProjectSelection } from "../lib/AudioProject";
 import type { AudioTrack } from "../lib/AudioTrack";
@@ -11,13 +11,12 @@ import { RenamableLabel } from "./RenamableLabel";
 import { pressedState } from "../lib/linkedState/pressedState";
 
 type Props = {
-  isSelected: boolean;
   track: AudioTrack;
   project: AudioProject;
   player: AnalizedPlayer;
 };
 
-export default function TrackHeader({ isSelected, track, project, player }: Props) {
+export default function TrackHeader({ track, project, player }: Props) {
   const [gain, setGain] = useState<number>(track.getCurrentGain().value);
   const [muted, setMuted] = useState<boolean>(false);
   const [dspExpandedTracks] = useLinkedSet(project.dspExpandedTracks);
@@ -26,8 +25,18 @@ export default function TrackHeader({ isSelected, track, project, player }: Prop
   const [trackName, setTrackName] = useLinkedState(track.name);
   const [renameState, setRenameState] = useLinkedState(project.currentlyRenaming);
   const [height] = useLinkedState(track.trackHeight);
-  const [, setPressed] = useLinkedState(pressedState);
   const renameInputRef = useRef<HTMLInputElement | null>(null);
+  const [selected] = useLinkedState(project.selected);
+  const renameStateDescriptor = useMemo(
+    () =>
+      ({
+        status: "track",
+        track: track,
+      } as const),
+    [track]
+  );
+
+  const isSelected = selected !== null && selected.status === "tracks" && selected.test.has(track);
 
   const isSolod = solodTracks.has(track);
   const isDspExpanded = dspExpandedTracks.has(track);
@@ -49,7 +58,7 @@ export default function TrackHeader({ isSelected, track, project, player }: Prop
   function onMouseDownToResize(e: React.MouseEvent<HTMLDivElement>) {
     e.stopPropagation();
 
-    setPressed({
+    pressedState.set({
       status: "resizing_track",
       track: track,
       clientX: e.clientX,
@@ -82,10 +91,7 @@ export default function TrackHeader({ isSelected, track, project, player }: Prop
           project={project}
           value={trackName}
           setValue={setTrackName}
-          renameState={{
-            status: "track",
-            track: track,
-          }}
+          renameState={renameStateDescriptor}
         />
         <button onClick={() => AudioProject.removeTrack(project, player, track)}>x</button>{" "}
       </div>

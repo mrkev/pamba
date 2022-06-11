@@ -49,31 +49,31 @@ export type RenameState = {
 };
 
 export class AudioProject {
-  timeMarkers: LinkedMap<number, string> = LinkedMap.create<number, string>();
+  readonly timeMarkers: LinkedMap<number, string> = LinkedMap.create<number, string>();
   // Track data - should persist //
-  allTracks = LinkedArray.create<AudioTrack>();
+  readonly allTracks = LinkedArray.create<AudioTrack>();
 
   // Track status //
-  solodTracks = LinkedSet.create<AudioTrack>();
-  dspExpandedTracks = LinkedSet.create<AudioTrack>();
+  readonly solodTracks = LinkedSet.create<AudioTrack>();
+  readonly dspExpandedTracks = LinkedSet.create<AudioTrack>();
 
   // Pointer //
-  pointerTool = LinkedState.of<Tool>("move");
-  cursorPos = LinkedState.of(0);
+  readonly pointerTool = LinkedState.of<Tool>("move");
+  readonly cursorPos = LinkedState.of(0);
 
   // Selection //
 
   // the selected clip(s), track(s), etc
-  selected = LinkedState.of<SelectionState | null>(null);
+  readonly selected = LinkedState.of<SelectionState | null>(null);
   // the thing we're currently renaming, if any
-  currentlyRenaming = LinkedState.of<RenameState | null>(null);
+  readonly currentlyRenaming = LinkedState.of<RenameState | null>(null);
   // the width of the selection at the playback cursor
-  selectionWidth = LinkedState.of<number | null>(null);
+  readonly selectionWidth = LinkedState.of<number | null>(null);
   // the zoom level
-  scaleFactor = LinkedState.of(10);
-  viewportStartSecs = LinkedState.of(0); // the first second visible in the project div
+  readonly scaleFactor = LinkedState.of(10);
+  readonly viewportStartSecs = LinkedState.of(0); // the first second visible in the project div
   // 1 sec corresponds to 10 px
-  secsToPx = DerivedState.from(
+  readonly secsToPx = DerivedState.from(
     [this.scaleFactor],
     (factor: number) =>
       scaleLinear()

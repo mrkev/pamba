@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { exhaustive } from "../dsp/exhaustive";
 import { AudioProject } from "../lib/AudioProject";
 import { useDerivedState } from "../lib/state/DerivedState";
-import { useLinkedState } from "../lib/state/LinkedState";
 import { pressedState } from "../lib/linkedState/pressedState";
 
 export function useAppProjectMouseEvents({
@@ -12,10 +11,6 @@ export function useAppProjectMouseEvents({
   project: AudioProject;
   projectDiv: HTMLDivElement | null;
 }): void {
-  const [pressed, setPressed] = useLinkedState(pressedState);
-  const [, setCursorPos] = useLinkedState(project.cursorPos);
-  const [, setSelectionWidth] = useLinkedState(project.selectionWidth);
-  const [, setSelected] = useLinkedState(project.selected);
   const secsToPx = useDerivedState(project.secsToPx);
 
   useEffect(() => {
@@ -50,10 +45,10 @@ export function useAppProjectMouseEvents({
         };
         const asSecs = pxToSecs(position.x);
         // player.setCursorPos(asSecs);
-        setCursorPos(asSecs);
+        project.cursorPos.set(asSecs);
 
-        setSelectionWidth(null);
-        setPressed({
+        project.selectionWidth.set(null);
+        pressedState.set({
           status: "selecting",
           clientX: e.clientX,
           clientY: e.clientY,
@@ -63,6 +58,7 @@ export function useAppProjectMouseEvents({
     };
 
     const mouseUpEvent = function (e: MouseEvent) {
+      const pressed = pressedState.get();
       if (!pressed) {
         return;
       }
@@ -79,18 +75,18 @@ export function useAppProjectMouseEvents({
           // const newOffset = pressed.clip.startOffsetSec + asSecs;
           // // console.log(newOffset)
           // pressed.clip.startOffsetSec = newOffset <= 0 ? 0 : newOffset;
-          setPressed(null);
+          pressedState.set(null);
           break;
         }
         case "resizing_track":
         case "resizing_clip": {
-          setPressed(null);
+          pressedState.set(null);
           break;
         }
 
         case "selecting": {
           const { startTime } = pressed;
-          setPressed(null);
+          pressedState.set(null);
           const selWidth = pxToSecs(e.clientX - pressed.clientX);
 
           if (selWidth == null) {
@@ -98,7 +94,7 @@ export function useAppProjectMouseEvents({
           }
 
           if (selWidth > 0) {
-            setSelected({
+            project.selected.set({
               status: "time",
               start: startTime,
               end: startTime + selWidth,
@@ -106,7 +102,7 @@ export function useAppProjectMouseEvents({
             return;
           }
 
-          setSelected({
+          project.selected.set({
             status: "time",
             start: startTime + selWidth,
             end: startTime,
@@ -114,12 +110,12 @@ export function useAppProjectMouseEvents({
 
           // Move the cursor to the beggining of the selection
           // and make the selection positive
-          setCursorPos((pos) => {
+          project.cursorPos.setDyn((pos) => {
             // player.setCursorPos(pos + selWidth);
             return pos + selWidth;
           });
 
-          setSelectionWidth(Math.abs(selWidth));
+          project.selectionWidth.set(Math.abs(selWidth));
           break;
         }
         default:
@@ -128,6 +124,7 @@ export function useAppProjectMouseEvents({
     };
 
     const mouseMoveEvent = function (e: MouseEvent) {
+      const pressed = pressedState.get();
       if (!pressed) {
         return;
       }
@@ -171,8 +168,8 @@ export function useAppProjectMouseEvents({
 
         case "selecting": {
           const deltaXSecs = pxToSecs(e.clientX - pressed.clientX);
-          setSelectionWidth(deltaXSecs);
-          setSelected(null);
+          project.selectionWidth.set(deltaXSecs);
+          project.selected.set(null);
           break;
         }
         case "resizing_track": {
@@ -192,5 +189,5 @@ export function useAppProjectMouseEvents({
       document.removeEventListener("mouseup", mouseUpEvent);
       document.removeEventListener("mousemove", mouseMoveEvent);
     };
-  }, [pressed, projectDiv, secsToPx, setCursorPos, setPressed, setSelected, setSelectionWidth]);
+  }, [project.cursorPos, project.selected, project.selectionWidth, projectDiv, secsToPx]);
 }
