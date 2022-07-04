@@ -21,6 +21,7 @@ import { modifierState } from "../ModifierState";
  * - Drop to upload audio file
  * - DSP Bypass button get working
  * - DSP Search Box get working
+ * - Overscroll towards the end of the project means we got to scroll extra to come back
  */
 
 export type XScale = ScaleLinear<number, number>;
@@ -89,7 +90,7 @@ export class AudioProject {
   readonly selectionWidth = LinkedState.of<number | null>(null);
   // the zoom level
   readonly scaleFactor = LinkedState.of(10);
-  readonly viewportStartSecs = LinkedState.of(0); // the first second visible in the project div
+  readonly viewportStartPx = LinkedState.of(0); // the "left" CSS position for the first second visible in the project div
   // 1 sec corresponds to 10 px
   readonly secsToPx = DerivedState.from(
     [this.scaleFactor],

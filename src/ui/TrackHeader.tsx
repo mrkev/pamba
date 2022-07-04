@@ -8,7 +8,7 @@ import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import { useLinkedArray } from "../lib/state/LinkedArray";
 import { useRef } from "react";
 import { RenamableLabel } from "./RenamableLabel";
-import { pressedState } from "../lib/linkedState/pressedState";
+import { pressedState } from "../pressedState";
 import { css } from "@linaria/core";
 import { FAUST_EFFECTS } from "../dsp/FaustAudioEffect";
 

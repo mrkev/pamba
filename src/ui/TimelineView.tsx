@@ -11,6 +11,16 @@ import { useLinkedState } from "../lib/state/LinkedState";
 import { Axis } from "./Axis";
 import { Track } from "./Track";
 import TrackHeader, { styles } from "./TrackHeader";
+import { css } from "@linaria/core";
+
+// 150 is TRACK_HEADER_WIDTH
+const containerStyle = css`
+  display: grid;
+  grid-template-columns: 1fr 150px;
+  grid-template-rows: 30px 1fr;
+  grid-column-gap: 0px;
+  grid-row-gap: 0px;
+`;
 
 const styles2 = {
   axisSpacer: {
@@ -60,8 +70,7 @@ export function TimelineView({
   const [scaleFactor, setScaleFactor] = useLinkedState(project.scaleFactor);
   const [dspExpandedTracks] = useLinkedSet(project.dspExpandedTracks);
   const secsToPx = useDerivedState(project.secsToPx);
-
-  const [viewportStartSecs, setViewportStartSecs] = useLinkedState(project.viewportStartSecs);
+  const [viewportStartPx, setViewportStartPx] = useLinkedState(project.viewportStartPx);
 
   useEffect(() => {
     const pbdiv = playbackPosDiv.current;
@@ -89,8 +98,8 @@ export function TimelineView({
       return;
     }
 
-    projectDiv.scrollTo({ left: viewportStartSecs });
-  }, [projectDiv, viewportStartSecs]);
+    projectDiv.scrollTo({ left: viewportStartPx });
+  }, [projectDiv, viewportStartPx]);
 
   useEffect(() => {
     if (!projectDiv) {
@@ -111,21 +120,23 @@ export function TimelineView({
         setScaleFactor(newScale);
         const widthUpToMouse = (e as any).layerX as number;
         const deltaX = widthUpToMouse - widthUpToMouse * sDelta;
-        const newStart = viewportStartSecs - deltaX;
+        const newStart = viewportStartPx - deltaX;
         console.log("deltaX", deltaX, "sDelta", sDelta);
-        setViewportStartSecs(newStart);
+        setViewportStartPx(newStart);
 
         // setScaleFactor((prev) => {
         //   const s = Math.exp(-e.deltaY / 100);
         //   return prev * s;
         // });
-        // setViewportStartSecs((prev) => {});
+        // setViewportStartPx((prev) => {});
         e.preventDefault();
       } else {
-        console.log("timeline");
+        // const pxToSecs = secsToPx.invert;
+        // const viewportWidthSecs = pxToSecs(projectDiv.clientWidth);
+
         // const div = projectDiv;
-        const start = Math.max(viewportStartSecs + e.deltaX, 0);
-        setViewportStartSecs(start);
+        const start = Math.max(viewportStartPx + e.deltaX, 0);
+        setViewportStartPx(start);
         // div.scrollBy(e.deltaX, e.deltaY);
 
         // e.preventDefault();
@@ -153,18 +164,26 @@ export function TimelineView({
       projectDiv.removeEventListener("wheel", onWheel, { capture: false });
       projectDiv.addEventListener("scroll", onScroll, { capture: false });
     };
-  }, [projectDiv, scaleFactor, setScaleFactor, setViewportStartSecs, viewportStartSecs]);
+  }, [projectDiv, scaleFactor, setScaleFactor, setViewportStartPx, viewportStartPx]);
 
   return (
     <div
       id="container"
+      className={containerStyle}
       style={{
         width: "100%",
-        display: "flex",
-        flexDirection: "row",
+        // display: "flex",
+        // flexDirection: "row",
         flexGrow: 1,
       }}
     >
+      {/* 1. Track header overhang (bounce button) */}
+      <div style={styles2.axisSpacer}>
+        {"↑"}
+        <BounceButton project={project} renderer={renderer} />
+      </div>
+
+      {/* 2. Project, including track headers */}
       {/* The whole width of this div is 90s */}
       <div
         id="projectDiv"
@@ -173,11 +192,12 @@ export function TimelineView({
           position: "relative",
           background: "#ddd",
           paddingBottom: CLIP_HEIGHT,
-          overflowX: "hidden",
+          overflowX: "scroll",
           width: "100%",
+          gridArea: "1 / 1 / 3 / 2",
         }}
       >
-        {projectDiv && <Axis project={project} projectDiv={projectDiv}></Axis>}
+        <Axis project={project}></Axis>
         {tracks.map(function (track, i) {
           const isDspExpanded = dspExpandedTracks.has(track);
           return <Track key={i} track={track} project={project} isDspExpanded={isDspExpanded} renderer={renderer} />;
@@ -196,7 +216,7 @@ export function TimelineView({
         ></div>
       </div>
 
-      {/* Track headers */}
+      {/* 3. Track headers */}
       <div
         style={{
           display: "flex",
@@ -205,11 +225,6 @@ export function TimelineView({
           flexShrink: 0,
         }}
       >
-        <div style={styles2.axisSpacer}>
-          {"↑"}
-
-          <BounceButton project={project} renderer={renderer} />
-        </div>
         {tracks.map((track, i) => {
           return <TrackHeader key={i} track={track} project={project} player={player} />;
         })}

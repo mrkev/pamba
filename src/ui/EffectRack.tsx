@@ -21,7 +21,7 @@ const styles = {
       // So it "sticks" when we scroll the timeline
       position: "sticky",
       left: "0",
-      overscrollBehavior: "none",
+      overscrollBehavior: "contain",
       overflowX: "scroll",
       padding: "6px 25% 11px 4px",
       gap: "4px",

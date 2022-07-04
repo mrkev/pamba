@@ -4,7 +4,7 @@ import { useLinkedState } from "../lib/state/LinkedState";
 import { useLinkedArray } from "../lib/state/LinkedArray";
 import { exhaustive } from "../lib/exhaustive";
 import { useLinkedMap } from "../lib/state/LinkedMap";
-import { pressedState } from "../lib/linkedState/pressedState";
+import { pressedState } from "../pressedState";
 
 const styles = {};
 

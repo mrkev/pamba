@@ -6,7 +6,7 @@ import { AudioRenderer } from "../lib/AudioRenderer";
 import { AudioTrack } from "../lib/AudioTrack";
 import { useLinkedArray } from "../lib/state/LinkedArray";
 import { useLinkedState } from "../lib/state/LinkedState";
-import { pressedState } from "../lib/linkedState/pressedState";
+import { pressedState } from "../pressedState";
 import { Clip } from "./Clip";
 import { EffectRack } from "./EffectRack";
 

@@ -5,7 +5,7 @@ import { CLIP_HEIGHT } from "../globals";
 import type AudioClip from "../lib/AudioClip";
 import type { AudioProject, Tool, XScale } from "../lib/AudioProject";
 import type { AudioTrack } from "../lib/AudioTrack";
-import { pressedState } from "../lib/linkedState/pressedState";
+import { pressedState } from "../pressedState";
 import { useDerivedState } from "../lib/state/DerivedState";
 import { useSubscribeToSubbableMutationHashable } from "../lib/state/LinkedMap";
 import { useLinkedState } from "../lib/state/LinkedState";

@@ -1,6 +1,6 @@
-import AudioClip from "../AudioClip";
-import { AudioTrack } from "../AudioTrack";
-import { LinkedState } from "../state/LinkedState";
+import AudioClip from "./lib/AudioClip";
+import { AudioTrack } from "./lib/AudioTrack";
+import { LinkedState } from "./lib/state/LinkedState";
 
 export type CursorState =
   | Readonly<{

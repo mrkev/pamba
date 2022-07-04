@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { exhaustive } from "../lib/exhaustive";
 import { AudioProject } from "../lib/AudioProject";
 import { useDerivedState } from "../lib/state/DerivedState";
-import { pressedState } from "../lib/linkedState/pressedState";
+import { pressedState } from "../pressedState";
 import { MIN_TRACK_HEIGHT } from "../globals";
 
 export function useAppProjectMouseEvents({
