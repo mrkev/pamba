@@ -97,15 +97,7 @@ export function Axis({ project }: { project: AudioProject }) {
           return (
             <g className="tick" key={secs}>
               <line x1={px} x2={px} y1="0" y2="100%" stroke="#CBCBCB"></line>
-              <text
-                x={px}
-                y="2"
-                dx="2px"
-                font-size="12px"
-                fill="#454545"
-                text-anchor="start"
-                alignment-baseline="hanging"
-              >
+              <text x={px} y="2" dx="2px" fontSize="12px" fill="#454545" textAnchor="start" alignmentBaseline="hanging">
                 {formatSecs(secs)}
               </text>
             </g>

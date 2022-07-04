@@ -12,6 +12,7 @@ import { Axis } from "./Axis";
 import { Track } from "./Track";
 import TrackHeader, { styles } from "./TrackHeader";
 import { css } from "@linaria/core";
+import { clamp } from "../lib/math";
 
 // 150 is TRACK_HEADER_WIDTH
 const containerStyle = css`
@@ -113,48 +114,34 @@ export function TimelineView({
       // both pinches and two-finger pans trigger the wheel event trackpads.
       // ctrlKey is true for pinches though, so we can use it to differentiate
       // one from the other.
-      // console.log("wheel", e);
+      // pinch
       if (e.ctrlKey) {
+        // console.log("THIS");
         const sDelta = Math.exp(-e.deltaY / 100);
-        const newScale = scaleFactor * Math.exp(-e.deltaY / 100);
+        const expectedNewScale = scaleFactor * sDelta;
+        // min scale is 0.64, max is 1000
+        const newScale = clamp(0.64, expectedNewScale, 1000);
         setScaleFactor(newScale);
-        const widthUpToMouse = (e as any).layerX as number;
-        const deltaX = widthUpToMouse - widthUpToMouse * sDelta;
+        const realSDelta = newScale / scaleFactor;
+
+        const widthUpToMouse = e.clientX + viewportStartPx;
+        const deltaX = widthUpToMouse - widthUpToMouse * realSDelta;
         const newStart = viewportStartPx - deltaX;
-        console.log("deltaX", deltaX, "sDelta", sDelta);
         setViewportStartPx(newStart);
-
-        // setScaleFactor((prev) => {
-        //   const s = Math.exp(-e.deltaY / 100);
-        //   return prev * s;
-        // });
-        // setViewportStartPx((prev) => {});
         e.preventDefault();
-      } else {
-        // const pxToSecs = secsToPx.invert;
-        // const viewportWidthSecs = pxToSecs(projectDiv.clientWidth);
-
-        // const div = projectDiv;
-        const start = Math.max(viewportStartPx + e.deltaX, 0);
-        setViewportStartPx(start);
-        // div.scrollBy(e.deltaX, e.deltaY);
-
-        // e.preventDefault();
-        // e.preventDefault();
-        // // we just allow the div to scroll, no need to do it ourselves
-        // // // natural scrolling direction (vs inverted)
-        // const natural = true;
-        // var direction = natural ? -1 : 1;
-        // tx += e.deltaX * direction;
-        // // ty += e.deltaY * direction;
-        // projectDiv.scrollTo({ left: -tx });
-        // console.log("SCROLL", tx);
       }
-
-      // console.log(tx, ty, scale);
+      // pan
+      else {
+        const start = Math.max(viewportStartPx + e.deltaX, 0);
+        // console.log("here");
+        setViewportStartPx(start);
+      }
     };
 
     const onScroll = (e: Event) => {
+      setViewportStartPx((e.target as any).scrollLeft);
+      // console.log("HOOO");
+
       e.preventDefault();
     };
 
@@ -162,7 +149,7 @@ export function TimelineView({
     projectDiv.addEventListener("scroll", onScroll, { capture: false });
     return () => {
       projectDiv.removeEventListener("wheel", onWheel, { capture: false });
-      projectDiv.addEventListener("scroll", onScroll, { capture: false });
+      projectDiv.removeEventListener("scroll", onScroll, { capture: false });
     };
   }, [projectDiv, scaleFactor, setScaleFactor, setViewportStartPx, viewportStartPx]);
 
