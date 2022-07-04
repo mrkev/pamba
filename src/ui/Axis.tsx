@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import * as d3 from "d3";
-import { AudioProject } from "../lib/AudioProject";
+import { AudioProject, ProjectMarkers } from "../lib/AudioProject";
 import { useDerivedState } from "../lib/state/DerivedState";
+import { useLinkedMap } from "../lib/state/LinkedMap";
 
 const formatter = new Intl.NumberFormat("en-US", {
   useGrouping: false,
@@ -33,7 +34,10 @@ function getStepForRes(dist: number): number {
 
 export function Axis({ project, projectDiv }: { project: AudioProject; projectDiv: HTMLDivElement }) {
   const [svg, setSvg] = useState<SVGSVGElement | null>(null);
+  const [markers] = useLinkedMap(project.timeMarkers);
   const secsToPx = useDerivedState(project.secsToPx);
+  const pxToSecs = secsToPx.invert;
+
   // const [tracks] = useLinkedState(project.allTracks);
 
   useEffect(() => {
@@ -142,8 +146,70 @@ export function Axis({ project, projectDiv }: { project: AudioProject; projectDi
         }}
       ></svg>
       {/* Spacer to make the project content not overlap with the timestamps */}
-      <div className="axis-spacer" style={{ height: 30, display: "block", pointerEvents: "none" }}></div>
+      <div
+        className="axis-spacer"
+        style={{
+          height: 29,
+          display: "block",
+          borderBottom: "1px solid #BBB",
+          position: "relative",
+          userSelect: "none",
+          // pointerEvents: "none",
+        }}
+        onDoubleClick={(e: React.MouseEvent) => {
+          if ((e.target as any).className !== "axis-spacer") {
+            return;
+          }
+          AudioProject.addMarkerAtTime(project, pxToSecs(e.nativeEvent.offsetX));
+        }}
+      >
+        {markers
+          .map((time, id) => {
+            return [
+              time,
+              <div
+                key={id}
+                style={{
+                  position: "absolute",
+                  left: secsToPx(time),
+                  background: "white",
+                  bottom: 0,
+                  borderLeft: "1px solid black",
+                  paddingRight: 20,
+                }}
+              >
+                <Marker
+                  onClick={() => {
+                    ProjectMarkers.selectMarker(project, id);
+                  }}
+                  style={{
+                    position: "relative",
+                    left: -9,
+                    bottom: -3,
+                    cursor: "ew-resize",
+                  }}
+                />
+                marker {id}
+              </div>,
+            ];
+          })
+          .sort(([a], [b]) => a - b)
+          .map(([, elem]) => elem)}
+      </div>
     </>
+  );
+}
+
+function Marker({ style, onClick }: { style?: React.CSSProperties; onClick?: () => void }) {
+  return (
+    <svg viewBox="0 0 17 10" width="17" height="10" style={style} onClick={onClick}>
+      <path
+        d="M 8.5 0 L 17 10 L 0 10 L 8.5 0 Z"
+        style={{
+          fill: "rgb(0, 0, 0)",
+        }}
+      ></path>
+    </svg>
   );
 }
 

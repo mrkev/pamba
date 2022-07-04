@@ -65,8 +65,9 @@ export type RenameState =
     };
 
 export class AudioProject {
-  // test
-  readonly timeMarkers: LinkedMap<number, string> = LinkedMap.create<number, string>();
+  // id -> time
+  readonly timeMarkers = LinkedMap.create<number, number>();
+  nextTimeMarkerId = 0;
   // Track data - should persist //
   readonly allTracks = LinkedArray.create<AudioTrack>();
 
@@ -147,9 +148,16 @@ export class AudioProject {
       });
     }
   }
+
+  static addMarkerAtTime(project: AudioProject, secs: number) {
+    project.timeMarkers.set(project.nextTimeMarkerId++, secs);
+  }
 }
 
 export class ProjectSelection {
+  /**
+   * selects a track
+   */
   static selectTrack(project: AudioProject, track: AudioTrack) {
     const selected = project.selected.get();
     const selectAdd = modifierState.meta || modifierState.shift;
@@ -166,6 +174,10 @@ export class ProjectSelection {
         test: new Set([track]),
       });
     }
+  }
+
+  static selectEffect(project: AudioProject, effect: FaustAudioEffect, track: AudioTrack) {
+    project.selected.set({ status: "effects", effects: [{ effect, track }], test: new Set([effect]) });
   }
 
   /**
@@ -208,6 +220,26 @@ export class ProjectSelection {
       }
       default:
         exhaustive(status);
+    }
+  }
+}
+
+export class ProjectMarkers {
+  /**
+   * When first clicking a marker, we move the cursor to that point in time.
+   * When selecting a previously clicked marker, we select it
+   */
+  static selectMarker(project: AudioProject, markerId: number) {
+    const markerTime = project.timeMarkers.get(markerId);
+    if (!markerTime) {
+      return;
+    }
+
+    const cursorTime = project.cursorPos.get();
+    if (cursorTime !== markerTime) {
+      project.cursorPos.set(markerTime);
+    } else {
+      // TODO: new selection state, marker
     }
   }
 }

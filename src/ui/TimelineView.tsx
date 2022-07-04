@@ -12,6 +12,17 @@ import { Axis } from "./Axis";
 import { Track } from "./Track";
 import TrackHeader, { styles } from "./TrackHeader";
 
+const styles2 = {
+  axisSpacer: {
+    height: "30px",
+    display: "flex",
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "space-evenly",
+    // borderBottom: "1px solid gray",
+  } as const,
+};
+
 function TimelineCursor({ project }: { project: AudioProject }) {
   const secsToPx = useDerivedState(project.secsToPx);
   const [cursorPos] = useLinkedState(project.cursorPos);
@@ -46,7 +57,6 @@ export function TimelineView({
   const playbackPosDiv = useRef<null | HTMLDivElement>(null);
   const [projectDiv, setProjectDiv] = useState<null | HTMLDivElement>(null);
   const [tracks] = useLinkedArray(project.allTracks);
-  const [selected] = useLinkedState(project.selected);
   const [scaleFactor, setScaleFactor] = useLinkedState(project.scaleFactor);
   const [dspExpandedTracks] = useLinkedSet(project.dspExpandedTracks);
   const secsToPx = useDerivedState(project.secsToPx);
@@ -134,7 +144,6 @@ export function TimelineView({
     };
 
     const onScroll = (e: Event) => {
-      // console.log(e as any);
       e.preventDefault();
     };
 
@@ -196,16 +205,7 @@ export function TimelineView({
           flexShrink: 0,
         }}
       >
-        <div
-          className="axis-spacer"
-          style={{
-            height: "30px",
-            display: "flex",
-            alignItems: "center",
-            flexDirection: "row",
-            justifyContent: "space-evenly",
-          }}
-        >
+        <div style={styles2.axisSpacer}>
           {"↑"}
 
           <BounceButton project={project} renderer={renderer} />

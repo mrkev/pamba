@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import { AudioProject, ProjectSelection } from "../lib/AudioProject";
 import { AudioRenderer } from "../lib/AudioRenderer";
-import { useLinkedState } from "../lib/state/LinkedState";
 
 export function useAppProjectKeyboardEvents(
   project: AudioProject,
