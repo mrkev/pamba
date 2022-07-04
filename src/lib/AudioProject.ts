@@ -7,8 +7,8 @@ import { scaleLinear } from "d3-scale";
 import type { ScaleLinear } from "d3-scale";
 import { LinkedArray } from "./state/LinkedArray";
 import { AnalizedPlayer } from "./AnalizedPlayer";
-import { exhaustive } from "../dsp/exhaustive";
-import { FaustAudioEffect } from "../dsp/Faust";
+import { exhaustive } from "./exhaustive";
+import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
 import { LinkedMap } from "./state/LinkedMap";
 import { modifierState } from "../ModifierState";
 
@@ -16,6 +16,11 @@ import { modifierState } from "../ModifierState";
  * TODO:
  * - Make timeline view track separator taller, like the one on the TrackHeader
  *   so it's easier to grab.
+ * - Render with panning, gain, effects.
+ * - Level Meters in DSP
+ * - Drop to upload audio file
+ * - DSP Bypass button get working
+ * - DSP Search Box get working
  */
 
 export type XScale = ScaleLinear<number, number>;
@@ -49,12 +54,18 @@ export type SelectionState =
       end: number;
     };
 
-export type RenameState = {
-  status: "track";
-  track: AudioTrack;
-};
+export type RenameState =
+  | {
+      status: "track";
+      track: AudioTrack;
+    }
+  | {
+      status: "clip";
+      clip: AudioClip;
+    };
 
 export class AudioProject {
+  // test
   readonly timeMarkers: LinkedMap<number, string> = LinkedMap.create<number, string>();
   // Track data - should persist //
   readonly allTracks = LinkedArray.create<AudioTrack>();

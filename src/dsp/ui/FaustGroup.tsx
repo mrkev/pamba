@@ -1,6 +1,6 @@
 import { TFaustUIGroup } from "@shren/faust-ui/src/types";
 import React from "react";
-import { FaustNodeSetParamFn } from "./Faust";
+import { FaustNodeSetParamFn } from "../FaustAudioEffect";
 import { css } from "@linaria/core";
 import { FaustItem } from "./FaustItem";
 

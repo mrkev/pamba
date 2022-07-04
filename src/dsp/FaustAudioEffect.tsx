@@ -18,40 +18,14 @@ export interface INodeData {
 
 export type FaustNodeSetParamFn = (address: string, value: number) => void;
 
-// function FaustTest({ context }: { context: AudioContext }) {
-//   const [node, setNode] = useState<null | FaustAudioProcessorNode>(null);
-//   const [ui, setUi] = useState<Array<TFaustUIItem>>([]);
-//   useEffect(() => {
-//     (async function () {
-//       const createPanner = await import("./Panner.dsp");
-
-//       const panner = await createPanner.default(context);
-//       if (!panner) {
-//         return;
-//       }
-//       const nodeData: INodeData = JSON.parse((panner as any).getJSON());
-//       const { ui } = nodeData;
-//       setNode(panner || null);
-//       setUi(ui);
-//     })();
-//   }, [context]);
-
-//   if (!node || !ui) {
-//     return null;
-//   }
-
-//   return <FaustEffectModule ui={ui} setParam={node.setParam} />;
-// }
-
 export abstract class FaustAudioEffect {
   node: FaustAudioProcessorNode;
   data: INodeData;
   ui: Array<TFaustUIItem>;
 
   constructor(faustNode: FaustAudioProcessorNode) {
-    this.node = faustNode;
-    (window as any).nn = faustNode;
     const nodeData: INodeData = JSON.parse((faustNode as any).getJSON());
+    this.node = faustNode;
     this.data = nodeData;
     this.ui = nodeData.ui;
   }

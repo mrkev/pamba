@@ -10,7 +10,7 @@ import { useRef } from "react";
 import { RenamableLabel } from "./RenamableLabel";
 import { pressedState } from "../lib/linkedState/pressedState";
 import { css } from "@linaria/core";
-import { FAUST_EFFECTS } from "../dsp/Faust";
+import { FAUST_EFFECTS } from "../dsp/FaustAudioEffect";
 
 type Props = {
   track: AudioTrack;
@@ -18,7 +18,7 @@ type Props = {
   player: AnalizedPlayer;
 };
 
-const styles = {
+export const styles = {
   utilityButton: css`
     font-size: 10px;
     font-weight: bold;

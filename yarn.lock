@@ -12040,6 +12040,11 @@ wbuf@^1.1.0, wbuf@^1.7.3:
   dependencies:
     minimalistic-assert "^1.0.0"
 
+web-audio-peak-meter@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/web-audio-peak-meter/-/web-audio-peak-meter-2.1.0.tgz#c16f1203acff60236edf8f418c9872da8b578ef2"
+  integrity sha512-Sio1vCgNrRJW9ANIl4lJUccVnlKHndSkFVFzR9cDhwQ/PZN4Xz3FJHSNgI0XRiKUjWdCGn8jvRSUFBHypuyGNQ==
+
 web-vitals@2.1.4:
   version "2.1.4"
   resolved "https://registry.yarnpkg.com/web-vitals/-/web-vitals-2.1.4.tgz#76563175a475a5e835264d373704f9dde718290c"

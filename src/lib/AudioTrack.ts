@@ -2,7 +2,7 @@ import AudioClip from "./AudioClip";
 import { CLIP_HEIGHT, liveAudioContext } from "../globals";
 import { mixDown } from "../mixDown";
 import { addClip, deleteTime, removeClip, pushClip } from "./AudioTrackFn";
-import { FaustAudioEffect, FaustEffectThunk } from "../dsp/Faust";
+import { FaustAudioEffect, FaustEffectThunk } from "../dsp/FaustAudioEffect";
 import { TrackThread } from "./TrackThread";
 import { LinkedArray } from "./state/LinkedArray";
 import { LinkedState } from "./state/LinkedState";
@@ -213,5 +213,6 @@ export class AudioTrack {
 
   static removeEffect(track: AudioTrack, effect: FaustAudioEffect) {
     track.effects.remove(effect);
+    effect.node.destroy();
   }
 }

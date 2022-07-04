@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { CLIP_HEIGHT } from "../globals";
+import { CLIP_HEIGHT, TRACK_HEADER_WIDTH } from "../globals";
 import { useAppProjectMouseEvents } from "../input/useAppProjectMouseEvents";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import { AudioProject } from "../lib/AudioProject";
@@ -10,7 +10,7 @@ import { useLinkedSet } from "../lib/state/LinkedSet";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { Axis } from "./Axis";
 import { Track } from "./Track";
-import TrackHeader from "./TrackHeader";
+import TrackHeader, { styles } from "./TrackHeader";
 
 function TimelineCursor({ project }: { project: AudioProject }) {
   const secsToPx = useDerivedState(project.secsToPx);
@@ -192,7 +192,8 @@ export function TimelineView({
         style={{
           display: "flex",
           flexDirection: "column",
-          width: "150px",
+          width: TRACK_HEADER_WIDTH,
+          flexShrink: 0,
         }}
       >
         <div
@@ -241,6 +242,7 @@ function BounceButton({ project, renderer }: { project: AudioProject; renderer: 
   const [selectionWidth] = useLinkedState(project.selectionWidth);
   return (
     <button
+      className={styles.utilityButton}
       onClick={() => {
         AudioRenderer.bounceSelection(renderer, project);
       }}

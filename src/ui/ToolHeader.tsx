@@ -70,6 +70,31 @@ export function ToolHeader({
             justifyContent: "right",
           }}
         >
+          {firebaseStoreRef && (
+            <input
+              value={""}
+              type="file"
+              accept="audio/*"
+              onChange={async function (e) {
+                const file = (e.target.files || [])[0];
+                if (!file) {
+                  console.log("NO FILE");
+                  return;
+                }
+                // Push to child path.
+                const snapshot = await firebaseStoreRef.child("images/" + file.name).put(file, {
+                  contentType: file.type,
+                });
+
+                console.log("Uploaded", snapshot.totalBytes, "bytes.");
+                console.log("File metadata:", snapshot.metadata);
+                // Let's get a download URL for the file.
+                const url = await snapshot.ref.getDownloadURL();
+                console.log("File available at", url);
+                loadClip(url, file.name);
+              }}
+            />
+          )}
           {/* <BounceButton project={project} renderer={renderer} /> */}
           {bounceURL && (
             <a href={bounceURL} download={"bounce.wav"}>
@@ -83,6 +108,21 @@ export function ToolHeader({
           >
             {isAudioPlaying ? "stop" : "start"}
           </button>
+          {mediaRecorder && (
+            <button
+              onClick={function () {
+                if (!isRecording) {
+                  mediaRecorder.start();
+                  setIsRecording(true);
+                } else {
+                  mediaRecorder.stop();
+                  setIsRecording(false);
+                }
+              }}
+            >
+              {!isRecording ? "record" : "stop recording"}
+            </button>
+          )}
         </div>
         {/* <input
             value={""}
@@ -94,46 +134,7 @@ export function ToolHeader({
               loadClip(url, files[0].name);
             }}
           /> */}
-        {firebaseStoreRef && (
-          <input
-            value={""}
-            type="file"
-            accept="audio/*"
-            onChange={async function (e) {
-              const file = (e.target.files || [])[0];
-              if (!file) {
-                console.log("NO FILE");
-                return;
-              }
-              // Push to child path.
-              const snapshot = await firebaseStoreRef.child("images/" + file.name).put(file, {
-                contentType: file.type,
-              });
 
-              console.log("Uploaded", snapshot.totalBytes, "bytes.");
-              console.log("File metadata:", snapshot.metadata);
-              // Let's get a download URL for the file.
-              const url = await snapshot.ref.getDownloadURL();
-              console.log("File available at", url);
-              loadClip(url, file.name);
-            }}
-          />
-        )}
-        {mediaRecorder && (
-          <button
-            onClick={function () {
-              if (!isRecording) {
-                mediaRecorder.start();
-                setIsRecording(true);
-              } else {
-                mediaRecorder.stop();
-                setIsRecording(false);
-              }
-            }}
-          >
-            {!isRecording ? "record" : "stop recording"}
-          </button>
-        )}
         <br />
         {["viper.mp3", "drums.mp3", "clav.mp3", "bassguitar.mp3", "horns.mp3", "leadguitar.mp3"].map(function (url, i) {
           return (

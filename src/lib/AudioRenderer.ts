@@ -4,18 +4,13 @@ import bufferToWav from "audiobuffer-to-wav";
 import { AudioProject } from "./AudioProject";
 
 export class AudioRenderer {
-  /**
-   * URL of last bounced audio clip, for download
-   */
+  /** URL of last bounced audio clip, for download */
   readonly bounceURL = LinkedState.of<string | null>(null);
-
-  /**
-   * Is the audio currently playing?
-   */
+  /** Is the audio currently playing? */
   readonly isAudioPlaying = LinkedState.of(false);
-
-  //
+  /** */
   readonly analizedPlayer: AnalizedPlayer;
+
   constructor(analizedPlayer: AnalizedPlayer) {
     this.analizedPlayer = analizedPlayer;
   }

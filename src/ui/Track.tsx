@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import FaustEffectModule from "../dsp/FaustEffectModule";
+import FaustEffectModule from "../dsp/ui/FaustEffectModule";
 import { EFFECT_HEIGHT, TRACK_SEPARATOR_HEIGHT } from "../globals";
 import AudioClip from "../lib/AudioClip";
 import { AudioProject } from "../lib/AudioProject";
@@ -197,7 +197,7 @@ const EffectRack = React.memo(function EffectRack({
                 borderRadius: "2px",
               }}
               onClickRemove={(effect) => {
-                track.effects.remove(effect);
+                AudioTrack.removeEffect(track, effect);
               }}
               onHeaderClick={(effect) => {
                 project.selected.set({ status: "effects", effects: [{ effect, track }], test: new Set([effect]) });

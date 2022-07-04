@@ -1,8 +1,9 @@
 import React from "react";
 import { FaustItem } from "./FaustItem";
 import { FaustGroup } from "./FaustGroup";
-import { FaustAudioEffect } from "./Faust";
+import { FaustAudioEffect } from "../FaustAudioEffect";
 
+/** Renders a FaustAudioEffect */
 export default function FaustEffectModule({
   effect,
   style,

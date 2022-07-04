@@ -1,8 +1,8 @@
 import { TFaustUIItem } from "@shren/faust-ui/src/types";
 import React from "react";
-import { exhaustive } from "./exhaustive";
+import { exhaustive } from "../../lib/exhaustive";
 import { FaustSlider } from "./FaustSlider";
-import { FaustNodeSetParamFn } from "./Faust";
+import { FaustNodeSetParamFn } from "../FaustAudioEffect";
 import "./faust.css";
 import { FaustGroup } from "./FaustGroup";
 
