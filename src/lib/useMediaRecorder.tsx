@@ -1,11 +1,7 @@
 import { useEffect, useState } from "react";
 
-export function useMediaRecorder(
-  loadClip: (url: string, name?: string) => void
-) {
-  const [mediaRecorder, setMediaRecorder] = useState<null | MediaRecorder>(
-    null
-  );
+export function useMediaRecorder(loadClip: (url: string, name?: string) => void) {
+  const [mediaRecorder, setMediaRecorder] = useState<null | MediaRecorder>(null);
 
   // Microphone recording
   useEffect(
@@ -20,7 +16,7 @@ export function useMediaRecorder(
           mediaRecorder.ondataavailable = function (e) {
             chunks.push(e.data);
           };
-          mediaRecorder.onstop = function (e) {
+          mediaRecorder.onstop = function () {
             console.log("data available after MediaRecorder.stop() called.");
             const blob = new Blob(chunks, { type: "audio/ogg; codecs=opus" });
             chunks = [];

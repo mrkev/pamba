@@ -1,7 +1,9 @@
-import React, { useEffect, useState } from "react";
-import * as d3 from "d3";
-import { AudioProject } from "../lib/AudioProject";
+import { css, cx } from "@linaria/core";
+import React, { useState } from "react";
+import { AudioProject, ProjectMarkers } from "../lib/AudioProject";
 import { useDerivedState } from "../lib/state/DerivedState";
+import { useLinkedMap } from "../lib/state/LinkedMap";
+import { useLinkedState } from "../lib/state/LinkedState";
 
 const formatter = new Intl.NumberFormat("en-US", {
   useGrouping: false,
@@ -31,119 +33,158 @@ function getStepForRes(dist: number): number {
   }
 }
 
-export function Axis({ project, projectDiv }: { project: AudioProject; projectDiv: HTMLDivElement }) {
+const styles = {
+  svgContainer: css`
+    ${{
+      position: "absolute",
+      width: "100%",
+      height: "100%",
+      pointerEvents: "none",
+    } as const}
+  `,
+  markerContainer: css`
+    ${{
+      height: 29,
+      borderBottom: "1px solid #BBB",
+      userSelect: "none",
+      position: "absolute",
+      top: 0,
+      width: "100%",
+      cursor: "pointer",
+    } as const}
+  `,
+};
+
+export function Axis({ project }: { project: AudioProject }) {
   const [svg, setSvg] = useState<SVGSVGElement | null>(null);
+  const [markers] = useLinkedMap(project.timeMarkers);
+  const [viewportStartPx] = useLinkedState(project.viewportStartPx);
   const secsToPx = useDerivedState(project.secsToPx);
-  // const [tracks] = useLinkedState(project.allTracks);
+  const pxToSecs = secsToPx.invert;
 
-  useEffect(() => {
+  function pxForTime(s: number): number {
+    return secsToPx(s) - viewportStartPx;
+  }
+
+  function timeForPx(s: number): number {
+    return pxToSecs(s + viewportStartPx);
+  }
+
+  const viewportStartSecs = pxToSecs(viewportStartPx);
+
+  function getTickData() {
     if (!svg) {
-      return;
+      return null;
     }
 
-    const d3svg = d3.select(svg);
+    const MIN_DIST_BEETWEEN_TICKS_SEC = pxToSecs(MIN_TICK_DISTANCE);
+    const STEP_SECS = getStepForRes(MIN_DIST_BEETWEEN_TICKS_SEC);
 
-    // DRAW HORIZONTAL AXIS
-    // ie, timestamp ticks
+    const ticksToShow: Array<number> = [];
 
-    const pxToSecs = secsToPx.invert;
-    const tickData: Array<{ s: number; px: number }> = [];
-    // TODO: draw only visible window, not whole timeline
-    const totalTime = pxToSecs(projectDiv.scrollWidth);
+    const endTime = timeForPx(svg.clientWidth);
+    const shaveOff = viewportStartSecs % STEP_SECS;
 
-    const MIN_DIST_SEC = pxToSecs(MIN_TICK_DISTANCE);
-    const STEP = getStepForRes(MIN_DIST_SEC);
+    // (viewportStartSecs - shaveOff) gives us a time before the start of our viewport.
+    // we do want to render this one though, so that it doesn't just disappear as soon
+    // as part of it is out of view, and it does appear like we're scrolling it gradually
+    const startingTickSecs = viewportStartSecs - shaveOff;
 
-    for (let i = 0; i < totalTime; i += STEP) {
-      tickData.push({ s: i, px: secsToPx(i) });
+    for (let s = startingTickSecs; s < endTime; s += STEP_SECS) {
+      ticksToShow.push(s);
     }
 
-    // // How wide the axis will be
-    // const width = 100;
-    // const scale = scaleLinear()
-    //   .domain([0, width])
-    //   .range([0, secsToPx(width)]);
-    // const axis = axisTop(scale).ticks(3);
-    // const axisGroup = d3svg
-    //   .append("g")
-    //   .attr("transform", "translate(0,30)")
-    //   .call(axis);
+    // console.log({ viewportStartSecs, totalTime: endTime, startingTickSecs });
 
-    const ticks = d3svg.selectAll("g.tick").data(tickData);
+    return ticksToShow;
+  }
 
-    const groupEnter = ticks.enter().append("g").attr("class", "tick");
-
-    groupEnter
-      .append("line")
-      .attr("x1", ({ px }) => px)
-      .attr("x2", ({ px }) => px)
-      .attr("y1", 0)
-      .attr("y2", "100%")
-      .attr("stroke", "#CBCBCB");
-
-    groupEnter
-      .append("text")
-      .attr("x", ({ px }) => px)
-      .attr("y", 2)
-      .attr("dx", "2px")
-      .attr("font-size", "12px")
-      .attr("fill", "#454545")
-      .text(({ s: i }) => formatSecs(i))
-      .attr("text-anchor", "start")
-      .attr("alignment-baseline", "hanging");
-
-    ticks
-      .select("line")
-      .attr("x1", ({ px }) => px)
-      .attr("x2", ({ px }) => px);
-
-    ticks
-      .select("text")
-      .attr("x", ({ px }) => px)
-      .text(({ s: i }) => formatSecs(i));
-
-    ticks.exit().remove();
-
-    // // DRAW VERTICAL AXIS
-    // // ie, track borders
-
-    // const trackData: Array<{ i: number }> = [];
-    // // TODO: draw only visible window, not whole timeline
-    // const maxHeight = pxToSecs(projectDiv.scrollHeight);
-
-    // for (let i = 0; i < tracks.length; i++) {
-    //   trackData.push({ i });
-    // }
-
-    // const trackLines = d3svg.selectAll("line.track").data(trackData);
-    // trackLines
-    //   .enter()
-    //   .append("line")
-    //   .attr("class", "track")
-    //   .attr("x1", 0)
-    //   .attr("x2", "100%")
-    //   .attr("y1", ({ i }) => i * 10)
-    //   .attr("y2", ({ i }) => i * 10)
-    //   .attr("stroke", "#CBCBCB");
-
-    // trackLines.exit().remove();
-  }, [projectDiv, secsToPx, svg]);
+  const tickData = getTickData();
 
   return (
     <>
       {/* Background grid */}
       <svg
         ref={(elem: SVGSVGElement) => setSvg(elem)}
+        className={styles.svgContainer}
         style={{
-          position: "absolute",
-          width: 1440,
-          height: "100%",
-          pointerEvents: "none",
+          left: viewportStartPx,
         }}
-      ></svg>
-      {/* Spacer to make the project content not overlap with the timestamps */}
-      <div className="axis-spacer" style={{ height: 30, display: "block", pointerEvents: "none" }}></div>
+      >
+        {tickData?.map((secs) => {
+          const px = pxForTime(secs);
+          return (
+            <g className="tick" key={secs}>
+              <line x1={px} x2={px} y1="0" y2="100%" stroke="#CBCBCB"></line>
+              <text x={px} y="2" dx="2px" fontSize="12px" fill="#454545" textAnchor="start" alignmentBaseline="hanging">
+                {formatSecs(secs)}
+              </text>
+            </g>
+          );
+        })}
+      </svg>
+      {/* Spacer to make the project content not overlap with the timestamps. Needs to not
+      be position: absolute so it interacts with the page flow */}
+      <div style={{ height: 30, position: "relative" }} />
+      <div
+        className={cx("marker-interaction-area", styles.markerContainer)}
+        style={{
+          left: viewportStartPx,
+        }}
+        onDoubleClick={(e: React.MouseEvent) => {
+          if ((e.target as any).className !== "marker-interaction-area") {
+            return;
+          }
+          AudioProject.addMarkerAtTime(project, timeForPx(e.nativeEvent.offsetX));
+        }}
+      >
+        {markers
+          .map((time, id) => {
+            return [
+              time,
+              <div
+                key={id}
+                style={{
+                  position: "absolute",
+                  left: pxForTime(time),
+                  background: "white",
+                  bottom: 0,
+                  borderLeft: "1px solid black",
+                  paddingRight: 20,
+                }}
+              >
+                <Marker
+                  onClick={() => {
+                    ProjectMarkers.selectMarker(project, id);
+                  }}
+                  style={{
+                    position: "relative",
+                    left: -9,
+                    bottom: -3,
+                    cursor: "pointer",
+                  }}
+                />
+                marker {id}
+              </div>,
+            ];
+          })
+          .sort(([a], [b]) => a - b)
+          .map(([, elem]) => elem)}
+      </div>
     </>
+  );
+}
+
+function Marker({ style, onClick }: { style?: React.CSSProperties; onClick?: () => void }) {
+  return (
+    <svg viewBox="0 0 17 10" width="17" height="10" style={style} onClick={onClick}>
+      <path
+        d="M 8.5 0 L 17 10 L 0 10 L 8.5 0 Z"
+        style={{
+          fill: "rgb(0, 0, 0)",
+        }}
+      ></path>
+    </svg>
   );
 }
 

@@ -2,11 +2,9 @@ import React from "react";
 import { AudioProject, SelectionState } from "../lib/AudioProject";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { useLinkedArray } from "../lib/state/LinkedArray";
-import { exhaustive } from "../dsp/exhaustive";
+import { exhaustive } from "../lib/exhaustive";
 import { useLinkedMap } from "../lib/state/LinkedMap";
-import { pressedState } from "../lib/linkedState/pressedState";
-
-const styles = {};
+import { pressedState } from "../pressedState";
 
 export function stringOfSelected(sel: SelectionState | null): string {
   if (!sel) {

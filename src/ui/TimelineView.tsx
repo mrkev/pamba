@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { CLIP_HEIGHT } from "../globals";
+import { CLIP_HEIGHT, TRACK_HEADER_WIDTH } from "../globals";
 import { useAppProjectMouseEvents } from "../input/useAppProjectMouseEvents";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import { AudioProject } from "../lib/AudioProject";
@@ -11,6 +11,51 @@ import { useLinkedState } from "../lib/state/LinkedState";
 import { Axis } from "./Axis";
 import { Track } from "./Track";
 import TrackHeader from "./TrackHeader";
+import { utility } from "./utility";
+import { css } from "@linaria/core";
+import { clamp } from "../lib/math";
+
+// 150 is TRACK_HEADER_WIDTH
+const containerStyle = css`
+  display: grid;
+  grid-template-columns: 1fr 150px;
+  grid-template-rows: 30px 1fr;
+  grid-column-gap: 0px;
+  grid-row-gap: 0px;
+`;
+
+const styles2 = {
+  axisSpacer: {
+    height: "30px",
+    display: "flex",
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "space-evenly",
+    // borderBottom: "1px solid gray",
+  } as const,
+};
+
+function TimelineCursor({ project }: { project: AudioProject }) {
+  const secsToPx = useDerivedState(project.secsToPx);
+  const [cursorPos] = useLinkedState(project.cursorPos);
+  const [selectionWidth] = useLinkedState(project.selectionWidth);
+  return (
+    <div
+      // ref={cursorPosDiv}
+      style={{
+        backdropFilter: "invert(100%)",
+        height: "100%",
+        position: "absolute",
+        userSelect: "none",
+        pointerEvents: "none",
+        left:
+          selectionWidth == null || selectionWidth >= 0 ? secsToPx(cursorPos) : secsToPx(cursorPos + selectionWidth),
+        width: selectionWidth == null || selectionWidth === 0 ? 1 : secsToPx(Math.abs(selectionWidth)),
+        top: 0,
+      }}
+    ></div>
+  );
+}
 
 export function TimelineView({
   project,
@@ -24,13 +69,10 @@ export function TimelineView({
   const playbackPosDiv = useRef<null | HTMLDivElement>(null);
   const [projectDiv, setProjectDiv] = useState<null | HTMLDivElement>(null);
   const [tracks] = useLinkedArray(project.allTracks);
-  const [selected] = useLinkedState(project.selected);
   const [scaleFactor, setScaleFactor] = useLinkedState(project.scaleFactor);
   const [dspExpandedTracks] = useLinkedSet(project.dspExpandedTracks);
   const secsToPx = useDerivedState(project.secsToPx);
-  const [cursorPos] = useLinkedState(project.cursorPos);
-  const [selectionWidth] = useLinkedState(project.selectionWidth);
-  const [viewportStartSecs, setViewportStartSecs] = useLinkedState(project.viewportStartSecs);
+  const [viewportStartPx, setViewportStartPx] = useLinkedState(project.viewportStartPx);
 
   useEffect(() => {
     const pbdiv = playbackPosDiv.current;
@@ -58,8 +100,8 @@ export function TimelineView({
       return;
     }
 
-    projectDiv.scrollTo({ left: viewportStartSecs });
-  }, [projectDiv, viewportStartSecs]);
+    projectDiv.scrollTo({ left: viewportStartPx });
+  }, [projectDiv, viewportStartPx]);
 
   useEffect(() => {
     if (!projectDiv) {
@@ -73,47 +115,32 @@ export function TimelineView({
       // both pinches and two-finger pans trigger the wheel event trackpads.
       // ctrlKey is true for pinches though, so we can use it to differentiate
       // one from the other.
-      // console.log("wheel", e);
+      // pinch
       if (e.ctrlKey) {
+        // console.log("THIS");
         const sDelta = Math.exp(-e.deltaY / 100);
-        const newScale = scaleFactor * Math.exp(-e.deltaY / 100);
+        const expectedNewScale = scaleFactor * sDelta;
+        // min scale is 0.64, max is 1000
+        const newScale = clamp(0.64, expectedNewScale, 1000);
         setScaleFactor(newScale);
-        const widthUpToMouse = (e as any).layerX as number;
-        const deltaX = widthUpToMouse - widthUpToMouse * sDelta;
-        const newStart = viewportStartSecs - deltaX;
-        console.log("deltaX", deltaX, "sDelta", sDelta);
-        setViewportStartSecs(newStart);
+        const realSDelta = newScale / scaleFactor;
 
-        // setScaleFactor((prev) => {
-        //   const s = Math.exp(-e.deltaY / 100);
-        //   return prev * s;
-        // });
-        // setViewportStartSecs((prev) => {});
+        const widthUpToMouse = e.clientX + viewportStartPx;
+        const deltaX = widthUpToMouse - widthUpToMouse * realSDelta;
+        const newStart = viewportStartPx - deltaX;
+        setViewportStartPx(newStart);
         e.preventDefault();
-      } else {
-        console.log("timeline");
-        // const div = projectDiv;
-        const start = Math.max(viewportStartSecs + e.deltaX, 0);
-        setViewportStartSecs(start);
-        // div.scrollBy(e.deltaX, e.deltaY);
-
-        // e.preventDefault();
-        // e.preventDefault();
-        // // we just allow the div to scroll, no need to do it ourselves
-        // // // natural scrolling direction (vs inverted)
-        // const natural = true;
-        // var direction = natural ? -1 : 1;
-        // tx += e.deltaX * direction;
-        // // ty += e.deltaY * direction;
-        // projectDiv.scrollTo({ left: -tx });
-        // console.log("SCROLL", tx);
       }
-
-      // console.log(tx, ty, scale);
+      // pan
+      else {
+        const start = Math.max(viewportStartPx + e.deltaX, 0);
+        // console.log("here");
+        setViewportStartPx(start);
+      }
     };
 
     const onScroll = (e: Event) => {
-      // console.log(e as any);
+      setViewportStartPx((e.target as any).scrollLeft);
       e.preventDefault();
     };
 
@@ -121,20 +148,28 @@ export function TimelineView({
     projectDiv.addEventListener("scroll", onScroll, { capture: false });
     return () => {
       projectDiv.removeEventListener("wheel", onWheel, { capture: false });
-      projectDiv.addEventListener("scroll", onScroll, { capture: false });
+      projectDiv.removeEventListener("scroll", onScroll, { capture: false });
     };
-  }, [projectDiv, scaleFactor, setScaleFactor, setViewportStartSecs, viewportStartSecs]);
+  }, [projectDiv, scaleFactor, setScaleFactor, setViewportStartPx, viewportStartPx]);
 
   return (
     <div
       id="container"
+      className={containerStyle}
       style={{
         width: "100%",
-        display: "flex",
-        flexDirection: "row",
+        // display: "flex",
+        // flexDirection: "row",
         flexGrow: 1,
       }}
     >
+      {/* 1. Track header overhang (bounce button) */}
+      <div style={styles2.axisSpacer}>
+        {"↑"}
+        <BounceButton project={project} renderer={renderer} />
+      </div>
+
+      {/* 2. Project, including track headers */}
       {/* The whole width of this div is 90s */}
       <div
         id="projectDiv"
@@ -143,31 +178,17 @@ export function TimelineView({
           position: "relative",
           background: "#ddd",
           paddingBottom: CLIP_HEIGHT,
-          overflowX: "hidden",
+          overflowX: "scroll",
           width: "100%",
+          gridArea: "1 / 1 / 3 / 2",
         }}
       >
-        {projectDiv && <Axis project={project} projectDiv={projectDiv}></Axis>}
+        <Axis project={project}></Axis>
         {tracks.map(function (track, i) {
           const isDspExpanded = dspExpandedTracks.has(track);
           return <Track key={i} track={track} project={project} isDspExpanded={isDspExpanded} renderer={renderer} />;
         })}
-        <div
-          // ref={cursorPosDiv}
-          style={{
-            backdropFilter: "invert(100%)",
-            height: "100%",
-            position: "absolute",
-            userSelect: "none",
-            pointerEvents: "none",
-            left:
-              selectionWidth == null || selectionWidth >= 0
-                ? secsToPx(cursorPos)
-                : secsToPx(cursorPos + selectionWidth),
-            width: selectionWidth == null || selectionWidth === 0 ? 1 : secsToPx(Math.abs(selectionWidth)),
-            top: 0,
-          }}
-        ></div>
+        <TimelineCursor project={project} />
         <div
           ref={playbackPosDiv}
           style={{
@@ -181,25 +202,26 @@ export function TimelineView({
         ></div>
       </div>
 
-      {/* Track headers */}
+      {/* 3. Track headers */}
       <div
         style={{
           display: "flex",
           flexDirection: "column",
-          width: "150px",
+          width: TRACK_HEADER_WIDTH,
+          flexShrink: 0,
         }}
       >
-        <div
-          className="axis-spacer"
-          style={{
-            height: "30px",
-            display: "flex",
-            alignItems: "center",
-            flexDirection: "row",
-          }}
-        >
-          {/* Spacer for the axis */}
-
+        {tracks.map((track, i) => {
+          return <TrackHeader key={i} track={track} project={project} player={player} />;
+        })}
+        <div>
+          <button
+            onClick={() => {
+              AudioProject.addTrack(project, player);
+            }}
+          >
+            new track
+          </button>
           <input
             type="range"
             min={Math.log(1)}
@@ -212,20 +234,21 @@ export function TimelineView({
             }}
           />
         </div>
-        {tracks.map((track, i) => {
-          const isSelected = selected !== null && selected.status === "tracks" && selected.test.has(track);
-          return <TrackHeader key={i} isSelected={isSelected} track={track} project={project} player={player} />;
-        })}
-        <div>
-          <button
-            onClick={() => {
-              AudioProject.addTrack(project, player);
-            }}
-          >
-            new track
-          </button>
-        </div>
       </div>
     </div>
+  );
+}
+
+function BounceButton({ project, renderer }: { project: AudioProject; renderer: AudioRenderer }) {
+  const [selectionWidth] = useLinkedState(project.selectionWidth);
+  return (
+    <button
+      className={utility.button}
+      onClick={() => {
+        AudioRenderer.bounceSelection(renderer, project);
+      }}
+    >
+      {selectionWidth && selectionWidth > 0 ? "bounce selected" : "bounce all"}
+    </button>
   );
 }

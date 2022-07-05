@@ -74,25 +74,28 @@ export class AnalizedPlayer {
     const ctx = this.canvasCtx;
     if (ctx == null) return;
 
-    let X_STEP = CANVAS_WIDTH / 1024;
-    let res = 1;
+    // let X_STEP = 1; //CANVAS_WIDTH / 1024;
+    // let res = 1;
     // find the X_STEP that gives us a resolution
     // closest to 1. This way we can skip samples
     // and draw closer to just one sample per pixel
-    while (X_STEP * 2 < 1) {
-      res *= 2;
-      X_STEP *= 2;
-    }
+    // while (X_STEP * 2 < 1) {
+    //   res *= 2;
+    //   X_STEP *= 2;
+    // }
+    // ... / 2 because we want to show just half of the buffer
+    const STEP_X = Math.floor(amplitudeArray.length / CANVAS_WIDTH) / 2;
 
     ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-    for (let i = 0; i < amplitudeArray.length; i += res) {
-      const value = amplitudeArray[i] / 255; // 0 -> .5 -> 1
+    for (let i = 0; i < CANVAS_WIDTH; i += 1) {
+      const value = amplitudeArray[i * STEP_X] / 255; // 0 -> .5 -> 1
       const y = CANVAS_HEIGHT * value;
       ctx.fillStyle = "#ffffff";
-      ctx.fillRect(i * X_STEP, y, 1, 1);
+      ctx.fillRect(i, y, 1, 1);
     }
-    ctx.font = "20px Helvetica";
-    ctx.fillText(String(playbackTime), 20, 20);
+    ctx.font = "12px Helvetica";
+    ctx.textAlign = "end";
+    ctx.fillText(String(playbackTime.toFixed(3)), CANVAS_WIDTH - 2, 12);
   }
 
   playingTracks: ReadonlyArray<AudioTrack> | null = null;

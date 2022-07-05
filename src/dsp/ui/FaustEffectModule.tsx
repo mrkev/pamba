@@ -1,11 +1,14 @@
 import React from "react";
-import { FaustGroup, FaustItem } from "./FaustItem";
-import { FaustAudioEffect } from "./Faust";
+import { FaustItem } from "./FaustItem";
+import { FaustGroup } from "./FaustGroup";
+import { FaustAudioEffect } from "../FaustAudioEffect";
 
+/** Renders a FaustAudioEffect */
 export default function FaustEffectModule({
   effect,
   style,
   onClickRemove,
+  onClickBypass,
   onHeaderClick,
   canDelete,
   isSelected,
@@ -13,6 +16,7 @@ export default function FaustEffectModule({
   effect: FaustAudioEffect;
   style?: React.CSSProperties;
   onClickRemove: (effect: FaustAudioEffect) => void;
+  onClickBypass: (effect: FaustAudioEffect) => void;
   onHeaderClick: (effect: FaustAudioEffect) => void;
   canDelete: boolean;
   isSelected: boolean;
@@ -26,12 +30,9 @@ export default function FaustEffectModule({
         setParam={effect.node.setParam}
         isTopLevel={true}
         canDelete={canDelete}
-        onClickRemove={() => {
-          onClickRemove(effect);
-        }}
-        onHeaderClick={() => {
-          onHeaderClick(effect);
-        }}
+        onClickBypass={() => onClickBypass(effect)}
+        onClickRemove={() => onClickRemove(effect)}
+        onHeaderClick={() => onHeaderClick(effect)}
         isSelected={isSelected}
       />
     );

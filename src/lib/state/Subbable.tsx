@@ -1,4 +1,4 @@
-import { exhaustive } from "../../dsp/exhaustive";
+import { exhaustive } from "../exhaustive";
 import { StateChangeHandler } from "./LinkedState";
 
 // Subbables are things one can subscribe to

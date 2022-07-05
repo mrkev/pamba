@@ -7,10 +7,23 @@ import { scaleLinear } from "d3-scale";
 import type { ScaleLinear } from "d3-scale";
 import { LinkedArray } from "./state/LinkedArray";
 import { AnalizedPlayer } from "./AnalizedPlayer";
-import { exhaustive } from "../dsp/exhaustive";
-import { FaustAudioEffect } from "../dsp/Faust";
+import { exhaustive } from "./exhaustive";
+import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
 import { LinkedMap } from "./state/LinkedMap";
 import { modifierState } from "../ModifierState";
+
+/**
+ * TODO:
+ * - Make timeline view track separator taller, like the one on the TrackHeader
+ *   so it's easier to grab.
+ * - Render with panning, gain, effects.
+ * - Level Meters in DSP
+ * - Drop to upload audio file
+ * - DSP Bypass button get working
+ * - DSP Search Box get working
+ * [x] Overscroll towards the end of the project means we got to scroll extra to come back
+ * - resizing with slider should resize around the cursor, not 0:00
+ */
 
 export type XScale = ScaleLinear<number, number>;
 
@@ -43,37 +56,44 @@ export type SelectionState =
       end: number;
     };
 
-export type RenameState = {
-  status: "track";
-  track: AudioTrack;
-};
+export type RenameState =
+  | {
+      status: "track";
+      track: AudioTrack;
+    }
+  | {
+      status: "clip";
+      clip: AudioClip;
+    };
 
 export class AudioProject {
-  timeMarkers: LinkedMap<number, string> = LinkedMap.create<number, string>();
+  // id -> time
+  readonly timeMarkers = LinkedMap.create<number, number>();
+  nextTimeMarkerId = 0;
   // Track data - should persist //
-  allTracks = LinkedArray.create<AudioTrack>();
+  readonly allTracks = LinkedArray.create<AudioTrack>();
 
   // Track status //
-  solodTracks = LinkedSet.create<AudioTrack>();
-  dspExpandedTracks = LinkedSet.create<AudioTrack>();
+  readonly solodTracks = LinkedSet.create<AudioTrack>();
+  readonly dspExpandedTracks = LinkedSet.create<AudioTrack>();
 
   // Pointer //
-  pointerTool = LinkedState.of<Tool>("move");
-  cursorPos = LinkedState.of(0);
+  readonly pointerTool = LinkedState.of<Tool>("move");
+  readonly cursorPos = LinkedState.of(0);
 
   // Selection //
 
   // the selected clip(s), track(s), etc
-  selected = LinkedState.of<SelectionState | null>(null);
+  readonly selected = LinkedState.of<SelectionState | null>(null);
   // the thing we're currently renaming, if any
-  currentlyRenaming = LinkedState.of<RenameState | null>(null);
+  readonly currentlyRenaming = LinkedState.of<RenameState | null>(null);
   // the width of the selection at the playback cursor
-  selectionWidth = LinkedState.of<number | null>(null);
+  readonly selectionWidth = LinkedState.of<number | null>(null);
   // the zoom level
-  scaleFactor = LinkedState.of(10);
-  viewportStartSecs = LinkedState.of(0); // the first second visible in the project div
+  readonly scaleFactor = LinkedState.of(10);
+  readonly viewportStartPx = LinkedState.of(0); // the "left" CSS position for the first second visible in the project div
   // 1 sec corresponds to 10 px
-  secsToPx = DerivedState.from(
+  readonly secsToPx = DerivedState.from(
     [this.scaleFactor],
     (factor: number) =>
       scaleLinear()
@@ -84,10 +104,10 @@ export class AudioProject {
   //////// Methods on Projects ////////
 
   // TODO: maybe let's not try to add this track to playback
-  static addTrack(project: AudioProject, player: AnalizedPlayer, track?: AudioTrack) {
+  static addTrack(project: AudioProject, player?: AnalizedPlayer, track?: AudioTrack) {
     const newTrack = track ?? AudioTrack.empty();
     project.allTracks.push(newTrack);
-    if (player.isAudioPlaying) {
+    if (player != null && player.isAudioPlaying) {
       console.log("ADDED TO PLAYBACK");
       player.addTrackToPlayback(newTrack, project.cursorPos.get());
     }
@@ -130,12 +150,20 @@ export class AudioProject {
       });
     }
   }
+
+  static addMarkerAtTime(project: AudioProject, secs: number) {
+    project.timeMarkers.set(project.nextTimeMarkerId++, secs);
+  }
 }
 
 export class ProjectSelection {
+  /**
+   * selects a track
+   */
   static selectTrack(project: AudioProject, track: AudioTrack) {
     const selected = project.selected.get();
     const selectAdd = modifierState.meta || modifierState.shift;
+    console.log("SELECTADD", selectAdd, modifierState);
     if (selectAdd && selected?.status === "tracks") {
       const next = { ...selected };
       next.tracks.push(track);
@@ -148,6 +176,10 @@ export class ProjectSelection {
         test: new Set([track]),
       });
     }
+  }
+
+  static selectEffect(project: AudioProject, effect: FaustAudioEffect, track: AudioTrack) {
+    project.selected.set({ status: "effects", effects: [{ effect, track }], test: new Set([effect]) });
   }
 
   /**
@@ -190,6 +222,26 @@ export class ProjectSelection {
       }
       default:
         exhaustive(status);
+    }
+  }
+}
+
+export class ProjectMarkers {
+  /**
+   * When first clicking a marker, we move the cursor to that point in time.
+   * When selecting a previously clicked marker, we select it
+   */
+  static selectMarker(project: AudioProject, markerId: number) {
+    const markerTime = project.timeMarkers.get(markerId);
+    if (!markerTime) {
+      return;
+    }
+
+    const cursorTime = project.cursorPos.get();
+    if (cursorTime !== markerTime) {
+      project.cursorPos.set(markerTime);
+    } else {
+      // TODO: new selection state, marker
     }
   }
 }

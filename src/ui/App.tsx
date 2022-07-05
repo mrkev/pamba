@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
-import "./App.css";
 import { DebugData } from "./DebugData";
 import { usePambaFirebaseStoreRef } from "../firebase/useFirebase";
 import { AudioProject } from "../lib/AudioProject";
@@ -18,7 +17,11 @@ import { useAppProjectKeyboardEvents } from "../input/useAppProjectKeyboardEvent
 
 function App() {
   const firebaseStoreRef = usePambaFirebaseStoreRef();
-  const [project] = useState(() => new AudioProject());
+  const [project] = useState(() => {
+    const audioProject = new AudioProject();
+    AudioProject.addTrack(audioProject);
+    return audioProject;
+  });
   // IDEA: Maybe merge player and renderer?
   const [renderer] = useState(() => new AudioRenderer(new AnalizedPlayer()));
 
@@ -53,7 +56,6 @@ function App() {
         renderer={renderer}
       />
       <TimelineView project={project} player={renderer.analizedPlayer} renderer={renderer} />
-
       <DebugData project={project} />
     </>
   );

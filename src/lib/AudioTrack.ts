@@ -1,11 +1,11 @@
-import AudioClip from "./AudioClip";
+import { FaustAudioEffect, FaustEffectThunk } from "../dsp/FaustAudioEffect";
 import { CLIP_HEIGHT, liveAudioContext } from "../globals";
 import { mixDown } from "../mixDown";
-import { addClip, deleteTime, removeClip, pushClip } from "./AudioTrackFn";
-import { FaustAudioEffect, FaustEffectThunk } from "../dsp/Faust";
-import { TrackThread } from "./TrackThread";
+import AudioClip from "./AudioClip";
+import { addClip, deleteTime, pushClip, removeClip } from "./AudioTrackFn";
 import { LinkedArray } from "./state/LinkedArray";
 import { LinkedState } from "./state/LinkedState";
+import { TrackThread } from "./TrackThread";
 
 let trackNo = 0;
 
@@ -211,5 +211,10 @@ export class AudioTrack {
 
   static removeEffect(track: AudioTrack, effect: FaustAudioEffect) {
     track.effects.remove(effect);
+    effect.node.destroy();
+  }
+
+  static bypassEffect(track: AudioTrack, effect: FaustAudioEffect) {
+    console.log(effect.node);
   }
 }

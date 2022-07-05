@@ -1,6 +1,6 @@
 import { TFaustUIInputItem } from "@shren/faust-ui/src/types";
 import React, { useState } from "react";
-import { FaustNodeSetParamFn } from "./Faust";
+import { FaustNodeSetParamFn } from "../FaustAudioEffect";
 
 export function FaustSlider({
   item,

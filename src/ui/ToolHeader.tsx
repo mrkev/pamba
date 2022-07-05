@@ -9,6 +9,13 @@ import AudioClip from "../lib/AudioClip";
 import { AudioTrack } from "../lib/AudioTrack";
 import { useMediaRecorder } from "../lib/useMediaRecorder";
 
+function ToolDisplay({ project }: { project: AudioProject }) {
+  const [tool] = useLinkedState(project.pointerTool);
+  return (
+    <>{tool === "move" ? "move ⇄" : tool === "trimStart" ? "trimStart ⇥" : tool === "trimEnd" ? "trimEnd ⇤" : tool}</>
+  );
+}
+
 export function ToolHeader({
   project,
   player,
@@ -22,12 +29,9 @@ export function ToolHeader({
   firebaseStoreRef: any;
 }) {
   const ctxRef = useRef<null | CanvasRenderingContext2D>(null);
-  const [selectionWidth] = useLinkedState(project.selectionWidth);
   const [tracks] = useLinkedArray(project.allTracks);
-  const [tool] = useLinkedState(project.pointerTool);
   const [bounceURL] = useLinkedState<string | null>(renderer.bounceURL);
   const [isAudioPlaying] = useLinkedState(renderer.isAudioPlaying);
-
   const [isRecording, setIsRecording] = useState(false);
 
   const loadClip = useCallback(
@@ -66,26 +70,59 @@ export function ToolHeader({
             justifyContent: "right",
           }}
         >
-          <button
-            onClick={() => {
-              AudioRenderer.bounceSelection(renderer, project);
-            }}
-          >
-            {selectionWidth && selectionWidth > 0 ? "bounce selected" : "bounce all"}
-          </button>
+          {firebaseStoreRef && (
+            <input
+              value={""}
+              type="file"
+              accept="audio/*"
+              onChange={async function (e) {
+                const file = (e.target.files || [])[0];
+                if (!file) {
+                  console.log("NO FILE");
+                  return;
+                }
+                // Push to child path.
+                const snapshot = await firebaseStoreRef.child("images/" + file.name).put(file, {
+                  contentType: file.type,
+                });
+
+                console.log("Uploaded", snapshot.totalBytes, "bytes.");
+                console.log("File metadata:", snapshot.metadata);
+                // Let's get a download URL for the file.
+                const url = await snapshot.ref.getDownloadURL();
+                console.log("File available at", url);
+                loadClip(url, file.name);
+              }}
+            />
+          )}
+          {/* <BounceButton project={project} renderer={renderer} /> */}
           {bounceURL && (
             <a href={bounceURL} download={"bounce.wav"}>
               Download bounce
             </a>
           )}
-
-          {tool === "move" ? "move ⇄" : tool === "trimStart" ? "trimStart ⇥" : tool === "trimEnd" ? "trimEnd ⇤" : tool}
+          <ToolDisplay project={project} />
           <button
             disabled={tracks.length === 0}
             onClick={() => AudioRenderer.togglePlayback(renderer, project, player)}
           >
             {isAudioPlaying ? "stop" : "start"}
           </button>
+          {mediaRecorder && (
+            <button
+              onClick={function () {
+                if (!isRecording) {
+                  mediaRecorder.start();
+                  setIsRecording(true);
+                } else {
+                  mediaRecorder.stop();
+                  setIsRecording(false);
+                }
+              }}
+            >
+              {!isRecording ? "record" : "stop recording"}
+            </button>
+          )}
         </div>
         {/* <input
             value={""}
@@ -97,46 +134,7 @@ export function ToolHeader({
               loadClip(url, files[0].name);
             }}
           /> */}
-        {firebaseStoreRef && (
-          <input
-            value={""}
-            type="file"
-            accept="audio/*"
-            onChange={async function (e) {
-              const file = (e.target.files || [])[0];
-              if (!file) {
-                console.log("NO FILE");
-                return;
-              }
-              // Push to child path.
-              const snapshot = await firebaseStoreRef.child("images/" + file.name).put(file, {
-                contentType: file.type,
-              });
 
-              console.log("Uploaded", snapshot.totalBytes, "bytes.");
-              console.log("File metadata:", snapshot.metadata);
-              // Let's get a download URL for the file.
-              const url = await snapshot.ref.getDownloadURL();
-              console.log("File available at", url);
-              loadClip(url, file.name);
-            }}
-          />
-        )}
-        {mediaRecorder && (
-          <button
-            onClick={function () {
-              if (!isRecording) {
-                mediaRecorder.start();
-                setIsRecording(true);
-              } else {
-                mediaRecorder.stop();
-                setIsRecording(false);
-              }
-            }}
-          >
-            {!isRecording ? "record" : "stop recording"}
-          </button>
-        )}
         <br />
         {["viper.mp3", "drums.mp3", "clav.mp3", "bassguitar.mp3", "horns.mp3", "leadguitar.mp3"].map(function (url, i) {
           return (
