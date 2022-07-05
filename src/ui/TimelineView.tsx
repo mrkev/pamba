@@ -10,7 +10,8 @@ import { useLinkedSet } from "../lib/state/LinkedSet";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { Axis } from "./Axis";
 import { Track } from "./Track";
-import TrackHeader, { styles } from "./TrackHeader";
+import TrackHeader from "./TrackHeader";
+import { utility } from "./utility";
 import { css } from "@linaria/core";
 import { clamp } from "../lib/math";
 
@@ -140,8 +141,6 @@ export function TimelineView({
 
     const onScroll = (e: Event) => {
       setViewportStartPx((e.target as any).scrollLeft);
-      // console.log("HOOO");
-
       e.preventDefault();
     };
 
@@ -244,7 +243,7 @@ function BounceButton({ project, renderer }: { project: AudioProject; renderer: 
   const [selectionWidth] = useLinkedState(project.selectionWidth);
   return (
     <button
-      className={styles.utilityButton}
+      className={utility.button}
       onClick={() => {
         AudioRenderer.bounceSelection(renderer, project);
       }}

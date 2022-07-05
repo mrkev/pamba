@@ -21,7 +21,8 @@ import { modifierState } from "../ModifierState";
  * - Drop to upload audio file
  * - DSP Bypass button get working
  * - DSP Search Box get working
- * - Overscroll towards the end of the project means we got to scroll extra to come back
+ * [x] Overscroll towards the end of the project means we got to scroll extra to come back
+ * - resizing with slider should resize around the cursor, not 0:00
  */
 
 export type XScale = ScaleLinear<number, number>;

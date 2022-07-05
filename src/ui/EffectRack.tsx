@@ -12,7 +12,7 @@ const styles = {
   effectRack: css`
     ${{
       color: "white",
-      background: "#444",
+      background: "rgba(23, 23, 23, 0.7)",
       display: "flex",
       flexDirection: "row",
       alignItems: "stretch",
@@ -23,6 +23,7 @@ const styles = {
       left: "0",
       overscrollBehavior: "contain",
       overflowX: "scroll",
+
       padding: "6px 25% 11px 4px",
       gap: "4px",
     }}
@@ -83,6 +84,7 @@ export const EffectRack = React.memo(function EffectRack({
               }}
               onClickRemove={() => AudioTrack.removeEffect(track, effect)}
               onHeaderClick={() => ProjectSelection.selectEffect(project, effect, track)}
+              onClickBypass={() => AudioTrack.bypassEffect(track, effect)}
               isSelected={selected?.status === "effects" && selected.test.has(effect)}
             />
             {"→"}

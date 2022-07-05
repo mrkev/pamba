@@ -3,6 +3,7 @@ import React from "react";
 import { FaustNodeSetParamFn } from "../FaustAudioEffect";
 import { css } from "@linaria/core";
 import { FaustItem } from "./FaustItem";
+import { utility } from "../../ui/utility";
 
 const styles = {
   faustGroupRoot: css`
@@ -31,6 +32,7 @@ export function FaustGroup({
   setParam,
   isTopLevel = false,
   onClickRemove,
+  onClickBypass,
   onHeaderClick,
   isSelected = false,
   canDelete = true,
@@ -40,6 +42,7 @@ export function FaustGroup({
   isTopLevel?: boolean;
   onClickRemove?: () => void;
   onHeaderClick?: () => void;
+  onClickBypass?: () => void;
   canDelete?: boolean;
   isSelected?: boolean;
 }) {
@@ -73,15 +76,16 @@ export function FaustGroup({
         <div
           className={styles.faustTopLevelHeader}
           style={{
-            // cursor: "grab",
             background: isSelected ? "#555" : undefined,
           }}
           onClick={onHeaderClick}
         >
           <div>{label}</div>
           <div>
-            <button disabled>bypass</button>
-            <button disabled={!canDelete} onClick={onClickRemove}>
+            <button className={utility.button} onClick={onClickBypass}>
+              bypass
+            </button>
+            <button className={utility.button} disabled={!canDelete} onClick={onClickRemove}>
               x
             </button>
           </div>

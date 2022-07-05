@@ -9,45 +9,23 @@ import { useLinkedArray } from "../lib/state/LinkedArray";
 import { useRef } from "react";
 import { RenamableLabel } from "./RenamableLabel";
 import { pressedState } from "../pressedState";
-import { css } from "@linaria/core";
 import { FAUST_EFFECTS } from "../dsp/FaustAudioEffect";
+import { utility } from "./utility";
+import { css } from "@linaria/core";
+
+const styles = {
+  actionButton: css`
+    cursor: pointer;
+    border: none;
+    background: #d3d3d3;
+  `,
+};
 
 type Props = {
   track: AudioTrack;
   project: AudioProject;
   player: AnalizedPlayer;
 };
-
-export const styles = {
-  utilityButton: css`
-    font-size: 10px;
-    font-weight: bold;
-    padding: 1px 6px;
-    height: 16px;
-    border: none;
-    background: #d3d3d3;
-    cursor: pointer;
-    margin-left: 2px;
-    // border: 1px solid black;
-  `,
-  utilitySlider: css`
-    appearance: none;
-    background: #d3d3d3;
-
-    &::-webkit-slider-thumb {
-      width: 1px;
-      appearance: none;
-      height: 16px;
-      cursor: ew-resize;
-      background: black;
-    }
-  `,
-  actionButton: css`
-    cursor: pointer;
-    border: none;
-    background: #d3d3d3;
-  `,
-} as const;
 
 export default function TrackHeader({ track, project, player }: Props) {
   const [gain, setGain] = useState<number>(track.getCurrentGain().value);
@@ -145,7 +123,7 @@ export default function TrackHeader({ track, project, player }: Props) {
         </div>
         <div style={{ display: "flex", flexDirection: "row", alignItems: "center" }}>
           <button
-            className={styles.utilityButton}
+            className={utility.button}
             style={isSolod ? { background: "#DDCC33" } : undefined}
             onClick={function () {
               if (solodTracks.has(track)) {
@@ -166,7 +144,7 @@ export default function TrackHeader({ track, project, player }: Props) {
             S
           </button>
           <button
-            className={styles.utilityButton}
+            className={utility.button}
             style={muted ? { background: "#5566EE" } : undefined}
             onClick={function () {
               setMuted((prev) => {
@@ -186,7 +164,7 @@ export default function TrackHeader({ track, project, player }: Props) {
               flexGrow: 1,
               width: "50px",
             }}
-            className={styles.utilitySlider}
+            className={utility.slider}
             type="range"
             max={2}
             min={0}
@@ -195,7 +173,6 @@ export default function TrackHeader({ track, project, player }: Props) {
             onChange={(e) => {
               const val = parseFloat(e.target.value);
               setGain(val);
-              console.log(val);
               track.setGain(val);
             }}
           />
@@ -237,9 +214,6 @@ export default function TrackHeader({ track, project, player }: Props) {
             onKeyPress={(e) => {
               const event = new MouseEvent("dblclick");
               e.target.dispatchEvent(event);
-              console.log((e.target as any).value);
-
-              console.log("EEEEEEEE ");
               e.stopPropagation();
               // if (e.key === "Enter") {
               //   track.addEffect(FAUST_EFFECTS.PANNER);

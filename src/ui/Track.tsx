@@ -54,14 +54,11 @@ export function Track({
           ev.preventDefault();
         }}
         onMouseEnter={function () {
-          // console.log("Hovering over", i);
           if (pressed && pressed.status === "moving_clip") {
             setPressed((prev) => Object.assign({}, prev, { track }));
           }
         }}
-        onMouseUp={() => {
-          // console.log("COOl");
-        }}
+        onMouseUp={() => {}}
         style={{
           position: "relative",
           height: height - TRACK_SEPARATOR_HEIGHT,

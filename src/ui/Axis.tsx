@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import * as d3 from "d3";
+import { css, cx } from "@linaria/core";
+import React, { useState } from "react";
 import { AudioProject, ProjectMarkers } from "../lib/AudioProject";
 import { useDerivedState } from "../lib/state/DerivedState";
 import { useLinkedMap } from "../lib/state/LinkedMap";
@@ -32,6 +32,28 @@ function getStepForRes(dist: number): number {
       return 60;
   }
 }
+
+const styles = {
+  svgContainer: css`
+    ${{
+      position: "absolute",
+      width: "100%",
+      height: "100%",
+      pointerEvents: "none",
+    } as const}
+  `,
+  markerContainer: css`
+    ${{
+      height: 29,
+      borderBottom: "1px solid #BBB",
+      userSelect: "none",
+      position: "absolute",
+      top: 0,
+      width: "100%",
+      cursor: "pointer",
+    } as const}
+  `,
+};
 
 export function Axis({ project }: { project: AudioProject }) {
   const [svg, setSvg] = useState<SVGSVGElement | null>(null);
@@ -84,12 +106,9 @@ export function Axis({ project }: { project: AudioProject }) {
       {/* Background grid */}
       <svg
         ref={(elem: SVGSVGElement) => setSvg(elem)}
+        className={styles.svgContainer}
         style={{
-          position: "absolute",
           left: viewportStartPx,
-          width: "100%",
-          height: "100%",
-          pointerEvents: "none",
         }}
       >
         {tickData?.map((secs) => {
@@ -108,16 +127,9 @@ export function Axis({ project }: { project: AudioProject }) {
       be position: absolute so it interacts with the page flow */}
       <div style={{ height: 30, position: "relative" }} />
       <div
-        className="marker-interaction-area"
+        className={cx("marker-interaction-area", styles.markerContainer)}
         style={{
-          height: 29,
-          borderBottom: "1px solid #BBB",
-          userSelect: "none",
-          position: "absolute",
           left: viewportStartPx,
-          top: 0,
-          width: "100%",
-          cursor: "pointer",
         }}
         onDoubleClick={(e: React.MouseEvent) => {
           if ((e.target as any).className !== "marker-interaction-area") {

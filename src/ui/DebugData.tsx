@@ -6,8 +6,6 @@ import { exhaustive } from "../lib/exhaustive";
 import { useLinkedMap } from "../lib/state/LinkedMap";
 import { pressedState } from "../pressedState";
 
-const styles = {};
-
 export function stringOfSelected(sel: SelectionState | null): string {
   if (!sel) {
     return "";
