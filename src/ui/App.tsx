@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
-import "./App.css";
 import { DebugData } from "./DebugData";
 import { usePambaFirebaseStoreRef } from "../firebase/useFirebase";
 import { AudioProject } from "../lib/AudioProject";
