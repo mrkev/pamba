@@ -10,7 +10,7 @@ import { useRef } from "react";
 import { RenamableLabel } from "./RenamableLabel";
 import { pressedState } from "../pressedState";
 import { FAUST_EFFECTS } from "../dsp/FaustAudioEffect";
-import { utility } from "./utility";
+import { utility, UtilitySlider } from "./utility";
 import { css } from "@linaria/core";
 
 const styles = {
@@ -121,7 +121,7 @@ export default function TrackHeader({ track, project, player }: Props) {
             x
           </button>{" "}
         </div>
-        <div style={{ display: "flex", flexDirection: "row", alignItems: "center" }}>
+        <div style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "2px" }}>
           <button
             className={utility.button}
             style={isSolod ? { background: "#DDCC33" } : undefined}
@@ -159,7 +159,24 @@ export default function TrackHeader({ track, project, player }: Props) {
           >
             M
           </button>
-          <input
+          <UtilitySlider
+            value={gain}
+            min={0}
+            max={2}
+            // https://stackoverflow.com/questions/22604500/web-audio-api-working-with-decibels
+            formatValue={(value) => {
+              const db = 20 * Math.log10(value);
+              if (db === -Infinity) {
+                return "-inf";
+              }
+              return `${db.toFixed(2)}db`;
+            }}
+            onChange={function (val: number): void {
+              setGain(val);
+              track.setGain(val);
+            }}
+          />
+          {/* <input
             style={{
               flexGrow: 1,
               width: "50px",
@@ -175,8 +192,9 @@ export default function TrackHeader({ track, project, player }: Props) {
               setGain(val);
               track.setGain(val);
             }}
-          />
+          /> */}
         </div>
+
         <div style={{ flexGrow: 1 }}></div>
         <button
           className={styles.actionButton}

@@ -1,0 +1,20 @@
+input:focus {
+  outline: 5px auto Highlight;
+  outline: 5px auto -webkit-focus-ring-color;
+}
+
+.utilitySlider {
+  appearance: none;
+  background: #d3d3d3;
+}
+.utilitySlider::-webkit-slider-thumb {
+  width: 1px;
+  appearance: none;
+  height: 16px;
+
+  background: black;
+}
+
+input[type="range"] {
+  cursor: inherit;
+}

@@ -44,6 +44,8 @@ export class AudioTrack {
 
   setGain(val: number): void {
     this.gainNode.gain.value = val;
+    const decibel_level = 20 * Math.log10(this.gainNode.gain.value);
+    console.log("db", decibel_level);
   }
 
   // to be used only when solo-ing
