@@ -1,5 +1,5 @@
 import { AudioTrack } from "./AudioTrack";
-import { LinkedState } from "./state/LinkedState";
+import { SPrimitive } from "./state/LinkedState";
 import { LinkedSet } from "./state/LinkedSet";
 import { DerivedState } from "./state/DerivedState";
 import AudioClip from "./AudioClip";
@@ -78,20 +78,20 @@ export class AudioProject {
   readonly dspExpandedTracks = LinkedSet.create<AudioTrack>();
 
   // Pointer //
-  readonly pointerTool = LinkedState.of<Tool>("move");
-  readonly cursorPos = LinkedState.of(0);
+  readonly pointerTool = SPrimitive.of<Tool>("move");
+  readonly cursorPos = SPrimitive.of(0);
 
   // Selection //
 
   // the selected clip(s), track(s), etc
-  readonly selected = LinkedState.of<SelectionState | null>(null);
+  readonly selected = SPrimitive.of<SelectionState | null>(null);
   // the thing we're currently renaming, if any
-  readonly currentlyRenaming = LinkedState.of<RenameState | null>(null);
+  readonly currentlyRenaming = SPrimitive.of<RenameState | null>(null);
   // the width of the selection at the playback cursor
-  readonly selectionWidth = LinkedState.of<number | null>(null);
+  readonly selectionWidth = SPrimitive.of<number | null>(null);
   // the zoom level
-  readonly scaleFactor = LinkedState.of(10);
-  readonly viewportStartPx = LinkedState.of(0); // the "left" CSS position for the first second visible in the project div
+  readonly scaleFactor = SPrimitive.of(10);
+  readonly viewportStartPx = SPrimitive.of(0); // the "left" CSS position for the first second visible in the project div
   // 1 sec corresponds to 10 px
   readonly secsToPx = DerivedState.from(
     [this.scaleFactor],

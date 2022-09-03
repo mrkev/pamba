@@ -1,13 +1,27 @@
 import { useEffect, useState, useCallback } from "react";
+import { MutationHashable } from "./MutationHashable";
 import { Subbable, notify, subscribe } from "./Subbable";
 
 export type StateDispath<S> = (value: S | ((prevState: S) => S)) => void;
 export type StateChangeHandler<S> = (value: S) => void;
 
+interface LS<T> extends Subbable<T> {
+  peek(): T;
+  replace(v: T): void;
+}
+
+function get<T>(ls: LS<T>): T {
+  return ls.peek();
+}
+
+function set<T>(ls: LS<T>, v: T): void {
+  return ls.replace(v);
+}
+
 /**
  * LinkedState is a Subbable, a single atomic primitive
  */
-export class LinkedState<S> implements Subbable<S> {
+export class SPrimitive<S> implements LS<S> {
   private _value: Readonly<S>;
   _subscriptors: Set<StateChangeHandler<S>> = new Set();
   constructor(initialValue: S) {
@@ -34,14 +48,22 @@ export class LinkedState<S> implements Subbable<S> {
   get(): Readonly<S> {
     return this._value;
   }
+
+  peek(): Readonly<S> {
+    return this.get();
+  }
+
+  replace(value: Readonly<S>): void {
+    this.set(value);
+  }
 }
 
-export function useLinkedState<S>(linkedState: LinkedState<S>): [S, StateDispath<S>] {
+export function useLinkedState<S>(linkedState: SPrimitive<S>): [S, StateDispath<S>] {
   const [state, setState] = useState<S>(() => linkedState.get());
 
   useEffect(() => {
-    return subscribe(linkedState, (newVal) => {
-      setState(() => newVal);
+    return subscribe(linkedState, () => {
+      setState(() => linkedState.get());
     });
   }, [linkedState]);
 
@@ -69,8 +91,6 @@ export function useLinkedState<S>(linkedState: LinkedState<S>): [S, StateDispath
 
 // type Json = string | number | boolean | null | Json[] | { [key: string]: Json };
 
-type Map<T> = { [key: string]: T };
-
 // LinkedMap X
 // LinkedArray X
 // LinkedSet X
@@ -79,74 +99,128 @@ type Map<T> = { [key: string]: T };
 // - Listens to changes of keys
 // - is this just automatically creating a map of string -> LinkedState?
 
-class _LinkedRecord<R extends Map<unknown>> implements Subbable<R> {
-  _subscriptors: Set<StateChangeHandler<R>> = new Set();
+type LSIn<T> =
+  // primitives
+  T extends number | string | boolean
+    ? SPrimitive<T>
+    : // Records
+    T extends Record<string, infer U>
+    ? { [Key in keyof T]: SOut<U> }
+    : never;
 
-  // Note: this could have linked states
-  private _value: R;
-  private _children: {
-    [K in keyof R]: LinkedState<R[K]>;
-  };
-  // todo, when do I unsubscribe? When my child's link-state gets dealloced.
-  // that sounds like never, and that I just wait for my own dealloc.
-  private unsubs: (() => void)[] = [];
+type SOut<T> = // primitives
+  T extends SPrimitive<infer P>
+    ? P
+    : // Records
+    T extends SRecord<infer E>
+    ? { [Key in keyof E]: SOut<E[Key]> }
+    : never;
 
-  private constructor(initialValue: R) {
-    this._value = initialValue;
+class SRecord<TSchema extends Record<string, LS<any>>>
+  implements LS<{ [Key in keyof TSchema]: SOut<TSchema[Key]> }>, MutationHashable
+{
+  _subscriptors: Set<StateChangeHandler<{ [Key in keyof TSchema]: SOut<TSchema[Key]> }>> = new Set();
+  _hash: number = 0;
 
-    const childrenLS: {
-      [K in keyof R]: LinkedState<R[K]>;
-    } = {} as any;
-    for (const key in initialValue) {
-      const value = initialValue[key];
+  schema: TSchema;
+  constructor(schema: TSchema) {
+    this.schema = schema;
+  }
 
-      const child = value instanceof LinkedState ? value : LinkedState.of(value);
-      const unsub = subscribe(child, (newVal) => {
-        this._value[key] = newVal;
-        notify(this, this._value);
-      });
-      childrenLS[key] = child;
-      this.unsubs.push(unsub);
+  peek(): { [Key in keyof TSchema]: SOut<TSchema[Key]> } {
+    const entries = Object.entries(this.schema).map(([key, value]) => {
+      return [key, value.peek()];
+    });
+    return Object.fromEntries(entries);
+  }
+
+  child<K extends keyof TSchema>(key: K): TSchema[K] {
+    // We add a check because this is usued dynamically in 'browse'
+    if (!(key in this.schema)) {
+      throw new Error(`${this.constructor.name}: no key ${String(key)} found. Keys: ${Object.keys(this.schema)}`);
     }
-    this._children = childrenLS;
+    return this.schema[key];
   }
 
-  static of<T extends Map<unknown>>(initialValue: T) {
-    return new this<T>(initialValue);
-  }
+  browse(browseCB: (b: BrowserTarget<SRecord<TSchema>>) => void) {
+    const target = { __path: [] };
+    const browser: any = new Proxy<{ __path: string[] }>(target, {
+      get: (target, prop: string | symbol) => {
+        if (typeof prop === "symbol") {
+          throw new Error("TODO CANT SYMBOL");
+        }
+        target.__path.push(prop);
+        return browser;
+      },
+    });
 
-  set<K extends keyof R>(key: K, value: R[K]): void {
-    this._value = { ...this._value };
-    this._value[key] = value;
-    notify(this, this._value);
-  }
+    browseCB(browser);
 
-  get(): Readonly<R> {
-    return this._value;
-  }
-
-  getValue<K extends keyof R>(key: K): Readonly<R[K]> {
-    const ls = this._children[key];
-    if (ls != null) {
-      return ls.get();
-    } else {
-      return this._value[key];
+    let result = this;
+    for (const key of target.__path) {
+      result = result.child(key) as any;
     }
+
+    return result;
   }
 
-  getValueLS<K extends keyof R>(key: K): LinkedState<R[K]> {
-    const ls = this._children[key];
-    if (ls == null) {
-      const childVal = this._value[key];
-      const child = LinkedState.of(childVal);
-      const unsub = subscribe(child, (newVal) => {
-        this._value[key] = newVal;
-        notify(this, this._value);
-      });
-      this._children[key] = child;
-      this.unsubs.push(unsub);
-      return child;
-    }
-    return ls;
+  replace(_v: { [Key in keyof TSchema]: SOut<TSchema[Key]> }) {
+    throw new Error("not implemented");
   }
 }
+
+function primitive<T extends number | string | boolean>(val: T): SPrimitive<T> {
+  return new SPrimitive(val);
+}
+
+function number(val: number) {
+  return new SPrimitive(val);
+}
+
+function record<TSchema extends Record<string, LS<any>>>(schema: TSchema): SRecord<TSchema> {
+  return new SRecord<TSchema>(schema);
+}
+
+const a = record({
+  zoo: record({
+    animals: record({
+      lions: number(3),
+    }),
+  }),
+  park: record({
+    animals: record({
+      lions: number(3),
+    }),
+  }),
+});
+
+type BrowserTarget<T extends LS<any>> =
+  // Records
+  T extends SRecord<infer E>
+    ? { [Key in keyof E]: BrowserTarget<E[Key]> }
+    : // Primitives
+    T extends SPrimitive<any>
+    ? void
+    : never;
+
+a.browse((a) => a.park.animals.lions);
+(window as any).a = a;
+
+// a.child("here");
+// a.browse((foo) => foo.here.there);
+
+/////////////
+
+// const zoo = record({
+//   animals: record({
+//     penguins: number(3),
+//     tigers: number(2),
+//   }),
+//   ticketSales: number(2),
+// });
+
+// zoo.push();
+
+// function Foo() {
+//   const [value] = observe(zoo.animals.penguins);
+// }

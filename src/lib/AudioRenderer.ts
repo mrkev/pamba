@@ -1,21 +1,19 @@
-import { LinkedState } from "./state/LinkedState";
+import { SPrimitive } from "./state/LinkedState";
 import { AnalizedPlayer } from "./AnalizedPlayer";
 import bufferToWav from "audiobuffer-to-wav";
 import { AudioProject } from "./AudioProject";
 
 export class AudioRenderer {
   /** URL of last bounced audio clip, for download */
-  readonly bounceURL = LinkedState.of<string | null>(null);
+  readonly bounceURL = SPrimitive.of<string | null>(null);
   /** Is the audio currently playing? */
-  readonly isAudioPlaying = LinkedState.of(false);
+  readonly isAudioPlaying = SPrimitive.of(false);
   /** */
   readonly analizedPlayer: AnalizedPlayer;
 
   constructor(analizedPlayer: AnalizedPlayer) {
     this.analizedPlayer = analizedPlayer;
   }
-
-  ///
 
   /**
    * Bounces the current time slecteion. If no time is selected, bunces the whole track.

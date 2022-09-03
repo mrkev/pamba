@@ -4,13 +4,13 @@ import { mixDown } from "../mixDown";
 import AudioClip from "./AudioClip";
 import { addClip, deleteTime, pushClip, removeClip } from "./AudioTrackFn";
 import { LinkedArray } from "./state/LinkedArray";
-import { LinkedState } from "./state/LinkedState";
+import { SPrimitive } from "./state/LinkedState";
 import { TrackThread } from "./TrackThread";
 
 let trackNo = 0;
 
 export class AudioTrack {
-  name = LinkedState.of(`Track ${trackNo++}`);
+  name = SPrimitive.of(`Track ${trackNo++}`);
   // Idea: can we use a mutation counter to keep track of state changes?
   mutations: number = 0;
   // A track is a collection of non-overalping clips.
@@ -32,7 +32,7 @@ export class AudioTrack {
 
   // Display //
 
-  public trackHeight = LinkedState.of<number>(CLIP_HEIGHT);
+  public trackHeight = SPrimitive.of<number>(CLIP_HEIGHT);
 
   static empty() {
     return new AudioTrack();
@@ -44,8 +44,6 @@ export class AudioTrack {
 
   setGain(val: number): void {
     this.gainNode.gain.value = val;
-    const decibel_level = 20 * Math.log10(this.gainNode.gain.value);
-    console.log("db", decibel_level);
   }
 
   // to be used only when solo-ing

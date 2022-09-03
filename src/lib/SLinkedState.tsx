@@ -1,9 +1,9 @@
 import { Serializable, Serialized } from "./Serializable";
-import { LinkedState } from "./state/LinkedState";
+import { SPrimitive } from "./state/LinkedState";
 // import { Serializable, JsonProperty } from "typescript-json-serializer";
 // import { deserialize, serialize } from "typescript-json-serializer";
 
-export class SLinkedState<S extends any> extends LinkedState<S> implements Serializable {
+export class SLinkedState<S extends any> extends SPrimitive<S> implements Serializable {
   __serialize(): Serialized<SLinkedState<S>> {
     const x = new Serializable();
     const res = x.__serialize.call(this);

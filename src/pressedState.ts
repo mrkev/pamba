@@ -1,6 +1,6 @@
 import AudioClip from "./lib/AudioClip";
 import { AudioTrack } from "./lib/AudioTrack";
-import { LinkedState } from "./lib/state/LinkedState";
+import { SPrimitive } from "./lib/state/LinkedState";
 
 export type CursorState =
   | Readonly<{
@@ -39,4 +39,4 @@ export type CursorState =
       clientY: number;
     }>;
 
-export const pressedState = LinkedState.of<CursorState | null>(null);
+export const pressedState = SPrimitive.of<CursorState | null>(null);
