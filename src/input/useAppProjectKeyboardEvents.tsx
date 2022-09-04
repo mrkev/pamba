@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
-import { AudioProject, ProjectSelection } from "../lib/AudioProject";
+import { AudioProject, ProjectPersistance, ProjectSelection } from "../lib/AudioProject";
 import { AudioRenderer } from "../lib/AudioRenderer";
 
 export function useAppProjectKeyboardEvents(
@@ -15,6 +15,15 @@ export function useAppProjectKeyboardEvents(
         case "Backspace":
           ProjectSelection.deleteSelection(project, player);
           break;
+
+        case "KeyS": {
+          if (e.metaKey) {
+            ProjectPersistance.doSave(project);
+            e.preventDefault();
+            e.stopPropagation();
+          }
+          break;
+        }
       }
     }
 
@@ -26,10 +35,11 @@ export function useAppProjectKeyboardEvents(
           project.pointerTool.set("move");
           document.body.style.cursor = "auto";
           break;
-        case "KeyS":
+        case "KeyS": {
           project.pointerTool.set("trimStart");
           document.body.style.cursor = "e-resize";
           break;
+        }
         case "KeyE":
           project.pointerTool.set("trimEnd");
           document.body.style.cursor = "w-resize";

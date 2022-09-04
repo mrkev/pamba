@@ -11,6 +11,8 @@ import { exhaustive } from "./exhaustive";
 import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
 import { LinkedMap } from "./state/LinkedMap";
 import { modifierState } from "../ModifierState";
+import { construct, serializable } from "../data/serializable";
+import { isRecord } from "./schema/schema";
 
 /**
  * TODO:
@@ -71,7 +73,7 @@ export class AudioProject {
   readonly timeMarkers = LinkedMap.create<number, number>();
   nextTimeMarkerId = 0;
   // Track data - should persist //
-  readonly allTracks = LinkedArray.create<AudioTrack>();
+  readonly allTracks: LinkedArray<AudioTrack>;
 
   // Track status //
   readonly solodTracks = LinkedSet.create<AudioTrack>();
@@ -101,11 +103,19 @@ export class AudioProject {
         .range([0, 100 * factor]) as XScale
   );
 
+  constructor(tracks: AudioTrack[]) {
+    this.allTracks = LinkedArray.create<AudioTrack>(tracks);
+  }
+
+  static create() {
+    return new this([]);
+  }
+
   //////// Methods on Projects ////////
 
   // TODO: maybe let's not try to add this track to playback
   static addTrack(project: AudioProject, player?: AnalizedPlayer, track?: AudioTrack) {
-    const newTrack = track ?? AudioTrack.empty();
+    const newTrack = track ?? AudioTrack.create();
     project.allTracks.push(newTrack);
     if (player != null && player.isAudioPlaying) {
       console.log("ADDED TO PLAYBACK");
@@ -243,5 +253,47 @@ export class ProjectMarkers {
     } else {
       // TODO: new selection state, marker
     }
+  }
+}
+
+export class ProjectPersistance {
+  static doSave(project: AudioProject) {
+    const data = serializable(project);
+    window.localStorage.setItem("pamba.project", JSON.stringify(data));
+  }
+
+  static clearSaved() {
+    localStorage.removeItem("pamba.project");
+  }
+
+  static hasSavedData(): boolean {
+    const data = window.localStorage.getItem("pamba.project");
+    return data !== null;
+  }
+
+  static async openSaved(): Promise<AudioProject | null> {
+    const data = window.localStorage.getItem("pamba.project");
+    if (data == null) {
+      return null;
+    }
+    try {
+      const parsed = JSON.parse(data);
+      if (!isRecord(parsed)) {
+        return null;
+      }
+      const constructed = await construct(parsed as any);
+      if (!(constructed instanceof AudioProject)) {
+        return null;
+      }
+      return constructed;
+    } catch (_e) {
+      return null;
+    }
+  }
+
+  static defaultProject(): AudioProject {
+    const audioProject = AudioProject.create();
+    AudioProject.addTrack(audioProject);
+    return audioProject;
   }
 }

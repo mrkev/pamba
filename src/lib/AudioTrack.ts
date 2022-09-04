@@ -7,19 +7,16 @@ import { LinkedArray } from "./state/LinkedArray";
 import { SPrimitive } from "./state/LinkedState";
 import { TrackThread } from "./TrackThread";
 
-let trackNo = 0;
-
 export class AudioTrack {
-  name = SPrimitive.of(`Track ${trackNo++}`);
-  // Idea: can we use a mutation counter to keep track of state changes?
-  mutations: number = 0;
   // A track is a collection of non-overalping clips.
   // Invariants:
   // - Sorted by start time.
   // - Non-overlapping clips.
-  clips = LinkedArray.create<AudioClip>();
-  effects = LinkedArray.create<FaustAudioEffect>();
+  clips: LinkedArray<AudioClip>;
+  effects: LinkedArray<FaustAudioEffect>;
+  name: SPrimitive<string>;
 
+  // For background processing
   private thread = new TrackThread();
 
   // if audo is playing, this is the soruce with the playing buffer
@@ -30,13 +27,20 @@ export class AudioTrack {
   private _hiddenGainNode = new GainNode(liveAudioContext);
   private outNode: AudioNode | null = null;
 
+  private constructor(name: string, clips: AudioClip[], effects: FaustAudioEffect[]) {
+    this.name = SPrimitive.of(name);
+    this.clips = LinkedArray.create(clips);
+    this.effects = LinkedArray.create<FaustAudioEffect>(effects);
+  }
+
+  private static trackNo = 0;
+  static create(props?: { name?: string; clips?: AudioClip[]; effects?: FaustAudioEffect[] }) {
+    return new this(props?.name ?? `Track ${this.trackNo++}`, props?.clips ?? [], props?.effects ?? []);
+  }
+
   // Display //
 
   public trackHeight = SPrimitive.of<number>(CLIP_HEIGHT);
-
-  static empty() {
-    return new AudioTrack();
-  }
 
   getCurrentGain(): AudioParam {
     return this.gainNode.gain;
@@ -168,7 +172,7 @@ export class AudioTrack {
 
   // New track with a single clip
   static fromClip(clip: AudioClip) {
-    const track = AudioTrack.empty();
+    const track = AudioTrack.create();
     track.pushClip(clip);
     return track;
   }
@@ -185,26 +189,22 @@ export class AudioTrack {
   addClip(newClip: AudioClip) {
     const clips = addClip(newClip, this.clips._getRaw());
     this.clips._setRaw(clips);
-    this.mutations++;
   }
 
   // Adds a clip right after the last clip
   pushClip(newClip: AudioClip): void {
     const clips = pushClip(newClip, this.clips._getRaw());
     this.clips._setRaw(clips);
-    this.mutations++;
   }
 
   removeClip(clip: AudioClip): void {
     const clips = removeClip(clip, this.clips._getRaw());
     this.clips._setRaw(clips);
-    this.mutations++;
   }
 
   deleteTime(startSec: number, endSec: number): void {
     const clips = deleteTime(startSec, endSec, this.clips._getRaw());
     this.clips._setRaw(clips);
-    this.mutations++;
   }
 
   ///////////// statics
