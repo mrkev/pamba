@@ -1,4 +1,5 @@
-import { FaustAudioEffect, FaustEffectThunk } from "../dsp/FaustAudioEffect";
+import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
+import { EffectID } from "../dsp/FAUST_EFFECTS";
 import { CLIP_HEIGHT, liveAudioContext } from "../globals";
 import { mixDown } from "../mixDown";
 import AudioClip from "./AudioClip";
@@ -59,8 +60,8 @@ export class AudioTrack {
     this._hiddenGainNode.gain.value = 1;
   }
 
-  async addEffect(effectDSP: FaustEffectThunk) {
-    const effect = await FaustAudioEffect.create(liveAudioContext, effectDSP);
+  async addEffect(effectId: EffectID) {
+    const effect = await FaustAudioEffect.create(liveAudioContext, effectId);
     if (effect == null) {
       return;
     }
@@ -94,7 +95,7 @@ export class AudioTrack {
     let currentNode: AudioNode = this.gainNode;
     const effects = this.effects._getRaw();
     for (let i = 0; i < effects.length; i++) {
-      const nextNode = effects[i].node;
+      const nextNode = effects[i].accessWorkletNode();
       currentNode.connect(nextNode);
       currentNode = nextNode;
     }
@@ -147,7 +148,7 @@ export class AudioTrack {
     const chain = [
       this.playingSource,
       this.gainNode,
-      ...this.effects._getRaw().map((effect) => effect.node),
+      ...this.effects._getRaw().map((effect) => effect.accessWorkletNode()),
       this._hiddenGainNode,
       this.outNode,
     ];
@@ -211,10 +212,10 @@ export class AudioTrack {
 
   static removeEffect(track: AudioTrack, effect: FaustAudioEffect) {
     track.effects.remove(effect);
-    effect.node.destroy();
+    effect.destroy();
   }
 
   static bypassEffect(track: AudioTrack, effect: FaustAudioEffect) {
-    console.log(effect.node);
+    console.log("todo: bypass", effect);
   }
 }

@@ -27,7 +27,7 @@ export default function FaustEffectModule({
     return (
       <FaustGroup
         item={item}
-        setParam={effect.node.setParam}
+        effect={effect}
         isTopLevel={true}
         canDelete={canDelete}
         onClickBypass={() => onClickBypass(effect)}
@@ -48,7 +48,7 @@ export default function FaustEffectModule({
       }}
     >
       {effect.ui.map((item, i) => {
-        return <FaustItem key={i} item={item} setParam={effect.node.setParam} />;
+        return <FaustItem key={i} item={item} effect={effect} />;
       })}
     </div>
   );

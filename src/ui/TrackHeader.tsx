@@ -9,7 +9,6 @@ import { useLinkedArray } from "../lib/state/LinkedArray";
 import { useRef } from "react";
 import { RenamableLabel } from "./RenamableLabel";
 import { pressedState } from "../pressedState";
-import { FAUST_EFFECTS } from "../dsp/FaustAudioEffect";
 import { utility, UtilitySlider } from "./utility";
 import { css } from "@linaria/core";
 
@@ -238,8 +237,8 @@ export default function TrackHeader({ track, project, player }: Props) {
               // }
             }}
           >
-            <option onDoubleClick={() => track.addEffect(FAUST_EFFECTS.PANNER)}>Panner</option>
-            <option onDoubleClick={() => track.addEffect(FAUST_EFFECTS.REVERB)}>Reverb</option>
+            <option onDoubleClick={() => track.addEffect("PANNER")}>Panner</option>
+            <option onDoubleClick={() => track.addEffect("REVERB")}>Reverb</option>
 
             {/* <optgroup label="4-legged pets">
               <option value="dog">Dog</option>

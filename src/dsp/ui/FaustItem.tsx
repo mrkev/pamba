@@ -1,29 +1,28 @@
 import { TFaustUIItem } from "@shren/faust-ui/src/types";
-import React from "react";
 import { exhaustive } from "../../lib/exhaustive";
-import { FaustSlider } from "./FaustSlider";
-import { FaustNodeSetParamFn } from "../FaustAudioEffect";
+import { FaustAudioEffect } from "../FaustAudioEffect";
 import "./faust.css";
 import { FaustGroup } from "./FaustGroup";
+import { FaustSlider } from "./FaustSlider";
 
-export function FaustItem({ item, setParam }: { item: TFaustUIItem; setParam: FaustNodeSetParamFn }) {
+export function FaustItem({ item, effect }: { item: TFaustUIItem; effect: FaustAudioEffect }) {
   const { type } = item;
 
   switch (type) {
     case "vgroup": {
-      return <FaustGroup item={item} setParam={setParam} />;
+      return <FaustGroup item={item} effect={effect} />;
     }
 
     case "hgroup": {
-      return <FaustGroup item={item} setParam={setParam} />;
+      return <FaustGroup item={item} effect={effect} />;
     }
 
     case "hslider": {
-      return <FaustSlider item={item} setParam={setParam} direction="horizontal" />;
+      return <FaustSlider item={item} effect={effect} direction="horizontal" />;
     }
 
     case "vslider": {
-      return <FaustSlider item={item} setParam={setParam} direction="vertical" />;
+      return <FaustSlider item={item} effect={effect} direction="vertical" />;
     }
 
     case "tgroup":
@@ -31,7 +30,7 @@ export function FaustItem({ item, setParam }: { item: TFaustUIItem; setParam: Fa
         <div>
           "tgroup"{" "}
           {item.items.map((item, i) => {
-            return <FaustItem key={i} item={item} setParam={setParam} />;
+            return <FaustItem key={i} item={item} effect={effect} />;
           })}
         </div>
       );

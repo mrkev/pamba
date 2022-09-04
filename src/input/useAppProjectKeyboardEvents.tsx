@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
-import { AudioProject, ProjectPersistance, ProjectSelection } from "../lib/AudioProject";
+import { AudioProject, ProjectSelection } from "../lib/AudioProject";
+import { ProjectPersistance } from "../lib/ProjectPersistance";
 import { AudioRenderer } from "../lib/AudioRenderer";
 
 export function useAppProjectKeyboardEvents(

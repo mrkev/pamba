@@ -1,19 +1,19 @@
 import { TFaustUIInputItem } from "@shren/faust-ui/src/types";
 import React, { useState } from "react";
-import { FaustNodeSetParamFn } from "../FaustAudioEffect";
+import { FaustAudioEffect } from "../FaustAudioEffect";
 
 export function FaustSlider({
   item,
-  setParam,
+  effect,
   direction,
 }: {
   item: TFaustUIInputItem;
-  setParam: FaustNodeSetParamFn;
+  effect: FaustAudioEffect;
   direction: "vertical" | "horizontal";
 }) {
   const isHorizontal = direction === "horizontal";
-  const { label, index, init, min, max, step, address } = item;
-  const [value, setValue] = useState(init);
+  const { label, index, min, max, step, address } = item;
+  const [value, setValue] = useState(() => effect.getParam(address));
   const orient = !isHorizontal ? { orient: "vertical" } : {};
   const style: React.CSSProperties = {
     display: "flex",
@@ -40,7 +40,7 @@ export function FaustSlider({
         onChange={(e) => {
           const newVal = parseFloat(e.target.value);
           setValue(() => {
-            setParam(address, newVal);
+            effect.setParam(address, newVal);
             return newVal;
           });
         }}

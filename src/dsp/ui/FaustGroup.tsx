@@ -1,9 +1,9 @@
+import { css } from "@linaria/core";
 import { TFaustUIGroup } from "@shren/faust-ui/src/types";
 import React from "react";
-import { FaustNodeSetParamFn } from "../FaustAudioEffect";
-import { css } from "@linaria/core";
-import { FaustItem } from "./FaustItem";
 import { utility } from "../../ui/utility";
+import { FaustAudioEffect } from "../FaustAudioEffect";
+import { FaustItem } from "./FaustItem";
 
 const styles = {
   faustGroupRoot: css`
@@ -29,7 +29,7 @@ const styles = {
 
 export function FaustGroup({
   item,
-  setParam,
+  effect,
   isTopLevel = false,
   onClickRemove,
   onClickBypass,
@@ -38,7 +38,7 @@ export function FaustGroup({
   canDelete = true,
 }: {
   item: TFaustUIGroup;
-  setParam: FaustNodeSetParamFn;
+  effect: FaustAudioEffect;
   isTopLevel?: boolean;
   onClickRemove?: () => void;
   onHeaderClick?: () => void;
@@ -96,7 +96,7 @@ export function FaustGroup({
 
       <div style={groupStyle}>
         {items.map((item, i) => {
-          return <FaustItem key={i} item={item} setParam={setParam} />;
+          return <FaustItem key={i} item={item} effect={effect} />;
         })}
       </div>
     </div>

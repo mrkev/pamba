@@ -28,7 +28,7 @@ export function stringOfSelected(sel: SelectionState | null): string {
     case "effects":
       return JSON.stringify({
         ...sel,
-        effects: sel.effects.map(({ effect }) => effect.data.name),
+        effects: sel.effects.map(({ effect }) => effect.name),
       });
     case "time":
       return "time";

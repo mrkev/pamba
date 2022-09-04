@@ -117,9 +117,6 @@ export const EffectRack = React.memo(function EffectRack({
               at 50/100
             </meter> */}
       </div>
-
-      {/* <button onClick={() => track.addEffect(FAUST_EFFECTS.PANNER)}>add panner</button>
-            <button onClick={() => track.addEffect(FAUST_EFFECTS.REVERB)}>add reverb</button> */}
     </div>
   );
 });

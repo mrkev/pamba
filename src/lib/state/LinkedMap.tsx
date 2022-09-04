@@ -3,6 +3,8 @@ import { StateChangeHandler, StateDispath } from "./LinkedState";
 import { MutationHashable } from "./MutationHashable";
 import { notify, Subbable, subscribe } from "./Subbable";
 
+// NOTE: what happens when has is MAX_INT?
+// TODO: handle overflow gracefully
 export class LinkedMap<K, V> implements Map<K, V>, Subbable<ReadonlyMap<K, V>>, MutationHashable {
   private _map = new Map<K, V>();
 
