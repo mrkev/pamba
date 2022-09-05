@@ -78,7 +78,7 @@ export class FaustAudioEffect {
   }
 
   static async create(
-    context: AudioContext,
+    context: BaseAudioContext,
     id: keyof typeof FAUST_EFFECTS,
     initialParamValues?: Array<[address: string, value: number]>
   ): Promise<FaustAudioEffect | null> {
@@ -91,5 +91,10 @@ export class FaustAudioEffect {
     const nodeData: INodeData = JSON.parse((node as any).getJSON());
     const effect = new this(node, nodeData, id, initialParamValues ?? []);
     return effect;
+  }
+
+  async cloneToOfflineContext(context: OfflineAudioContext) {
+    const paramValues = await this.getAllParamValues();
+    return FaustAudioEffect.create(context, this.effectId, paramValues);
   }
 }

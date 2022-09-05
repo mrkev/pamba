@@ -111,25 +111,40 @@ export class AudioTrack {
     this.playingSource.start(0, offset); // Play the sound now
   }
 
-  startPlaybackForBounce(context: OfflineAudioContext, offset?: number): void {
+  // Topology of DSP:
+  // [ Source Node ]
+  //        V
+  // [ Gain Node ]
+  //        V
+  // [ ... Effects]
+  //        V
+  // [ _Hidden Gain Node (for soloing)]
+  //        V
+  // [ Out Node ]
+  async startPlaybackForBounce(context: OfflineAudioContext, offset?: number): Promise<void> {
     if (!this.outNode) {
       console.warn("No out node for bounce on track:", this);
       return;
     }
 
     this.playingSource = this.getSourceNode(context);
-    this.playingSource.connect(this.outNode);
+    // cant use gain node, wrong context
     // this.playingSource.connect(this.gainNode);
-    // // Effects
-    // let currentNode: AudioNode = this.gainNode;
-    // const effects = this.effects.get();
-    // for (let i = 0; i < effects.length; i++) {
-    //   const nextNode = effects[i].node;
+    // Effects
+    let currentNode: AudioNode = this.playingSource;
+    // for (let effect of this.effects) {
+    //   const nextEffect = await effect.cloneToOfflineContext(context);
+    //   if (nextEffect == null) {
+    //     throw new Error(`Failed to prepare ${effect.effectId} for bounce!`);
+    //   }
+    //   const nextNode = nextEffect.accessWorkletNode();
     //   currentNode.connect(nextNode);
     //   currentNode = nextNode;
     // }
     // currentNode.connect(this._hiddenGainNode);
     // this._hiddenGainNode.connect(this.outNode);
+    currentNode.connect(this.outNode);
+
     this.playingSource.start(0, offset); // Play the sound now
   }
 
