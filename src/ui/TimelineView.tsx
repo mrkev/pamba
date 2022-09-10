@@ -14,6 +14,7 @@ import TrackHeader from "./TrackHeader";
 import { utility } from "./utility";
 import { css } from "@linaria/core";
 import { clamp } from "../lib/math";
+import { ignorePromise } from "../lib/ignorePromise";
 
 // 150 is TRACK_HEADER_WIDTH
 const containerStyle = css`
@@ -245,7 +246,7 @@ function BounceButton({ project, renderer }: { project: AudioProject; renderer: 
     <button
       className={utility.button}
       onClick={() => {
-        AudioRenderer.bounceSelection(renderer, project);
+        ignorePromise(AudioRenderer.bounceSelection(renderer, project));
       }}
     >
       {selectionWidth && selectionWidth > 0 ? "bounce selected" : "bounce all"}

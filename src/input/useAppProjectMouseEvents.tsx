@@ -90,7 +90,7 @@ export function useAppProjectMouseEvents({
           pressedState.set(null);
           const selWidth = pxToSecs(e.clientX - pressed.clientX);
 
-          if (selWidth == null) {
+          if (selWidth === 0) {
             return;
           }
 

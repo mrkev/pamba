@@ -50,9 +50,6 @@ const disableESLintPlugin = process.env.DISABLE_ESLINT_PLUGIN === "true";
 
 const imageInlineSizeLimit = parseInt(process.env.IMAGE_INLINE_SIZE_LIMIT || "10000");
 
-// Check if TypeScript is setup
-const useTypeScript = fs.existsSync(paths.appTsConfig);
-
 // Get the path to the uncompiled service worker (if it exists).
 const swSrc = paths.swSrc;
 
@@ -61,19 +58,6 @@ const cssRegex = /\.css$/;
 const cssModuleRegex = /\.module\.css$/;
 const sassRegex = /\.(scss|sass)$/;
 const sassModuleRegex = /\.module\.(scss|sass)$/;
-
-const hasJsxRuntime = (() => {
-  if (process.env.DISABLE_NEW_JSX_TRANSFORM === "true") {
-    return false;
-  }
-
-  try {
-    require.resolve("react/jsx-runtime");
-    return true;
-  } catch (e) {
-    return false;
-  }
-})();
 
 // This is the production and development configuration.
 // It is focused on developer experience, fast rebuilds, and a minimal bundle.
@@ -270,7 +254,6 @@ module.exports = function (webpackEnv) {
       // `web` extension prefixes have been added for better support
       // for React Native Web.
       extensions: paths.moduleFileExtensions.map((ext) => `.${ext}`),
-      // .filter((ext) => useTypeScript || !ext.includes("ts")),
       alias: {
         // Support React Native Web
         // https://www.smashingmagazine.com/2016/08/a-glimpse-into-the-future-with-react-native-for-web/
@@ -390,7 +373,7 @@ module.exports = function (webpackEnv) {
                       [
                         require.resolve("babel-preset-react-app"),
                         {
-                          runtime: hasJsxRuntime ? "automatic" : "classic",
+                          runtime: "automatic",
                         },
                       ],
                     ],
@@ -694,14 +677,12 @@ module.exports = function (webpackEnv) {
           // ESLint class options
           cwd: paths.appPath,
           resolvePluginsRelativeTo: __dirname,
-          baseConfig: {
-            extends: [require.resolve("eslint-config-react-app/base")],
-            rules: {
-              ...(!hasJsxRuntime && {
-                "react/react-in-jsx-scope": "error",
-              }),
-            },
-          },
+          // I changed this:
+          // baseConfig: {
+          //   extends: [require.resolve("eslint-config-react-app/base")],
+          //   rules: {},
+          // },
+          baseConfig: require("../.eslintrc.js"),
         }),
     ].filter(Boolean),
     // Turn off performance processing because we utilize

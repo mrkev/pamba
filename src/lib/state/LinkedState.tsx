@@ -2,6 +2,8 @@ import { useEffect, useState, useCallback } from "react";
 import { MutationHashable } from "./MutationHashable";
 import { Subbable, notify, subscribe } from "./Subbable";
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 export type StateDispath<S> = (value: S | ((prevState: S) => S)) => void;
 export type StateChangeHandler<S> = (value: S) => void;
 

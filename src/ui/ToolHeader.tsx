@@ -8,6 +8,7 @@ import { useLinkedArray } from "../lib/state/LinkedArray";
 import AudioClip from "../lib/AudioClip";
 import { AudioTrack } from "../lib/AudioTrack";
 import { useMediaRecorder } from "../lib/useMediaRecorder";
+import { ignorePromise } from "../lib/ignorePromise";
 
 function ToolDisplay({ project }: { project: AudioProject }) {
   const [tool] = useLinkedState(project.pointerTool);
@@ -91,7 +92,7 @@ export function ToolHeader({
                 // Let's get a download URL for the file.
                 const url = await snapshot.ref.getDownloadURL();
                 console.log("File available at", url);
-                loadClip(url, file.name);
+                ignorePromise(loadClip(url, file.name));
               }}
             />
           )}
@@ -146,7 +147,7 @@ export function ToolHeader({
                 ev.dataTransfer.setData("text", url);
               }}
               onClick={function () {
-                loadClip(url);
+                ignorePromise(loadClip(url));
               }}
             >
               load {url}

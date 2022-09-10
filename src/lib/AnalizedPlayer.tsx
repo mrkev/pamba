@@ -183,7 +183,6 @@ export class AnalizedPlayer {
       }
     }
 
-    console.log(end);
     // If we have no clips or no tracks, end will still be null. For now, we'll
     // just throw. I could also return an empty AudioBuffer though.
     if (end == null) {

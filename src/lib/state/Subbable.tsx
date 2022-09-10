@@ -1,4 +1,5 @@
 import { exhaustive } from "../exhaustive";
+import { ignorePromise } from "../ignorePromise";
 import { StateChangeHandler } from "./LinkedState";
 
 // Subbables are things one can subscribe to
@@ -29,11 +30,13 @@ export function notify<S>(subbable: Subbable<S>, value: S, priority: "task" | "m
       break;
 
     case "microtask":
-      Promise.resolve().then(() => {
-        subbable._subscriptors.forEach((cb) => {
-          cb(value);
-        });
-      });
+      ignorePromise(
+        Promise.resolve().then(() => {
+          subbable._subscriptors.forEach((cb) => {
+            cb(value);
+          });
+        })
+      );
       break;
 
     default:

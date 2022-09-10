@@ -4,6 +4,7 @@ import "./index.css";
 import { liveAudioContext } from "./globals";
 import { initAudioContext } from "./lib/initAudioContext";
 import nullthrows from "./lib/nullthrows";
+import { ignorePromise } from "./lib/ignorePromise";
 
 async function init() {
   try {
@@ -21,7 +22,7 @@ async function init() {
   }
 }
 
-init();
+ignorePromise(init());
 
 // import reportWebVitals from "./reportWebVitals";
 // If you want to start measuring performance in your app, pass a function

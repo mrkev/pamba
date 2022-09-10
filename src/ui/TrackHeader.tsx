@@ -237,8 +237,8 @@ export default function TrackHeader({ track, project, player }: Props) {
               // }
             }}
           >
-            <option onDoubleClick={() => track.addEffect("PANNER")}>Panner</option>
-            <option onDoubleClick={() => track.addEffect("REVERB")}>Reverb</option>
+            <option onDoubleClick={async () => track.addEffect("PANNER")}>Panner</option>
+            <option onDoubleClick={async () => track.addEffect("REVERB")}>Reverb</option>
 
             {/* <optgroup label="4-legged pets">
               <option value="dog">Dog</option>

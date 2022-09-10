@@ -46,7 +46,7 @@ export function UtilitySlider({
   formatValue?: (val: number) => string;
 }): React.ReactElement {
   const ref = useRef<HTMLInputElement | null>(null);
-  const [typingValue, setTypingValue] = useState<string | null>(null);
+  const [_typingValue, setTypingValue] = useState<string | null>(null);
 
   useEffect(() => {
     const elem = ref.current;

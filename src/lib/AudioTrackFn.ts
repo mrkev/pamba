@@ -34,8 +34,8 @@ export function addClip<Clip extends BaseClip>(newClip: Clip, clips: ReadonlyArr
   // Essentially, we want to insert in order, sorted
   // by the startOffsetSec of each clip.
   let i = 0;
-  let prev;
-  let next;
+  let prev: Clip | undefined;
+  let next: Clip | undefined;
   for (; i < clips.length; i++) {
     prev = clips[i - 1];
     next = clips[i];

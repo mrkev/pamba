@@ -4,6 +4,7 @@ import AudioClip from "../lib/AudioClip";
 import { AudioProject } from "../lib/AudioProject";
 import { AudioRenderer } from "../lib/AudioRenderer";
 import { AudioTrack } from "../lib/AudioTrack";
+import { ignorePromise } from "../lib/ignorePromise";
 import { useLinkedArray } from "../lib/state/LinkedArray";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { pressedState } from "../pressedState";
@@ -48,7 +49,7 @@ export function Track({
         onDrop={function (ev) {
           ev.preventDefault();
           const url = ev.dataTransfer.getData("text");
-          loadClipIntoTrack(url, track);
+          ignorePromise(loadClipIntoTrack(url, track));
         }}
         onDragOver={function allowDrop(ev) {
           ev.preventDefault();

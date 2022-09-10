@@ -114,11 +114,11 @@ export class AudioTrack {
     let currentNode: AudioNode = chain[0];
     for (let i = 1; chain[i] != null; i++) {
       const nextNode = chain[i];
-      console.group(`Connected: ${currentNode.constructor.name} -> ${nextNode.constructor.name}`);
-      console.log(currentNode);
-      console.log("-->");
-      console.log(nextNode);
-      console.groupEnd();
+      // console.group(`Connected: ${currentNode.constructor.name} -> ${nextNode.constructor.name}`);
+      // console.log(currentNode);
+      // console.log("-->");
+      // console.log(nextNode);
+      // console.groupEnd();
       currentNode.connect(nextNode);
       currentNode = nextNode;
     }

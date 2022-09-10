@@ -9,6 +9,7 @@ import { modifierState, useSingletonKeyboardModifierState } from "../ModifierSta
 import { TimelineView } from "./TimelineView";
 import { ToolHeader } from "./ToolHeader";
 import { useAppProjectKeyboardEvents } from "../input/useAppProjectKeyboardEvents";
+import { ignorePromise } from "../lib/ignorePromise";
 // import { TrackThread } from "../lib/TrackThread";
 
 // var w = new TrackThread();
@@ -33,17 +34,19 @@ function App(): React.ReactElement {
   });
 
   useEffect(() => {
-    (async function doLoad() {
-      if (projectStatus.status === "loading") {
-        const maybeProject = await ProjectPersistance.openSaved();
-        if (maybeProject == null) {
-          ProjectPersistance.clearSaved();
-          setProjectStatus({ status: "loaded", project: ProjectPersistance.defaultProject() });
-        } else {
-          setProjectStatus({ status: "loaded", project: maybeProject });
+    ignorePromise(
+      (async function doLoad() {
+        if (projectStatus.status === "loading") {
+          const maybeProject = await ProjectPersistance.openSaved();
+          if (maybeProject == null) {
+            ProjectPersistance.clearSaved();
+            setProjectStatus({ status: "loaded", project: ProjectPersistance.defaultProject() });
+          } else {
+            setProjectStatus({ status: "loaded", project: maybeProject });
+          }
         }
-      }
-    })();
+      })()
+    );
   }, [projectStatus.status]);
 
   switch (projectStatus.status) {

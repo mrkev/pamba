@@ -51,7 +51,6 @@ export class FaustAudioEffect {
   }
 
   getParam(address: string): number {
-    console.log("GETTING", this.node.getParam(address));
     const value = this.params.get(address);
     if (value == null) {
       throw new Error(`Invalid address for effect param: ${address}`);

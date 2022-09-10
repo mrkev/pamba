@@ -3,6 +3,7 @@ import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import { AudioProject, ProjectSelection } from "../lib/AudioProject";
 import { ProjectPersistance } from "../lib/ProjectPersistance";
 import { AudioRenderer } from "../lib/AudioRenderer";
+import { ignorePromise } from "../lib/ignorePromise";
 
 export function useAppProjectKeyboardEvents(
   project: AudioProject,
@@ -19,7 +20,7 @@ export function useAppProjectKeyboardEvents(
 
         case "KeyS": {
           if (e.metaKey) {
-            ProjectPersistance.doSave(project);
+            ignorePromise(ProjectPersistance.doSave(project));
             e.preventDefault();
             e.stopPropagation();
           }
