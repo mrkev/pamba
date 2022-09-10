@@ -7484,6 +7484,10 @@ fastq@^1.6.0:
     loader-utils "^3.2.0"
     tmp-promise "^3.0.3"
 
+faust2webaudio@grame-cncm/faust2webaudio:
+  version "0.6.63"
+  resolved "https://codeload.github.com/grame-cncm/faust2webaudio/tar.gz/dd7fed2791c3a77672811f3a4104013c5a74e518"
+
 faye-websocket@0.11.4:
   version "0.11.4"
   resolved "https://registry.yarnpkg.com/faye-websocket/-/faye-websocket-0.11.4.tgz#7f0d9275cfdd86a1c963dc8b65fcc451edcbb1da"
