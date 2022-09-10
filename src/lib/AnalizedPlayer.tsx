@@ -204,7 +204,12 @@ export class AnalizedPlayer {
     }
 
     for (let track of tracks) {
-      track.startPlaybackForBounce(offlineAudioContext, startSec);
+      // FIXME: parallel
+      await track.prepareForBounce(offlineAudioContext);
+    }
+
+    for (let track of tracks) {
+      track.startPlayback(startSec);
     }
 
     const result = await offlineAudioContext.startRendering();

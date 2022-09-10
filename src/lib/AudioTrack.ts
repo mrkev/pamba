@@ -89,18 +89,39 @@ export class AudioTrack {
       console.warn("No out node for this track!", this);
       return;
     }
+
+    // We need to keep a reference to our source node for play/pause
     this.playingSource = this.getSourceNode(context);
-    this.playingSource.connect(this.gainNode);
-    // Effects
-    let currentNode: AudioNode = this.gainNode;
-    const effects = this.effects._getRaw();
-    for (let i = 0; i < effects.length; i++) {
-      const nextNode = effects[i].accessWorkletNode();
+
+    const effectNodes = this.effects._getRaw().map((effect) => {
+      return effect.accessWorkletNode();
+    });
+
+    this.connectSerialNodes([
+      ///
+      this.playingSource,
+      this.gainNode,
+      ...effectNodes,
+      this._hiddenGainNode,
+      this.outNode,
+    ]);
+  }
+
+  private connectSerialNodes(chain: AudioNode[]): void {
+    if (chain.length < 2) {
+      return;
+    }
+    let currentNode: AudioNode = chain[0];
+    for (let i = 1; chain[i] != null; i++) {
+      const nextNode = chain[i];
+      console.group(`Connected: ${currentNode.constructor.name} -> ${nextNode.constructor.name}`);
+      console.log(currentNode);
+      console.log("-->");
+      console.log(nextNode);
+      console.groupEnd();
       currentNode.connect(nextNode);
       currentNode = nextNode;
     }
-    currentNode.connect(this._hiddenGainNode);
-    this._hiddenGainNode.connect(this.outNode);
   }
 
   // NOTE: needs to be called right after .prepareForPlayback
@@ -111,41 +132,34 @@ export class AudioTrack {
     this.playingSource.start(0, offset); // Play the sound now
   }
 
-  // Topology of DSP:
-  // [ Source Node ]
-  //        V
-  // [ Gain Node ]
-  //        V
-  // [ ... Effects]
-  //        V
-  // [ _Hidden Gain Node (for soloing)]
-  //        V
-  // [ Out Node ]
-  async startPlaybackForBounce(context: OfflineAudioContext, offset?: number): Promise<void> {
+  async prepareForBounce(context: OfflineAudioContext): Promise<void> {
     if (!this.outNode) {
       console.warn("No out node for bounce on track:", this);
       return;
     }
 
     this.playingSource = this.getSourceNode(context);
-    // cant use gain node, wrong context
-    // this.playingSource.connect(this.gainNode);
-    // Effects
-    let currentNode: AudioNode = this.playingSource;
-    // for (let effect of this.effects) {
-    //   const nextEffect = await effect.cloneToOfflineContext(context);
-    //   if (nextEffect == null) {
-    //     throw new Error(`Failed to prepare ${effect.effectId} for bounce!`);
-    //   }
-    //   const nextNode = nextEffect.accessWorkletNode();
-    //   currentNode.connect(nextNode);
-    //   currentNode = nextNode;
-    // }
-    // currentNode.connect(this._hiddenGainNode);
-    // this._hiddenGainNode.connect(this.outNode);
-    currentNode.connect(this.outNode);
 
-    this.playingSource.start(0, offset); // Play the sound now
+    const effectNodes = await Promise.all(
+      this.effects._getRaw().map(async (effect) => {
+        const nextEffect = await effect.cloneToOfflineContext(context);
+        if (nextEffect == null) {
+          throw new Error(`Failed to prepare ${effect.effectId} for bounce!`);
+        }
+        return nextEffect.accessWorkletNode();
+      })
+    );
+
+    this.connectSerialNodes([
+      ///
+      this.playingSource,
+      // cant use gainNode, wrong context
+      // this.gainNode,
+      ...effectNodes,
+      // cant use _hiddenGainNode, wrong context
+      // this._hiddenGainNode,
+      this.outNode,
+    ]);
   }
 
   stopPlayback(): void {

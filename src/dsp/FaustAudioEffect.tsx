@@ -36,7 +36,6 @@ export class FaustAudioEffect {
     this.node = faustNode;
     this.ui = nodeData.ui;
     this.name = nodeData.name;
-    (window as any).n = this;
     this.params = LinkedMap.create(new Map(params));
     for (const [address, value] of params) {
       // Note: `node.getParams` will return an
@@ -54,7 +53,7 @@ export class FaustAudioEffect {
   getParam(address: string): number {
     console.log("GETTING", this.node.getParam(address));
     const value = this.params.get(address);
-    if (!value) {
+    if (value == null) {
       throw new Error(`Invalid address for effect param: ${address}`);
     }
     return value;
@@ -71,7 +70,7 @@ export class FaustAudioEffect {
   async getAllParamValues(): Promise<Array<[address: string, value: number]>> {
     // const state = await this.node.getState();
     // This will only be the up-to-date state once playback happens
-    console.log("saving state", [...this.params.entries()]);
+    // console.log("saving state", [...this.params.entries()]);
     // We use our params state instead of trying to `await this.node.getState()`
     // because that seems to return outdated values unless playback happens
     return [...this.params.entries()];
@@ -88,13 +87,27 @@ export class FaustAudioEffect {
     if (!node) {
       return null;
     }
+    // By default faust nodes seem to be created with channelCountMode = "explicit"
+    // We need "max", not only because it's what makes sense, but also so it works
+    // automatically with the rest of the DSP chain
+    node.channelCountMode = "max";
     const nodeData: INodeData = JSON.parse((node as any).getJSON());
-    const effect = new this(node, nodeData, id, initialParamValues ?? []);
+
+    const useParamValues =
+      // Provided param values
+      initialParamValues ??
+      // default
+      node.getParams().map((key) => {
+        return [key, node.getParam(key)];
+      });
+
+    const effect = new this(node, nodeData, id, useParamValues);
     return effect;
   }
 
   async cloneToOfflineContext(context: OfflineAudioContext) {
     const paramValues = await this.getAllParamValues();
+    console.log("CLONING", paramValues);
     return FaustAudioEffect.create(context, this.effectId, paramValues);
   }
 }
