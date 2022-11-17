@@ -89,6 +89,7 @@ function AppProject({ project }: { project: AudioProject }) {
          >
            test
          </button> */}
+
       <ToolHeader
         project={project}
         player={renderer.analizedPlayer}

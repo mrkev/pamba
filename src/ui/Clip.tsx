@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useReducer, useRef } from "react";
 import { css } from "@linaria/core";
 import { scaleLinear } from "d3-scale";
 import { CLIP_HEIGHT } from "../globals";
@@ -10,6 +10,7 @@ import { useDerivedState } from "../lib/state/DerivedState";
 import { useSubscribeToSubbableMutationHashable } from "../lib/state/LinkedMap";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { modifierState } from "../ModifierState";
+import { dataWaveformToCanvas } from "../lib/waveformAsync";
 
 type Props = {
   clip: AudioClip;
@@ -56,6 +57,7 @@ export function Clip({ clip, tool, rerender, isSelected, style = {}, project, tr
   const [, setPressed] = useLinkedState(pressedState);
   const [, setSelectionWidth] = useLinkedState(project.selectionWidth);
   const [, setSelected] = useLinkedState(project.selected);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useSubscribeToSubbableMutationHashable(clip, () => {
     rerender();
@@ -183,6 +185,16 @@ export function Clip({ clip, tool, rerender, isSelected, style = {}, project, tr
       </div>
       <div className={styles.resizerStart} onMouseDown={(e) => onMouseDownToResize(e, "start")}></div>
       <div className={styles.resizerEnd} onMouseDown={(e) => onMouseDownToResize(e, "end")}></div>
+      <canvas ref={canvasRef}></canvas>
+      <button
+        onClick={() => {
+          if (canvasRef.current) {
+            dataWaveformToCanvas(100, 20, clip.buffer, canvasRef.current);
+          }
+        }}
+      >
+        Test waveform worker
+      </button>
       {/* <ClipAutomation clip={clip} secsToPx={secsToPx} /> */}
     </div>
   );
