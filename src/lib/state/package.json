@@ -1,0 +1,7 @@
+{
+  "name": "s-state",
+  "version": "0.1.0",
+  "devDependencies": {
+    "react": "18.2.0"
+  }
+}
