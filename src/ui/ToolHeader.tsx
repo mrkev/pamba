@@ -9,15 +9,54 @@ import AudioClip from "../lib/AudioClip";
 import { AudioTrack } from "../lib/AudioTrack";
 import { useMediaRecorder } from "../lib/useMediaRecorder";
 import { ignorePromise } from "../lib/ignorePromise";
+import { utility } from "./utility";
+import { AnchorButton, UploadButton } from "./FormButtons";
+
+function BounceButton({ project, renderer }: { project: AudioProject; renderer: AudioRenderer }) {
+  const [selectionWidth] = useLinkedState(project.selectionWidth);
+  return (
+    <button
+      className={utility.button}
+      onClick={() => {
+        ignorePromise(AudioRenderer.bounceSelection(renderer, project));
+      }}
+    >
+      {selectionWidth && selectionWidth > 0 ? "bounce selected" : "bounce all"}
+    </button>
+  );
+}
 
 function ToolSelector({ project }: { project: AudioProject }) {
-  const [tool] = useLinkedState(project.pointerTool);
+  const [tool, setTool] = useLinkedState(project.pointerTool);
   return (
-    <div>
-      <button>⇄</button>
-      <button>⇥</button>
-      <button>⇤</button>
-      {tool === "move" ? "move ⇄" : tool === "trimStart" ? "trimStart ⇥" : tool === "trimEnd" ? "trimEnd ⇤" : tool}
+    <div style={{ width: 140 }}>
+      <button
+        className={utility.button}
+        style={tool === "trimStart" ? { background: "teal", color: "white" } : undefined}
+        onClick={() => {
+          if (tool === "trimStart") {
+            setTool("move");
+          } else {
+            setTool("trimStart");
+          }
+        }}
+      >
+        ⇥
+      </button>
+      <button
+        className={utility.button}
+        style={tool === "trimEnd" ? { background: "teal", color: "white" } : undefined}
+        onClick={() => {
+          if (tool === "trimEnd") {
+            setTool("move");
+          } else {
+            setTool("trimEnd");
+          }
+        }}
+      >
+        ⇤
+      </button>
+      {tool === "move" ? "move \u00b7" : tool === "trimStart" ? "trimStart ⇥" : tool === "trimEnd" ? "trimEnd ⇤" : tool}
     </div>
   );
 }
@@ -35,16 +74,26 @@ function TransportControl({
 }) {
   const mediaRecorder = useMediaRecorder(loadClip);
   const [tracks] = useLinkedArray(project.allTracks);
-  const [isRecording, setIsRecording] = useState(false);
+  const [isRecording, setIsRecording] = useLinkedState(project.isRecording);
   const [isAudioPlaying] = useLinkedState(renderer.isAudioPlaying);
 
   return (
     <div>
-      <button disabled={tracks.length === 0} onClick={() => AudioRenderer.togglePlayback(renderer, project, player)}>
+      <button
+        className={utility.button}
+        style={isRecording ? { color: "red" } : undefined}
+        disabled={tracks.length === 0 || isRecording}
+        onClick={() => {
+          AudioRenderer.togglePlayback(renderer, project, player);
+        }}
+      >
         {isAudioPlaying ? "\u23f9" /*stop*/ : "\u23f5" /*play*/}
       </button>
       {mediaRecorder && (
         <button
+          className={utility.button}
+          disabled={isAudioPlaying}
+          style={isRecording ? { color: "red" } : undefined}
           onClick={function () {
             if (!isRecording) {
               mediaRecorder.start();
@@ -55,7 +104,7 @@ function TransportControl({
             }
           }}
         >
-          {!isRecording ? "\u23fa" : "stop recording"}
+          {"\u23fa"}
         </button>
       )}
     </div>
@@ -108,12 +157,13 @@ export function ToolHeader({
           style={{
             display: "flex",
             flexDirection: "row",
-            columnGap: "6px",
-            justifyContent: "space-between",
+            gap: "6px",
+            alignItems: "baseline",
           }}
         >
           {firebaseStoreRef && (
             <UploadButton
+              className={utility.button}
               value={uploadStatus === "idle" ? "upload audio" : "uploading..."}
               disabled={uploadStatus === "uploading"}
               accept="audio/*"
@@ -139,13 +189,20 @@ export function ToolHeader({
               }}
             />
           )}
-          {/* <BounceButton project={project} renderer={renderer} /> */}
+
+          <div style={{ flexGrow: 1 }}></div>
+
+          <BounceButton project={project} renderer={renderer} />
           {bounceURL && (
-            <a href={bounceURL} download={"bounce.wav"}>
+            <AnchorButton className={utility.button} href={bounceURL} download={"bounce.wav"}>
               Download bounce
-            </a>
+            </AnchorButton>
           )}
+          <div style={{ flexGrow: 1 }}></div>
+
           <ToolSelector project={project} />
+          <div style={{ flexGrow: 1 }}></div>
+
           <TransportControl
             project={project}
             loadClip={loadClip}
@@ -202,27 +259,5 @@ export function ToolHeader({
         }}
       ></canvas>
     </div>
-  );
-}
-
-function UploadButton({
-  value,
-  hidden,
-  ...props
-}: Omit<React.DetailedHTMLProps<React.InputHTMLAttributes<HTMLInputElement>, HTMLInputElement>, "ref" | "type">) {
-  const inputRef = useRef<HTMLInputElement>(null);
-  return (
-    <>
-      <input type="file" ref={inputRef} {...props} hidden />
-      <button
-        onClick={() => {
-          console.log("HI");
-          inputRef.current?.click();
-        }}
-        hidden={hidden}
-      >
-        {value}
-      </button>
-    </>
   );
 }

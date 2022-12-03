@@ -16,6 +16,20 @@ import { css } from "@linaria/core";
 import { clamp } from "../lib/math";
 import { ignorePromise } from "../lib/ignorePromise";
 
+function BounceButton({ project, renderer }: { project: AudioProject; renderer: AudioRenderer }) {
+  const [selectionWidth] = useLinkedState(project.selectionWidth);
+  return (
+    <button
+      className={utility.button}
+      onClick={() => {
+        ignorePromise(AudioRenderer.bounceSelection(renderer, project));
+      }}
+    >
+      {selectionWidth && selectionWidth > 0 ? "bounce selected" : "bounce all"}
+    </button>
+  );
+}
+
 // 150 is TRACK_HEADER_WIDTH
 const containerStyle = css`
   display: grid;
@@ -167,7 +181,7 @@ export function TimelineView({
       {/* 1. Track header overhang (bounce button) */}
       <div style={styles2.axisSpacer}>
         {"↑"}
-        <BounceButton project={project} renderer={renderer} />
+        {/* <BounceButton project={project} renderer={renderer} /> */}
       </div>
 
       {/* 2. Project, including track headers */}
@@ -237,19 +251,5 @@ export function TimelineView({
         </div>
       </div>
     </div>
-  );
-}
-
-function BounceButton({ project, renderer }: { project: AudioProject; renderer: AudioRenderer }) {
-  const [selectionWidth] = useLinkedState(project.selectionWidth);
-  return (
-    <button
-      className={utility.button}
-      onClick={() => {
-        ignorePromise(AudioRenderer.bounceSelection(renderer, project));
-      }}
-    >
-      {selectionWidth && selectionWidth > 0 ? "bounce selected" : "bounce all"}
-    </button>
   );
 }

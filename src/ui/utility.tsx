@@ -4,10 +4,10 @@ import { useEffect, useRef, useState } from "react";
 
 export const utility = {
   button: css`
-    font-size: 10px;
+    font-size: 12px;
     font-weight: bold;
     padding: 1px 6px;
-    height: 16px;
+    height: 18px;
     border: none;
     background: #d3d3d3;
     cursor: pointer;

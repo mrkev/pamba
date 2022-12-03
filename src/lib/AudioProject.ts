@@ -76,6 +76,7 @@ export class AudioProject {
   // Track status //
   readonly solodTracks = LinkedSet.create<AudioTrack>();
   readonly dspExpandedTracks = LinkedSet.create<AudioTrack>();
+  readonly isRecording = SPrimitive.of(false);
 
   // Pointer //
   readonly pointerTool = SPrimitive.of<Tool>("move");
