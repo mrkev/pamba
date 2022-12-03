@@ -80,9 +80,12 @@ export default function TrackHeader({ track, project, player }: Props) {
   return (
     <div
       style={{
+        background: isSelected ? "#eee" : "white",
         position: "relative",
         borderBottom: `${TRACK_SEPARATOR_HEIGHT}px solid #BABABA`,
+        cursor: "pointer",
       }}
+      onClick={() => ProjectSelection.selectTrack(project, track)}
     >
       <div
         style={{
@@ -100,7 +103,6 @@ export default function TrackHeader({ track, project, player }: Props) {
             background: isSelected ? "#333" : "white",
             color: isSelected ? "white" : "black",
             userSelect: "none",
-            cursor: "pointer",
             display: "flex",
             flexDirection: "row",
             justifyContent: "space-between",
@@ -108,7 +110,6 @@ export default function TrackHeader({ track, project, player }: Props) {
             fontSize: "0.8em",
             paddingLeft: "4px",
           }}
-          onClick={() => ProjectSelection.selectTrack(project, track)}
         >
           <RenamableLabel
             project={project}
