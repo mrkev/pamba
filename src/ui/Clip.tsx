@@ -186,7 +186,7 @@ export function Clip({ clip, tool, rerender, isSelected, style = {}, project, tr
       <div className={styles.resizerStart} onMouseDown={(e) => onMouseDownToResize(e, "start")}></div>
       <div className={styles.resizerEnd} onMouseDown={(e) => onMouseDownToResize(e, "end")}></div>
       <canvas ref={canvasRef}></canvas>
-      <button
+      {/* <button
         onClick={() => {
           if (canvasRef.current) {
             dataWaveformToCanvas(100, 20, clip.buffer, canvasRef.current);
@@ -194,7 +194,7 @@ export function Clip({ clip, tool, rerender, isSelected, style = {}, project, tr
         }}
       >
         Test waveform worker
-      </button>
+      </button> */}
       {/* <ClipAutomation clip={clip} secsToPx={secsToPx} /> */}
     </div>
   );

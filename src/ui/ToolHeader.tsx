@@ -10,10 +10,55 @@ import { AudioTrack } from "../lib/AudioTrack";
 import { useMediaRecorder } from "../lib/useMediaRecorder";
 import { ignorePromise } from "../lib/ignorePromise";
 
-function ToolDisplay({ project }: { project: AudioProject }) {
+function ToolSelector({ project }: { project: AudioProject }) {
   const [tool] = useLinkedState(project.pointerTool);
   return (
-    <>{tool === "move" ? "move ⇄" : tool === "trimStart" ? "trimStart ⇥" : tool === "trimEnd" ? "trimEnd ⇤" : tool}</>
+    <div>
+      <button>⇄</button>
+      <button>⇥</button>
+      <button>⇤</button>
+      {tool === "move" ? "move ⇄" : tool === "trimStart" ? "trimStart ⇥" : tool === "trimEnd" ? "trimEnd ⇤" : tool}
+    </div>
+  );
+}
+
+function TransportControl({
+  project,
+  renderer,
+  player,
+  loadClip,
+}: {
+  loadClip: (url: string, name?: string) => Promise<void>;
+  project: AudioProject;
+  player: AnalizedPlayer;
+  renderer: AudioRenderer;
+}) {
+  const mediaRecorder = useMediaRecorder(loadClip);
+  const [tracks] = useLinkedArray(project.allTracks);
+  const [isRecording, setIsRecording] = useState(false);
+  const [isAudioPlaying] = useLinkedState(renderer.isAudioPlaying);
+
+  return (
+    <div>
+      <button disabled={tracks.length === 0} onClick={() => AudioRenderer.togglePlayback(renderer, project, player)}>
+        {isAudioPlaying ? "\u23f9" /*stop*/ : "\u23f5" /*play*/}
+      </button>
+      {mediaRecorder && (
+        <button
+          onClick={function () {
+            if (!isRecording) {
+              mediaRecorder.start();
+              setIsRecording(true);
+            } else {
+              mediaRecorder.stop();
+              setIsRecording(false);
+            }
+          }}
+        >
+          {!isRecording ? "\u23fa" : "stop recording"}
+        </button>
+      )}
+    </div>
   );
 }
 
@@ -21,7 +66,6 @@ export function ToolHeader({
   project,
   player,
   renderer,
-
   firebaseStoreRef,
 }: {
   project: AudioProject;
@@ -30,10 +74,9 @@ export function ToolHeader({
   firebaseStoreRef: any;
 }) {
   const ctxRef = useRef<null | CanvasRenderingContext2D>(null);
-  const [tracks] = useLinkedArray(project.allTracks);
   const [bounceURL] = useLinkedState<string | null>(renderer.bounceURL);
   const [isAudioPlaying] = useLinkedState(renderer.isAudioPlaying);
-  const [isRecording, setIsRecording] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState<"idle" | "uploading">("idle");
 
   const loadClip = useCallback(
     async function loadClip(url: string, name?: string) {
@@ -52,8 +95,6 @@ export function ToolHeader({
     [player, project]
   );
 
-  const mediaRecorder = useMediaRecorder(loadClip);
-
   return (
     <div
       style={{
@@ -68,13 +109,13 @@ export function ToolHeader({
             display: "flex",
             flexDirection: "row",
             columnGap: "6px",
-            justifyContent: "right",
+            justifyContent: "space-between",
           }}
         >
           {firebaseStoreRef && (
-            <input
-              value={""}
-              type="file"
+            <UploadButton
+              value={uploadStatus === "idle" ? "upload audio" : "uploading..."}
+              disabled={uploadStatus === "uploading"}
               accept="audio/*"
               onChange={async function (e) {
                 const file = (e.target.files || [])[0];
@@ -82,6 +123,7 @@ export function ToolHeader({
                   console.log("NO FILE");
                   return;
                 }
+                setUploadStatus("uploading");
                 // Push to child path.
                 const snapshot = await firebaseStoreRef.child("images/" + file.name).put(file, {
                   contentType: file.type,
@@ -93,6 +135,7 @@ export function ToolHeader({
                 const url = await snapshot.ref.getDownloadURL();
                 console.log("File available at", url);
                 ignorePromise(loadClip(url, file.name));
+                setUploadStatus("idle");
               }}
             />
           )}
@@ -102,28 +145,13 @@ export function ToolHeader({
               Download bounce
             </a>
           )}
-          <ToolDisplay project={project} />
-          <button
-            disabled={tracks.length === 0}
-            onClick={() => AudioRenderer.togglePlayback(renderer, project, player)}
-          >
-            {isAudioPlaying ? "stop" : "start"}
-          </button>
-          {mediaRecorder && (
-            <button
-              onClick={function () {
-                if (!isRecording) {
-                  mediaRecorder.start();
-                  setIsRecording(true);
-                } else {
-                  mediaRecorder.stop();
-                  setIsRecording(false);
-                }
-              }}
-            >
-              {!isRecording ? "record" : "stop recording"}
-            </button>
-          )}
+          <ToolSelector project={project} />
+          <TransportControl
+            project={project}
+            loadClip={loadClip}
+            player={player}
+            renderer={renderer}
+          ></TransportControl>
         </div>
         {/* <input
             value={""}
@@ -137,7 +165,7 @@ export function ToolHeader({
           /> */}
 
         <br />
-        {["viper.mp3", "drums.mp3", "clav.mp3", "bassguitar.mp3", "horns.mp3", "leadguitar.mp3"].map(function (url, i) {
+        {["drums.mp3", "clav.mp3", "bassguitar.mp3", "horns.mp3", "leadguitar.mp3"].map(function (url, i) {
           return (
             <button
               key={i}
@@ -174,5 +202,27 @@ export function ToolHeader({
         }}
       ></canvas>
     </div>
+  );
+}
+
+function UploadButton({
+  value,
+  hidden,
+  ...props
+}: Omit<React.DetailedHTMLProps<React.InputHTMLAttributes<HTMLInputElement>, HTMLInputElement>, "ref" | "type">) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  return (
+    <>
+      <input type="file" ref={inputRef} {...props} hidden />
+      <button
+        onClick={() => {
+          console.log("HI");
+          inputRef.current?.click();
+        }}
+        hidden={hidden}
+      >
+        {value}
+      </button>
+    </>
   );
 }
