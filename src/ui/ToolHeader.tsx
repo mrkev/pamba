@@ -229,7 +229,8 @@ export function ToolHeader({
               draggable
               disabled={isAudioPlaying}
               onDragStart={function (ev: React.DragEvent<HTMLButtonElement>) {
-                ev.dataTransfer.setData("text", url);
+                ev.dataTransfer.setData("text/uri-list", url);
+                ev.dataTransfer.setData("text/plain", url);
               }}
               onClick={function () {
                 ignorePromise(loadClip(url));

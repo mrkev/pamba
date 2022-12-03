@@ -1,4 +1,4 @@
-import React, { useReducer, useRef } from "react";
+import React, { useRef } from "react";
 import { css } from "@linaria/core";
 import { scaleLinear } from "d3-scale";
 import { CLIP_HEIGHT } from "../globals";
@@ -10,7 +10,7 @@ import { useDerivedState } from "../lib/state/DerivedState";
 import { useSubscribeToSubbableMutationHashable } from "../lib/state/LinkedMap";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { modifierState } from "../ModifierState";
-import { dataWaveformToCanvas } from "../lib/waveformAsync";
+// import { dataWaveformToCanvas } from "../lib/waveformAsync";
 
 type Props = {
   clip: AudioClip;

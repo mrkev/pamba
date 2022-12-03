@@ -10,6 +10,7 @@ export async function loadSound(audioContext: AudioContext, url: string): Promis
     request.open("GET", url, true);
     request.responseType = "arraybuffer";
     // When loaded, decode the data and play the sound
+
     request.onload = function () {
       ignorePromise(
         audioContext.decodeAudioData(

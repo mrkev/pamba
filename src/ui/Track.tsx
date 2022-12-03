@@ -48,13 +48,23 @@ export function Track({
       <div
         onDrop={function (ev) {
           ev.preventDefault();
+          console.log(ev.dataTransfer);
+          // We can drop audio files from outside the app
+          for (let i = 0; i < ev.dataTransfer.files.length; i++) {
+            const file = ev.dataTransfer.files[i];
+            console.log("TODO: LOAD", file);
+          }
+
+          // We can drop urls to audio from other parts of the UI
           const url = ev.dataTransfer.getData("text");
-          ignorePromise(loadClipIntoTrack(url, track));
+          if (url.length > 0) {
+            ignorePromise(loadClipIntoTrack(url, track));
+          }
         }}
         onDragOver={function allowDrop(ev) {
           ev.preventDefault();
         }}
-        onMouseEnter={function () {
+        onMouseEnter={function (e) {
           if (pressed && pressed.status === "moving_clip") {
             setPressed((prev) => Object.assign({}, prev, { track }));
           }

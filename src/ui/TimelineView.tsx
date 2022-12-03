@@ -11,10 +11,8 @@ import { useLinkedState } from "../lib/state/LinkedState";
 import { Axis } from "./Axis";
 import { Track } from "./Track";
 import TrackHeader from "./TrackHeader";
-import { utility } from "./utility";
 import { css } from "@linaria/core";
 import { clamp } from "../lib/math";
-import { ignorePromise } from "../lib/ignorePromise";
 
 // 150 is TRACK_HEADER_WIDTH
 const containerStyle = css`
