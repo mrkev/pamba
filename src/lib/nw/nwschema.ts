@@ -1,6 +1,5 @@
 import { SubSchema } from "./subschema";
 import * as sub from "./subschema";
-import { exhaustive } from "../exhaustive";
 
 /** narrows unkown type to Record<string, unknown> */
 export function isRecord(value: unknown): value is Record<string, unknown> {
@@ -82,18 +81,17 @@ class NWObject<TSchema extends Record<string, NWSchema<unknown>>>
   constructor(schema: TSchema) {
     this.schema = schema;
   }
+
   concretize(val: ValueForObjectSchema<TSchema>): SubSchema<{
     [Key in keyof TSchema]: NWOut<TSchema[Key]>;
   }> {
-    const concretizedSchema: {
-      [Key in keyof TSchema]: SubSchema<TSchema[Key]>;
-    } = {} as any;
-    // object<T extends Record<string, SubSchema<unknown>>>(
-    //   schema: T,
-    //   val: { [Key in keyof T]: SubOut<T[Key]> }
-    // ): SubObject<T> {
+    // const concretizedEntries = Object.entries(val).map(([key, value]) => [key, this.schema[key].concretize(value)]);
+    // const concretizedRecord = Object.fromEntries(concretizedEntries);
+    // // const concretizedItems = val.map((item) => this.schema.concretize(item));
 
-    return sub.object(concretizedSchema, val);
+    // const result = sub.object(concretizedRecord, this);
+    // return result;
+    throw new Error("TBD");
   }
 
   consume(obj: unknown): NWConsumeResult<{ [Key in keyof TSchema]: NWOut<TSchema[Key]> }> {
@@ -143,18 +141,18 @@ class NWUnion<T extends NWSchema<any>> implements NWSchema<NWOut<T>> {
     this.options = options;
   }
   concretize(val: unknown): sub.SubUnion<sub.SubSchema<any>> {
-    for (const option of this.options) {
-      const result = option.consume(val);
-      if (result.status === "success") {
-        if (option instanceof NWNumber) {
-          const concretizedOption = (option as NWNumber).concretize(val as any);
-          return sub.union(concretizedOption, this);
-        }
+    // for (const option of this.options) {
+    //   const result = option.consume(val);
+    //   if (result.status === "success") {
+    //     if (option instanceof NWNumber) {
+    //       const concretizedOption = (option as NWNumber).concretize(val as any);
+    //       return sub.union(concretizedOption, this);
+    //     }
 
-        const concretizedOption = option.concretize(val);
-        return sub.union(concretizedOption, this);
-      }
-    }
+    //     const concretizedOption = option.concretize(val);
+    //     return sub.union(concretizedOption, this);
+    //   }
+    // }
 
     throw new Error("CAN NOT CONCRETIZE");
   }
@@ -329,6 +327,8 @@ function boolean() {
 function object<T extends Record<string, NWSchema<unknown>>>(schema: T): NWObject<T> {
   return new NWObject<T>(schema);
 }
+
+const a = object({ x: number() });
 
 function union<T extends Array<NWSchema<unknown>>>(...args: T): NWUnion<T[number]> {
   return new NWUnion<T[number]>(args);

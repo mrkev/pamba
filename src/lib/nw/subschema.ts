@@ -1,10 +1,8 @@
 import { exhaustive } from "../exhaustive";
-import { Subbable } from "../state/Subbable";
 import {
   NWMap,
   NWArray,
   NWBoolean,
-  NWIn,
   NWInLax,
   NWInUnion,
   NWNumber,
@@ -15,17 +13,17 @@ import {
 } from "./nwschema";
 import * as nw from "./nwschema";
 
-function create<T>(schema: SubSchema<T>, value: T) {
-  const result = schema.consume(value);
-  switch (result.status) {
-    case "failure":
-      throw result.error;
-    case "success":
-      break;
-    default:
-      exhaustive(result);
-  }
-}
+// function create<T>(schema: SubSchema<T>, value: T) {
+//   const result = schema.consume(value);
+//   switch (result.status) {
+//     case "failure":
+//       throw result.error;
+//     case "success":
+//       break;
+//     default:
+//       exhaustive(result);
+//   }
+// }
 
 ////////////////////
 
@@ -39,18 +37,10 @@ type IsUnion<T, U extends T = T> = (T extends any ? (U extends T ? false : true)
 
 export type SubConsumeResult<T> = { status: "success"; value: T } | { status: "failure"; error: Error };
 
-function success<T>(value: T): { status: "success"; value: T } {
-  return { status: "success", value };
-}
-
-function failure(msg?: string): { status: "failure"; error: Error } {
-  return { status: "failure", error: new Error(msg) };
-}
-
 //////// Schema ////////
 
 export interface SubSchema<T> {
-  consume(val: unknown): SubConsumeResult<T>;
+  peek(): T;
 }
 
 /** Describes a string */
@@ -61,12 +51,23 @@ class SubString implements SubSchema<string> {
     this.val = val;
     this.schema = schema;
   }
-  consume(val: unknown): SubConsumeResult<string> {
-    if (typeof val === "string") {
-      return success<string>(val);
-    } else {
-      return failure();
+
+  peek(): string {
+    return this.val;
+  }
+
+  replace(val: unknown) {
+    const result = this.schema.consume(val);
+    switch (result.status) {
+      case "failure":
+        throw result.error;
+      case "success":
+        this.val = result.value;
     }
+  }
+
+  set(val: string) {
+    this.val = val;
   }
 }
 
@@ -79,12 +80,12 @@ class SubNumber implements SubSchema<number> {
     this.schema = schema;
   }
 
-  consume(val: unknown): SubConsumeResult<number> {
-    if (typeof val === "number") {
-      return success<number>(val);
-    } else {
-      return failure();
-    }
+  peek(): number {
+    return this.val;
+  }
+
+  set(val: number) {
+    this.val = val;
   }
 }
 
@@ -97,95 +98,78 @@ class SubBoolean implements SubSchema<boolean> {
     this.schema = schema;
   }
 
-  consume(val: unknown): SubConsumeResult<boolean> {
-    if (typeof val === "boolean") {
-      return success<boolean>(val);
-    } else {
-      return failure();
-    }
+  peek(): boolean {
+    return this.val;
+  }
+
+  set(val: boolean) {
+    this.val = val;
   }
 }
 
 /** Describes null, undefined, void */
 class SubNil implements SubSchema<null> {
-  private value: null;
+  private val: null;
   private readonly schema: nw.NWNil;
   constructor(value: null, schema: nw.NWNil) {
-    this.value = value;
+    this.val = value;
     this.schema = schema;
   }
 
-  consume(val: unknown): SubConsumeResult<null> {
-    if (val == null) {
-      return success(null);
-    } else {
-      return failure();
-    }
+  peek(): null {
+    return this.val;
+  }
+
+  set(val: null) {
+    this.val = val;
   }
 }
 
 // TODO: consume null values, since they won't even show up.
 /** Describes an object with known keys */
-class SubObject<TSchema extends Record<string, SubSchema<unknown>>>
-  implements SubSchema<{ [Key in keyof TSchema]: SubOut<TSchema[Key]> }>
+class SubObject<TSub extends Record<string, SubSchema<unknown>>>
+  implements SubSchema<{ [Key in keyof TSub]: SubOut<TSub[Key]> }>
 {
-  private schema: TSchema;
-  private readonly sub: { [Key in keyof TSchema]: SubOut<TSchema[Key]> };
-  constructor(sub: { [Key in keyof TSchema]: SubOut<TSchema[Key]> }, schema: TSchema) {
+  schema: nw.NWObject<{ [Key in keyof TSub]: NWInLax<SubOutLax<TSub[Key]>> }>;
+  readonly sub: TSub;
+
+  constructor(sub: TSub, schema: nw.NWObject<{ [Key in keyof TSub]: NWInLax<SubOutLax<TSub[Key]>> }>) {
     this.schema = schema;
     this.sub = sub;
   }
 
-  consume(obj: unknown): SubConsumeResult<{ [Key in keyof TSchema]: SubOut<TSchema[Key]> }> {
-    if (!isRecord(obj)) {
-      return failure();
+  peek(): { [Key in keyof TSub]: SubOut<TSub[Key]> } {
+    const record: any = {};
+    for (let key in this.sub) {
+      const value = this.sub[key].peek();
+      record[key] = value as any;
     }
+    return record;
+  }
 
-    const consumedKeys = new Set<string>();
-    // First, iterate all keys in the object. Will find unexpected keys.
-    for (const key in obj) {
-      const val = obj[key];
-      const valSchema = this.schema[key];
-      if (!valSchema) {
-        return failure(`unexpected key ${key} found.`); // todo, maybe warn instead and continue? make an extensible object, and another that's exact?
-      }
-
-      const result = valSchema.consume(val);
-      if (result.status === "failure") {
-        return failure(result.error.message);
-      }
-
-      consumedKeys.add(key);
-    }
-
-    // Next, iterate all keys in the schema. Will find missing keys.
-    for (const key in this.schema) {
-      if (consumedKeys.has(key)) continue;
-      const valSchema = this.schema[key];
-      // consuming 'undefined' is exactly what we want here
-      const result = valSchema.consume(obj[key]);
-      if (result.status === "failure") {
-        return failure(result.error.message);
-      }
-    }
-
-    // We clone the object, cause we'll set default values and whatnot, and we don't want to edit the origianl
-    // TODO: triple check consumption, since we have to cast
-    return success({ ...obj } as any);
+  at<K extends keyof TSub>(key: K): TSub[K] {
+    return this.sub[key];
   }
 }
+
+// function union<Opts extends NWSchema<unknown>>(
+//   sub: SubInUnion<NWOut<Opts>>,
+//   schema: NWUnion<Opts>
+// ): SubUnion<SubInUnion<NWOut<Opts>>> {
+//   return new SubUnion<SubInUnion<NWOut<Opts>>>(sub, schema);
+// }
 
 /** Describes a union of several types; resolves to the first successful one */
 class SubUnion<T extends SubSchema<any>> implements SubSchema<SubOut<T>> {
   // TODO: T should be Tout
-  private subValue: T;
-  private readonly schema: NWUnion<NWInUnion<SubOutLax<T>>>;
+  subValue: T;
+  readonly schema: NWUnion<NWInUnion<SubOutLax<T>>>;
   constructor(subValue: T, schema: NWUnion<NWInUnion<SubOutLax<T>>>) {
     this.subValue = subValue;
     this.schema = schema;
   }
-  consume(val: unknown): SubConsumeResult<SubOut<T>> {
-    throw new Error("REMOVE");
+  peek(): SubOut<T> {
+    return this.subValue.peek();
   }
 }
 
@@ -196,22 +180,17 @@ class SubMap<T extends SubSchema<unknown>> implements SubSchema<Record<string, S
     this.schema = schema;
     this.subs = subs;
   }
+  peek(): Record<string, SubOut<T>> {
+    const record: Record<string, SubOut<T>> = {};
+    for (let key in this.subs) {
+      const value = this.subs[key].peek();
+      record[key] = value as any;
+    }
+    return record;
+  }
 
-  consume(obj: unknown): SubConsumeResult<Record<string, SubOut<T>>> {
-    throw new Error("TODO");
-    // if (!isRecord(obj)) {
-    //   return failure();
-    // }
-
-    // for (const key in obj) {
-    //   const val = obj[key];
-    //   const result = this.valSchema.consume(val);
-    //   if (result.status === "failure") {
-    //     return failure(result.error.message);
-    //   }
-    // }
-
-    // return success({ ...obj } as any);
+  at(key: string): T | null {
+    return this.subs[key] ?? null;
   }
 }
 
@@ -224,20 +203,13 @@ class SubArray<T extends SubSchema<unknown>> implements SubSchema<SubOut<T>[]> {
     this.subs = subs;
   }
 
-  consume(arr: unknown): SubConsumeResult<SubOut<T>[]> {
-    if (!Array.isArray(arr)) {
-      return failure();
-    }
+  peek(): SubOut<T>[] {
+    const res = this.subs.map((sub) => sub.peek());
+    return res as any;
+  }
 
-    for (const value of arr) {
-      const result = this.schema.consume(value);
-      if (result.status === "failure") {
-        return failure(result.error.message);
-      }
-    }
-
-    // we clone since we might want to modify the arrow with defaults
-    return success([...arr]);
+  at(key: number): T | null {
+    return this.subs[key] ?? null;
   }
 }
 
@@ -348,56 +320,52 @@ function nil(val: null, schema: nw.NWNil) {
 
 // object({x: number(3), y: number(3)}, schema)
 
+// we extend on NWSchema because only the schema has all the options. The sub has just the current value.
 // TODO
-function union<O extends NWSchema<unknown>>(
-  sub: SubInUnion<NWOut<O>>,
-  schema: NWUnion<O>
-): SubUnion<SubInUnion<NWOut<O>>> {
-  return new SubUnion<SubInUnion<NWOut<O>>>(sub, schema);
+function union<Opts extends NWSchema<unknown>>(
+  sub: SubInUnion<NWOut<Opts>>,
+  schema: NWUnion<Opts>
+): SubUnion<SubInUnion<NWOut<Opts>>> {
+  // TODO
+  return new SubUnion<SubInUnion<NWOut<Opts>>>(sub, schema as any);
 }
 
 // type O = NWNumber | NWString;
 // type T = SubInUnion<NWOut<O>>;
 
-// type A = NWUnion<NWInUnion<SubOutLax<T>>>;
-
 // type E = SubSchema<SubOut<T>>;
 // type Bar = NWInUnion<SubOutLax<T>>;
 
-// const schemaTest = nw.union(nw.string(), nw.number());
-// const unionTest = union(number(2, nw.number()), schemaTest);
+// const unionSchema = nw.union(nw.string(), nw.number());
+// const unionTest = union(number(2, nw.number()), unionSchema);
+
+// const udir = new SubUnion<SubNumber | SubString>(number(2, nw.number()), nw.union(nw.string(), nw.number()));
 
 // type Foo = NWUnion<NWString | NWNumber>;
 // type Bar = SubInUnion<NWOut<Foo>>;
 
 // union(number(3), nwschema);
 
-// TODO
 function object<T extends Record<string, SubSchema<unknown>>>(
-  sub: { [Key in keyof T]: SubOut<T[Key]> },
-  schema: nw.NWObject<NWInLax<SubOutLax<T>>>
+  sub: T,
+  // schema: NWInLax<SubOutLax<SubObject<T>>>
+  schema: nw.NWObject<{ [Key in keyof T]: NWInLax<SubOutLax<T[Key]>> }>
 ): SubObject<T> {
   return new SubObject<T>(sub, schema);
 }
 
-const obj = { foo: number(3, nw.number()), bar: number(3, nw.number()) };
-type T = typeof obj;
+// const obj = { foo: number(3, nw.number()) };
+// type T = typeof obj;
+// type Key = "foo";
 
-type Out = SubInLax<T>;
+// type Out2 = NWInLax<SubOutLax<SubObject<T>>>;
+// type Out = nw.NWObject<{ [Key in keyof T]: NWInLax<SubOutLax<T[Key]>> }>;
 
-const objectTest = object(
-  { foo: number(3, nw.number()), bar: number(3, nw.number()) },
-  nw.object({ foo: nw.number(), bar: nw.number() })
-);
+// // SubObject<{foo:... etc}>
 
 function map<T extends SubSchema<unknown>>(sub: Record<string, T>, schema: NWMap<NWInLax<SubOutLax<T>>>): SubMap<T> {
   return new SubMap<T>(sub, schema);
 }
-
-// const mapTest = map(
-//   { foo: number(3, nw.number()), bar: number(3, nw.number()) },
-//   nw.map({ "[key: string]": nw.number() })
-// );
 
 // const schemaTest = nw.union(nw.string(), nw.number());
 // const unionTest = union(number(2, nw.number()), schemaTest);
@@ -410,15 +378,8 @@ function array<T extends SubSchema<unknown>>(sub: T[], schema: NWArray<NWInLax<S
   return new SubArray(sub, schema);
 }
 
-// same as map above, type is the same for all of these
-
-// NWArray<NWNumber>
-// array([number(3), number(2)], schema)
-
 export { string, number, boolean, object, union, map, nil, array };
 
 export { SubString, SubNumber, SubBoolean, SubObject, SubUnion, SubMap, SubNil, SubArray };
 
 export type infer<T extends SubSchema<unknown>> = SubOut<T>;
-
-const arrTest = array<SubNumber>([number(2, nw.number()), number(3, nw.number())], nw.array(nw.number()));
