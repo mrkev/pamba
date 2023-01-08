@@ -10,6 +10,7 @@ import { TimelineView } from "./TimelineView";
 import { ToolHeader } from "./ToolHeader";
 import { useAppProjectKeyboardEvents } from "../input/useAppProjectKeyboardEvents";
 import { ignorePromise } from "../lib/ignorePromise";
+import { SPrimitive, useLinkedState } from "../lib/state/LinkedState";
 // import { TrackThread } from "../lib/TrackThread";
 
 // var w = new TrackThread();
@@ -23,15 +24,14 @@ type ProjectState =
     }
   | { status: "loaded"; project: AudioProject };
 
+export const appProjectStatus = SPrimitive.of<ProjectState>(
+  ProjectPersistance.hasSavedData()
+    ? { status: "loading" }
+    : { status: "loaded", project: ProjectPersistance.defaultProject() }
+);
+
 function App(): React.ReactElement {
-  const [projectStatus, setProjectStatus] = useState<ProjectState>(() => {
-    if (ProjectPersistance.hasSavedData()) {
-      return { status: "loading" };
-    } else {
-      const project = ProjectPersistance.defaultProject();
-      return { status: "loaded", project };
-    }
-  });
+  const [projectStatus, setProjectStatus] = useLinkedState(appProjectStatus);
 
   useEffect(() => {
     ignorePromise(
@@ -47,7 +47,7 @@ function App(): React.ReactElement {
         }
       })()
     );
-  }, [projectStatus.status]);
+  }, [projectStatus.status, setProjectStatus]);
 
   switch (projectStatus.status) {
     case "loading": {
@@ -96,10 +96,16 @@ function AppProject({ project }: { project: AudioProject }) {
         firebaseStoreRef={firebaseStoreRef}
         renderer={renderer}
       />
+
       <TimelineView project={project} player={renderer.analizedPlayer} renderer={renderer} />
+      <Library></Library>
       <DebugData project={project} />
     </>
   );
+}
+
+function Library() {
+  return <div>hello</div>;
 }
 
 export default App;

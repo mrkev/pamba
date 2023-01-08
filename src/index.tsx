@@ -1,7 +1,7 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
-import { liveAudioContext } from "./globals";
+import { liveAudioContext } from "./constants";
 import { initAudioContext } from "./lib/initAudioContext";
 import nullthrows from "./lib/nullthrows";
 import { ignorePromise } from "./lib/ignorePromise";

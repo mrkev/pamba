@@ -1,6 +1,6 @@
 import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
 import { EffectID } from "../dsp/FAUST_EFFECTS";
-import { CLIP_HEIGHT, liveAudioContext } from "../globals";
+import { CLIP_HEIGHT, liveAudioContext } from "../constants";
 import { mixDown } from "../mixDown";
 import AudioClip from "./AudioClip";
 import { addClip, deleteTime, pushClip, removeClip } from "./AudioTrackFn";

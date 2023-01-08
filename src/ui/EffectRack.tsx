@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import FaustEffectModule from "../dsp/ui/FaustEffectModule";
-import { EFFECT_HEIGHT } from "../globals";
+import { EFFECT_HEIGHT } from "../constants";
 import { AudioProject, ProjectSelection } from "../lib/AudioProject";
 import { AudioRenderer } from "../lib/AudioRenderer";
 import { AudioTrack } from "../lib/AudioTrack";

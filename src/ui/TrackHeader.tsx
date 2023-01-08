@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { EFFECT_HEIGHT, TRACK_SEPARATOR_HEIGHT } from "../globals";
+import { EFFECT_HEIGHT, TRACK_SEPARATOR_HEIGHT } from "../constants";
 import { AudioProject, ProjectSelection } from "../lib/AudioProject";
 import type { AudioTrack } from "../lib/AudioTrack";
 import { useLinkedState } from "../lib/state/LinkedState";

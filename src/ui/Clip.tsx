@@ -1,7 +1,7 @@
 import React, { useRef } from "react";
 import { css } from "@linaria/core";
 import { scaleLinear } from "d3-scale";
-import { CLIP_HEIGHT } from "../globals";
+import { CLIP_HEIGHT } from "../constants";
 import type AudioClip from "../lib/AudioClip";
 import type { AudioProject, Tool, XScale } from "../lib/AudioProject";
 import type { AudioTrack } from "../lib/AudioTrack";

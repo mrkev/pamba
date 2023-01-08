@@ -1,6 +1,6 @@
 import { loadSound } from "./loadSound";
 import { dataURLForWaveform } from "./waveform";
-import { staticAudioContext } from "../globals";
+import { staticAudioContext } from "../constants";
 import { BaseClip } from "./BaseClip";
 import { SharedAudioBuffer } from "./SharedAudioBuffer";
 import { notify, Subbable } from "./state/Subbable";

@@ -11,6 +11,7 @@ import { exhaustive } from "./exhaustive";
 import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
 import { LinkedMap } from "./state/LinkedMap";
 import { modifierState } from "../ModifierState";
+import { ulid } from "ulid";
 
 /**
  * TODO:
@@ -67,6 +68,8 @@ export type RenameState =
     };
 
 export class AudioProject {
+  readonly projectId: string;
+
   // id -> time
   readonly timeMarkers = LinkedMap.create<number, number>();
   nextTimeMarkerId = 0;
@@ -102,12 +105,14 @@ export class AudioProject {
         .range([0, 100 * factor]) as XScale
   );
 
-  constructor(tracks: AudioTrack[]) {
+  constructor(tracks: AudioTrack[], projectId: string) {
+    this.projectId = projectId;
     this.allTracks = LinkedArray.create<AudioTrack>(tracks);
   }
 
   static create() {
-    return new this([]);
+    const id = ulid();
+    return new this([], id);
   }
 
   //////// Methods on Projects ////////

@@ -3,7 +3,7 @@ import { exhaustive } from "../lib/exhaustive";
 import { AudioProject } from "../lib/AudioProject";
 import { useDerivedState } from "../lib/state/DerivedState";
 import { pressedState } from "../pressedState";
-import { MIN_TRACK_HEIGHT } from "../globals";
+import { MIN_TRACK_HEIGHT } from "../constants";
 
 export function useAppProjectMouseEvents({
   project,

@@ -1,4 +1,4 @@
-import { staticAudioContext } from "./globals";
+import { staticAudioContext } from "./constants";
 import AudioClip from "./lib/AudioClip";
 
 // Mixes clips

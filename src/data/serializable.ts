@@ -3,7 +3,7 @@ import AudioClip from "../lib/AudioClip";
 import { AudioProject } from "../lib/AudioProject";
 import { AudioTrack } from "../lib/AudioTrack";
 import { exhaustive } from "../lib/exhaustive";
-import { liveAudioContext } from "../globals";
+import { liveAudioContext } from "../constants";
 import { EffectID } from "../dsp/FAUST_EFFECTS";
 
 export type SAudioClip = {
@@ -21,6 +21,7 @@ export type SAudioTrack = {
 
 export type SAudioProject = {
   kind: "AudioProject";
+  projectId: string;
   tracks: Array<SAudioTrack>;
 };
 
@@ -54,6 +55,7 @@ export async function serializable(
   if (obj instanceof AudioProject) {
     return {
       kind: "AudioProject",
+      projectId: obj.projectId,
       tracks: await Promise.all(obj.allTracks._getRaw().map((track) => serializable(track))),
     };
   }
@@ -89,7 +91,8 @@ export async function construct(
     }
     case "AudioProject": {
       const tracks = await Promise.all(rep.tracks.map((clip) => construct(clip)));
-      return new AudioProject(tracks);
+      const projectId = rep.projectId;
+      return new AudioProject(tracks, projectId);
     }
     case "FaustAudioEffect": {
       const effect = await FaustAudioEffect.create(liveAudioContext, rep.effectId, rep.params);

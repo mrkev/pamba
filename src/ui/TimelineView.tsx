@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { CLIP_HEIGHT, TRACK_HEADER_WIDTH } from "../globals";
+import { CLIP_HEIGHT, TRACK_HEADER_WIDTH } from "../constants";
 import { useAppProjectMouseEvents } from "../input/useAppProjectMouseEvents";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import { AudioProject } from "../lib/AudioProject";

@@ -1,5 +1,5 @@
 import React, { useCallback, useRef, useState } from "react";
-import { CANVAS_WIDTH, CANVAS_HEIGHT } from "../globals";
+import { CANVAS_WIDTH, CANVAS_HEIGHT } from "../constants";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import { AudioProject } from "../lib/AudioProject";
 import { AudioRenderer } from "../lib/AudioRenderer";
@@ -11,6 +11,27 @@ import { useMediaRecorder } from "../lib/useMediaRecorder";
 import { ignorePromise } from "../lib/ignorePromise";
 import { utility } from "./utility";
 import { AnchorButton, UploadButton } from "./FormButtons";
+import { appProjectStatus } from "./App";
+import { ProjectPersistance } from "../lib/ProjectPersistance";
+
+function NewProjectButton() {
+  return (
+    <button
+      className={utility.button}
+      onClick={() => {
+        // eslint-disable-next-line no-restricted-globals
+        if (confirm("TODO: only one project is supported, so this deletes all data. Continue?")) {
+          appProjectStatus.set({
+            status: "loaded",
+            project: ProjectPersistance.defaultProject(),
+          });
+        }
+      }}
+    >
+      new project
+    </button>
+  );
+}
 
 function BounceButton({ project, renderer }: { project: AudioProject; renderer: AudioRenderer }) {
   const [selectionWidth] = useLinkedState(project.selectionWidth);
@@ -161,6 +182,7 @@ export function ToolHeader({
             alignItems: "baseline",
           }}
         >
+          <NewProjectButton />
           {firebaseStoreRef && (
             <UploadButton
               className={utility.button}
@@ -175,9 +197,11 @@ export function ToolHeader({
                 }
                 setUploadStatus("uploading");
                 // Push to child path.
-                const snapshot = await firebaseStoreRef.child("images/" + file.name).put(file, {
-                  contentType: file.type,
-                });
+                const snapshot = await firebaseStoreRef
+                  .child(`project/${project.projectId}/audio` + file.name)
+                  .put(file, {
+                    contentType: file.type,
+                  });
 
                 console.log("Uploaded", snapshot.totalBytes, "bytes.");
                 console.log("File metadata:", snapshot.metadata);

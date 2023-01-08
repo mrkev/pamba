@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react";
-import { TRACK_SEPARATOR_HEIGHT } from "../globals";
+import { TRACK_SEPARATOR_HEIGHT } from "../constants";
 import AudioClip from "../lib/AudioClip";
 import { AudioProject } from "../lib/AudioProject";
 import { AudioRenderer } from "../lib/AudioRenderer";
