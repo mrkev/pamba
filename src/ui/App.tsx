@@ -11,6 +11,12 @@ import { ToolHeader } from "./ToolHeader";
 import { useAppProjectKeyboardEvents } from "../input/useAppProjectKeyboardEvents";
 import { ignorePromise } from "../lib/ignorePromise";
 // import { TrackThread } from "../lib/TrackThread";
+import { number, array } from "../lib/nw/nwschema";
+
+const arr = array(number());
+const concretized = arr.concretize([2, 3, 4]);
+// const b: sub.SubArray<sub.SubNumber> = arr.concretize([2, 3, 4]);
+console.log(concretized);
 
 // var w = new TrackThread();
 // var sab = new SharedArrayBuffer(1024);

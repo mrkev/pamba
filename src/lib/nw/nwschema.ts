@@ -68,33 +68,54 @@ class NWBoolean implements NWSchema<boolean> {
   }
 }
 
-export type ValueForObjectSchema<TSchema extends Record<string, NWSchema<unknown>>> = {
-  [Key in keyof TSchema]: NWOut<TSchema[Key]>;
+/** Describes null, undefined, void */
+class NWNil implements NWSchema<null> {
+  concretize(val: null): sub.SubNil {
+    return sub.nil(val, this);
+  }
+  consume(val: unknown): NWConsumeResult<null> {
+    if (val == null) {
+      return success(null);
+    } else {
+      return failure();
+    }
+  }
+}
+
+export type ValueForObjectSchema<T extends Record<string, NWSchema<unknown>>> = {
+  [Key in keyof T]: NWOut<T[Key]>;
 };
 
 // TODO: consume null values, since they won't even show up.
 /** Describes an object with known keys */
-class NWObject<TSchema extends Record<string, NWSchema<unknown>>>
-  implements NWSchema<{ [Key in keyof TSchema]: NWOut<TSchema[Key]> }>
-{
-  private schema: TSchema;
-  constructor(schema: TSchema) {
+class NWObject<T extends Record<string, NWSchema<unknown>>> implements NWSchema<{ [Key in keyof T]: NWOut<T[Key]> }> {
+  private schema: T;
+  constructor(schema: T) {
     this.schema = schema;
   }
-
-  concretize(val: ValueForObjectSchema<TSchema>): SubSchema<{
-    [Key in keyof TSchema]: NWOut<TSchema[Key]>;
+  // SubSchema<Record<string, NWOut<T>>> {
+  concretize(val: ValueForObjectSchema<T>): SubSchema<{
+    [Key in keyof T]: NWOut<T[Key]>;
   }> {
-    // const concretizedEntries = Object.entries(val).map(([key, value]) => [key, this.schema[key].concretize(value)]);
+    throw new Error("Unimplemented");
+    // const concretizedEntries = Object.entries(val).map(([key, value]) => [key, this.schema.concretize(value)]);
     // const concretizedRecord = Object.fromEntries(concretizedEntries);
     // // const concretizedItems = val.map((item) => this.schema.concretize(item));
 
-    // const result = sub.object(concretizedRecord, this);
+    // const result = sub.object<SubSchema<unknown>>(concretizedRecord, this);
+
     // return result;
-    throw new Error("TBD");
+
+    // // const concretizedEntries = Object.entries(val).map(([key, value]) => [key, this.schema[key].concretize(value)]);
+    // // const concretizedRecord = Object.fromEntries(concretizedEntries);
+    // // // const concretizedItems = val.map((item) => this.schema.concretize(item));
+
+    // // const result = sub.object(concretizedRecord, this);
+    // // return result;
+    // // throw new Error("TBD");
   }
 
-  consume(obj: unknown): NWConsumeResult<{ [Key in keyof TSchema]: NWOut<TSchema[Key]> }> {
+  consume(obj: unknown): NWConsumeResult<{ [Key in keyof T]: NWOut<T[Key]> }> {
     if (!isRecord(obj)) {
       return failure();
     }
@@ -173,11 +194,13 @@ class NWMap<T extends NWSchema<unknown>> implements NWSchema<Record<string, NWOu
   constructor(valSchema: T) {
     this.valSchema = valSchema;
   }
-  concretize(val: Record<string, NWOut<T>>): SubSchema<Record<string, NWOut<T>>> {
-    const concretizedEntries = Object.entries(val).map(([key, value]) => [key, this.valSchema.concretize(value)]);
-    const concretizedRecord = Object.fromEntries(concretizedEntries);
-    // const concretizedItems = val.map((item) => this.schema.concretize(item));
 
+  // or sub.SubMap<sub.SubInLax<NWOut<T>>>??
+  concretize(val: Record<string, NWOut<T>>): SubSchema<Record<string, NWOut<T>>> {
+    const concretizedEntries = Object.entries(val).map(
+      ([key, value]) => [key, this.valSchema.concretize(value)] as const
+    );
+    const concretizedRecord = Object.fromEntries(concretizedEntries);
     const result = sub.map(concretizedRecord, this);
     return result;
   }
@@ -199,29 +222,17 @@ class NWMap<T extends NWSchema<unknown>> implements NWSchema<Record<string, NWOu
   }
 }
 
-/** Describes null, undefined, void */
-class NWNil implements NWSchema<null> {
-  concretize(val: null): SubSchema<null> {
-    return sub.nil(val, this);
-  }
-  consume(val: unknown): NWConsumeResult<null> {
-    if (val == null) {
-      return success(null);
-    } else {
-      return failure();
-    }
-  }
-}
-
 /** Describes an array */
 class NWArray<T extends NWSchema<unknown>> implements NWSchema<NWOut<T>[]> {
   private readonly schema: T;
   constructor(schema: T) {
     this.schema = schema;
   }
+
   concretize(val: NWOut<T>[]): SubSchema<NWOut<T>[]> {
     const concretizedItems = val.map((item) => this.schema.concretize(item));
-    return sub.array(concretizedItems, this);
+    const result = sub.array<SubSchema<unknown>>(concretizedItems, this);
+    return result;
   }
 
   consume(arr: unknown): NWConsumeResult<NWOut<T>[]> {

@@ -1,128 +1,51 @@
-import { string, number, boolean, object, union, map, nil, array } from "./subschema";
-import type { SubNumber } from "./subschema";
-import * as nw from "./nwschema";
+import { string, number, boolean, object, union, map, nil, array } from "./nwschema";
+import type { NWConsumeResult } from "./nwschema";
 
-describe("get", () => {
+describe("matchers", () => {
   it("String", () => {
-    const str = string("hello", nw.string());
-    expect(str.peek()).toEqual("hello");
+    const sub = string().concretize("hello");
+    expect(sub.peek()).toEqual("hello");
   });
 
-  it("Number", () => {
-    const num = number(4, nw.number());
-    expect(num.peek()).toEqual(4);
+  // it("Number", () => {
+  //   passes(number().consume(2), 2);
+  //   fails(number().consume("hello"));
+  // });
+
+  // it("Boolean", () => {
+  //   fails(boolean().consume(2));
+  //   passes(boolean().consume(true), true);
+  // });
+
+  // it("Object", () => {
+  //   passes(object({ x: number() }).consume({ x: 2 }));
+  //   fails(object({ x: number() }).consume(true));
+  //   passes(object({ point: object({ x: number() }) }).consume({ point: { x: 2 } }));
+  // });
+
+  // it("Union", () => {
+  //   passes(union(number(), string(), object({ x: number() })).consume("hello"));
+  //   fails(union(number(), string(), object({ x: number() })).consume(true));
+  // });
+
+  it("Map (simple)", () => {
+    const simple = map({ "[key: string]": number() }).concretize({ foo: 3, bar: 2, baz: 1 });
   });
 
-  it("Boolean", () => {
-    const bool = boolean(true, nw.boolean());
-    expect(bool.peek()).toEqual(true);
-  });
+  // it("Nil", () => {
+  //   fails(nil().consume(true));
+  //   passes(nil().consume(null));
+  //   passes(nil().consume(undefined));
+  // });
 
-  it("Nil", () => {
-    const noop = nil(null, nw.nil());
-    expect(noop.peek()).toEqual(null);
-  });
+  // it("Optional *", () => {
+  //   fails(object({ x: union(number(), nil()) }).consume(true));
+  //   passes(object({ x: union(number(), nil()) }).consume({}));
+  //   passes(object({ x: union(number(), nil()) }).consume({ x: 2 }));
+  // });
 
-  it("Object", () => {
-    const objectTest = object(
-      { foo: number(3, nw.number()) },
-      nw.object({
-        foo: nw.number(),
-      })
-    );
-
-    expect(objectTest.peek()).toEqual({ foo: 3 });
-  });
-
-  it("Union", () => {
-    // TODO
-  });
-
-  it("Map", () => {
-    const mapTest = map(
-      { foo: number(3, nw.number()), bar: number(2, nw.number()) },
-      nw.map({ "[key: string]": nw.number() })
-    );
-    expect(mapTest.peek()).toEqual({ foo: 3, bar: 2 });
-  });
-
-  it("Optional *", () => {
-    // TODO
-  });
-
-  it("Array", () => {
-    const arr = array<SubNumber>([number(2, nw.number()), number(3, nw.number())], nw.array(nw.number()));
-    expect(arr.peek()).toEqual([2, 3]);
-  });
-});
-
-describe("set", () => {
-  it("String", () => {
-    const str = string("hello", nw.string());
-    str.set("world");
-    expect(str.peek()).toEqual("world");
-  });
-
-  it("Number", () => {
-    const str = number(3, nw.number());
-    str.set(2);
-    expect(str.peek()).toEqual(2);
-  });
-
-  it("Boolean", () => {
-    const bool = boolean(true, nw.boolean());
-    bool.set(false);
-    expect(bool.peek()).toEqual(false);
-  });
-
-  it("Nil", () => {
-    const noop = nil(null, nw.nil());
-    noop.set(null);
-    expect(noop.peek()).toEqual(null);
-  });
-});
-
-describe("at", () => {
-  it("Object", () => {
-    const objectTest = object(
-      {
-        foo: number(3, nw.number()),
-        bar: number(2, nw.number()),
-      },
-      nw.object({
-        foo: nw.number(),
-        bar: nw.number(),
-      })
-    );
-
-    expect(objectTest.at("foo").peek()).toEqual(3);
-  });
-
-  it("Map", () => {
-    const mapTest = map(
-      {
-        foo: number(3, nw.number()),
-        bar: number(2, nw.number()),
-      },
-      nw.map({ "[key: string]": nw.number() })
-    );
-    expect(mapTest.at("foo")?.peek()).toEqual(3);
-    expect(mapTest.at("baz")).toEqual(null);
-  });
-
-  it("Array", () => {
-    const arr = array<SubNumber>(
-      [
-        number(0, nw.number()),
-        number(1, nw.number()),
-        number(2, nw.number()),
-        number(3, nw.number()),
-        number(4, nw.number()),
-        number(5, nw.number()),
-      ],
-      nw.array(nw.number())
-    );
-    expect(arr.at(0)?.peek()).toEqual(0);
-    expect(arr.at(6)).toEqual(null);
-  });
+  // it("Array", () => {
+  //   fails(array(union(number(), string())).consume(true));
+  //   passes(array(union(number(), string())).consume([2, "hello"]));
+  // });
 });

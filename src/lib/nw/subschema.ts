@@ -125,7 +125,72 @@ class SubNil implements SubSchema<null> {
   }
 }
 
-// TODO: consume null values, since they won't even show up.
+// function union<Opts extends NWSchema<unknown>>(
+//   sub: SubInUnion<NWOut<Opts>>,
+//   schema: NWUnion<Opts>
+// ): SubUnion<SubInUnion<NWOut<Opts>>> {
+//   return new SubUnion<SubInUnion<NWOut<Opts>>>(sub, schema);
+// }
+
+/** Describes a union of several types; resolves to the first successful one */
+class SubUnion<T extends SubSchema<any>> implements SubSchema<SubOut<T>> {
+  subValue: T;
+  readonly schema: NWUnion<NWInUnion<SubOutLax<T>>>;
+  constructor(subValue: T, schema: NWUnion<NWInUnion<SubOutLax<T>>>) {
+    this.subValue = subValue;
+    this.schema = schema;
+  }
+  peek(): SubOut<T> {
+    return this.subValue.peek();
+  }
+
+  set(val: SubOut<T>) {
+    // Iterate through every option in schema
+    // First one that can be concretized is it
+
+    // if (this.subValue instanceof SubNumber) {
+    //   if (typeof val !== "number") {
+    //     throw new Error("invalid type");
+    //   }
+    //   this.subValue.set(val);
+    // } else if (this.subValue instanceof SubString) {
+    //   if (typeof val !== "string") {
+    //     throw new Error("invalid type");
+    //   }
+    //   this.subValue.set(val);
+    // } else if (this.subValue instanceof SubBoolean) {
+    //   if (typeof val !== "boolean") {
+    //     throw new Error("invalid type");
+    //   }
+    //   this.subValue.set(val);
+    // } else if (this.subValue instanceof SubNil) {
+    //   if (val !== null) {
+    //     throw new Error("invalid type");
+    //   }
+    //   this.subValue.set(val);
+    // } else if (this.subValue instanceof SubArray) {
+    //   throw new Error("TODO");
+    // } else if (this.subValue instanceof SubMap) {
+    //   throw new Error("TODO");
+    // } else if (this.subValue instanceof SubObject) {
+    //   throw new Error("TODO");
+    // } else if (this.subValue instanceof SubUnion) {
+    //   throw new Error("TODO");
+    // } else {
+    //   throw new Error("Unknown SubSchema for union");
+    // }
+
+    // TODO: GOTTA REPLACE.
+    if (typeof this.subValue.peek() === typeof val) {
+      // this.subValue.set()
+      // SET
+    } else {
+      // REPLACLE
+    }
+    throw new Error("NOT IMPLEMENTED");
+  }
+}
+
 /** Describes an object with known keys */
 class SubObject<TSub extends Record<string, SubSchema<unknown>>>
   implements SubSchema<{ [Key in keyof TSub]: SubOut<TSub[Key]> }>
@@ -152,30 +217,12 @@ class SubObject<TSub extends Record<string, SubSchema<unknown>>>
   }
 }
 
-// function union<Opts extends NWSchema<unknown>>(
-//   sub: SubInUnion<NWOut<Opts>>,
-//   schema: NWUnion<Opts>
-// ): SubUnion<SubInUnion<NWOut<Opts>>> {
-//   return new SubUnion<SubInUnion<NWOut<Opts>>>(sub, schema);
-// }
-
-/** Describes a union of several types; resolves to the first successful one */
-class SubUnion<T extends SubSchema<any>> implements SubSchema<SubOut<T>> {
-  // TODO: T should be Tout
-  subValue: T;
-  readonly schema: NWUnion<NWInUnion<SubOutLax<T>>>;
-  constructor(subValue: T, schema: NWUnion<NWInUnion<SubOutLax<T>>>) {
-    this.subValue = subValue;
-    this.schema = schema;
-  }
-  peek(): SubOut<T> {
-    return this.subValue.peek();
-  }
-}
+type A = SubSchema<Record<string, number>>;
+// type B = SubMap
 
 class SubMap<T extends SubSchema<unknown>> implements SubSchema<Record<string, SubOut<T>>> {
   private readonly schema: nw.NWMap<NWInLax<SubOutLax<T>>>;
-  private subs: Record<string, T>;
+  protected subs: Record<string, T>;
   constructor(subs: Record<string, T>, schema: nw.NWMap<NWInLax<SubOutLax<T>>>) {
     this.schema = schema;
     this.subs = subs;
@@ -188,6 +235,11 @@ class SubMap<T extends SubSchema<unknown>> implements SubSchema<Record<string, S
     }
     return record;
   }
+
+  // set(val: Record<string, NWOut<NWInLax<SubOutLax<T>>>>) {
+  //   const newSub = this.schema.concretize(val);
+  //   this.subs = newSub.subs;
+  // }
 
   at(key: string): T | null {
     return this.subs[key] ?? null;
@@ -363,7 +415,7 @@ function object<T extends Record<string, SubSchema<unknown>>>(
 
 // // SubObject<{foo:... etc}>
 
-function map<T extends SubSchema<unknown>>(sub: Record<string, T>, schema: NWMap<NWInLax<SubOutLax<T>>>): SubMap<T> {
+function map<T extends SubSchema<unknown>>(sub: Record<string, T>, schema: nw.NWMap<NWInLax<SubOutLax<T>>>): SubMap<T> {
   return new SubMap<T>(sub, schema);
 }
 
