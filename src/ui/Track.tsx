@@ -77,7 +77,7 @@ export function Track({
         onDragOver={function allowDrop(ev) {
           ev.preventDefault();
         }}
-        onMouseEnter={function (e) {
+        onMouseEnter={function (_e) {
           if (pressed && pressed.status === "moving_clip") {
             setPressed((prev) => Object.assign({}, prev, { track }));
           }

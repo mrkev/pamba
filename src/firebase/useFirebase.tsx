@@ -68,7 +68,7 @@ export function usePambaFirebaseStoreRef(): firebase.storage.Reference | null {
         });
       }
     });
-  }, [firebaseApp]);
+  }, [firebaseApp, firebaseStoreRef]);
 
   return firebaseStoreRef;
 }
