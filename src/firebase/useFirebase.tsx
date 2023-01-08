@@ -13,9 +13,7 @@ const firebaseConfig = {
   appId: "1:204416012722:web:9e00b129f067d20c4894ab",
 };
 
-export function useFirebaseApp(
-  config: typeof firebaseConfig
-): firebase.app.App | null {
+export function useFirebaseApp(config: typeof firebaseConfig): firebase.app.App | null {
   const [firebaseApp, setFirebaseApp] = useState<firebase.app.App | null>(null);
 
   // Firebase storage
@@ -36,42 +34,41 @@ export function useFirebaseApp(
 }
 
 export function usePambaFirebaseStoreRef(): firebase.storage.Reference | null {
-  const [firebaseStoreRef, setFirebaseStoreRef] =
-    useState<firebase.storage.Reference | null>(null);
+  const [firebaseStoreRef, setFirebaseStoreRef] = useState<firebase.storage.Reference | null>(null);
 
   const firebaseApp = useFirebaseApp(firebaseConfig);
 
-  useEffect(
-    function () {
-      if (!firebaseApp) {
-        return;
+  useEffect(() => {
+    if (!firebaseApp) {
+      return;
+    }
+    // No need to re-sign in if we already have a firebaseStoreRef
+    if (firebaseStoreRef !== null) {
+      return;
+    }
+
+    const auth = firebase.auth();
+    auth.onAuthStateChanged(function (user) {
+      if (user) {
+        console.log("Anonymous user signed-in.", user);
+        setFirebaseStoreRef(firebase.storage().ref());
+      } else {
+        setFirebaseStoreRef(null);
+        console.log("There was no anonymous session. Creating a new anonymous user.");
+        // Sign the user in anonymously since accessing Storage requires the user to be authorized.
+        auth.signInAnonymously().catch(function (error) {
+          if (error.code === "auth/operation-not-allowed") {
+            window.alert(
+              "Anonymous Sign-in failed. Please make sure that you have enabled anonymous " +
+                "sign-in on your Firebase project."
+            );
+          } else {
+            setFirebaseStoreRef(firebase.storage().ref());
+          }
+        });
       }
-      const auth = firebase.auth();
-      auth.onAuthStateChanged(function (user) {
-        if (user) {
-          console.log("Anonymous user signed-in.", user);
-          setFirebaseStoreRef(firebase.storage().ref());
-        } else {
-          setFirebaseStoreRef(null);
-          console.log(
-            "There was no anonymous session. Creating a new anonymous user."
-          );
-          // Sign the user in anonymously since accessing Storage requires the user to be authorized.
-          auth.signInAnonymously().catch(function (error) {
-            if (error.code === "auth/operation-not-allowed") {
-              window.alert(
-                "Anonymous Sign-in failed. Please make sure that you have enabled anonymous " +
-                  "sign-in on your Firebase project."
-              );
-            } else {
-              setFirebaseStoreRef(firebase.storage().ref());
-            }
-          });
-        }
-      });
-    },
-    [firebaseApp]
-  );
+    });
+  }, [firebaseApp]);
 
   return firebaseStoreRef;
 }

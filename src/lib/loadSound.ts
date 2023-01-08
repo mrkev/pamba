@@ -1,6 +1,6 @@
 // Load the audio from the URL via Ajax and store it in global variable audioData
 
-import { ignorePromise } from "./ignorePromise";
+import { ignorePromise } from "../utils/ignorePromise";
 
 // Note that the audio load is asynchronous
 export async function loadSound(audioContext: AudioContext, url: string): Promise<AudioBuffer> {

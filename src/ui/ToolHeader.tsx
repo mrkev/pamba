@@ -7,12 +7,14 @@ import { useLinkedState } from "../lib/state/LinkedState";
 import { useLinkedArray } from "../lib/state/LinkedArray";
 import AudioClip from "../lib/AudioClip";
 import { AudioTrack } from "../lib/AudioTrack";
-import { useMediaRecorder } from "../lib/useMediaRecorder";
-import { ignorePromise } from "../lib/ignorePromise";
+import { useMediaRecorder } from "../utils/useMediaRecorder";
+import { ignorePromise } from "../utils/ignorePromise";
 import { utility } from "./utility";
 import { AnchorButton, UploadButton } from "./FormButtons";
 import { appProjectStatus } from "./App";
 import { ProjectPersistance } from "../lib/ProjectPersistance";
+import type firebase from "firebase/compat";
+import { AudioStorage } from "../lib/audioStorage";
 
 function NewProjectButton() {
   return (
@@ -132,6 +134,39 @@ function TransportControl({
   );
 }
 
+export function UploadAudioButton({
+  project,
+  firebaseStoreRef,
+  loadClip,
+}: {
+  project: AudioProject;
+  firebaseStoreRef: firebase.storage.Reference | null;
+  loadClip: (url: string, name?: string) => Promise<void>;
+}) {
+  const [uploadStatus, setUploadStatus] = useState<"idle" | "uploading">("idle");
+  return (
+    firebaseStoreRef && (
+      <UploadButton
+        className={utility.button}
+        value={uploadStatus === "idle" ? "upload audio" : "uploading..."}
+        disabled={uploadStatus === "uploading"}
+        accept="audio/*"
+        onChange={async function (e) {
+          const file = (e.target.files || [])[0];
+          if (!file) {
+            console.log("NO FILE");
+            return;
+          }
+          setUploadStatus("uploading");
+          const url = await AudioStorage.uploadAudioFile(file, firebaseStoreRef, project);
+          ignorePromise(loadClip(url, file.name));
+          setUploadStatus("idle");
+        }}
+      />
+    )
+  );
+}
+
 export function ToolHeader({
   project,
   player,
@@ -141,12 +176,11 @@ export function ToolHeader({
   project: AudioProject;
   player: AnalizedPlayer;
   renderer: AudioRenderer;
-  firebaseStoreRef: any;
+  firebaseStoreRef: firebase.storage.Reference | null;
 }) {
   const ctxRef = useRef<null | CanvasRenderingContext2D>(null);
   const [bounceURL] = useLinkedState<string | null>(renderer.bounceURL);
   const [isAudioPlaying] = useLinkedState(renderer.isAudioPlaying);
-  const [uploadStatus, setUploadStatus] = useState<"idle" | "uploading">("idle");
 
   const loadClip = useCallback(
     async function loadClip(url: string, name?: string) {
@@ -183,36 +217,7 @@ export function ToolHeader({
           }}
         >
           <NewProjectButton />
-          {firebaseStoreRef && (
-            <UploadButton
-              className={utility.button}
-              value={uploadStatus === "idle" ? "upload audio" : "uploading..."}
-              disabled={uploadStatus === "uploading"}
-              accept="audio/*"
-              onChange={async function (e) {
-                const file = (e.target.files || [])[0];
-                if (!file) {
-                  console.log("NO FILE");
-                  return;
-                }
-                setUploadStatus("uploading");
-                // Push to child path.
-                const snapshot = await firebaseStoreRef
-                  .child(`project/${project.projectId}/audio` + file.name)
-                  .put(file, {
-                    contentType: file.type,
-                  });
-
-                console.log("Uploaded", snapshot.totalBytes, "bytes.");
-                console.log("File metadata:", snapshot.metadata);
-                // Let's get a download URL for the file.
-                const url = await snapshot.ref.getDownloadURL();
-                console.log("File available at", url);
-                ignorePromise(loadClip(url, file.name));
-                setUploadStatus("idle");
-              }}
-            />
-          )}
+          <UploadAudioButton project={project} firebaseStoreRef={firebaseStoreRef} loadClip={loadClip} />
 
           <div style={{ flexGrow: 1 }}></div>
 

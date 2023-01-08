@@ -2,7 +2,7 @@ import React from "react";
 import { AudioProject, SelectionState } from "../lib/AudioProject";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { useLinkedArray } from "../lib/state/LinkedArray";
-import { exhaustive } from "../lib/exhaustive";
+import { exhaustive } from "../utils/exhaustive";
 import { useLinkedMap } from "../lib/state/LinkedMap";
 import { pressedState } from "../pressedState";
 

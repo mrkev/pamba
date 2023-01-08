@@ -9,7 +9,7 @@ import { modifierState, useSingletonKeyboardModifierState } from "../ModifierSta
 import { TimelineView } from "./TimelineView";
 import { ToolHeader } from "./ToolHeader";
 import { useAppProjectKeyboardEvents } from "../input/useAppProjectKeyboardEvents";
-import { ignorePromise } from "../lib/ignorePromise";
+import { ignorePromise } from "../utils/ignorePromise";
 import { SPrimitive, useLinkedState } from "../lib/state/LinkedState";
 // import { TrackThread } from "../lib/TrackThread";
 

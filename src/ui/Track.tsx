@@ -4,12 +4,14 @@ import AudioClip from "../lib/AudioClip";
 import { AudioProject } from "../lib/AudioProject";
 import { AudioRenderer } from "../lib/AudioRenderer";
 import { AudioTrack } from "../lib/AudioTrack";
-import { ignorePromise } from "../lib/ignorePromise";
+import { ignorePromise } from "../utils/ignorePromise";
 import { useLinkedArray } from "../lib/state/LinkedArray";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { pressedState } from "../pressedState";
 import { Clip } from "./Clip";
 import { EffectRack } from "./EffectRack";
+import { usePambaFirebaseStoreRef } from "../firebase/useFirebase";
+import { AudioStorage } from "../lib/audioStorage";
 
 export function Track({
   track,
@@ -32,6 +34,8 @@ export function Track({
     setStateCounter((x) => x + 1);
   }, []);
 
+  const firebaseStoreRef = usePambaFirebaseStoreRef();
+
   const loadClipIntoTrack = useCallback(async (url: string, track: AudioTrack, name?: string): Promise<void> => {
     try {
       // load clip
@@ -46,17 +50,26 @@ export function Track({
   return (
     <>
       <div
-        onDrop={function (ev) {
+        onDrop={async function (ev) {
           ev.preventDefault();
           console.log(ev.dataTransfer);
           // We can drop audio files from outside the app
+          let url: string | null = null;
+
           for (let i = 0; i < ev.dataTransfer.files.length; i++) {
             const file = ev.dataTransfer.files[i];
-            console.log("TODO: LOAD", file);
+            console.log("TODO: VERIFY FILE TYPE. Parallel uploads", file);
+            if (firebaseStoreRef == null) {
+              continue;
+            }
+            url = await AudioStorage.uploadAudioFile(file, firebaseStoreRef, project);
           }
 
           // We can drop urls to audio from other parts of the UI
-          const url = ev.dataTransfer.getData("text");
+          if (url == null) {
+            url = ev.dataTransfer.getData("text");
+          }
+
           if (url.length > 0) {
             ignorePromise(loadClipIntoTrack(url, track));
           }

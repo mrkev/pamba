@@ -1,4 +1,4 @@
-import nullthrows from "./nullthrows";
+import nullthrows from "../utils/nullthrows";
 
 /**
  * The exact same as an AudioBuffer, but uses `SharedArrayBuffer`s to store

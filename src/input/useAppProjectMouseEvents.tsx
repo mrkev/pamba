@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { exhaustive } from "../lib/exhaustive";
+import { exhaustive } from "../utils/exhaustive";
 import { AudioProject } from "../lib/AudioProject";
 import { useDerivedState } from "../lib/state/DerivedState";
 import { pressedState } from "../pressedState";

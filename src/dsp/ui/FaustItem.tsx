@@ -1,5 +1,5 @@
 import { TFaustUIItem } from "@shren/faust-ui/src/types";
-import { exhaustive } from "../../lib/exhaustive";
+import { exhaustive } from "../../utils/exhaustive";
 import { FaustAudioEffect } from "../FaustAudioEffect";
 import "./faust.css";
 import { FaustGroup } from "./FaustGroup";

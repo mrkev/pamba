@@ -2,7 +2,7 @@ import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
 import AudioClip from "../lib/AudioClip";
 import { AudioProject } from "../lib/AudioProject";
 import { AudioTrack } from "../lib/AudioTrack";
-import { exhaustive } from "../lib/exhaustive";
+import { exhaustive } from "../utils/exhaustive";
 import { liveAudioContext } from "../constants";
 import { EffectID } from "../dsp/FAUST_EFFECTS";
 

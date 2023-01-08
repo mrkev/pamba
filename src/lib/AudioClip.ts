@@ -1,5 +1,5 @@
 import { loadSound } from "./loadSound";
-import { dataURLForWaveform } from "./waveform";
+import { dataURLForWaveform } from "../utils/waveform";
 import { staticAudioContext } from "../constants";
 import { BaseClip } from "./BaseClip";
 import { SharedAudioBuffer } from "./SharedAudioBuffer";

@@ -3,7 +3,7 @@ import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import { AudioProject, ProjectSelection } from "../lib/AudioProject";
 import { ProjectPersistance } from "../lib/ProjectPersistance";
 import { AudioRenderer } from "../lib/AudioRenderer";
-import { ignorePromise } from "../lib/ignorePromise";
+import { ignorePromise } from "../utils/ignorePromise";
 
 export function useAppProjectKeyboardEvents(
   project: AudioProject,

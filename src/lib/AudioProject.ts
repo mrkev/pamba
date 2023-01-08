@@ -7,7 +7,7 @@ import { scaleLinear } from "d3-scale";
 import type { ScaleLinear } from "d3-scale";
 import { LinkedArray } from "./state/LinkedArray";
 import { AnalizedPlayer } from "./AnalizedPlayer";
-import { exhaustive } from "./exhaustive";
+import { exhaustive } from "../utils/exhaustive";
 import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
 import { LinkedMap } from "./state/LinkedMap";
 import { modifierState } from "../ModifierState";

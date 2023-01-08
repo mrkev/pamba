@@ -3,8 +3,8 @@ import { createRoot } from "react-dom/client";
 import "./index.css";
 import { liveAudioContext } from "./constants";
 import { initAudioContext } from "./lib/initAudioContext";
-import nullthrows from "./lib/nullthrows";
-import { ignorePromise } from "./lib/ignorePromise";
+import nullthrows from "./utils/nullthrows";
+import { ignorePromise } from "./utils/ignorePromise";
 
 async function init() {
   try {

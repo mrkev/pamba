@@ -1,5 +1,5 @@
-import { Serializable, Serialized } from "./Serializable";
-import { SPrimitive } from "./state/LinkedState";
+import { Serializable, Serialized } from "../lib/Serializable";
+import { SPrimitive } from "../lib/state/LinkedState";
 // import { Serializable, JsonProperty } from "typescript-json-serializer";
 // import { deserialize, serialize } from "typescript-json-serializer";
 

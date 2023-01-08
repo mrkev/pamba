@@ -12,7 +12,7 @@ import { Axis } from "./Axis";
 import { Track } from "./Track";
 import TrackHeader from "./TrackHeader";
 import { css } from "@linaria/core";
-import { clamp } from "../lib/math";
+import { clamp } from "../utils/math";
 
 // 150 is TRACK_HEADER_WIDTH
 const containerStyle = css`

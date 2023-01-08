@@ -1,4 +1,4 @@
-import { SharedAudioBuffer } from "./SharedAudioBuffer";
+import { SharedAudioBuffer } from "../lib/SharedAudioBuffer";
 
 // export function getImageForBuffer(width: number, height: number, buffer: SharedAudioBuffer): HTMLImageElement {
 //   const image = new Image();

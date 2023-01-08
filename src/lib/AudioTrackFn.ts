@@ -1,5 +1,5 @@
 import { BaseClip } from "./BaseClip";
-import nullthrows from "./nullthrows";
+import nullthrows from "../utils/nullthrows";
 
 export function printClips(clips: ReadonlyArray<BaseClip>) {
   return clips.map((c) => c.toString()).join("\n");
