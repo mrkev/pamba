@@ -15,6 +15,7 @@ import { appProjectStatus } from "./App";
 import { ProjectPersistance } from "../lib/ProjectPersistance";
 import type firebase from "firebase/compat";
 import { AudioStorage } from "../lib/audioStorage";
+import { useAsyncResult } from "./useAsyncResult";
 
 function NewProjectButton() {
   return (
@@ -181,6 +182,9 @@ export function ToolHeader({
   const ctxRef = useRef<null | CanvasRenderingContext2D>(null);
   const [bounceURL] = useLinkedState<string | null>(renderer.bounceURL);
   const [isAudioPlaying] = useLinkedState(renderer.isAudioPlaying);
+  const audioFiles = useAsyncResult(
+    firebaseStoreRef ? AudioStorage.listProjectAudioFiles(project, firebaseStoreRef) : Promise.resolve(null)
+  );
 
   const loadClip = useCallback(
     async function loadClip(url: string, name?: string) {
@@ -270,6 +274,31 @@ export function ToolHeader({
           );
         })}
         <hr />
+        {/* TODO: this won't be updated when new audio gets uploaded, unless it's constantly executed when I think it might be */}
+        {audioFiles.status === "ready" && audioFiles.value !== null && (
+          <>
+            {audioFiles.value.map(function (ref, i) {
+              return (
+                <button
+                  key={i}
+                  draggable
+                  disabled={isAudioPlaying}
+                  // onDragStart={function (ev: React.DragEvent<HTMLButtonElement>) {
+                  //   // ev.dataTransfer.setData("text/uri-list", url);
+                  //   // ev.dataTransfer.setData("text/plain", url);
+                  // }}
+                  onClick={async function () {
+                    const url = await ref.getDownloadURL();
+                    ignorePromise(loadClip(url));
+                  }}
+                >
+                  {ref.name}
+                </button>
+              );
+            })}
+            <hr />
+          </>
+        )}
       </div>
       <canvas
         style={{
