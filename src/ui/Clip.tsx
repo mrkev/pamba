@@ -8,7 +8,7 @@ import type { AudioTrack } from "../lib/AudioTrack";
 import { pressedState } from "../pressedState";
 import { useDerivedState } from "../lib/state/DerivedState";
 import { useSubscribeToSubbableMutationHashable } from "../lib/state/LinkedMap";
-import { useLinkedState } from "../lib/state/LinkedState";
+// import { useLinkedState } from "../lib/state/LinkedState";
 import { modifierState } from "../ModifierState";
 // import { dataWaveformToCanvas } from "../lib/waveformAsync";
 
@@ -54,9 +54,6 @@ export function Clip({ clip, tool, rerender, isSelected, style = {}, project, tr
   const totalBufferWidth = secsToPx(clip.lengthSec);
   const startTrimmedWidth = secsToPx(clip.trimStartSec);
   const height = CLIP_HEIGHT - 3; // to clear the bottom track separator gridlines
-  const [, setPressed] = useLinkedState(pressedState);
-  const [, setSelectionWidth] = useLinkedState(project.selectionWidth);
-  const [, setSelected] = useLinkedState(project.selected);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useSubscribeToSubbableMutationHashable(clip, () => {
@@ -68,7 +65,8 @@ export function Clip({ clip, tool, rerender, isSelected, style = {}, project, tr
     if (tool !== "move") {
       return;
     }
-    setPressed({
+
+    pressedState.set({
       status: "resizing_clip",
       clip,
       // IDEA: just clone and have the original clip at hand
@@ -86,7 +84,8 @@ export function Clip({ clip, tool, rerender, isSelected, style = {}, project, tr
     if (tool !== "move" || track == null) {
       return;
     }
-    setPressed({
+
+    pressedState.set({
       status: "moving_clip",
       clientX: e.clientX,
       clientY: e.clientY,
@@ -95,7 +94,8 @@ export function Clip({ clip, tool, rerender, isSelected, style = {}, project, tr
       originalTrack: track,
       originalClipOffsetSec: clip.startOffsetSec,
     });
-    setSelected((prev) => {
+
+    project.selected.setDyn((prev) => {
       const selectAdd = modifierState.meta || modifierState.shift;
       if (selectAdd && prev !== null && prev.status === "clips") {
         prev.clips.push({ clip, track });
@@ -110,7 +110,8 @@ export function Clip({ clip, tool, rerender, isSelected, style = {}, project, tr
         };
       }
     });
-    setSelectionWidth(null);
+
+    project.selectionWidth.set(null);
   }
 
   function onClipClick(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {

@@ -70,19 +70,19 @@ export function Axis({ project }: { project: AudioProject }) {
     return pxToSecs(s + viewportStartPx);
   }
 
-  const viewportStartSecs = pxToSecs(viewportStartPx);
-
   function getTickData() {
     if (!svg) {
       return null;
     }
+
+    const viewportStartSecs = pxToSecs(viewportStartPx);
+    const viewportEndSecs = timeForPx(svg.clientWidth);
 
     const MIN_DIST_BEETWEEN_TICKS_SEC = pxToSecs(MIN_TICK_DISTANCE);
     const STEP_SECS = getStepForRes(MIN_DIST_BEETWEEN_TICKS_SEC);
 
     const ticksToShow: Array<number> = [];
 
-    const endTime = timeForPx(svg.clientWidth);
     const shaveOff = viewportStartSecs % STEP_SECS;
 
     // (viewportStartSecs - shaveOff) gives us a time before the start of our viewport.
@@ -90,9 +90,11 @@ export function Axis({ project }: { project: AudioProject }) {
     // as part of it is out of view, and it does appear like we're scrolling it gradually
     const startingTickSecs = viewportStartSecs - shaveOff;
 
-    for (let s = startingTickSecs; s < endTime; s += STEP_SECS) {
+    for (let s = startingTickSecs; s < viewportEndSecs; s += STEP_SECS) {
       ticksToShow.push(s);
     }
+
+    // console.log("viewing from", viewportStartSecs, "to", endTime);
 
     // console.log({ viewportStartSecs, totalTime: endTime, startingTickSecs });
 

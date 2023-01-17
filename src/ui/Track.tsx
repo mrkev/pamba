@@ -11,8 +11,9 @@ import { pressedState } from "../pressedState";
 import { Clip } from "./Clip";
 import { EffectRack } from "./EffectRack";
 import { usePambaFirebaseStoreRef } from "../firebase/useFirebase";
-import { AudioStorage } from "../lib/audioStorage";
+import { AudioStorage } from "../lib/AudioStorage";
 
+let evaaa: any;
 export function Track({
   track,
   project,
@@ -47,40 +48,57 @@ export function Track({
     }
   }, []);
 
+  console.log("RENDErr");
+  const onDrop = useCallback(
+    async (ev: React.DragEvent<HTMLDivElement>) => {
+      ev.preventDefault();
+      console.log(ev.dataTransfer);
+      // We can drop audio files from outside the app
+      let url: string | null = null;
+
+      for (let i = 0; i < ev.dataTransfer.files.length; i++) {
+        const file = ev.dataTransfer.files[i];
+        console.log("TODO: VERIFY FILE TYPE. Parallel uploads", file);
+        if (firebaseStoreRef == null) {
+          continue;
+        }
+        const result = await AudioStorage.uploadAudioFile(file, firebaseStoreRef, project);
+        if (result instanceof Error) {
+          throw result;
+        }
+        url = result;
+      }
+
+      // We can drop urls to audio from other parts of the UI
+      if (url == null) {
+        url = ev.dataTransfer.getData("text");
+      }
+
+      if (url.length > 0) {
+        ignorePromise(loadClipIntoTrack(url, track));
+      }
+    },
+    [firebaseStoreRef, loadClipIntoTrack, project, track]
+  );
+
   return (
     <>
       <div
-        onDrop={async function (ev) {
-          ev.preventDefault();
-          console.log(ev.dataTransfer);
-          // We can drop audio files from outside the app
-          let url: string | null = null;
-
-          for (let i = 0; i < ev.dataTransfer.files.length; i++) {
-            const file = ev.dataTransfer.files[i];
-            console.log("TODO: VERIFY FILE TYPE. Parallel uploads", file);
-            if (firebaseStoreRef == null) {
-              continue;
-            }
-            url = await AudioStorage.uploadAudioFile(file, firebaseStoreRef, project);
-          }
-
-          // We can drop urls to audio from other parts of the UI
-          if (url == null) {
-            url = ev.dataTransfer.getData("text");
-          }
-
-          if (url.length > 0) {
-            ignorePromise(loadClipIntoTrack(url, track));
-          }
-        }}
+        onDrop={onDrop}
         onDragOver={function allowDrop(ev) {
+          console.log(evaaa === ev);
+          evaaa = ev.dataTransfer.files[0];
+
           ev.preventDefault();
         }}
         onMouseEnter={function (_e) {
+          console.log("MOUSE ENTER");
           if (pressed && pressed.status === "moving_clip") {
             setPressed((prev) => Object.assign({}, prev, { track }));
           }
+        }}
+        onMouseLeave={() => {
+          console.log("LEAVE");
         }}
         onMouseUp={() => {}}
         style={{

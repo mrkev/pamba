@@ -21,8 +21,9 @@ export default class AudioClip extends BaseClip implements Subbable<AudioClip>, 
   gainAutomation: Array<{ time: number; value: number }> = [{ time: 0, value: 1 }];
   // Let's not pre-compute this since we don't know the acutal dimensions
   // but lets memoize the last size used for perf. shouldn't change.
-  private memodWaveformDataURL: { dims: [number, number]; data: string } = {
-    dims: [0, 0],
+  private memodWaveformDataURL: { width: number; height: number; data: string } = {
+    width: 0,
+    height: 0,
     data: "",
   };
 
@@ -57,15 +58,12 @@ export default class AudioClip extends BaseClip implements Subbable<AudioClip>, 
   }
 
   getWaveformDataURL(width: number, height: number) {
-    const {
-      dims: [w, h],
-      data,
-    } = this.memodWaveformDataURL;
+    const { width: w, height: h, data } = this.memodWaveformDataURL;
     if (width === w && height === h) {
       return data;
     }
     const waveform = dataURLForWaveform(width, height, this.buffer);
-    this.memodWaveformDataURL = { dims: [width, height], data: waveform };
+    this.memodWaveformDataURL = { width, height, data: waveform };
     console.log("generated waveform for", this.name);
     return waveform;
   }

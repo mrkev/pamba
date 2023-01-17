@@ -14,7 +14,7 @@ import { AnchorButton, UploadButton } from "./FormButtons";
 import { appProjectStatus } from "./App";
 import { ProjectPersistance } from "../lib/ProjectPersistance";
 import type firebase from "firebase/compat";
-import { AudioStorage } from "../lib/audioStorage";
+import { AudioStorage } from "../lib/AudioStorage";
 import { useAsyncResult } from "./useAsyncResult";
 
 function NewProjectButton() {
@@ -159,7 +159,11 @@ export function UploadAudioButton({
             return;
           }
           setUploadStatus("uploading");
-          const url = await AudioStorage.uploadAudioFile(file, firebaseStoreRef, project);
+          const result = await AudioStorage.uploadAudioFile(file, firebaseStoreRef, project);
+          if (result instanceof Error) {
+            throw result;
+          }
+          const url = result;
           ignorePromise(loadClip(url, file.name));
           setUploadStatus("idle");
         }}
