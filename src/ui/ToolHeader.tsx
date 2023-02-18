@@ -45,7 +45,7 @@ function BounceButton({ project, renderer }: { project: AudioProject; renderer: 
         ignorePromise(AudioRenderer.bounceSelection(renderer, project));
       }}
     >
-      {selectionWidth && selectionWidth > 0 ? "bounce selected" : "bounce all"}
+      {selectionWidth && Math.abs(selectionWidth) > 0 ? "bounce selected" : "bounce all"}
     </button>
   );
 }

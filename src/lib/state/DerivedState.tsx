@@ -6,7 +6,7 @@ type StateChangeHandler<S> = (value: S) => void;
 
 // type FnSrc<F> = F extends (s: infer S) => any ? S : never;
 type FnSrcTuple<F> = F extends (...s: infer S) => any ? S : never;
-type FnDst<F> = F extends (s: any) => infer T ? T : never;
+type FnDst<F> = F extends (...s: any[]) => infer T ? T : never;
 
 type TupleOfLinkedStates<Tuple extends [...any[]]> = {
   [Index in keyof Tuple]: SPrimitive<Tuple[Index]>;

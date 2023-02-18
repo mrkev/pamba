@@ -24,7 +24,7 @@ export class AudioRenderer {
     const tracks = project.allTracks._getRaw();
     const cursorPos = project.cursorPos.get();
     const currentBounceURL = renderer.bounceURL.get();
-    const bounceAll = !selectionWidth || selectionWidth === 0;
+    const bounceAll = selectionWidth == null || selectionWidth === 0;
 
     const result = await (bounceAll
       ? AnalizedPlayer.bounceTracks(tracks)

@@ -67,6 +67,34 @@ export type RenameState =
       clip: AudioClip;
     };
 
+class ProjectViewportUtil {
+  readonly project: AudioProject;
+  constructor(project: AudioProject) {
+    this.project = project;
+  }
+
+  secsToPx(s: number, factorOverride?: number) {
+    console.log("using factor", factorOverride, "instead of ", this.project.scaleFactor.get());
+    const factor = factorOverride ?? this.project.scaleFactor.get();
+    return s * factor;
+  }
+
+  pxToSecs(px: number, factorOverride?: number) {
+    const factor = factorOverride ?? this.project.scaleFactor.get();
+    return px / factor;
+  }
+
+  pxForTime(s: number): number {
+    const viewportStartPx = this.project.viewportStartPx.get();
+    return this.secsToPx(s) - viewportStartPx;
+  }
+
+  timeForPx(s: number): number {
+    const viewportStartPx = this.project.viewportStartPx.get();
+    return this.pxToSecs(s + viewportStartPx);
+  }
+}
+
 export class AudioProject {
   readonly projectId: string;
 
@@ -101,13 +129,27 @@ export class AudioProject {
     [this.scaleFactor],
     (factor: number) =>
       scaleLinear()
-        .domain([0, 100])
-        .range([0, 100 * factor]) as XScale
+        .domain([0, 1])
+        .range([0, 1 * factor]) as XScale
   );
+  // factor 2: 1sec => 2px
+  // factor 3: 1sec => 3px
+  // etc
+
+  readonly secsToViewportPx = DerivedState.from(
+    [this.scaleFactor, this.viewportStartPx],
+    (factor: number, startPx: number) =>
+      scaleLinear()
+        .domain([0, 1])
+        .range([0 + startPx, 1 * factor + startPx]) as XScale
+  );
+
+  readonly viewport: ProjectViewportUtil;
 
   constructor(tracks: AudioTrack[], projectId: string) {
     this.projectId = projectId;
     this.allTracks = LinkedArray.create<AudioTrack>(tracks);
+    this.viewport = new ProjectViewportUtil(this);
   }
 
   static create() {

@@ -62,6 +62,9 @@ export function Axis({ project }: { project: AudioProject }) {
   const secsToPx = useDerivedState(project.secsToPx);
   const pxToSecs = secsToPx.invert;
 
+  // const timeForPx = useDerivedState(project.secsToViewportPx);
+  // const pxForTime = timeForPx.invert;
+
   function pxForTime(s: number): number {
     return secsToPx(s) - viewportStartPx;
   }
@@ -77,6 +80,7 @@ export function Axis({ project }: { project: AudioProject }) {
 
     const viewportStartSecs = pxToSecs(viewportStartPx);
     const viewportEndSecs = timeForPx(svg.clientWidth);
+    console.log("viewportEndSecs", viewportEndSecs);
 
     const MIN_DIST_BEETWEEN_TICKS_SEC = pxToSecs(MIN_TICK_DISTANCE);
     const STEP_SECS = getStepForRes(MIN_DIST_BEETWEEN_TICKS_SEC);

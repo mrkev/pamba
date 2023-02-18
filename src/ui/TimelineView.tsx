@@ -69,7 +69,7 @@ export function TimelineView({
   const playbackPosDiv = useRef<null | HTMLDivElement>(null);
   const [projectDiv, setProjectDiv] = useState<null | HTMLDivElement>(null);
   const [tracks] = useLinkedArray(project.allTracks);
-  const [scaleFactor, setScaleFactor] = useLinkedState(project.scaleFactor);
+  const [scaleFactor] = useLinkedState(project.scaleFactor);
   const [dspExpandedTracks] = useLinkedSet(project.dspExpandedTracks);
   const secsToPx = useDerivedState(project.secsToPx);
   const [viewportStartPx, setViewportStartPx] = useLinkedState(project.viewportStartPx);
@@ -119,11 +119,11 @@ export function TimelineView({
       if (e.ctrlKey) {
         // console.log("THIS");
         const sDelta = Math.exp(-e.deltaY / 100);
-        const expectedNewScale = scaleFactor * sDelta;
+        const expectedNewScale = project.scaleFactor.get() * sDelta;
         // min scale is 0.64, max is 1000
         const newScale = clamp(0.64, expectedNewScale, 1000);
-        setScaleFactor(newScale);
-        const realSDelta = newScale / scaleFactor;
+        project.scaleFactor.set(newScale);
+        const realSDelta = newScale / project.scaleFactor.get();
 
         const widthUpToMouse = e.clientX + viewportStartPx;
         const deltaX = widthUpToMouse - widthUpToMouse * realSDelta;
@@ -150,7 +150,7 @@ export function TimelineView({
       projectDiv.removeEventListener("wheel", onWheel, { capture: false });
       projectDiv.removeEventListener("scroll", onScroll, { capture: false });
     };
-  }, [projectDiv, scaleFactor, setScaleFactor, setViewportStartPx, viewportStartPx]);
+  }, [project.scaleFactor, projectDiv, setViewportStartPx, viewportStartPx]);
 
   return (
     <div
@@ -221,13 +221,32 @@ export function TimelineView({
           </button>
           <input
             type="range"
-            min={Math.log(1)}
+            min={Math.log(2)}
             max={Math.log(100)}
             step={0.01}
             value={Math.log(scaleFactor)}
             onChange={(e) => {
-              const val = parseFloat(e.target.value);
-              setScaleFactor(Math.exp(val));
+              if (!projectDiv) {
+                return;
+              }
+              const newFactor = Math.exp(parseFloat(e.target.value));
+
+              const renderedWidth = projectDiv.clientWidth;
+              const renderedTime = project.viewport.pxToSecs(projectDiv.clientWidth);
+              const newRenderedWidth = project.viewport.secsToPx(renderedTime, newFactor);
+
+              console.log("new", newRenderedWidth, "old", renderedWidth);
+              const pxDelta = newRenderedWidth - renderedWidth;
+              console.log("PXDELTA", pxDelta);
+
+              // console.log(currentFactor, newFactor, currentFactor - newFactor);
+              // const totalPixels = projectDiv.clientWidth * (currentFactor - newFactor);
+              // console.log(projectDiv.clientWidth, "totalPixels", totalPixels);
+              // const viewportEndPx = viewportStartPx + projectDiv.clientWidth;
+              // const middlePx = (viewportStartPx + viewportEndPx) / 2;
+
+              project.scaleFactor.set(newFactor);
+              project.viewportStartPx.setDyn((prev) => prev + pxDelta / 2);
             }}
           />
         </div>

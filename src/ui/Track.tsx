@@ -48,7 +48,6 @@ export function Track({
     }
   }, []);
 
-  console.log("RENDErr");
   const onDrop = useCallback(
     async (ev: React.DragEvent<HTMLDivElement>) => {
       ev.preventDefault();
@@ -92,13 +91,13 @@ export function Track({
           ev.preventDefault();
         }}
         onMouseEnter={function (_e) {
-          console.log("MOUSE ENTER");
+          // console.log("MOUSE ENTER");
           if (pressed && pressed.status === "moving_clip") {
             setPressed((prev) => Object.assign({}, prev, { track }));
           }
         }}
         onMouseLeave={() => {
-          console.log("LEAVE");
+          // console.log("LEAVE");
         }}
         onMouseUp={() => {}}
         style={{
