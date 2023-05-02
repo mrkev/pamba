@@ -12,6 +12,12 @@ import { useAppProjectKeyboardEvents } from "../input/useAppProjectKeyboardEvent
 import { ignorePromise } from "../utils/ignorePromise";
 import { SPrimitive, useLinkedState } from "../lib/state/LinkedState";
 // import { TrackThread } from "../lib/TrackThread";
+import { number, array } from "../lib/nw/nwschema";
+
+const arr = array(number());
+const concretized = arr.concretize([2, 3, 4]);
+// const b: sub.SubArray<sub.SubNumber> = arr.concretize([2, 3, 4]);
+console.log(concretized);
 
 // var w = new TrackThread();
 // var sab = new SharedArrayBuffer(1024);

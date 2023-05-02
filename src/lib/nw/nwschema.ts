@@ -1,12 +1,7 @@
-/** narrows unkown type to Record<string, unknown> */
-export function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-// https://stackoverflow.com/questions/53953814/typescript-check-if-a-type-is-a-union
-type IsUnion<T, U extends T = T> = (T extends any ? (U extends T ? false : true) : never) extends false ? false : true;
-
-export type NWConsumeResult<T> = { status: "success"; value: T } | { status: "failure"; error: Error };
+import { NWConsumeResult, NWOut } from "./nwschema.types";
+import * as sub from "./subschema";
+import { SubSchema } from "./subschema";
+import { isRecord } from "./utils";
 
 function success<T>(value: T): { status: "success"; value: T } {
   return { status: "success", value };
@@ -19,11 +14,15 @@ function failure(msg?: string): { status: "failure"; error: Error } {
 //////// Schema ////////
 
 export interface NWSchema<T> {
+  concretize(val: T): SubSchema<T>;
   consume(val: unknown): NWConsumeResult<T>;
 }
 
 /** Describes a string */
 class NWString implements NWSchema<string> {
+  concretize(val: string): sub.SubString {
+    return sub.string(val, this);
+  }
   consume(val: unknown): NWConsumeResult<string> {
     if (typeof val === "string") {
       return success<string>(val);
@@ -35,6 +34,9 @@ class NWString implements NWSchema<string> {
 
 /** Describes a number */
 class NWNumber implements NWSchema<number> {
+  concretize(val: number): sub.SubNumber {
+    return sub.number(val, this);
+  }
   consume(val: unknown): NWConsumeResult<number> {
     if (typeof val === "number") {
       return success<number>(val);
@@ -46,6 +48,9 @@ class NWNumber implements NWSchema<number> {
 
 /** Describes a boolean */
 class NWBoolean implements NWSchema<boolean> {
+  concretize(val: boolean): sub.SubBoolean {
+    return sub.boolean(val, this);
+  }
   consume(val: unknown): NWConsumeResult<boolean> {
     if (typeof val === "boolean") {
       return success<boolean>(val);
@@ -55,17 +60,92 @@ class NWBoolean implements NWSchema<boolean> {
   }
 }
 
-// TODO: consume null values, since they won't even show up.
-/** Describes an object with known keys */
-class NWObject<TSchema extends Record<string, NWSchema<unknown>>>
-  implements NWSchema<{ [Key in keyof TSchema]: NWOut<TSchema[Key]> }>
-{
-  private schema: TSchema;
-  constructor(schema: TSchema) {
-    this.schema = schema;
+/** Describes null, undefined, void */
+class NWNil implements NWSchema<null> {
+  concretize(val: null): sub.SubNil {
+    return sub.nil(val, this);
+  }
+  consume(val: unknown): NWConsumeResult<null> {
+    if (val == null) {
+      return success(null);
+    } else {
+      return failure();
+    }
+  }
+}
+
+/** Describes a union of several types; resolves to the first successful one */
+class NWUnion<T extends NWSchema<any>> implements NWSchema<NWOut<T>> {
+  private options: T[];
+  constructor(options: T[]) {
+    this.options = options;
   }
 
-  consume(obj: unknown): NWConsumeResult<{ [Key in keyof TSchema]: NWOut<TSchema[Key]> }> {
+  concretize(val: NWOut<T>): sub.SubSchema<NWOut<T>> {
+    // concretize(val: NWOut<T>): sub.SubUnion<NWUnionOptsToSubOpts<T>> {
+
+    for (const option of this.options) {
+      const result = option.consume(val);
+      if (result.status === "success") {
+        // if (option instanceof NWNumber) {
+        //   const concretizedOption = (option as NWNumber).concretize(val as any);
+        //   return sub.union(concretizedOption, this);
+        // }
+
+        // TODO
+        const concretizedOption = option.concretize(val);
+        return sub.union(concretizedOption as any, this) as any; // TODO
+      }
+    }
+
+    throw new Error("CAN NOT CONCRETIZE");
+  }
+
+  consume(val: unknown): NWConsumeResult<NWOut<T>> {
+    for (const schema of this.options) {
+      const result = schema.consume(val);
+      if (result.status === "success") {
+        return result;
+      }
+    }
+    return failure();
+  }
+}
+
+export type ValueForObjectSchema<T extends Record<string, NWSchema<unknown>>> = {
+  [Key in keyof T]: NWOut<T[Key]>;
+};
+
+// TODO: consume null values, since they won't even show up.
+/** Describes an object with known keys */
+class NWObject<T extends Record<string, NWSchema<unknown>>> implements NWSchema<{ [Key in keyof T]: NWOut<T[Key]> }> {
+  private schema: T;
+  constructor(schema: T) {
+    this.schema = schema;
+  }
+  // SubSchema<Record<string, NWOut<T>>> {
+  concretize(val: ValueForObjectSchema<T>): SubSchema<{
+    [Key in keyof T]: NWOut<T[Key]>;
+  }> {
+    throw new Error("Unimplemented");
+    // const concretizedEntries = Object.entries(val).map(([key, value]) => [key, this.schema.concretize(value)]);
+    // const concretizedRecord = Object.fromEntries(concretizedEntries);
+    // // const concretizedItems = val.map((item) => this.schema.concretize(item));
+
+    // const result = sub.object<SubSchema<unknown>>(concretizedRecord, this);
+
+    // return result;
+
+    // // const concretizedEntries = Object.entries(val).map(([key, value]) => [key, this.schema[key].concretize(value)]);
+    // // const concretizedRecord = Object.fromEntries(concretizedEntries);
+    // // // const concretizedItems = val.map((item) => this.schema.concretize(item));
+
+    // // const result = sub.object(concretizedRecord, this);
+    // // return result;
+    // // throw new Error("TBD");
+  }
+
+  consume(obj: unknown): NWConsumeResult<{ [Key in keyof T]: NWOut<T[Key]> }> {
     if (!isRecord(obj)) {
       return failure();
     }
@@ -104,29 +184,20 @@ class NWObject<TSchema extends Record<string, NWSchema<unknown>>>
   }
 }
 
-/** Describes a union of several types; resolves to the first successful one */
-class NWUnion<T extends NWSchema<any>> implements NWSchema<NWOut<T>> {
-  // TODO: T should be Tout
-  private options: T[];
-  constructor(options: T[]) {
-    this.options = options;
-  }
-  consume(val: unknown): NWConsumeResult<NWOut<T>> {
-    for (const schema of this.options) {
-      const result = schema.consume(val);
-      if (result.status === "success") {
-        return result;
-      }
-    }
-
-    return failure();
-  }
-}
-
 class NWMap<T extends NWSchema<unknown>> implements NWSchema<Record<string, NWOut<T>>> {
-  valSchema: T;
+  private valSchema: T;
   constructor(valSchema: T) {
     this.valSchema = valSchema;
+  }
+
+  // or sub.SubMap<sub.SubInLax<NWOut<T>>>??
+  concretize(val: Record<string, NWOut<T>>): SubSchema<Record<string, NWOut<T>>> {
+    const concretizedEntries = Object.entries(val).map(
+      ([key, value]) => [key, this.valSchema.concretize(value)] as const
+    );
+    const concretizedRecord = Object.fromEntries(concretizedEntries);
+    const result = sub.map(concretizedRecord, this);
+    return result;
   }
 
   consume(obj: unknown): NWConsumeResult<Record<string, NWOut<T>>> {
@@ -146,22 +217,17 @@ class NWMap<T extends NWSchema<unknown>> implements NWSchema<Record<string, NWOu
   }
 }
 
-/** Describes null, undefined, void */
-class NWNil implements NWSchema<null> {
-  consume(val: unknown): NWConsumeResult<null> {
-    if (val == null) {
-      return success(null);
-    } else {
-      return failure();
-    }
-  }
-}
-
 /** Describes an array */
 class NWArray<T extends NWSchema<unknown>> implements NWSchema<NWOut<T>[]> {
-  private schema: T;
+  private readonly schema: T;
   constructor(schema: T) {
     this.schema = schema;
+  }
+
+  concretize(val: NWOut<T>[]): SubSchema<NWOut<T>[]> {
+    const concretizedItems = val.map((item) => this.schema.concretize(item));
+    const result = sub.array<SubSchema<unknown>>(concretizedItems, this);
+    return result;
   }
 
   consume(arr: unknown): NWConsumeResult<NWOut<T>[]> {
@@ -181,53 +247,6 @@ class NWArray<T extends NWSchema<unknown>> implements NWSchema<NWOut<T>[]> {
   }
 }
 
-type NWOut<T extends NWSchema<unknown>> = T extends NWNumber
-  ? number
-  : T extends NWString
-  ? string
-  : T extends NWBoolean
-  ? boolean
-  : T extends NWObject<infer O>
-  ? { [Key in keyof O]: NWOut<O[Key]> }
-  : T extends NWUnion<infer U>
-  ? NWOut<U>
-  : T extends NWMap<infer V>
-  ? { [key: string]: NWOut<V> }
-  : T extends NWNil
-  ? null
-  : T extends NWArray<infer E>
-  ? NWOut<E>[]
-  : never;
-
-// type MakeArray<T> = T extends any ? T[] : T;
-
-// type A = MakeArray<string | number>;
-
-// Applies NWIn to each member of the union
-type NWInUnion<T> = T extends any ? NWIn<T> : never;
-// Converts a value type to a schema type
-type NWIn<T extends unknown> = IsUnion<T> extends true
-  ? NWUnion<NWInUnion<T>>
-  : T extends null
-  ? NWNil
-  : T extends undefined
-  ? NWNil
-  : T extends void
-  ? NWNil
-  : T extends number
-  ? NWNumber
-  : T extends string
-  ? NWString
-  : T extends boolean
-  ? NWBoolean
-  : T extends Record<string, infer C>
-  ? string extends keyof T
-    ? NWMap<NWIn<C>>
-    : NWObject<{ [Key in keyof T]-?: NWIn<T[Key]> }>
-  : T extends Array<infer E>
-  ? NWArray<NWIn<E>>
-  : never;
-
 function string() {
   return new NWString();
 }
@@ -240,63 +259,26 @@ function boolean() {
   return new NWBoolean();
 }
 
-function object<T extends Record<string, NWSchema<unknown>>>(schema: T): NWObject<T> {
-  return new NWObject<T>(schema);
+function nil() {
+  return new NWNil();
 }
 
 function union<T extends Array<NWSchema<unknown>>>(...args: T): NWUnion<T[number]> {
   return new NWUnion<T[number]>(args);
 }
 
-function map<T extends NWSchema<unknown>>(map: { "[key: string]": T }): NWMap<T> {
-  return new NWMap(map["[key: string]"]);
-}
-
-function nil() {
-  return new NWNil();
-}
-
 function array<T extends NWSchema<unknown>>(schema: T): NWArray<T> {
   return new NWArray(schema);
 }
 
+function object<T extends Record<string, NWSchema<unknown>>>(schema: T): NWObject<T> {
+  return new NWObject<T>(schema);
+}
+
+function map<T extends NWSchema<unknown>>(map: { "[key: string]": T }): NWMap<T> {
+  return new NWMap(map["[key: string]"]);
+}
+
 export { string, number, boolean, object, union, map, nil, array };
-
+export { NWUnion, NWArray, NWObject, NWMap, NWString, NWNumber, NWBoolean, NWNil };
 export type infer<T extends NWSchema<unknown>> = NWOut<T>;
-
-// const schema = union(string(), number());
-
-// type Foo = NWOut<typeof schema>;
-// type Bar = NWIn<{ x?: number; y: string[] }>;
-
-// String
-// console.log(string().consume("hello"));
-// console.log(string().consume(2));
-// Number
-// console.log(number().consume(2));
-// console.log(number().consume("hello"));
-// Boolean
-// console.log(boolean().consume(2));
-// console.log(boolean().consume(true));
-// Object
-// console.log(object({ x: number() }).consume({ x: 2 }));
-// console.log(object({ x: number() }).consume(true));
-// console.log(
-//   object({ point: object({ x: number() }) }).consume({ point: { x: 2 } })
-// );
-// console.log(
-//   union(number(), string(), object({ x: number() })).consume("hello")
-// );
-// console.log(union(number(), string(), object({ x: number() })).consume(true));
-// console.log(map({ "[key: string]": number() }).consume(true));
-// console.log(map({ "[key: string]": number() }).consume({ x: 3 }));
-// console.log(nil().consume(true));
-// console.log(nil().consume(null));
-// console.log(nil().consume(undefined));
-// console.log(object({ x: union(number(), nil()) }).consume(true));
-// console.log(object({ x: union(number(), nil()) }).consume({}));
-// console.log(object({ x: union(number(), nil()) }).consume({ x: 2 }));
-// console.log(array(union(number(), string())).consume(true));
-// console.log(array(union(number(), string())).consume([2, "hello"]));
-
-// TODO: union, optional is union with null (firebase doesn't care about void, undefined),

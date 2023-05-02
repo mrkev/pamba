@@ -1,0 +1,78 @@
+
+SubSchema
+----------------------------------------------
+
+// type O = NWNumber | NWString;
+// type T = SubInUnion<NWOut<O>>;
+
+// type E = SubSchema<SubOut<T>>;
+// type Bar = NWInUnion<SubOutLax<T>>;
+
+// const unionSchema = nw.union(nw.string(), nw.number());
+// const unionTest = union(number(2, nw.number()), unionSchema);
+
+// const udir = new SubUnion<SubNumber | SubString>(number(2, nw.number()), nw.union(nw.string(), nw.number()));
+
+// type Foo = NWUnion<NWString | NWNumber>;
+// type Bar = SubInUnion<NWOut<Foo>>;
+
+// union(number(3), nwschema);
+
+----------------------------------------------
+
+// const obj = { foo: number(3, nw.number()) };
+// type T = typeof obj;
+// type Key = "foo";
+
+// type Out2 = NWInLax<SubOutLax<SubObject<T>>>;
+// type Out = nw.NWObject<{ [Key in keyof T]: NWInLax<SubOutLax<T[Key]>> }>;
+
+// // SubObject<{foo:... etc}>
+
+----------------------------------------------
+
+// const schemaTest = nw.union(nw.string(), nw.number());
+// const unionTest = union(number(2, nw.number()), schemaTest);
+
+----------------------------------------------
+
+
+NWSchema
+----------------------------------------------
+
+// const schema = union(string(), number());
+
+// type Foo = NWOut<typeof schema>;
+// type Bar = NWIn<{ x?: number; y: string[] }>;
+
+// String
+// console.log(string().consume("hello"));
+// console.log(string().consume(2));
+// Number
+// console.log(number().consume(2));
+// console.log(number().consume("hello"));
+// Boolean
+// console.log(boolean().consume(2));
+// console.log(boolean().consume(true));
+// Object
+// console.log(object({ x: number() }).consume({ x: 2 }));
+// console.log(object({ x: number() }).consume(true));
+// console.log(
+//   object({ point: object({ x: number() }) }).consume({ point: { x: 2 } })
+// );
+// console.log(
+//   union(number(), string(), object({ x: number() })).consume("hello")
+// );
+// console.log(union(number(), string(), object({ x: number() })).consume(true));
+// console.log(map({ "[key: string]": number() }).consume(true));
+// console.log(map({ "[key: string]": number() }).consume({ x: 3 }));
+// console.log(nil().consume(true));
+// console.log(nil().consume(null));
+// console.log(nil().consume(undefined));
+// console.log(object({ x: union(number(), nil()) }).consume(true));
+// console.log(object({ x: union(number(), nil()) }).consume({}));
+// console.log(object({ x: union(number(), nil()) }).consume({ x: 2 }));
+// console.log(array(union(number(), string())).consume(true));
+// console.log(array(union(number(), string())).consume([2, "hello"]));
+
+// TODO: union, optional is union with null (firebase doesn't care about void, undefined),
