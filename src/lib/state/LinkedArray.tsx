@@ -172,17 +172,7 @@ export class LinkedArray<S> implements ArrayWithoutIndexer<S>, Subbable<Readonly
     return this.splice(index, 1)[0];
   }
 
-  [Symbol.unscopables](): {
-    copyWithin: boolean;
-    entries: boolean;
-    fill: boolean;
-    find: boolean;
-    findIndex: boolean;
-    keys: boolean;
-    values: boolean;
-  } {
-    return this._array[Symbol.unscopables as any] as any;
-  }
+  [Symbol.unscopables] = [][Symbol.unscopables as any] as any;
 
   /////////////////////
 
@@ -228,6 +218,16 @@ export class LinkedArray<S> implements ArrayWithoutIndexer<S>, Subbable<Readonly
     throw new Error("Method not implemented.");
   }
   findIndex(predicate: (value: S, index: number, obj: S[]) => unknown, thisArg?: any): number {
+    throw new Error("Method not implemented.");
+  }
+
+  findLast<S>(predicate: (value: S, index: number, array: S[]) => value is S, thisArg?: any): S | undefined;
+  findLast(predicate: (value: S, index: number, array: S[]) => unknown, thisArg?: any): S | undefined;
+  findLast(predicate: unknown, thisArg?: unknown): S | S | undefined {
+    throw new Error("Method not implemented.");
+  }
+
+  findLastIndex(predicate: (value: S, index: number, array: S[]) => unknown, thisArg?: any): number {
     throw new Error("Method not implemented.");
   }
 
