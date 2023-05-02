@@ -1,13 +1,38 @@
 import { NWArray, NWBoolean, NWNumber, NWSchema, NWString, NWUnion } from "./nwschema";
 import { NWInLax, NWInUnion, NWOut } from "./nwschema.types";
 import * as nw from "./nwschema";
-import { SubOut, SubOutLax, SubInUnion } from "./subschema.types";
+import { SubOut, SubOutLax, SubInLaxUnion } from "./subschema.types";
 
 //////// Schema ////////
+
+type AllSubs =
+  | SubString
+  | SubNumber
+  | SubBoolean
+  | SubNil
+  | SubUnion<any>
+  | SubMap<any>
+  | SubArray<any>
+  | SubObject<any>;
 
 export interface SubSchema<T> {
   peek(): T;
 }
+
+// function peek(sub: SubString): string;
+// function peek(sub: SubNumber): number;
+// function peek(sub: SubBoolean): boolean;
+// function peek(sub: SubNil): null;
+// function peek<T extends SubSchema<any>>(sub: SubUnion<T>): SubOut<SubUnion<T>>;
+// function peek<T extends SubSchema<any>>(sub: SubMap<T>): string;
+// function peek<T extends SubSchema<any>>(sub: SubArray<T>): string;
+// function peek<T extends Record<string, SubSchema<unknown>>>(sub: SubObject<T>): string;
+// function peek<T extends SubSchema<any>>(sub: AllSubs): T {
+//   if (sub instanceof SubString) {
+//     return sub.peek();
+//   }
+//   exhaustive(sub);
+// }
 
 /** Describes a string */
 class SubString implements SubSchema<string> {
@@ -106,6 +131,7 @@ class SubUnion<T extends SubSchema<any>> implements SubSchema<SubOut<T>> {
     this.subValue = subValue;
     this.schema = schema;
   }
+
   peek(): SubOut<T> {
     return this.subValue.peek();
   }
@@ -247,14 +273,17 @@ function nil(val: null, schema: nw.NWNil) {
   return new SubNil(val, schema);
 }
 
-// we extend on NWSchema because only the schema has all the options. The sub has just the current value.
-// TODO
-function union<Opts extends NWSchema<unknown>>(
-  sub: SubInUnion<NWOut<Opts>>,
+export type NWUnionOptsToSubOpts<Opts extends NWSchema<any>> = SubInLaxUnion<NWOut<Opts>>;
+
+/* We extend on NWSchema because only the schema has all the
+ * options. The sub has just the current value.
+ */
+function union<Opts extends NWSchema<any>>(
+  sub: NWUnionOptsToSubOpts<Opts>,
   schema: NWUnion<Opts>
-): SubUnion<SubInUnion<NWOut<Opts>>> {
+): SubUnion<NWUnionOptsToSubOpts<Opts>> {
   // TODO
-  return new SubUnion<SubInUnion<NWOut<Opts>>>(sub, schema as any);
+  return new SubUnion<NWUnionOptsToSubOpts<Opts>>(sub, schema as any);
 }
 
 function object<T extends Record<string, SubSchema<unknown>>>(

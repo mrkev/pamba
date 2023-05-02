@@ -57,6 +57,7 @@ export type SubOutLax<T extends SubSchema<unknown>> = T extends SubNumber
 
 // Applies SubIn to each member of the union
 export type SubInUnion<T> = T extends any ? SubIn<T> : never;
+export type SubInLaxUnion<T> = T extends any ? SubInLax<T> : never;
 
 // Converts a value type to a schema type
 // number[] -> SubArray<SubNumber> (default never)

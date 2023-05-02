@@ -1,9 +1,7 @@
-import { SubSchema } from "./subschema";
+import { NWConsumeResult, NWOut } from "./nwschema.types";
 import * as sub from "./subschema";
+import { SubSchema } from "./subschema";
 import { isRecord } from "./utils";
-import { NWOut } from "./nwschema.types";
-
-export type NWConsumeResult<T> = { status: "success"; value: T } | { status: "failure"; error: Error };
 
 function success<T>(value: T): { status: "success"; value: T } {
   return { status: "success", value };
@@ -78,29 +76,31 @@ class NWNil implements NWSchema<null> {
 
 /** Describes a union of several types; resolves to the first successful one */
 class NWUnion<T extends NWSchema<any>> implements NWSchema<NWOut<T>> {
-  // TODO: T should be Tout
   private options: T[];
   constructor(options: T[]) {
     this.options = options;
   }
-  concretize(val: NWOut<T>): sub.SubUnion<sub.SubSchema<any>> {
-    // return new sub.SubUnion(val, this);
 
-    // for (const option of this.options) {
-    //   const result = option.consume(val);
-    //   if (result.status === "success") {
-    //     if (option instanceof NWNumber) {
-    //       const concretizedOption = (option as NWNumber).concretize(val as any);
-    //       return sub.union(concretizedOption, this);
-    //     }
+  concretize(val: NWOut<T>): sub.SubSchema<NWOut<T>> {
+    // concretize(val: NWOut<T>): sub.SubUnion<NWUnionOptsToSubOpts<T>> {
 
-    //     const concretizedOption = option.concretize(val);
-    //     return sub.union(concretizedOption, this);
-    //   }
-    // }
+    for (const option of this.options) {
+      const result = option.consume(val);
+      if (result.status === "success") {
+        // if (option instanceof NWNumber) {
+        //   const concretizedOption = (option as NWNumber).concretize(val as any);
+        //   return sub.union(concretizedOption, this);
+        // }
+
+        // TODO
+        const concretizedOption = option.concretize(val);
+        return sub.union(concretizedOption as any, this) as any; // TODO
+      }
+    }
 
     throw new Error("CAN NOT CONCRETIZE");
   }
+
   consume(val: unknown): NWConsumeResult<NWOut<T>> {
     for (const schema of this.options) {
       const result = schema.consume(val);
@@ -108,7 +108,6 @@ class NWUnion<T extends NWSchema<any>> implements NWSchema<NWOut<T>> {
         return result;
       }
     }
-
     return failure();
   }
 }
