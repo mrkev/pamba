@@ -62,10 +62,10 @@ export function addClip<Clip extends BaseClip>(newClip: Clip, clips: ReadonlyArr
     }
   }
 
-  deleteTime(newClip.startOffsetSec, newClip.endOffsetSec, clips);
+  const res = deleteTime(newClip.startOffsetSec, newClip.endOffsetSec, clips);
 
   // Insert the clip
-  const clone = [...clips];
+  const clone = [...res];
   clone.splice(i, 0, newClip);
 
   // if (prev && prev.endOffsetSec > newClip.startOffsetSec) {
@@ -102,6 +102,7 @@ export function deleteTime<Clip extends BaseClip>(
 
   const toRemove = [];
 
+  let res = clips;
   for (let i = 0; i < clips.length; i++) {
     const current = clips[i];
 
@@ -136,14 +137,14 @@ export function deleteTime<Clip extends BaseClip>(
       endSec < current.endOffsetSec
     ) {
       // console.log("CLIPS HERE\n", printClips(clips));
-      const [, after] = nullthrows(splitClip(current, startSec, clips));
+      const [, after, out] = nullthrows(splitClip(current, startSec, clips));
       // console.log("CLIPS HERE\n", printClips(clips));
 
-      const [before] = nullthrows(splitClip(after, endSec, clips));
+      const [before, , out2] = nullthrows(splitClip(after, endSec, out));
       // console.log("CLIPS HERE\n", printClips(clips));
 
       // console.log("BEFORE", before.toString(), "aaaaaaaa", __.toString());
-      removeClip(before, clips);
+      res = removeClip(before, out2);
 
       // End the loop, this is the only case and we just messed up
       // the indexes so we very much don't want to keep going
@@ -151,11 +152,12 @@ export function deleteTime<Clip extends BaseClip>(
   }
 
   for (let clip of toRemove) {
-    removeClip(clip, clips);
+    // todo: optimize
+    res = removeClip(clip, clips);
   }
 
-  assertClipInvariants(clips);
-  return [...clips];
+  assertClipInvariants(res);
+  return [...res];
 }
 
 // TODO: idea, LinkedArray and LinkedMap, for collection linked state?
@@ -181,7 +183,7 @@ export function splitClip<T extends BaseClip>(
   clip: T,
   timeSec: number,
   clips: ReadonlyArray<T>
-): [T, BaseClip, ReadonlyArray<T>] | null {
+): [before: T, after: T, clips: ReadonlyArray<T>] | null {
   if (timeSec > clip.endOffsetSec || timeSec < clip.startOffsetSec) {
     return null;
   }
