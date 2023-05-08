@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { AudioProject, SelectionState } from "../lib/AudioProject";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { useLinkedArray } from "../lib/state/LinkedArray";
@@ -47,6 +47,7 @@ export function DebugData({ project }: { project: AudioProject }) {
   const [tracks] = useLinkedArray(project.allTracks);
   const [timeMarkers] = useLinkedMap(project.timeMarkers);
   const [pressed] = useLinkedState(pressedState);
+  const [open, setOpen] = useState(false);
 
   const allState = tracks
     .map((track, i) => {
@@ -55,16 +56,20 @@ export function DebugData({ project }: { project: AudioProject }) {
     .join("\n");
 
   return (
-    <div
+    <details
+      open={open}
       style={{
         fontSize: 12,
         position: "absolute",
         bottom: 0,
-        background: "rgba(233,233,233,0.3)",
-        pointerEvents: "none",
+        background: "rgba(233,233,233,0.7)",
+
         border: "1px solid black",
       }}
     >
+      <summary style={{ cursor: "pointer" }} onClick={() => setOpen((p) => !p)}>
+        Debug
+      </summary>
       <div>
         Cursor: {cursorPos} {selectionWidth}
         <br />
@@ -85,6 +90,6 @@ export function DebugData({ project }: { project: AudioProject }) {
       >
         timeMarker/LinkedMap Test
       </button>
-    </div>
+    </details>
   );
 }

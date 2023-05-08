@@ -186,7 +186,7 @@ export function Clip({ clip, tool, rerender, isSelected, style = {}, project, tr
       </div>
       <div className={styles.resizerStart} onMouseDown={(e) => onMouseDownToResize(e, "start")}></div>
       <div className={styles.resizerEnd} onMouseDown={(e) => onMouseDownToResize(e, "end")}></div>
-      <canvas ref={canvasRef}></canvas>
+      {/* <canvas ref={canvasRef}></canvas> */}
       {/* <button
         onClick={() => {
           if (canvasRef.current) {

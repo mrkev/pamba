@@ -98,7 +98,7 @@ function AppProject({ project }: { project: AudioProject }) {
       />
 
       <TimelineView project={project} player={renderer.analizedPlayer} renderer={renderer} />
-      <Library></Library>
+      {/* <Library></Library> */}
       <DebugData project={project} />
     </>
   );

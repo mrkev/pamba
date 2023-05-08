@@ -80,7 +80,7 @@ export function Axis({ project }: { project: AudioProject }) {
 
     const viewportStartSecs = pxToSecs(viewportStartPx);
     const viewportEndSecs = timeForPx(svg.clientWidth);
-    console.log("viewportEndSecs", viewportEndSecs);
+    // console.log("viewportEndSecs", viewportEndSecs);
 
     const MIN_DIST_BEETWEEN_TICKS_SEC = pxToSecs(MIN_TICK_DISTANCE);
     const STEP_SECS = getStepForRes(MIN_DIST_BEETWEEN_TICKS_SEC);
