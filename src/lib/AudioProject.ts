@@ -162,7 +162,7 @@ export class AudioProject {
   // TODO: maybe let's not try to add this track to playback
   static addTrack(project: AudioProject, player?: AnalizedPlayer, track?: AudioTrack) {
     const newTrack = track ?? AudioTrack.create();
-    project.allTracks.push(newTrack);
+    project.allTracks.unshift(newTrack);
     if (player != null && player.isAudioPlaying) {
       console.log("ADDED TO PLAYBACK");
       player.addTrackToPlayback(newTrack, project.cursorPos.get());

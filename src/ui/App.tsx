@@ -7,7 +7,7 @@ import { ProjectPersistance } from "../lib/ProjectPersistance";
 import { AudioRenderer } from "../lib/AudioRenderer";
 import { modifierState, useSingletonKeyboardModifierState } from "../ModifierState";
 import { TimelineView } from "./TimelineView";
-import { ToolHeader } from "./ToolHeader";
+import { Library, ToolHeader } from "./ToolHeader";
 import { useAppProjectKeyboardEvents } from "../input/useAppProjectKeyboardEvents";
 import { ignorePromise } from "../utils/ignorePromise";
 import { SPrimitive, useLinkedState } from "../lib/state/LinkedState";
@@ -80,16 +80,6 @@ function AppProject({ project }: { project: AudioProject }) {
 
   return (
     <>
-      {/* <button
-           onClick={() => {
-             arr[1] = 329;
-             console.log("TEST WORKER");
-             w.postMessage({ kind: "log" });
-           }}
-         >
-           test
-         </button> */}
-
       <ToolHeader
         project={project}
         player={renderer.analizedPlayer}
@@ -98,14 +88,15 @@ function AppProject({ project }: { project: AudioProject }) {
       />
 
       <TimelineView project={project} player={renderer.analizedPlayer} renderer={renderer} />
-      {/* <Library></Library> */}
+      <Library
+        project={project}
+        renderer={renderer}
+        player={renderer.analizedPlayer}
+        firebaseStoreRef={firebaseStoreRef}
+      />
       <DebugData project={project} />
     </>
   );
-}
-
-function Library() {
-  return <div>hello</div>;
 }
 
 export default App;

@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useMemo, useRef } from "react";
 import { css } from "@linaria/core";
 import { scaleLinear } from "d3-scale";
 import { CLIP_HEIGHT } from "../constants";
@@ -10,6 +10,7 @@ import { useDerivedState } from "../lib/state/DerivedState";
 import { useSubscribeToSubbableMutationHashable } from "../lib/state/LinkedMap";
 // import { useLinkedState } from "../lib/state/LinkedState";
 import { modifierState } from "../ModifierState";
+import { RenamableLabel } from "./RenamableLabel";
 // import { dataWaveformToCanvas } from "../lib/waveformAsync";
 
 type Props = {
@@ -142,12 +143,20 @@ export function Clip({ clip, tool, rerender, isSelected, style = {}, project, tr
     CLIP_HEIGHT
   );
 
+  const renameStateDescriptor = useMemo(
+    () =>
+      ({
+        status: "clip",
+        clip: clip,
+      } as const),
+    [clip]
+  );
+
   return (
     <div
       onClick={onClipClick}
       style={{
         backgroundColor: "#ccffcc",
-        //  -10 to clear the header a little better
         backgroundSize: `${totalBufferWidth}px ${height - 10}px`,
         backgroundImage: "url('" + backgroundImageData + "')",
         backgroundPosition: `${startTrimmedWidth * -1}px center`,
@@ -155,7 +164,6 @@ export function Clip({ clip, tool, rerender, isSelected, style = {}, project, tr
         imageRendering: "pixelated",
         width,
         height: "100%",
-        // pointerEvents: 'none',
         userSelect: "none",
         borderLeft: border,
         borderRight: border,
@@ -182,11 +190,22 @@ export function Clip({ clip, tool, rerender, isSelected, style = {}, project, tr
           paddingBottom: "0px 0px 1px 0px",
         }}
       >
-        {clip.name} ({Math.round(clip.durationSec * 100) / 100})
+        {/* TODO: not working */}
+        <RenamableLabel
+          style={{
+            color: isSelected ? "white" : "black",
+            fontSize: 10,
+          }}
+          project={project}
+          value={clip.name}
+          setValue={console.log}
+          renameState={renameStateDescriptor}
+        />{" "}
+        ({Math.round(clip.durationSec * 100) / 100})
       </div>
       <div className={styles.resizerStart} onMouseDown={(e) => onMouseDownToResize(e, "start")}></div>
       <div className={styles.resizerEnd} onMouseDown={(e) => onMouseDownToResize(e, "end")}></div>
-      {/* <canvas ref={canvasRef}></canvas> */}
+
       {/* <button
         onClick={() => {
           if (canvasRef.current) {

@@ -185,10 +185,6 @@ export function ToolHeader({
 }) {
   const ctxRef = useRef<null | CanvasRenderingContext2D>(null);
   const [bounceURL] = useLinkedState<string | null>(renderer.bounceURL);
-  const [isAudioPlaying] = useLinkedState(renderer.isAudioPlaying);
-  const audioFiles = useAsyncResult(
-    firebaseStoreRef ? AudioStorage.listProjectAudioFiles(project, firebaseStoreRef) : Promise.resolve(null)
-  );
 
   const loadClip = useCallback(
     async function loadClip(url: string, name?: string) {
@@ -259,50 +255,7 @@ export function ToolHeader({
           /> */}
 
         <br />
-        {["drums.mp3", "clav.mp3", "bassguitar.mp3", "horns.mp3", "leadguitar.mp3"].map(function (url, i) {
-          return (
-            <button
-              key={i}
-              draggable
-              disabled={isAudioPlaying}
-              onDragStart={function (ev: React.DragEvent<HTMLButtonElement>) {
-                ev.dataTransfer.setData("text/uri-list", url);
-                ev.dataTransfer.setData("text/plain", url);
-              }}
-              onClick={function () {
-                ignorePromise(loadClip(url));
-              }}
-            >
-              load {url}
-            </button>
-          );
-        })}
-        <hr />
-        {/* TODO: this won't be updated when new audio gets uploaded, unless it's constantly executed when I think it might be */}
-        {audioFiles.status === "ready" && audioFiles.value !== null && (
-          <>
-            {audioFiles.value.map(function (ref, i) {
-              return (
-                <button
-                  key={i}
-                  draggable
-                  disabled={isAudioPlaying}
-                  // onDragStart={function (ev: React.DragEvent<HTMLButtonElement>) {
-                  //   // ev.dataTransfer.setData("text/uri-list", url);
-                  //   // ev.dataTransfer.setData("text/plain", url);
-                  // }}
-                  onClick={async function () {
-                    const url = await ref.getDownloadURL();
-                    ignorePromise(loadClip(url));
-                  }}
-                >
-                  {ref.name}
-                </button>
-              );
-            })}
-            <hr />
-          </>
-        )}
+        {/* <Library project={project} renderer={renderer} firebaseStoreRef={firebaseStoreRef} player={player} /> */}
       </div>
       <canvas
         style={{
@@ -321,6 +274,89 @@ export function ToolHeader({
           ctxRef.current = ctx;
         }}
       ></canvas>
+    </div>
+  );
+}
+
+export function Library({
+  project,
+  renderer,
+  player,
+  firebaseStoreRef,
+}: {
+  project: AudioProject;
+  renderer: AudioRenderer;
+  player: AnalizedPlayer;
+  firebaseStoreRef: firebase.storage.Reference | null;
+}) {
+  const [isAudioPlaying] = useLinkedState(renderer.isAudioPlaying);
+  const audioFiles = useAsyncResult(
+    firebaseStoreRef ? AudioStorage.listProjectAudioFiles(project, firebaseStoreRef) : Promise.resolve(null)
+  );
+
+  const loadClip = useCallback(
+    async function loadClip(url: string, name?: string) {
+      try {
+        console.log("LOAD CLIP");
+        // load clip
+        const clip = await AudioClip.fromURL(url, name);
+        const newTrack = AudioTrack.fromClip(clip);
+        AudioProject.addTrack(project, player, newTrack);
+        console.log("loaded");
+      } catch (e) {
+        console.trace(e);
+        return;
+      }
+    },
+    [player, project]
+  );
+
+  return (
+    <div>
+      {["drums.mp3", "clav.mp3", "bassguitar.mp3", "horns.mp3", "leadguitar.mp3"].map(function (url, i) {
+        return (
+          <button
+            key={i}
+            draggable
+            disabled={isAudioPlaying}
+            onDragStart={function (ev: React.DragEvent<HTMLButtonElement>) {
+              ev.dataTransfer.setData("text/uri-list", url);
+              ev.dataTransfer.setData("text/plain", url);
+            }}
+            onClick={function () {
+              ignorePromise(loadClip(url));
+            }}
+          >
+            load {url}
+          </button>
+        );
+      })}
+      <hr />
+      {/* TODO: this won't be updated when new audio gets uploaded, unless it's constantly executed when I think it might be */}
+      {audioFiles.status === "ready" && audioFiles.value !== null && (
+        <>
+          {audioFiles.value.map(function (ref, i) {
+            return (
+              <button
+                key={i}
+                draggable
+                disabled={isAudioPlaying}
+                // onDragStart={function (ev: React.DragEvent<HTMLButtonElement>) {
+                //   // ev.dataTransfer.setData("text/uri-list", url);
+                //   // ev.dataTransfer.setData("text/plain", url);
+                // }}
+                onClick={async function () {
+                  const url = await ref.getDownloadURL();
+                  ignorePromise(loadClip(url));
+                }}
+              >
+                {ref.name}
+              </button>
+            );
+          })}
+          <hr />
+        </>
+      )}
     </div>
   );
 }

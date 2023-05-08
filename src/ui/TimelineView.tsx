@@ -160,7 +160,17 @@ export function TimelineView({
       }}
     >
       {/* 1. Track header overhang (bounce button) */}
-      <div className={classes.axisSpacer}>{"↑"}</div>
+      <div className={classes.axisSpacer}>
+        <button
+          style={{ position: "absolute", left: "4px" }}
+          onClick={() => {
+            AudioProject.addTrack(project, player);
+          }}
+        >
+          +
+        </button>
+        {"↑"}
+      </div>
 
       {/* 2. Project, including track headers */}
       {/* The whole width of this div is 90s */}
@@ -202,13 +212,6 @@ export function TimelineView({
           return <TrackHeader key={i} track={track} project={project} player={player} />;
         })}
         <div>
-          <button
-            onClick={() => {
-              AudioProject.addTrack(project, player);
-            }}
-          >
-            new track
-          </button>
           <input
             type="range"
             min={Math.log(2)}

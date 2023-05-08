@@ -50,7 +50,7 @@ export function useAppProjectMouseEvents({
 
         project.selectionWidth.set(null);
         pressedState.set({
-          status: "selecting",
+          status: "selecting_global_time",
           clientX: e.clientX,
           clientY: e.clientY,
           startTime: asSecs,
@@ -85,7 +85,7 @@ export function useAppProjectMouseEvents({
           break;
         }
 
-        case "selecting": {
+        case "selecting_global_time": {
           const { startTime } = pressed;
           pressedState.set(null);
           const selWidth = pxToSecs(e.clientX - pressed.clientX);
@@ -174,7 +174,7 @@ export function useAppProjectMouseEvents({
           break;
         }
 
-        case "selecting": {
+        case "selecting_global_time": {
           const deltaXSecs = pxToSecs(e.clientX - pressed.clientX);
           project.selectionWidth.set(deltaXSecs);
           project.selected.set(null);

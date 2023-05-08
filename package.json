@@ -72,6 +72,7 @@
     "react-refresh": "^0.14.0",
     "resolve": "^1.22.1",
     "resolve-url-loader": "^4.0.0",
+    "rsuite": "^5.33.0",
     "semver": "^7.3.8",
     "source-map-loader": "^4.0.1",
     "standardized-audio-context": "25.3.28",

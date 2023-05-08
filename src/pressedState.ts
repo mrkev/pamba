@@ -13,8 +13,10 @@ export type CursorState =
       originalTrack: AudioTrack;
       originalClipOffsetSec: number;
     }>
+  // TODO: selectring_track_time
+  // TODO: selecting_global_time (time header)
   | Readonly<{
-      status: "selecting";
+      status: "selecting_global_time";
       // Original clientX/Y of event
       clientX: number;
       clientY: number;

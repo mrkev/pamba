@@ -38,6 +38,7 @@ export function RenamableLabel({
   readonly renameState: RenameState;
 } & React.HTMLAttributes<HTMLDivElement>) {
   const renameInputRef = useRef<HTMLInputElement>(null);
+  const spanRef = useRef<HTMLSpanElement>(null);
   const [currentlyRenaming, setCurrentlyRenaming] = useLinkedState(project.currentlyRenaming);
   const isBeingRenamed = shallowEquals(currentlyRenaming, renameState);
 
@@ -65,11 +66,11 @@ export function RenamableLabel({
   }, [isBeingRenamed, setCurrentlyRenaming]);
 
   return (
-    <div {...passedDivProps} onDoubleClick={onDoubleClick}>
+    <span {...passedDivProps} ref={spanRef} onDoubleClick={onDoubleClick}>
       {isBeingRenamed ? (
         <input
           ref={renameInputRef}
-          style={{ width: 90 }}
+          style={{ width: "100%", fontSize: "smaller" }}
           type="text"
           value={value}
           onChange={(e) => setValue(e.target.value)}
@@ -87,6 +88,6 @@ export function RenamableLabel({
       ) : (
         value
       )}
-    </div>
+    </span>
   );
 }

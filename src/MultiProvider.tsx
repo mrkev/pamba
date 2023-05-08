@@ -40,6 +40,8 @@ function App() {
         ThisProvider,
         ThatProvider,
       ]}
-    ></MultiProvider>
+    >
+      <div>hello</div>
+    </MultiProvider>
   );
 }

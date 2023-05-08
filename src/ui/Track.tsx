@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { TRACK_SEPARATOR_HEIGHT } from "../constants";
 import AudioClip from "../lib/AudioClip";
 import { AudioProject } from "../lib/AudioProject";
@@ -13,7 +13,6 @@ import { EffectRack } from "./EffectRack";
 import { usePambaFirebaseStoreRef } from "../firebase/useFirebase";
 import { AudioStorage } from "../lib/AudioStorage";
 
-let evaaa: any;
 export function Track({
   track,
   project,
@@ -30,6 +29,7 @@ export function Track({
   const [tool] = useLinkedState(project.pointerTool);
   const [clips] = useLinkedArray(track.clips);
   const [height] = useLinkedState(track.trackHeight);
+  const trackRef = useRef<HTMLDivElement>(null);
   const [, setStateCounter] = useState(0);
   const rerender = useCallback(function () {
     setStateCounter((x) => x + 1);
@@ -80,14 +80,51 @@ export function Track({
     [firebaseStoreRef, loadClipIntoTrack, project, track]
   );
 
+  useEffect(() => {
+    const trackDiv = trackRef.current;
+    if (!trackDiv) {
+      return;
+    }
+
+    function onMouseDown() {
+      console.log("TRACK MOUSE DOWN");
+      // const div = e.currentTarget;
+      // if (!(div instanceof HTMLDivElement)) return;
+      // const position = {
+      //   x: e.clientX + div.scrollLeft - div.getBoundingClientRect().x,
+      //   y: e.clientY + div.scrollTop - div.getBoundingClientRect().y,
+      // };
+      // const asSecs = pxToSecs(position.x);
+      // // player.setCursorPos(asSecs);
+      // project.cursorPos.set(asSecs);
+      // project.selectionWidth.set(null);
+      // pressedState.set({
+      //   status: "selecting_global_time",
+      //   clientX: e.clientX,
+      //   clientY: e.clientY,
+      //   startTime: asSecs,
+      // });
+    }
+
+    function onMouseMove() {}
+    function onMouseUp() {}
+
+    trackDiv.addEventListener("mousedown", onMouseDown);
+    trackDiv.addEventListener("mousemove", onMouseMove);
+    trackDiv.addEventListener("mouseup", onMouseUp);
+    return () => {
+      trackDiv.removeEventListener("mousedown", onMouseDown);
+      trackDiv.removeEventListener("mousemove", onMouseMove);
+      trackDiv.removeEventListener("mouseup", onMouseUp);
+    };
+  }, []);
+
   return (
     <>
       <div
+        ref={trackRef}
         onDrop={onDrop}
         onDragOver={function allowDrop(ev) {
-          console.log(evaaa === ev);
-          evaaa = ev.dataTransfer.files[0];
-
           ev.preventDefault();
         }}
         onMouseEnter={function (_e) {
