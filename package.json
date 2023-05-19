@@ -70,6 +70,7 @@
     "react-dom": "18.2.0",
     "react-jss": "^10.10.0",
     "react-refresh": "^0.14.0",
+    "react-resizable-panels": "^0.0.45",
     "resolve": "^1.22.1",
     "resolve-url-loader": "^4.0.0",
     "rsuite": "^5.33.0",

@@ -312,7 +312,7 @@ export function Library({
   );
 
   return (
-    <div>
+    <div style={{ display: "flex", flexDirection: "column" }}>
       {["drums.mp3", "clav.mp3", "bassguitar.mp3", "horns.mp3", "leadguitar.mp3"].map(function (url, i) {
         return (
           <button
@@ -331,7 +331,7 @@ export function Library({
           </button>
         );
       })}
-      <hr />
+      <hr style={{ width: "100%" }} />
       {/* TODO: this won't be updated when new audio gets uploaded, unless it's constantly executed when I think it might be */}
       {audioFiles.status === "ready" && audioFiles.value !== null && (
         <>
@@ -354,7 +354,7 @@ export function Library({
               </button>
             );
           })}
-          <hr />
+          <hr style={{ width: "100%" }} />
         </>
       )}
     </div>

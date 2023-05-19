@@ -12,6 +12,7 @@ import { useAppProjectKeyboardEvents } from "../input/useAppProjectKeyboardEvent
 import { ignorePromise } from "../utils/ignorePromise";
 import { SPrimitive, useLinkedState } from "../lib/state/LinkedState";
 // import { TrackThread } from "../lib/TrackThread";
+import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 
 // var w = new TrackThread();
 // var sab = new SharedArrayBuffer(1024);
@@ -86,14 +87,25 @@ function AppProject({ project }: { project: AudioProject }) {
         firebaseStoreRef={firebaseStoreRef}
         renderer={renderer}
       />
+      <PanelGroup direction="horizontal">
+        <Panel collapsible={true} defaultSize={15} onCollapse={console.log}>
+          <Library
+            project={project}
+            renderer={renderer}
+            player={renderer.analizedPlayer}
+            firebaseStoreRef={firebaseStoreRef}
+          />
+        </Panel>
+        <PanelResizeHandle
+          style={{
+            width: 5,
+          }}
+        />
+        <Panel>
+          <TimelineView project={project} player={renderer.analizedPlayer} renderer={renderer} />
+        </Panel>
+      </PanelGroup>
 
-      <TimelineView project={project} player={renderer.analizedPlayer} renderer={renderer} />
-      <Library
-        project={project}
-        renderer={renderer}
-        player={renderer.analizedPlayer}
-        firebaseStoreRef={firebaseStoreRef}
-      />
       <DebugData project={project} />
     </>
   );
