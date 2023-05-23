@@ -8,6 +8,7 @@ import { LinkedArray } from "./state/LinkedArray";
 import { SPrimitive } from "./state/LinkedState";
 import { TrackThread } from "./TrackThread";
 import { DSPNode } from "../dsp/DSPNode";
+import { PBGainNode } from "./offlineNodes";
 
 export class AudioTrack extends DSPNode<null> {
   // A track is a collection of non-overalping clips.
@@ -23,16 +24,17 @@ export class AudioTrack extends DSPNode<null> {
   private thread = new TrackThread();
 
   // if audo is playing, this is the soruce with the playing buffer
-  private playingSource: AudioBufferSourceNode | null = null;
+  private playingSource: AudioBufferSourceNode | null;
   // The "volume" of the track
-  private gainNode: GainNode = new GainNode(liveAudioContext);
+  private readonly gainNode: PBGainNode;
   // Hidden gain node, just for solo-ing tracks.
-  private _hiddenGainNode; // note changes for bounce
+  private readonly _hiddenGainNode: PBGainNode; // note changes for bounce
 
   override inputNode(): null {
     return null;
   }
-  override outputNode(): AudioNode {
+
+  override outputNode() {
     return this._hiddenGainNode;
   }
 
@@ -43,7 +45,9 @@ export class AudioTrack extends DSPNode<null> {
     this.effects = LinkedArray.create<FaustAudioEffect>(effects);
     this.height = SPrimitive.of<number>(height);
     //
-    this._hiddenGainNode = new GainNode(liveAudioContext);
+    this.playingSource = null;
+    this.gainNode = new PBGainNode();
+    this._hiddenGainNode = new PBGainNode();
   }
 
   private static trackNo = 0;
@@ -101,16 +105,12 @@ export class AudioTrack extends DSPNode<null> {
       return effect.accessAudioNode();
     });
 
-    const hiddenGainNodeValue = this._hiddenGainNode.gain.value;
-    this._hiddenGainNode = new GainNode(context);
-    this._hiddenGainNode.gain.value = hiddenGainNodeValue;
-
     connectSerialNodes([
       ///
       this.playingSource,
       this.gainNode,
       ...effectNodes,
-      this._hiddenGainNode,
+      this._hiddenGainNode.node,
     ]);
   }
 
@@ -122,7 +122,7 @@ export class AudioTrack extends DSPNode<null> {
     this.playingSource.start(0, offset); // Play the sound now
   }
 
-  async prepareForBounce(context: OfflineAudioContext): Promise<void> {
+  async prepareForBounce(context: OfflineAudioContext): Promise<AudioNode> {
     this.playingSource = this.getSourceNode(context);
 
     const effectNodes = await Promise.all(
@@ -135,20 +135,17 @@ export class AudioTrack extends DSPNode<null> {
       })
     );
 
-    const hiddenGainNodeValue = this._hiddenGainNode.gain.value;
-    this._hiddenGainNode = new GainNode(context);
-    this._hiddenGainNode.gain.value = hiddenGainNodeValue;
+    const _hiddenGainNode = this._hiddenGainNode.offline(context);
 
     connectSerialNodes([
       ///
       this.playingSource,
-      // cant use gainNode, wrong context
-      // this.gainNode,
+      this.gainNode.offline(context),
       ...effectNodes,
-      // cant use _hiddenGainNode, wrong context
-      this._hiddenGainNode,
-      // this.outNode,
+      _hiddenGainNode,
     ]);
+
+    return _hiddenGainNode;
   }
 
   stopPlayback(): void {
@@ -163,7 +160,7 @@ export class AudioTrack extends DSPNode<null> {
       this.playingSource,
       this.gainNode,
       ...this.effects._getRaw().map((effect) => effect.accessAudioNode()),
-      this._hiddenGainNode,
+      this._hiddenGainNode.node,
     ];
 
     for (let i = 0; i < chain.length - 1; i++) {
@@ -233,19 +230,32 @@ export class AudioTrack extends DSPNode<null> {
   }
 }
 
-function connectSerialNodes(chain: AudioNode[]): void {
+function connectSerialNodes(chain: (AudioNode | DSPNode<AudioNode>)[]): void {
   if (chain.length < 2) {
     return;
   }
-  let currentNode: AudioNode = chain[0];
+  let currentNode = chain[0];
   for (let i = 1; chain[i] != null; i++) {
     const nextNode = chain[i];
-    // console.group(`Connected: ${currentNode.constructor.name} -> ${nextNode.constructor.name}`);
+    // console.groupCollapsed(`Connected: ${currentNode.constructor.name} -> ${nextNode.constructor.name}`);
     // console.log(currentNode);
     // console.log("-->");
     // console.log(nextNode);
     // console.groupEnd();
-    currentNode.connect(nextNode);
-    currentNode = nextNode;
+    if (currentNode instanceof AudioNode && nextNode instanceof AudioNode) {
+      currentNode.connect(nextNode);
+      currentNode = nextNode;
+      continue;
+    }
+    if (currentNode instanceof AudioNode && nextNode instanceof DSPNode) {
+      currentNode.connect(nextNode.inputNode());
+      currentNode = nextNode;
+      continue;
+    }
+    if (currentNode instanceof DSPNode) {
+      currentNode.connect(nextNode);
+      currentNode = nextNode;
+      continue;
+    }
   }
 }

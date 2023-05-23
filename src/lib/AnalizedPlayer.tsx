@@ -229,13 +229,14 @@ export class AnalizedPlayer {
     const offlineMixDownNode: AudioWorkletNode = new AudioWorkletNode(offlineAudioContext, "mix-down-processor");
     offlineMixDownNode.connect(offlineAudioContext.destination);
 
-    for (let track of tracks) {
-      // FIXME: parallel
-      await track.prepareForBounce(offlineAudioContext);
-    }
+    const trackDests = await Promise.all(
+      tracks.map((track) => {
+        return track.prepareForBounce(offlineAudioContext);
+      })
+    );
 
-    for (let track of tracks) {
-      track.connect(offlineMixDownNode);
+    for (let trackDest of trackDests) {
+      trackDest.connect(offlineMixDownNode);
     }
 
     for (let track of tracks) {
