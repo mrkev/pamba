@@ -1,31 +1,27 @@
-import { css } from "@linaria/core";
 import { TFaustUIGroup } from "@shren/faust-ui/src/types";
 import React from "react";
 import { utility } from "../../ui/utility";
 import { FaustAudioEffect } from "../FaustAudioEffect";
 import { FaustItem } from "./FaustItem";
+import { createUseStyles } from "react-jss";
 
-const styles = {
-  faustGroupRoot: css`
-    ${{
-      display: "flex",
-      flexDirection: "column",
-      columnGap: 6,
-      background: "gray",
-      fontSize: 12,
-      userSelect: "none",
-    } as const}
-  `,
-  faustTopLevelHeader: css`
-    ${{
-      display: "flex",
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      padding: "0px 4px",
-    } as const}
-  `,
-};
+const useStyles = createUseStyles({
+  faustGroupRoot: {
+    display: "flex",
+    flexDirection: "column",
+    columnGap: 6,
+    background: "gray",
+    fontSize: 12,
+    userSelect: "none",
+  },
+  faustTopLevelHeader: {
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: "0px 4px",
+  },
+});
 
 export function FaustGroup({
   item,
@@ -47,6 +43,7 @@ export function FaustGroup({
   isSelected?: boolean;
 }) {
   const { items, label, type } = item;
+  const styles = useStyles();
 
   const groupStyle: React.CSSProperties =
     type === "hgroup"

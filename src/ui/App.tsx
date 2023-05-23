@@ -60,6 +60,16 @@ function App(): React.ReactElement {
   }
 }
 
+function useStopPlaybackOnUnmount(renderer: AudioRenderer) {
+  useEffect(() => {
+    return () => {
+      if (renderer.analizedPlayer.isAudioPlaying) {
+        renderer.analizedPlayer.stopSound();
+      }
+    };
+  }, [renderer.analizedPlayer]);
+}
+
 function AppProject({ project }: { project: AudioProject }) {
   const firebaseStoreRef = usePambaFirebaseStoreRef();
 
@@ -70,14 +80,7 @@ function AppProject({ project }: { project: AudioProject }) {
 
   useSingletonKeyboardModifierState(modifierState);
   useAppProjectKeyboardEvents(project, renderer.analizedPlayer, renderer);
-
-  useEffect(() => {
-    return () => {
-      if (renderer.analizedPlayer.isAudioPlaying) {
-        renderer.analizedPlayer.stopSound();
-      }
-    };
-  }, [renderer.analizedPlayer]);
+  useStopPlaybackOnUnmount(renderer);
 
   return (
     <>

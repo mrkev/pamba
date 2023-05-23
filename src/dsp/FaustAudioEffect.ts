@@ -58,11 +58,11 @@ export class FaustAudioEffect {
     return value;
   }
 
-  destroy() {
+  public destroy() {
     this.node.destroy();
   }
 
-  accessWorkletNode() {
+  public accessAudioNode(): AudioNode {
     return this.node;
   }
 

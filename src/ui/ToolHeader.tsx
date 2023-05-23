@@ -266,11 +266,8 @@ export function ToolHeader({
         width={CANVAS_WIDTH + "px"}
         height={CANVAS_HEIGHT + "px"}
         ref={(canvas) => {
-          if (canvas == null) {
-            return;
-          }
-          const ctx = canvas.getContext("2d");
-          player.canvasCtx = ctx;
+          const ctx = canvas?.getContext("2d") ?? null;
+          player.setCanvas(ctx);
           ctxRef.current = ctx;
         }}
       ></canvas>

@@ -2,6 +2,7 @@ import { liveAudioContext, sampleSize } from "../constants";
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from "../constants";
 // import SharedBufferWorkletNode from "./lib/shared-buffer-worklet-node";
 import { AudioTrack } from "./AudioTrack";
+import { DSPNode } from "../dsp/DSPNode";
 import { initAudioContext } from "./initAudioContext";
 
 // sbwNode.onInitialized = () => {
@@ -21,56 +22,45 @@ function getOfflineAudioContext(lenSec: number) {
   });
 }
 
-export class AnalizedPlayer {
-  amplitudeArray: Uint8Array = new Uint8Array();
+class Oscilloscope extends DSPNode {
+  private readonly amplitudeArray: Uint8Array = new Uint8Array();
+  private readonly analyserNode = liveAudioContext.createAnalyser();
+  private readonly javascriptNode = liveAudioContext.createScriptProcessor(sampleSize, 1, 1);
+  public canvasCtx: CanvasRenderingContext2D | null = null;
 
-  // Nodes
-  sourceNodes: Array<AudioBufferSourceNode> = [];
-  analyserNode = liveAudioContext.createAnalyser();
-  javascriptNode = liveAudioContext.createScriptProcessor(sampleSize, 1, 1);
-  isAudioPlaying: boolean = false;
-  mixDownNode: AudioWorkletNode = new AudioWorkletNode(liveAudioContext, "mix-down-processor");
-  noiseNode: AudioWorkletNode = new AudioWorkletNode(liveAudioContext, "white-noise-processor");
-  cursorAtPlaybackStart: number = 0;
+  public override inputNode(): AudioNode {
+    return this.analyserNode;
+  }
 
-  canvasCtx: CanvasRenderingContext2D | null = null;
-  onFrame: ((playbackTime: number) => void) | null = null;
-  playbackTime: number = 0;
+  public override outputNode(): AudioNode {
+    return this.javascriptNode;
+  }
 
-  // The time in the audio context we should count as zero
-  CTX_PLAY_START_TIME: number = 0;
+  public override prepareForPlayback() {
+    this.analyserNode.connect(this.javascriptNode);
+  }
+
+  public override stopPlayback() {
+    this.analyserNode.disconnect(this.javascriptNode);
+  }
 
   constructor() {
-    // Set up the audio Analyser, the Source Buffer and javascriptNode
-    // Create the array for the data values  // array to hold time domain data
+    super();
+    // Create the array for the data values
     this.amplitudeArray = new Uint8Array(this.analyserNode.frequencyBinCount);
-
-    this.mixDownNode.connect(liveAudioContext.destination);
-    this.mixDownNode.connect(this.analyserNode);
-
-    // setup the event handler that is triggered every time enough samples have been collected
+    // Setup the event handler that is triggered every time enough samples have been collected
     // trigger the audio analysis and draw the results
-    this.javascriptNode.onaudioprocess = () => {
-      // get the Time Domain data for this sample
-      this.analyserNode.getByteTimeDomainData(this.amplitudeArray);
-      // draw the display if the audio is playing
-      if (this.isAudioPlaying === true) {
-        requestAnimationFrame(() => {
-          const timePassed = liveAudioContext.currentTime - this.CTX_PLAY_START_TIME;
-          const currentTimeInBuffer = this.cursorAtPlaybackStart + timePassed;
-          this.drawTimeDomain(this.amplitudeArray, currentTimeInBuffer);
-          if (this.onFrame) this.onFrame(currentTimeInBuffer);
-          this.playbackTime = currentTimeInBuffer;
-        });
-      } else {
-        console.log("NOTHING");
-      }
-    };
+    this.javascriptNode.onaudioprocess = this.onAduioProcess;
   }
+
+  private onAduioProcess = () => {
+    this.analyserNode.getByteTimeDomainData(this.amplitudeArray);
+    this.drawTimeDomain(this.amplitudeArray);
+  };
 
   // y-axis: 128 is 0, 0 is -1, 255 is 1
   // x-axis: 1024 samples each time
-  drawTimeDomain(amplitudeArray: Uint8Array, playbackTime: number) {
+  private drawTimeDomain(amplitudeArray: Uint8Array) {
     const ctx = this.canvasCtx;
     if (ctx == null) return;
 
@@ -93,7 +83,60 @@ export class AnalizedPlayer {
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(i, y, 1, 1);
     }
+  }
+}
+
+export class AnalizedPlayer {
+  private readonly oscilloscope = new Oscilloscope();
+
+  // Nodes
+  private readonly playbackTimeNode = liveAudioContext.createScriptProcessor(sampleSize, 1, 1);
+  private readonly mixDownNode: AudioWorkletNode = new AudioWorkletNode(liveAudioContext, "mix-down-processor");
+  // private readonly noiseNode: AudioWorkletNode = new AudioWorkletNode(liveAudioContext, "white-noise-processor");
+  public isAudioPlaying: boolean = false;
+  private cursorAtPlaybackStart: number = 0;
+
+  private canvasCtx: CanvasRenderingContext2D | null = null;
+  public onFrame: ((playbackTime: number) => void) | null = null;
+  public playbackTime: number = 0;
+
+  // The time in the audio context we should count as zero
+  CTX_PLAY_START_TIME: number = 0;
+
+  setCanvas(ctx: CanvasRenderingContext2D | null) {
+    this.canvasCtx = ctx;
+    this.oscilloscope.canvasCtx = ctx;
+  }
+
+  constructor() {
+    this.mixDownNode.connect(liveAudioContext.destination);
+    this.mixDownNode.connect(this.playbackTimeNode);
+    this.mixDownNode.connect(this.oscilloscope.inputNode());
+
+    this.playbackTimeNode.onaudioprocess = () => {
+      // draw the display if the audio is playing
+      if (this.isAudioPlaying === true) {
+        // TODO: Raf here to amortize/debounce onaudioprocess being called multiple times? ADD TO OSCILLOSCOPE????
+        requestAnimationFrame(() => {
+          const timePassed = liveAudioContext.currentTime - this.CTX_PLAY_START_TIME;
+          const currentTimeInBuffer = this.cursorAtPlaybackStart + timePassed;
+          this.drawTimeDomain(currentTimeInBuffer);
+          if (this.onFrame) this.onFrame(currentTimeInBuffer);
+          this.playbackTime = currentTimeInBuffer;
+        });
+      } else {
+        console.log("NOTHING");
+      }
+    };
+  }
+
+  // y-axis: 128 is 0, 0 is -1, 255 is 1
+  // x-axis: 1024 samples each time
+  drawTimeDomain(playbackTime: number) {
+    const ctx = this.canvasCtx;
+    if (ctx == null) return;
     ctx.font = "12px Helvetica";
+    console.log("FOO");
     ctx.textAlign = "end";
     ctx.fillText(String(playbackTime.toFixed(3)), CANVAS_WIDTH - 2, 12);
   }
@@ -105,8 +148,10 @@ export class AnalizedPlayer {
       track.setAudioOut(this.mixDownNode);
     }
 
-    this.analyserNode.connect(this.javascriptNode);
-    this.javascriptNode.connect(liveAudioContext.destination);
+    this.oscilloscope.prepareForPlayback();
+    // Need to connect to dest, otherwrise audio just doesn't flow through. This adds nothing, just silence though
+    this.oscilloscope.connect(liveAudioContext.destination);
+    this.playbackTimeNode.connect(liveAudioContext.destination);
 
     this.cursorAtPlaybackStart = cursorPos;
 
@@ -162,8 +207,9 @@ export class AnalizedPlayer {
       track.stopPlayback();
     }
     this.isAudioPlaying = false;
-    this.analyserNode.disconnect(this.javascriptNode);
-    this.javascriptNode.disconnect(liveAudioContext.destination);
+    this.playbackTimeNode.disconnect(liveAudioContext.destination);
+    this.oscilloscope.stopPlayback();
+    this.oscilloscope.disconnect(liveAudioContext.destination);
   }
 
   static async bounceTracks(

@@ -97,7 +97,7 @@ export class AudioTrack {
     this.playingSource = this.getSourceNode(context);
 
     const effectNodes = this.effects._getRaw().map((effect) => {
-      return effect.accessWorkletNode();
+      return effect.accessAudioNode();
     });
 
     this.connectSerialNodes([
@@ -149,7 +149,7 @@ export class AudioTrack {
         if (nextEffect == null) {
           throw new Error(`Failed to prepare ${effect.effectId} for bounce!`);
         }
-        return nextEffect.accessWorkletNode();
+        return nextEffect.accessAudioNode();
       })
     );
 
@@ -180,7 +180,7 @@ export class AudioTrack {
     const chain = [
       this.playingSource,
       this.gainNode,
-      ...this.effects._getRaw().map((effect) => effect.accessWorkletNode()),
+      ...this.effects._getRaw().map((effect) => effect.accessAudioNode()),
       this._hiddenGainNode,
       this.outNode,
     ];
