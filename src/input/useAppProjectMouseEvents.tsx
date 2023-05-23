@@ -142,7 +142,7 @@ export function useAppProjectMouseEvents({
         case "resizing_track": {
           const delta = e.clientY - pressed.clientY;
           const newHeight = Math.max(MIN_TRACK_HEIGHT, pressed.originalHeight + delta);
-          pressed.track.trackHeight.set(newHeight);
+          pressed.track.height.set(newHeight);
           break;
         }
 

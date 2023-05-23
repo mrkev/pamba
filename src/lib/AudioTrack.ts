@@ -13,9 +13,10 @@ export class AudioTrack {
   // Invariants:
   // - Sorted by start time.
   // - Non-overlapping clips.
-  clips: LinkedArray<AudioClip>;
-  effects: LinkedArray<FaustAudioEffect>;
-  name: SPrimitive<string>;
+  public clips: LinkedArray<AudioClip>;
+  public effects: LinkedArray<FaustAudioEffect>;
+  public name: SPrimitive<string>;
+  public height: SPrimitive<number>;
 
   // For background processing
   private thread = new TrackThread();
@@ -28,20 +29,22 @@ export class AudioTrack {
   private _hiddenGainNode = new GainNode(liveAudioContext);
   private outNode: AudioNode | null = null;
 
-  private constructor(name: string, clips: AudioClip[], effects: FaustAudioEffect[]) {
+  private constructor(name: string, clips: AudioClip[], effects: FaustAudioEffect[], height: number) {
     this.name = SPrimitive.of(name);
     this.clips = LinkedArray.create(clips);
     this.effects = LinkedArray.create<FaustAudioEffect>(effects);
+    this.height = SPrimitive.of<number>(height);
   }
 
   private static trackNo = 0;
-  static create(props?: { name?: string; clips?: AudioClip[]; effects?: FaustAudioEffect[] }) {
-    return new this(props?.name ?? `Track ${this.trackNo++}`, props?.clips ?? [], props?.effects ?? []);
+  static create(props?: { name?: string; clips?: AudioClip[]; effects?: FaustAudioEffect[]; height?: number }) {
+    return new this(
+      props?.name ?? `Track ${this.trackNo++}`,
+      props?.clips ?? [],
+      props?.effects ?? [],
+      props?.height ?? CLIP_HEIGHT
+    );
   }
-
-  // Display //
-
-  public trackHeight = SPrimitive.of<number>(CLIP_HEIGHT);
 
   getCurrentGain(): AudioParam {
     return this.gainNode.gain;

@@ -27,6 +27,7 @@ const useStyles = createUseStyles({
     gridRowGap: 0,
     overflowY: "scroll",
     overflowX: "hidden",
+    height: "100%",
   },
   axisSpacer: {
     height: "30px",

@@ -34,7 +34,7 @@ export default function TrackHeader({ track, project, player }: Props) {
   const [solodTracks] = useLinkedSet(project.solodTracks);
   const [trackName, setTrackName] = useLinkedState(track.name);
   const [renameState, setRenameState] = useLinkedState(project.currentlyRenaming);
-  const [height] = useLinkedState(track.trackHeight);
+  const [height] = useLinkedState(track.height);
   const renameInputRef = useRef<HTMLInputElement | null>(null);
   const [selected] = useLinkedState(project.selected);
   const renameStateDescriptor = useMemo(

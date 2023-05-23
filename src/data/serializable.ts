@@ -16,6 +16,7 @@ export type SAudioTrack = {
   kind: "AudioTrack";
   clips: Array<SAudioClip>;
   effects: Array<SFaustAudioEffect>;
+  height: number;
   name: string;
 };
 
@@ -48,6 +49,7 @@ export async function serializable(
       kind: "AudioTrack",
       clips: await Promise.all(obj.clips._getRaw().map((clip) => serializable(clip))),
       effects: await Promise.all(obj.effects._getRaw().map((effect) => serializable(effect))),
+      height: obj.height.get(),
       name: obj.name.get(),
     };
   }
@@ -84,10 +86,10 @@ export async function construct(
       return AudioClip.fromURL(bufferURL, name);
     }
     case "AudioTrack": {
-      const { name, clips: sClips, effects: sEffects } = rep;
+      const { name, clips: sClips, effects: sEffects, height } = rep;
       const clips = await Promise.all(sClips.map((clip) => construct(clip)));
       const effects = await Promise.all(sEffects.map((effect) => construct(effect)));
-      return AudioTrack.create({ name, clips, effects });
+      return AudioTrack.create({ name, clips, effects, height });
     }
     case "AudioProject": {
       const tracks = await Promise.all(rep.tracks.map((clip) => construct(clip)));

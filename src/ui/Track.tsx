@@ -28,7 +28,7 @@ export function Track({
   const [selected] = useLinkedState(project.selected);
   const [tool] = useLinkedState(project.pointerTool);
   const [clips] = useLinkedArray(track.clips);
-  const [height] = useLinkedState(track.trackHeight);
+  const [height] = useLinkedState(track.height);
   const trackRef = useRef<HTMLDivElement>(null);
   const [, setStateCounter] = useState(0);
   const rerender = useCallback(function () {
