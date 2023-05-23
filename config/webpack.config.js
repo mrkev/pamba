@@ -390,12 +390,6 @@ module.exports = function (webpackEnv) {
                     compact: isEnvProduction,
                   },
                 },
-                {
-                  loader: "@linaria/webpack-loader",
-                  options: {
-                    sourceMap: process.env.NODE_ENV !== "production",
-                  },
-                },
               ],
             },
 

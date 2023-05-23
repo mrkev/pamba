@@ -1,9 +1,10 @@
-import { css, cx } from "@linaria/core";
 import React, { useState } from "react";
+import { createUseStyles } from "react-jss";
 import { AudioProject, ProjectMarkers } from "../lib/AudioProject";
 import { useDerivedState } from "../lib/state/DerivedState";
 import { useLinkedMap } from "../lib/state/LinkedMap";
 import { useLinkedState } from "../lib/state/LinkedState";
+import { cx } from "./cx";
 
 const formatter = new Intl.NumberFormat("en-US", {
   useGrouping: false,
@@ -33,29 +34,26 @@ function getStepForRes(dist: number): number {
   }
 }
 
-const styles = {
-  svgContainer: css`
-    ${{
-      position: "absolute",
-      width: "100%",
-      height: "100%",
-      pointerEvents: "none",
-    } as const}
-  `,
-  markerContainer: css`
-    ${{
-      height: 29,
-      borderBottom: "1px solid #BBB",
-      userSelect: "none",
-      position: "absolute",
-      top: 0,
-      width: "100%",
-      cursor: "pointer",
-    } as const}
-  `,
-};
+const useStyles = createUseStyles({
+  svgContainer: {
+    position: "absolute",
+    width: "100%",
+    height: "100%",
+    pointerEvents: "none",
+  },
+  markerContainer: {
+    height: 29,
+    borderBottom: "1px solid #BBB",
+    userSelect: "none",
+    position: "absolute",
+    top: 0,
+    width: "100%",
+    cursor: "pointer",
+  },
+});
 
 export function Axis({ project }: { project: AudioProject }) {
+  const styles = useStyles();
   const [svg, setSvg] = useState<SVGSVGElement | null>(null);
   const [markers] = useLinkedMap(project.timeMarkers);
   const [viewportStartPx] = useLinkedState(project.viewportStartPx);

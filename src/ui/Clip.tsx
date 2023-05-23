@@ -1,14 +1,14 @@
-import React, { useMemo, useRef } from "react";
-import { css } from "@linaria/core";
 import { scaleLinear } from "d3-scale";
+import React, { useMemo } from "react";
 import { CLIP_HEIGHT } from "../constants";
 import type AudioClip from "../lib/AudioClip";
 import type { AudioProject, Tool, XScale } from "../lib/AudioProject";
 import type { AudioTrack } from "../lib/AudioTrack";
-import { pressedState } from "../pressedState";
 import { useDerivedState } from "../lib/state/DerivedState";
 import { useSubscribeToSubbableMutationHashable } from "../lib/state/LinkedMap";
+import { pressedState } from "../pressedState";
 // import { useLinkedState } from "../lib/state/LinkedState";
+import { createUseStyles } from "react-jss";
 import { modifierState } from "../ModifierState";
 import { RenamableLabel } from "./RenamableLabel";
 // import { dataWaveformToCanvas } from "../lib/waveformAsync";
@@ -23,39 +23,36 @@ type Props = {
   track: AudioTrack | null; // null if clip is being rendered for move
 };
 
-const styles = {
-  resizerEnd: css`
-    ${{
-      width: 10,
-      background: "rgba(0,0,0,0)",
-      height: "100%",
-      position: "absolute",
-      right: -5,
-      top: 0,
-      cursor: "ew-resize",
-    }}
-  `,
-  resizerStart: css`
-    ${{
-      width: 10,
-      background: "rgba(0,0,0,0)",
-      height: "100%",
-      position: "absolute",
-      left: -5,
-      top: 0,
-      cursor: "ew-resize",
-    }}
-  `,
-};
+const useStyles = createUseStyles({
+  resizerEnd: {
+    width: 10,
+    background: "rgba(0,0,0,0)",
+    height: "100%",
+    position: "absolute",
+    right: -5,
+    top: 0,
+    cursor: "ew-resize",
+  },
+  resizerStart: {
+    width: 10,
+    background: "rgba(0,0,0,0)",
+    height: "100%",
+    position: "absolute",
+    left: -5,
+    top: 0,
+    cursor: "ew-resize",
+  },
+});
 
 export function Clip({ clip, tool, rerender, isSelected, style = {}, project, track }: Props) {
+  const styles = useStyles();
   const secsToPx = useDerivedState(project.secsToPx);
   const pxToSecs = secsToPx.invert;
   const width = secsToPx(clip.durationSec);
   const totalBufferWidth = secsToPx(clip.lengthSec);
   const startTrimmedWidth = secsToPx(clip.trimStartSec);
   const height = CLIP_HEIGHT - 3; // to clear the bottom track separator gridlines
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  // const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useSubscribeToSubbableMutationHashable(clip, () => {
     rerender();

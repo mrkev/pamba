@@ -6,29 +6,27 @@ import { AudioRenderer } from "../lib/AudioRenderer";
 import { AudioTrack } from "../lib/AudioTrack";
 import { useLinkedArray } from "../lib/state/LinkedArray";
 import { useLinkedState } from "../lib/state/LinkedState";
-import { css } from "@linaria/core";
+import { createUseStyles } from "react-jss";
 
-const styles = {
-  effectRack: css`
-    ${{
-      color: "white",
-      background: "rgba(23, 23, 23, 0.7)",
-      display: "flex",
-      flexDirection: "row",
-      alignItems: "stretch",
-      // to keep the selection div from showing above this effect track
-      zIndex: 1,
-      // So it "sticks" when we scroll the timeline
-      position: "sticky",
-      left: "0",
-      overscrollBehavior: "contain",
-      overflowX: "scroll",
+const useStyles = createUseStyles({
+  effectRack: {
+    color: "white",
+    background: "rgba(23, 23, 23, 0.7)",
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "stretch",
+    // to keep the selection div from showing above this effect track
+    zIndex: 1,
+    // So it "sticks" when we scroll the timeline
+    position: "sticky",
+    left: "0",
+    overscrollBehavior: "contain",
+    overflowX: "scroll",
 
-      padding: "6px 25% 11px 4px",
-      gap: "4px",
-    }}
-  `,
-} as const;
+    padding: "6px 25% 11px 4px",
+    gap: "4px",
+  },
+});
 
 export const EffectRack = React.memo(function EffectRack({
   track,
@@ -39,6 +37,7 @@ export const EffectRack = React.memo(function EffectRack({
   project: AudioProject;
   renderer: AudioRenderer;
 }) {
+  const styles = useStyles();
   const [effects] = useLinkedArray(track.effects);
   const [selected] = useLinkedState(project.selected);
   const rackRef = useRef<HTMLDivElement | null>(null);

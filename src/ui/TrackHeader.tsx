@@ -10,15 +10,15 @@ import { useRef } from "react";
 import { RenamableLabel } from "./RenamableLabel";
 import { pressedState } from "../pressedState";
 import { utility, UtilitySlider } from "./utility";
-import { css } from "@linaria/core";
+import { createUseStyles } from "react-jss";
 
-const styles = {
-  actionButton: css`
-    cursor: pointer;
-    border: none;
-    background: #d3d3d3;
-  `,
-};
+const useStyles = createUseStyles({
+  actionButton: {
+    cursor: "pointer",
+    border: "none",
+    background: "#d3d3d3",
+  },
+});
 
 type Props = {
   track: AudioTrack;
@@ -27,6 +27,7 @@ type Props = {
 };
 
 export default function TrackHeader({ track, project, player }: Props) {
+  const styles = useStyles();
   const [gain, setGain] = useState<number>(track.getCurrentGain().value);
   const [muted, setMuted] = useState<boolean>(false);
   const [dspExpandedTracks] = useLinkedSet(project.dspExpandedTracks);

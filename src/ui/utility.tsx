@@ -1,32 +1,11 @@
-import { css } from "@linaria/core";
-import "./UtilitySlider.css";
 import { useEffect, useRef, useState } from "react";
+import "./UtilitySlider.css";
+import "./utility.css";
 
 export const utility = {
-  button: css`
-    font-size: 12px;
-    font-weight: bold;
-    padding: 1px 6px;
-    height: 18px;
-    border: none;
-    background: #d3d3d3;
-    cursor: pointer;
-    // margin-left: 2px;
-    // border: 1px solid black;
-  `,
-  slider: css`
-    appearance: none;
-    background: #d3d3d3;
-
-    &::-webkit-slider-thumb {
-      width: 1px;
-      appearance: none;
-      height: 16px;
-      cursor: ew-resize;
-      background: black;
-    }
-  `,
-} as const;
+  button: "utilityButton",
+  slider: "utilitySlider",
+};
 
 // TODO: exponential for better decibel granularity (ableton is from -70db = Inf, to 6db)
 //       maybe just a straight-up decibel "unit" mode
