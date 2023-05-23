@@ -32,7 +32,6 @@ export class AnalizedPlayer {
   public isAudioPlaying: boolean = false;
   private cursorAtPlaybackStart: number = 0;
 
-  private oscilloscopeCtx: CanvasRenderingContext2D | null = null;
   private playtimeCtx: CanvasRenderingContext2D | null = null;
   public onFrame: ((playbackTime: number) => void) | null = null;
   public playbackTime: number = 0;
@@ -41,7 +40,6 @@ export class AnalizedPlayer {
   CTX_PLAY_START_TIME: number = 0;
 
   setCanvas(ctx: CanvasRenderingContext2D | null) {
-    this.oscilloscopeCtx = ctx;
     this.oscilloscope.canvasCtx = ctx;
   }
 
@@ -75,11 +73,11 @@ export class AnalizedPlayer {
   private drawPlaybackTime(playbackTime: number) {
     const ctx = this.playtimeCtx;
     if (ctx == null) return;
-    ctx.font = "12px Helvetica";
+    ctx.font = "24px Helvetica";
     ctx.textAlign = "start";
     ctx.fillStyle = "#ffffff";
     ctx.clearRect(0, 0, 100, 100);
-    ctx.fillText(String(playbackTime.toFixed(3)), 3, 13);
+    ctx.fillText(String(playbackTime.toFixed(3)), 6, 26);
   }
 
   playingTracks: ReadonlyArray<AudioTrack> | null = null;

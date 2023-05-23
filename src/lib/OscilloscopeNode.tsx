@@ -51,12 +51,18 @@ export class OscilloscopeNode extends DSPNode {
     // ... / 2 because we want to show just half of the buffer
     const STEP_X = Math.floor(amplitudeArray.length / CANVAS_WIDTH) / 2;
 
-    ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-    for (let i = 0; i < CANVAS_WIDTH; i += 1) {
+    ctx.clearRect(0, 0, 2 * CANVAS_WIDTH, 2 * CANVAS_HEIGHT);
+    ctx.beginPath();
+    ctx.strokeStyle = "#ffffff";
+    for (let i = 0; i < 2 * CANVAS_WIDTH; i += 1 * 2) {
       const value = amplitudeArray[i * STEP_X] / 255; // 0 -> .5 -> 1
-      const y = CANVAS_HEIGHT * value;
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(i, y, 1, 1);
+      const y = 2 * CANVAS_HEIGHT * value;
+      if (i === 0) {
+        ctx.moveTo(i, y);
+      } else {
+        ctx.lineTo(i, y);
+      }
     }
+    ctx.stroke();
   }
 }

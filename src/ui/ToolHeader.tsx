@@ -112,8 +112,8 @@ function TransportControl({
           height: 18,
           alignSelf: "center",
         }}
-        width={56 + "px"}
-        height={18 + "px"}
+        width={2 * 56 + "px"}
+        height={2 * 18 + "px"}
         ref={(canvas) => {
           const ctx = canvas?.getContext("2d") ?? null;
           player.setPlaytimeCanvas(ctx);
@@ -275,8 +275,8 @@ export function ToolHeader({
           width: CANVAS_WIDTH,
           height: CANVAS_HEIGHT,
         }}
-        width={CANVAS_WIDTH + "px"}
-        height={CANVAS_HEIGHT + "px"}
+        width={2 * CANVAS_WIDTH + "px"}
+        height={2 * CANVAS_HEIGHT + "px"}
         ref={(canvas) => {
           const ctx = canvas?.getContext("2d") ?? null;
           player.setCanvas(ctx);
