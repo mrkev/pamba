@@ -124,6 +124,7 @@ export class AudioProject {
   // the zoom level
   readonly scaleFactor = SPrimitive.of(10);
   readonly viewportStartPx = SPrimitive.of(0); // the "left" CSS position for the first second visible in the project div
+  readonly projectDiv = SPrimitive.of<HTMLDivElement | null>(null);
   // 1 sec corresponds to 10 px
   readonly secsToPx = DerivedState.from(
     [this.scaleFactor],

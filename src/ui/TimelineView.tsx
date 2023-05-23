@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { createUseStyles } from "react-jss";
 import { CLIP_HEIGHT, TRACK_HEADER_WIDTH } from "../constants";
 import { useAppProjectMouseEvents } from "../input/useAppProjectMouseEvents";
@@ -30,7 +30,7 @@ const useStyles = createUseStyles({
     height: "100%",
   },
   axisSpacer: {
-    height: "30px",
+    height: "29px",
     display: "flex",
     alignItems: "center",
     flexDirection: "row",
@@ -63,9 +63,8 @@ export function TimelineView({
 }) {
   const classes = useStyles();
   const playbackPosDiv = useRef<null | HTMLDivElement>(null);
-  const [projectDiv, setProjectDiv] = useState<null | HTMLDivElement>(null);
+  const [projectDiv, setProjectDiv] = useLinkedState<null | HTMLDivElement>(project.projectDiv);
   const [tracks] = useLinkedArray(project.allTracks);
-  const [scaleFactor] = useLinkedState(project.scaleFactor);
   const [dspExpandedTracks] = useLinkedSet(project.dspExpandedTracks);
   const secsToPx = useDerivedState(project.secsToPx);
   const [viewportStartPx, setViewportStartPx] = useLinkedState(project.viewportStartPx);
@@ -167,6 +166,7 @@ export function TimelineView({
           onClick={() => {
             AudioProject.addTrack(project, player);
           }}
+          title="Add new track"
         >
           +
         </button>
@@ -212,38 +212,6 @@ export function TimelineView({
         {tracks.map((track, i) => {
           return <TrackHeader key={i} track={track} project={project} player={player} />;
         })}
-        <div>
-          <input
-            type="range"
-            min={Math.log(2)}
-            max={Math.log(100)}
-            step={0.01}
-            value={Math.log(scaleFactor)}
-            onChange={(e) => {
-              if (!projectDiv) {
-                return;
-              }
-              const newFactor = Math.exp(parseFloat(e.target.value));
-
-              const renderedWidth = projectDiv.clientWidth;
-              const renderedTime = project.viewport.pxToSecs(projectDiv.clientWidth);
-              const newRenderedWidth = project.viewport.secsToPx(renderedTime, newFactor);
-
-              console.log("new", newRenderedWidth, "old", renderedWidth);
-              const pxDelta = newRenderedWidth - renderedWidth;
-              console.log("PXDELTA", pxDelta);
-
-              // console.log(currentFactor, newFactor, currentFactor - newFactor);
-              // const totalPixels = projectDiv.clientWidth * (currentFactor - newFactor);
-              // console.log(projectDiv.clientWidth, "totalPixels", totalPixels);
-              // const viewportEndPx = viewportStartPx + projectDiv.clientWidth;
-              // const middlePx = (viewportStartPx + viewportEndPx) / 2;
-
-              project.scaleFactor.set(newFactor);
-              project.viewportStartPx.setDyn((prev) => prev + pxDelta / 2);
-            }}
-          />
-        </div>
       </div>
     </div>
   );

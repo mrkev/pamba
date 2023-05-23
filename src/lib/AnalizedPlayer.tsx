@@ -44,6 +44,9 @@ export class AnalizedPlayer {
   }
 
   setPlaytimeCanvas(ctx: CanvasRenderingContext2D | null) {
+    if (ctx === this.playtimeCtx) {
+      return;
+    }
     this.playtimeCtx = ctx;
     this.drawPlaybackTime(0);
   }

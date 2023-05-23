@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from "../constants";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import { AudioProject } from "../lib/AudioProject";
@@ -200,6 +200,7 @@ export function ToolHeader({
   firebaseStoreRef: firebase.storage.Reference | null;
 }) {
   const [bounceURL] = useLinkedState<string | null>(renderer.bounceURL);
+  const [scaleFactor] = useLinkedState(project.scaleFactor);
 
   const loadClip = useCallback(
     async function loadClip(url: string, name?: string) {
@@ -226,12 +227,22 @@ export function ToolHeader({
         width: "100%",
       }}
     >
-      <div style={{ flexGrow: 1 }}>
+      <div
+        style={{
+          flexGrow: 1,
+          gap: 2,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "flex-end",
+          marginRight: 12,
+        }}
+      >
         <div
           style={{
             display: "flex",
             flexDirection: "row",
             gap: "6px",
+            alignSelf: "stretch",
             alignItems: "baseline",
           }}
         >
@@ -255,7 +266,7 @@ export function ToolHeader({
             loadClip={loadClip}
             player={player}
             renderer={renderer}
-            style={{ alignSelf: "center", marginRight: 12 }}
+            style={{ alignSelf: "center" }}
           />
         </div>
         {/* <input
@@ -268,6 +279,38 @@ export function ToolHeader({
               loadClip(url, files[0].name);
             }}
           /> */}
+        <input
+          type="range"
+          min={Math.log(2)}
+          max={Math.log(100)}
+          step={0.01}
+          value={Math.log(scaleFactor)}
+          title="Zoom level"
+          onChange={(e) => {
+            const projectDiv = project.projectDiv.get();
+            if (!projectDiv) {
+              return;
+            }
+            const newFactor = Math.exp(parseFloat(e.target.value));
+
+            const renderedWidth = projectDiv.clientWidth;
+            const renderedTime = project.viewport.pxToSecs(projectDiv.clientWidth);
+            const newRenderedWidth = project.viewport.secsToPx(renderedTime, newFactor);
+
+            console.log("new", newRenderedWidth, "old", renderedWidth);
+            const pxDelta = newRenderedWidth - renderedWidth;
+            console.log("PXDELTA", pxDelta);
+
+            // console.log(currentFactor, newFactor, currentFactor - newFactor);
+            // const totalPixels = projectDiv.clientWidth * (currentFactor - newFactor);
+            // console.log(projectDiv.clientWidth, "totalPixels", totalPixels);
+            // const viewportEndPx = viewportStartPx + projectDiv.clientWidth;
+            // const middlePx = (viewportStartPx + viewportEndPx) / 2;
+
+            project.scaleFactor.set(newFactor);
+            project.viewportStartPx.setDyn((prev) => prev + pxDelta / 2);
+          }}
+        />
       </div>
       <canvas
         style={{

@@ -35,11 +35,11 @@ export class SPrimitive<S> implements LS<S> {
   }
 
   set(value: Readonly<S>): void {
-    performance.mark("0");
+    // performance.mark("0");
     this._value = value;
     notify(this, this._value);
-    performance.mark("1");
-    performance.measure("a", "0", "1");
+    // performance.mark("1");
+    // performance.measure("a", "0", "1");
   }
 
   setDyn(cb: (prevState: S) => S) {
