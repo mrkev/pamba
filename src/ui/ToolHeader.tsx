@@ -90,11 +90,13 @@ function TransportControl({
   renderer,
   player,
   loadClip,
+  style,
 }: {
   loadClip: (url: string, name?: string) => Promise<void>;
   project: AudioProject;
   player: AnalizedPlayer;
   renderer: AudioRenderer;
+  style: React.CSSProperties;
 }) {
   const mediaRecorder = useMediaRecorder(loadClip);
   const [tracks] = useLinkedArray(project.allTracks);
@@ -102,10 +104,24 @@ function TransportControl({
   const [isAudioPlaying] = useLinkedState(renderer.isAudioPlaying);
 
   return (
-    <div>
+    <div style={{ display: "flex", flexDirection: "row", ...style }}>
+      <canvas
+        style={{
+          background: "black",
+          width: 56,
+          height: 18,
+          alignSelf: "center",
+        }}
+        width={56 + "px"}
+        height={18 + "px"}
+        ref={(canvas) => {
+          const ctx = canvas?.getContext("2d") ?? null;
+          player.setPlaytimeCanvas(ctx);
+        }}
+      />
       <button
         className={utility.button}
-        style={isRecording ? { color: "red" } : undefined}
+        style={{ color: isRecording ? "red" : undefined, width: 17.56 }}
         disabled={tracks.length === 0 || isRecording}
         onClick={() => {
           AudioRenderer.togglePlayback(renderer, project, player);
@@ -183,7 +199,6 @@ export function ToolHeader({
   renderer: AudioRenderer;
   firebaseStoreRef: firebase.storage.Reference | null;
 }) {
-  const ctxRef = useRef<null | CanvasRenderingContext2D>(null);
   const [bounceURL] = useLinkedState<string | null>(renderer.bounceURL);
 
   const loadClip = useCallback(
@@ -235,13 +250,13 @@ export function ToolHeader({
 
           <ToolSelector project={project} />
           <div style={{ flexGrow: 1 }}></div>
-
           <TransportControl
             project={project}
             loadClip={loadClip}
             player={player}
             renderer={renderer}
-          ></TransportControl>
+            style={{ alignSelf: "center", marginRight: 12 }}
+          />
         </div>
         {/* <input
             value={""}
@@ -253,9 +268,6 @@ export function ToolHeader({
               loadClip(url, files[0].name);
             }}
           /> */}
-
-        <br />
-        {/* <Library project={project} renderer={renderer} firebaseStoreRef={firebaseStoreRef} player={player} /> */}
       </div>
       <canvas
         style={{
@@ -268,7 +280,6 @@ export function ToolHeader({
         ref={(canvas) => {
           const ctx = canvas?.getContext("2d") ?? null;
           player.setCanvas(ctx);
-          ctxRef.current = ctx;
         }}
       ></canvas>
     </div>

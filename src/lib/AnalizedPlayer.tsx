@@ -1,9 +1,9 @@
-import { liveAudioContext, sampleSize } from "../constants";
-import { CANVAS_WIDTH, CANVAS_HEIGHT } from "../constants";
+import { CANVAS_HEIGHT, liveAudioContext, sampleSize } from "../constants";
+import { CANVAS_WIDTH } from "../constants";
 // import SharedBufferWorkletNode from "./lib/shared-buffer-worklet-node";
 import { AudioTrack } from "./AudioTrack";
-import { DSPNode } from "../dsp/DSPNode";
 import { initAudioContext } from "./initAudioContext";
+import { OscilloscopeNode } from "./OscilloscopeNode";
 
 // sbwNode.onInitialized = () => {
 //   oscillator.connect(sbwNode).connect(context.destination);
@@ -22,64 +22,8 @@ function getOfflineAudioContext(lenSec: number) {
   });
 }
 
-class Oscilloscope extends DSPNode {
-  private readonly amplitudeArray: Uint8Array = new Uint8Array();
-  private readonly analyserNode = liveAudioContext.createAnalyser();
-  private readonly javascriptNode = liveAudioContext.createScriptProcessor(sampleSize, 1, 1);
-  public canvasCtx: CanvasRenderingContext2D | null = null;
-
-  public override inputNode(): AudioNode {
-    return this.analyserNode;
-  }
-
-  public override outputNode(): AudioNode {
-    return this.javascriptNode;
-  }
-
-  constructor() {
-    super();
-    // Create the array for the data values
-    this.amplitudeArray = new Uint8Array(this.analyserNode.frequencyBinCount);
-    // Setup the event handler that is triggered every time enough samples have been collected
-    // trigger the audio analysis and draw the results
-    this.javascriptNode.onaudioprocess = this.onAduioProcess;
-  }
-
-  private onAduioProcess = () => {
-    this.analyserNode.getByteTimeDomainData(this.amplitudeArray);
-    this.drawTimeDomain(this.amplitudeArray);
-  };
-
-  // y-axis: 128 is 0, 0 is -1, 255 is 1
-  // x-axis: 1024 samples each time
-  private drawTimeDomain(amplitudeArray: Uint8Array) {
-    const ctx = this.canvasCtx;
-    if (ctx == null) return;
-
-    // let X_STEP = 1; //CANVAS_WIDTH / 1024;
-    // let res = 1;
-    // find the X_STEP that gives us a resolution
-    // closest to 1. This way we can skip samples
-    // and draw closer to just one sample per pixel
-    // while (X_STEP * 2 < 1) {
-    //   res *= 2;
-    //   X_STEP *= 2;
-    // }
-    // ... / 2 because we want to show just half of the buffer
-    const STEP_X = Math.floor(amplitudeArray.length / CANVAS_WIDTH) / 2;
-
-    ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-    for (let i = 0; i < CANVAS_WIDTH; i += 1) {
-      const value = amplitudeArray[i * STEP_X] / 255; // 0 -> .5 -> 1
-      const y = CANVAS_HEIGHT * value;
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(i, y, 1, 1);
-    }
-  }
-}
-
 export class AnalizedPlayer {
-  private readonly oscilloscope = new Oscilloscope();
+  private readonly oscilloscope = new OscilloscopeNode();
 
   // Nodes
   private readonly playbackTimeNode = liveAudioContext.createScriptProcessor(sampleSize, 1, 1);
@@ -88,7 +32,8 @@ export class AnalizedPlayer {
   public isAudioPlaying: boolean = false;
   private cursorAtPlaybackStart: number = 0;
 
-  private canvasCtx: CanvasRenderingContext2D | null = null;
+  private oscilloscopeCtx: CanvasRenderingContext2D | null = null;
+  private playtimeCtx: CanvasRenderingContext2D | null = null;
   public onFrame: ((playbackTime: number) => void) | null = null;
   public playbackTime: number = 0;
 
@@ -96,8 +41,13 @@ export class AnalizedPlayer {
   CTX_PLAY_START_TIME: number = 0;
 
   setCanvas(ctx: CanvasRenderingContext2D | null) {
-    this.canvasCtx = ctx;
+    this.oscilloscopeCtx = ctx;
     this.oscilloscope.canvasCtx = ctx;
+  }
+
+  setPlaytimeCanvas(ctx: CanvasRenderingContext2D | null) {
+    this.playtimeCtx = ctx;
+    this.drawPlaybackTime(0);
   }
 
   constructor() {
@@ -123,11 +73,13 @@ export class AnalizedPlayer {
   }
 
   private drawPlaybackTime(playbackTime: number) {
-    const ctx = this.canvasCtx;
+    const ctx = this.playtimeCtx;
     if (ctx == null) return;
     ctx.font = "12px Helvetica";
-    ctx.textAlign = "end";
-    ctx.fillText(String(playbackTime.toFixed(3)), CANVAS_WIDTH - 2, 12);
+    ctx.textAlign = "start";
+    ctx.fillStyle = "#ffffff";
+    ctx.clearRect(0, 0, 100, 100);
+    ctx.fillText(String(playbackTime.toFixed(3)), 3, 13);
   }
 
   playingTracks: ReadonlyArray<AudioTrack> | null = null;
