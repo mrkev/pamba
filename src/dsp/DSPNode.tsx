@@ -1,10 +1,10 @@
-export abstract class DSPNode {
+import { liveAudioContext } from "../constants";
+
+export abstract class DSPNode<I extends AudioNode | null = AudioNode> {
   private readonly destinations: Set<AudioNode> = new Set();
 
-  abstract inputNode(): AudioNode;
+  abstract inputNode(): I;
   abstract outputNode(): AudioNode;
-  abstract prepareForPlayback(): void;
-  abstract stopPlayback(): void;
 
   public connect(audioNode: AudioNode): void {
     if (this.destinations.has(audioNode)) {

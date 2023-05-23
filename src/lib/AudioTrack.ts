@@ -7,8 +7,9 @@ import { addClip, deleteTime, pushClip, removeClip } from "./AudioTrackFn";
 import { LinkedArray } from "./state/LinkedArray";
 import { SPrimitive } from "./state/LinkedState";
 import { TrackThread } from "./TrackThread";
+import { DSPNode } from "../dsp/DSPNode";
 
-export class AudioTrack {
+export class AudioTrack extends DSPNode<null> {
   // A track is a collection of non-overalping clips.
   // Invariants:
   // - Sorted by start time.
@@ -26,14 +27,23 @@ export class AudioTrack {
   // The "volume" of the track
   private gainNode: GainNode = new GainNode(liveAudioContext);
   // Hidden gain node, just for solo-ing tracks.
-  private _hiddenGainNode = new GainNode(liveAudioContext);
-  private outNode: AudioNode | null = null;
+  private _hiddenGainNode; // note changes for bounce
+
+  override inputNode(): null {
+    return null;
+  }
+  override outputNode(): AudioNode {
+    return this._hiddenGainNode;
+  }
 
   private constructor(name: string, clips: AudioClip[], effects: FaustAudioEffect[], height: number) {
+    super();
     this.name = SPrimitive.of(name);
     this.clips = LinkedArray.create(clips);
     this.effects = LinkedArray.create<FaustAudioEffect>(effects);
     this.height = SPrimitive.of<number>(height);
+    //
+    this._hiddenGainNode = new GainNode(liveAudioContext);
   }
 
   private static trackNo = 0;
@@ -73,10 +83,6 @@ export class AudioTrack {
 
   //////////// Playback ////////////
 
-  setAudioOut(node: AudioNode): void {
-    this.outNode = node;
-  }
-
   // Topology of DSP:
   // [ Source Node ]
   //        V
@@ -88,11 +94,6 @@ export class AudioTrack {
   //        V
   // [ Out Node ]
   prepareForPlayback(context: AudioContext): void {
-    if (!this.outNode) {
-      console.warn("No out node for this track!", this);
-      return;
-    }
-
     // We need to keep a reference to our source node for play/pause
     this.playingSource = this.getSourceNode(context);
 
@@ -100,31 +101,17 @@ export class AudioTrack {
       return effect.accessAudioNode();
     });
 
-    this.connectSerialNodes([
+    const hiddenGainNodeValue = this._hiddenGainNode.gain.value;
+    this._hiddenGainNode = new GainNode(context);
+    this._hiddenGainNode.gain.value = hiddenGainNodeValue;
+
+    connectSerialNodes([
       ///
       this.playingSource,
       this.gainNode,
       ...effectNodes,
       this._hiddenGainNode,
-      this.outNode,
     ]);
-  }
-
-  private connectSerialNodes(chain: AudioNode[]): void {
-    if (chain.length < 2) {
-      return;
-    }
-    let currentNode: AudioNode = chain[0];
-    for (let i = 1; chain[i] != null; i++) {
-      const nextNode = chain[i];
-      // console.group(`Connected: ${currentNode.constructor.name} -> ${nextNode.constructor.name}`);
-      // console.log(currentNode);
-      // console.log("-->");
-      // console.log(nextNode);
-      // console.groupEnd();
-      currentNode.connect(nextNode);
-      currentNode = nextNode;
-    }
   }
 
   // NOTE: needs to be called right after .prepareForPlayback
@@ -136,11 +123,6 @@ export class AudioTrack {
   }
 
   async prepareForBounce(context: OfflineAudioContext): Promise<void> {
-    if (!this.outNode) {
-      console.warn("No out node for bounce on track:", this);
-      return;
-    }
-
     this.playingSource = this.getSourceNode(context);
 
     const effectNodes = await Promise.all(
@@ -153,25 +135,25 @@ export class AudioTrack {
       })
     );
 
-    this.connectSerialNodes([
+    const hiddenGainNodeValue = this._hiddenGainNode.gain.value;
+    this._hiddenGainNode = new GainNode(context);
+    this._hiddenGainNode.gain.value = hiddenGainNodeValue;
+
+    connectSerialNodes([
       ///
       this.playingSource,
       // cant use gainNode, wrong context
       // this.gainNode,
       ...effectNodes,
       // cant use _hiddenGainNode, wrong context
-      // this._hiddenGainNode,
-      this.outNode,
+      this._hiddenGainNode,
+      // this.outNode,
     ]);
   }
 
   stopPlayback(): void {
     if (!this.playingSource) {
       console.warn("Stopping but no playingSource on track", this);
-      return;
-    }
-    if (!this.outNode) {
-      console.warn("Stopping but not outputing to any node", this);
       return;
     }
 
@@ -182,7 +164,6 @@ export class AudioTrack {
       this.gainNode,
       ...this.effects._getRaw().map((effect) => effect.accessAudioNode()),
       this._hiddenGainNode,
-      this.outNode,
     ];
 
     for (let i = 0; i < chain.length - 1; i++) {
@@ -210,7 +191,7 @@ export class AudioTrack {
     return track;
   }
 
-  toString() {
+  override toString() {
     return this.clips
       ._getRaw()
       .map((c) => c.toString())
@@ -219,7 +200,7 @@ export class AudioTrack {
 
   //////////// CLIPS ////////////
 
-  addClip(newClip: AudioClip) {
+  addClip(newClip: AudioClip): void {
     const clips = addClip(newClip, this.clips._getRaw());
     this.clips._setRaw(clips);
   }
@@ -249,5 +230,22 @@ export class AudioTrack {
 
   static bypassEffect(track: AudioTrack, effect: FaustAudioEffect) {
     console.log("todo: bypass", effect);
+  }
+}
+
+function connectSerialNodes(chain: AudioNode[]): void {
+  if (chain.length < 2) {
+    return;
+  }
+  let currentNode: AudioNode = chain[0];
+  for (let i = 1; chain[i] != null; i++) {
+    const nextNode = chain[i];
+    // console.group(`Connected: ${currentNode.constructor.name} -> ${nextNode.constructor.name}`);
+    // console.log(currentNode);
+    // console.log("-->");
+    // console.log(nextNode);
+    // console.groupEnd();
+    currentNode.connect(nextNode);
+    currentNode = nextNode;
   }
 }

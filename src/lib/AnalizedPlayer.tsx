@@ -36,14 +36,6 @@ class Oscilloscope extends DSPNode {
     return this.javascriptNode;
   }
 
-  public override prepareForPlayback() {
-    this.analyserNode.connect(this.javascriptNode);
-  }
-
-  public override stopPlayback() {
-    this.analyserNode.disconnect(this.javascriptNode);
-  }
-
   constructor() {
     super();
     // Create the array for the data values
@@ -120,7 +112,7 @@ export class AnalizedPlayer {
         requestAnimationFrame(() => {
           const timePassed = liveAudioContext.currentTime - this.CTX_PLAY_START_TIME;
           const currentTimeInBuffer = this.cursorAtPlaybackStart + timePassed;
-          this.drawTimeDomain(currentTimeInBuffer);
+          this.drawPlaybackTime(currentTimeInBuffer);
           if (this.onFrame) this.onFrame(currentTimeInBuffer);
           this.playbackTime = currentTimeInBuffer;
         });
@@ -130,13 +122,10 @@ export class AnalizedPlayer {
     };
   }
 
-  // y-axis: 128 is 0, 0 is -1, 255 is 1
-  // x-axis: 1024 samples each time
-  drawTimeDomain(playbackTime: number) {
+  private drawPlaybackTime(playbackTime: number) {
     const ctx = this.canvasCtx;
     if (ctx == null) return;
     ctx.font = "12px Helvetica";
-    console.log("FOO");
     ctx.textAlign = "end";
     ctx.fillText(String(playbackTime.toFixed(3)), CANVAS_WIDTH - 2, 12);
   }
@@ -144,11 +133,6 @@ export class AnalizedPlayer {
   playingTracks: ReadonlyArray<AudioTrack> | null = null;
   // Position of the cursor; where the playback is going to start
   playTracks(tracks: ReadonlyArray<AudioTrack>, cursorPos: number) {
-    for (let track of tracks) {
-      track.setAudioOut(this.mixDownNode);
-    }
-
-    this.oscilloscope.prepareForPlayback();
     // Need to connect to dest, otherwrise audio just doesn't flow through. This adds nothing, just silence though
     this.oscilloscope.connect(liveAudioContext.destination);
     this.playbackTimeNode.connect(liveAudioContext.destination);
@@ -160,6 +144,7 @@ export class AnalizedPlayer {
     // sync as possible
     for (let track of tracks) {
       track.prepareForPlayback(liveAudioContext);
+      track.connect(this.mixDownNode);
     }
     for (let track of tracks) {
       track.startPlayback(cursorPos);
@@ -178,7 +163,7 @@ export class AnalizedPlayer {
       // TODO: mke playing tracks and isAudioPlaying the same state
       throw new Error("No tracks playing");
     }
-    track.setAudioOut(this.mixDownNode);
+    track.connect(this.mixDownNode);
     this.playingTracks = this.playingTracks.concat(track);
     const LATENCY = 10;
     track.prepareForPlayback(liveAudioContext);
@@ -205,10 +190,10 @@ export class AnalizedPlayer {
     }
     for (let track of this.playingTracks) {
       track.stopPlayback();
+      track.disconnect(this.mixDownNode);
     }
     this.isAudioPlaying = false;
     this.playbackTimeNode.disconnect(liveAudioContext.destination);
-    this.oscilloscope.stopPlayback();
     this.oscilloscope.disconnect(liveAudioContext.destination);
   }
 
@@ -245,12 +230,12 @@ export class AnalizedPlayer {
     offlineMixDownNode.connect(offlineAudioContext.destination);
 
     for (let track of tracks) {
-      track.setAudioOut(offlineMixDownNode);
+      // FIXME: parallel
+      await track.prepareForBounce(offlineAudioContext);
     }
 
     for (let track of tracks) {
-      // FIXME: parallel
-      await track.prepareForBounce(offlineAudioContext);
+      track.connect(offlineMixDownNode);
     }
 
     for (let track of tracks) {
