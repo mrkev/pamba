@@ -1,3 +1,5 @@
+process.env.BABEL_ENV = "development";
+
 module.exports = {
   extends: ["react-app", "react-app/jest"],
   parserOptions: {

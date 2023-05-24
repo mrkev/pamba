@@ -1,5 +1,8 @@
+//@ts-ignore
+import trackWorkerURL from "../worker/track-worker?url";
+
 export class TrackThread {
-  private worker = new Worker("track-worker.js");
+  private worker = new Worker(trackWorkerURL);
   constructor() {
     this.worker.addEventListener("message", this.onMessageRecieved);
   }

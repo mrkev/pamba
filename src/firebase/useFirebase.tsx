@@ -33,12 +33,18 @@ export function useFirebaseApp(config: typeof firebaseConfig): firebase.app.App 
   return firebaseApp;
 }
 
+const SKIP_FIREBASE = true;
+
 export function usePambaFirebaseStoreRef(): firebase.storage.Reference | null {
   const [firebaseStoreRef, setFirebaseStoreRef] = useState<firebase.storage.Reference | null>(null);
 
   const firebaseApp = useFirebaseApp(firebaseConfig);
 
   useEffect(() => {
+    if (SKIP_FIREBASE) {
+      return;
+    }
+
     if (!firebaseApp) {
       return;
     }
