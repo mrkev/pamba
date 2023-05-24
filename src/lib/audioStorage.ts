@@ -2,6 +2,8 @@ import firebase from "firebase/compat";
 import type { AudioProject } from "./AudioProject";
 import * as musicMetadata from "music-metadata-browser";
 import type { IFormat } from "music-metadata";
+import { useCallback, useMemo } from "react";
+import { AsyncResultStatus, useAsyncResult } from "../ui/useAsyncResult";
 
 export class AudioStorage {
   // TODO: progress callback
@@ -50,13 +52,29 @@ export class AudioStorage {
     console.log("File available at", url);
     return url;
   }
+}
 
-  static async listProjectAudioFiles(
-    project: AudioProject,
-    firebaseStoreRef: firebase.storage.Reference
-  ): Promise<firebase.storage.Reference[]> {
+export function useListProjectAudioFiles(
+  project: AudioProject,
+  firebaseStoreRef?: firebase.storage.Reference
+): AsyncResultStatus<firebase.storage.Reference[]> {
+  const filesPromise = useMemo(() => {
+    if (!firebaseStoreRef) {
+      return null;
+    }
+
     const location = `project/${project.projectId}/audio`;
-    const files = await firebaseStoreRef.child(location).listAll();
-    return files.items;
-  }
+    const files = firebaseStoreRef
+      .child(location)
+      .listAll()
+      .then((files) => files.items)
+      .catch((err) => {
+        throw err;
+      });
+    return files;
+  }, [firebaseStoreRef, project.projectId]);
+
+  const audioFiles = useAsyncResult(filesPromise);
+
+  return audioFiles;
 }

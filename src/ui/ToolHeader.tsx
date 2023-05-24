@@ -14,7 +14,7 @@ import { AnchorButton, UploadButton } from "./FormButtons";
 import { appProjectStatus } from "./App";
 import { ProjectPersistance } from "../lib/ProjectPersistance";
 import type firebase from "firebase/compat";
-import { AudioStorage } from "../lib/AudioStorage";
+import { AudioStorage, useListProjectAudioFiles } from "../lib/audioStorage";
 import { useAsyncResult } from "./useAsyncResult";
 
 function NewProjectButton() {
@@ -341,9 +341,7 @@ export function Library({
   firebaseStoreRef: firebase.storage.Reference | null;
 }) {
   const [isAudioPlaying] = useLinkedState(renderer.isAudioPlaying);
-  const audioFiles = useAsyncResult(
-    firebaseStoreRef ? AudioStorage.listProjectAudioFiles(project, firebaseStoreRef) : Promise.resolve(null)
-  );
+  const audioFiles = useListProjectAudioFiles(project, firebaseStoreRef ?? undefined);
 
   const loadClip = useCallback(
     async function loadClip(url: string, name?: string) {

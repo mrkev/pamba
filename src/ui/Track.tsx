@@ -11,7 +11,7 @@ import { pressedState } from "../pressedState";
 import { Clip } from "./Clip";
 import { EffectRack } from "./EffectRack";
 import { usePambaFirebaseStoreRef } from "../firebase/useFirebase";
-import { AudioStorage } from "../lib/AudioStorage";
+import { AudioStorage } from "../lib/audioStorage";
 
 export function Track({
   track,
