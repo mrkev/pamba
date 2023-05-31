@@ -1,3 +1,10 @@
+//@ts-ignore
+import MixDownProcessorURL from "../worker/mix-down-processor?url";
+//@ts-ignore
+import SharedBufferWrokletURL from "../worker/shared-buffer-worklet-processor?url";
+//@ts-ignore
+import WhiteNoiseProcessorURL from "../worker/white-noise-processor?url";
+
 // import WorkletDemoBuilder from "../../assets/WorkletDemoBuilder.js";
 // const demoCode = async (context, logger) => {
 //   // Import the pre-defined AudioWorkletNode subclass dynamically. This
@@ -18,12 +25,10 @@
 // };
 // WorkletDemoBuilder(PageData, demoCode);
 export async function initAudioContext(audioContext: BaseAudioContext) {
-  await audioContext.audioWorklet.addModule("white-noise-processor.js");
-  console.log("LOADED", "white-noise-processor.js");
-  await audioContext.audioWorklet.addModule(
-    "shared-buffer-worklet-processor.js"
-  );
+  await audioContext.audioWorklet.addModule(WhiteNoiseProcessorURL);
+  console.log("LOADED", WhiteNoiseProcessorURL);
+  await audioContext.audioWorklet.addModule(SharedBufferWrokletURL);
   console.log("LOADED", "shared-buffer-worklet-processor.js");
-  await audioContext.audioWorklet.addModule("mix-down-processor.js");
+  await audioContext.audioWorklet.addModule(MixDownProcessorURL);
   console.log("LOADED", "mix-down-processor.js");
 }

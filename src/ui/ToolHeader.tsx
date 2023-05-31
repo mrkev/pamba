@@ -197,7 +197,7 @@ export function ToolHeader({
   project: AudioProject;
   player: AnalizedPlayer;
   renderer: AudioRenderer;
-  firebaseStoreRef: firebase.storage.Reference | null;
+  firebaseStoreRef?: firebase.storage.Reference | null;
 }) {
   const [bounceURL] = useLinkedState<string | null>(renderer.bounceURL);
   const [scaleFactor] = useLinkedState(project.scaleFactor);
@@ -247,7 +247,9 @@ export function ToolHeader({
           }}
         >
           <NewProjectButton />
-          <UploadAudioButton project={project} firebaseStoreRef={firebaseStoreRef} loadClip={loadClip} />
+          {firebaseStoreRef && (
+            <UploadAudioButton project={project} firebaseStoreRef={firebaseStoreRef} loadClip={loadClip} />
+          )}
 
           <div style={{ flexGrow: 1 }}></div>
 

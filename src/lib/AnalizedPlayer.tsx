@@ -27,7 +27,7 @@ export class AnalizedPlayer {
 
   // Nodes
   private readonly playbackTimeNode = liveAudioContext.createScriptProcessor(sampleSize, 1, 1);
-  private readonly mixDownNode: AudioWorkletNode = new AudioWorkletNode(liveAudioContext, "mix-down-processor");
+  private readonly mixDownNode: AudioWorkletNode;
   // private readonly noiseNode: AudioWorkletNode = new AudioWorkletNode(liveAudioContext, "white-noise-processor");
   public isAudioPlaying: boolean = false;
   private cursorAtPlaybackStart: number = 0;
@@ -52,6 +52,8 @@ export class AnalizedPlayer {
   }
 
   constructor() {
+    this.mixDownNode = new AudioWorkletNode(liveAudioContext, "mix-down-processor");
+    console.log("MIX-DOWN-NODE", this.mixDownNode);
     this.mixDownNode.connect(liveAudioContext.destination);
     this.mixDownNode.connect(this.playbackTimeNode);
     this.mixDownNode.connect(this.oscilloscope.inputNode());

@@ -1,5 +1,5 @@
 import { TFaustUIItem } from "@shren/faust-ui/src/types";
-import { FaustAudioProcessorNode, ProcessorLoader } from "faust-loader";
+import { FaustAudioProcessorNode, ProcessorLoader } from "faust-loader-vite";
 import { LinkedMap } from "../lib/state/LinkedMap";
 import { EffectID, FAUST_EFFECTS } from "./FAUST_EFFECTS";
 

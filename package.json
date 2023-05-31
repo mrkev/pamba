@@ -41,7 +41,7 @@
     "eslint": "^8.41.0",
     "eslint-config-react-app": "^7.0.1",
     "eslint-webpack-plugin": "^4.0.1",
-    "faust-loader": "https://github.com/mrkev/faust-loader#changes",
+    "faust-loader-vite": "https://github.com/mrkev/faust-loader-vite#changes",
     "faust2webaudio": "grame-cncm/faust2webaudio",
     "file-loader": "^6.2.0",
     "firebase": "9.22.0",
@@ -69,6 +69,7 @@
     "react-resizable-panels": "^0.0.45",
     "resolve": "^1.22.1",
     "resolve-url-loader": "^4.0.0",
+    "rollup": "^3.23.0",
     "rsuite": "^5.34.0",
     "semver": "^7.3.8",
     "source-map-loader": "^4.0.1",
@@ -76,9 +77,11 @@
     "style-loader": "^3.3.2",
     "style-object-to-css-string": "1.0.1",
     "terser-webpack-plugin": "^5.3.7",
+    "tmp-promise": "^3.0.3",
     "typescript": "5.0.4",
     "typescript-json-serializer": "4.2.0",
     "ulid": "^2.3.0",
+    "vite-plugin-inspect": "^0.7.27",
     "web-vitals": "3.3.1",
     "webpack": "^5.83.1",
     "webpack-dev-server": "^4.15.0",
@@ -86,8 +89,8 @@
     "workbox-webpack-plugin": "^6.5.4"
   },
   "scripts": {
-    "start": "node scripts/start.js",
-    "build": "node scripts/build.js",
+    "dev": "vite dev",
+    "build": "vite build",
     "test": "node scripts/test.js",
     "deploy": "npm run build && firebase deploy --only hosting"
   },
@@ -112,11 +115,17 @@
   "devDependencies": {
     "@babel/plugin-proposal-decorators": "7.21.0",
     "@babel/preset-typescript": "7.21.5",
+    "@rollup/plugin-babel": "^6.0.3",
     "@types/d3": "7.4.0",
     "@types/d3-axis": "3.0.2",
+    "@types/fs-extra": "^11.0.1",
+    "@vitejs/plugin-react": "^4.0.0",
     "babel-plugin-parameter-decorator": "1.0.16",
     "babel-plugin-transform-typescript-metadata": "0.3.2",
     "jest-environment-jsdom": "^29.5.0",
+    "vite": "^4.3.8",
+    "vite-plugin-svgr": "^3.2.0",
+    "vite-tsconfig-paths": "^4.2.0",
     "web-audio-peak-meter": "^3.1.0"
   },
   "prettier": {
