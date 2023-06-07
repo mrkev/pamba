@@ -1,14 +1,21 @@
-import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import viteTsconfigPaths from "vite-tsconfig-paths";
+import { defineConfig } from "vite";
 import svgrPlugin from "vite-plugin-svgr";
-import Inspect from "vite-plugin-inspect";
+import viteTsconfigPaths from "vite-tsconfig-paths";
 import { faustLoder } from "./faustLoader/faustLoder";
+
+// To polyfill Buffer
+import RollupPluginNodePolyfill from "rollup-plugin-node-polyfills";
+import { NodeGlobalsPolyfillPlugin } from "@esbuild-plugins/node-globals-polyfill";
+import { NodeModulesPolyfillPlugin } from "@esbuild-plugins/node-modules-polyfill";
 
 // https://vitejs.dev/config/
 export default defineConfig({
   build: {
     outDir: "./build",
+    rollupOptions: {
+      plugins: [RollupPluginNodePolyfill()],
+    },
   },
   server: {
     headers: {
@@ -16,14 +23,17 @@ export default defineConfig({
       "Cross-Origin-Embedder-Policy": "require-corp",
     },
   },
-  plugins: [
-    // Inspect({
-    //   build: true,
-    //   outputDir: ".vite-inspect",
-    // }),
-    react(),
-    viteTsconfigPaths(),
-    svgrPlugin(),
-    faustLoder(),
-  ],
+  plugins: [react(), viteTsconfigPaths(), svgrPlugin(), faustLoder()],
+  optimizeDeps: {
+    esbuildOptions: {
+      // define: { global: "globalThis" },
+      plugins: [
+        NodeGlobalsPolyfillPlugin({
+          buffer: true,
+          // process: true,
+        }),
+        NodeModulesPolyfillPlugin(),
+      ],
+    },
+  },
 });

@@ -15,7 +15,7 @@ export default class AudioClip extends BaseClip implements Subbable<AudioClip>, 
   // AudioClip
   readonly buffer: SharedAudioBuffer;
   readonly numberOfChannels: number;
-  name: string;
+  public name: string;
   readonly bufferURL: string;
 
   gainAutomation: Array<{ time: number; value: number }> = [{ time: 0, value: 1 }];

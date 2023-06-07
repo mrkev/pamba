@@ -35,10 +35,9 @@ export function useFirebaseApp(config: typeof firebaseConfig): firebase.app.App 
 
 const SKIP_FIREBASE = false;
 
-export function usePambaFirebaseStoreRef(): firebase.storage.Reference | null {
-  const [firebaseStoreRef, setFirebaseStoreRef] = useState<firebase.storage.Reference | null>(null);
-
+export function useFirebaseUser(): firebase.User | null {
   const firebaseApp = useFirebaseApp(firebaseConfig);
+  const [firebaseUser, setFirebaseUser] = useState<firebase.User | null>(null);
 
   useEffect(() => {
     if (SKIP_FIREBASE) {
@@ -48,8 +47,8 @@ export function usePambaFirebaseStoreRef(): firebase.storage.Reference | null {
     if (!firebaseApp) {
       return;
     }
-    // No need to re-sign in if we already have a firebaseStoreRef
-    if (firebaseStoreRef !== null) {
+    // No need to re-sign in if we already have a user
+    if (firebaseUser !== null) {
       return;
     }
 
@@ -57,24 +56,56 @@ export function usePambaFirebaseStoreRef(): firebase.storage.Reference | null {
     auth.onAuthStateChanged(function (user) {
       if (user) {
         console.log("Anonymous user signed-in.", user);
-        setFirebaseStoreRef(firebase.storage().ref());
+        setFirebaseUser(user);
       } else {
-        setFirebaseStoreRef(null);
+        setFirebaseUser(null);
         console.log("There was no anonymous session. Creating a new anonymous user.");
         // Sign the user in anonymously since accessing Storage requires the user to be authorized.
-        auth.signInAnonymously().catch(function (error) {
-          if (error.code === "auth/operation-not-allowed") {
-            window.alert(
-              "Anonymous Sign-in failed. Please make sure that you have enabled anonymous " +
-                "sign-in on your Firebase project."
-            );
-          } else {
-            setFirebaseStoreRef(firebase.storage().ref());
-          }
-        });
+        auth
+          .signInAnonymously()
+          .then((userCredential) => {
+            console.log("New anonymous session successfully.");
+            setFirebaseUser(userCredential.user);
+          })
+          .catch(function (error) {
+            if (error.code === "auth/operation-not-allowed") {
+              window.alert(
+                "Anonymous Sign-in failed. Please make sure that you have enabled anonymous " +
+                  "sign-in on your Firebase project."
+              );
+            } else {
+              window.alert("There was some issue signing in");
+            }
+          });
       }
     });
-  }, [firebaseApp, firebaseStoreRef]);
+  }, [firebaseApp, firebaseUser]);
+
+  return firebaseUser;
+}
+
+export function usePambaFirebaseStoreRef(): firebase.storage.Reference | null {
+  const [firebaseStoreRef, setFirebaseStoreRef] = useState<firebase.storage.Reference | null>(null);
+
+  const firebaseApp = useFirebaseApp(firebaseConfig);
+  const user = useFirebaseUser();
+
+  useEffect(() => {
+    if (SKIP_FIREBASE) {
+      return;
+    }
+
+    // No need to re-sign in if we already have a firebaseStoreRef
+    if (firebaseStoreRef !== null) {
+      return;
+    }
+
+    if (user == null) {
+      return;
+    }
+
+    setFirebaseStoreRef(firebase.storage().ref());
+  }, [firebaseApp, firebaseStoreRef, user]);
 
   return firebaseStoreRef;
 }

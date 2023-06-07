@@ -5,6 +5,7 @@ module.exports = {
   parserOptions: {
     project: "./tsconfig.json",
   },
+  ignorePatterns: ["vite.config.ts"],
   // parser: "@typescript-eslint/parser",
   // plugins: ["@typescript-eslint"],
   rules: {
