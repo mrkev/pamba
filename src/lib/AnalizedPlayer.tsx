@@ -82,7 +82,7 @@ export class AnalizedPlayer {
     ctx.textAlign = "start";
     ctx.fillStyle = "#ffffff";
     ctx.clearRect(0, 0, 100, 100);
-    ctx.fillText(String(playbackTime.toFixed(3)), 6, 26);
+    ctx.fillText(String(playbackTime.toFixed(2)) + "s", 6, 26);
   }
 
   playingTracks: ReadonlyArray<AudioTrack> | null = null;

@@ -7,7 +7,8 @@ import { ProjectPersistance } from "../lib/ProjectPersistance";
 import { AudioRenderer } from "../lib/AudioRenderer";
 import { modifierState, useSingletonKeyboardModifierState } from "../ModifierState";
 import { TimelineView } from "./TimelineView";
-import { Library, ToolHeader } from "./ToolHeader";
+import { ToolHeader } from "./ToolHeader";
+import { Library } from "./Library";
 import { useAppProjectKeyboardEvents } from "../input/useAppProjectKeyboardEvents";
 import { ignorePromise } from "../utils/ignorePromise";
 import { SPrimitive, useLinkedState } from "../lib/state/LinkedState";
@@ -84,12 +85,7 @@ function AppProject({ project }: { project: AudioProject }) {
 
   return (
     <>
-      <ToolHeader
-        project={project}
-        player={renderer.analizedPlayer}
-        firebaseStoreRef={firebaseStoreRef}
-        renderer={renderer}
-      />
+      <ToolHeader project={project} player={renderer.analizedPlayer} renderer={renderer} />
       <PanelGroup direction="horizontal">
         <Panel collapsible={true} defaultSize={15} onCollapse={console.log}>
           <Library

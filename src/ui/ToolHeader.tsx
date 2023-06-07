@@ -1,21 +1,18 @@
-import React, { useCallback, useEffect, useState } from "react";
-import { CANVAS_WIDTH, CANVAS_HEIGHT } from "../constants";
+import React, { useCallback, useEffect, useRef } from "react";
+import { CANVAS_HEIGHT, CANVAS_WIDTH } from "../constants";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
+import AudioClip from "../lib/AudioClip";
 import { AudioProject } from "../lib/AudioProject";
 import { AudioRenderer } from "../lib/AudioRenderer";
-import { useLinkedState } from "../lib/state/LinkedState";
-import { useLinkedArray } from "../lib/state/LinkedArray";
-import AudioClip from "../lib/AudioClip";
 import { AudioTrack } from "../lib/AudioTrack";
-import { useMediaRecorder } from "../utils/useMediaRecorder";
-import { ignorePromise } from "../utils/ignorePromise";
-import { utility } from "./utility";
-import { AnchorButton, UploadButton } from "./FormButtons";
-import { appProjectStatus } from "./App";
 import { ProjectPersistance } from "../lib/ProjectPersistance";
-import type firebase from "firebase/compat";
-import { AudioStorage, useListProjectAudioFiles } from "../lib/audioStorage";
-import { useAsyncResult } from "./useAsyncResult";
+import { useLinkedArray } from "../lib/state/LinkedArray";
+import { useLinkedState } from "../lib/state/LinkedState";
+import { ignorePromise } from "../utils/ignorePromise";
+import { useMediaRecorder } from "../utils/useMediaRecorder";
+import { appProjectStatus } from "./App";
+import { AnchorButton } from "./FormButtons";
+import { utility } from "./utility";
 
 function NewProjectButton() {
   return (
@@ -102,23 +99,60 @@ function TransportControl({
   const [tracks] = useLinkedArray(project.allTracks);
   const [isRecording, setIsRecording] = useLinkedState(project.isRecording);
   const [isAudioPlaying] = useLinkedState(renderer.isAudioPlaying);
+  const cursorCanvasRef = useRef<HTMLCanvasElement>(null);
+  const [cursorPos] = useLinkedState(project.cursorPos);
+  const [selectionWidth] = useLinkedState(project.selectionWidth);
+
+  useEffect(() => {
+    const canvas = cursorCanvasRef.current;
+    const ctx = canvas?.getContext("2d");
+    if (ctx == null || canvas == null) return;
+    ctx.font = "24px Verdana";
+    ctx.textAlign = "start";
+    ctx.fillStyle = "#ffffff";
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (selectionWidth !== null) {
+      const start = cursorPos.toFixed(2);
+      const end = (cursorPos + selectionWidth).toFixed(2);
+      ctx.fillText(
+        `Time Selection:   Start: ${start}s   End: ${end}s   (Duration: ${selectionWidth.toFixed(2)}s)`,
+        6,
+        26
+      );
+    } else {
+      ctx.fillText(`Time Selection:   Start: ${cursorPos.toFixed(2)}s   End: --.--s   (Duration: 0.00s)`, 6, 26);
+    }
+  }, [cursorPos, selectionWidth]);
 
   return (
     <div style={{ display: "flex", flexDirection: "row", ...style }}>
+      <button
+        className={utility.button}
+        disabled={isAudioPlaying || (cursorPos === 0 && selectionWidth === 0)}
+        style={isRecording ? { color: "red" } : undefined}
+        onClick={() => {
+          project.cursorPos.set(0);
+          project.selectionWidth.set(0);
+        }}
+      >
+        {"\u23ee"}
+      </button>
+
+      {/* Cursor canvas */}
       <canvas
         style={{
           background: "black",
-          width: 56,
+          width: 2 * 210,
           height: 18,
           alignSelf: "center",
+          marginRight: 4,
         }}
-        width={2 * 56 + "px"}
+        width={2 * (2 * 210) + "px"}
         height={2 * 18 + "px"}
-        ref={(canvas) => {
-          const ctx = canvas?.getContext("2d") ?? null;
-          player.setPlaytimeCanvas(ctx);
-        }}
+        ref={cursorCanvasRef}
       />
+
       <button
         className={utility.button}
         style={{ color: isRecording ? "red" : undefined, width: 17.56 }}
@@ -147,44 +181,22 @@ function TransportControl({
           {"\u23fa"}
         </button>
       )}
-    </div>
-  );
-}
-
-export function UploadAudioButton({
-  project,
-  firebaseStoreRef,
-  loadClip,
-}: {
-  project: AudioProject;
-  firebaseStoreRef: firebase.storage.Reference | null;
-  loadClip: (url: string, name?: string) => Promise<void>;
-}) {
-  const [uploadStatus, setUploadStatus] = useState<"idle" | "uploading">("idle");
-  return (
-    firebaseStoreRef && (
-      <UploadButton
-        className={utility.button}
-        value={uploadStatus === "idle" ? "upload audio" : "uploading..."}
-        disabled={uploadStatus === "uploading"}
-        accept="audio/*"
-        onChange={async function (e) {
-          const file = (e.target.files || [])[0];
-          if (!file) {
-            console.log("NO FILE");
-            return;
-          }
-          setUploadStatus("uploading");
-          const result = await AudioStorage.uploadAudioFile(file, firebaseStoreRef, project);
-          if (result instanceof Error) {
-            throw result;
-          }
-          const url = result;
-          ignorePromise(loadClip(url, file.name));
-          setUploadStatus("idle");
+      {/* Playtime canvas */}
+      <canvas
+        style={{
+          background: "black",
+          width: 56,
+          height: 18,
+          alignSelf: "center",
+        }}
+        width={2 * 56 + "px"}
+        height={2 * 18 + "px"}
+        ref={(canvas) => {
+          const ctx = canvas?.getContext("2d") ?? null;
+          player.setPlaytimeCanvas(ctx);
         }}
       />
-    )
+    </div>
   );
 }
 
@@ -192,12 +204,10 @@ export function ToolHeader({
   project,
   player,
   renderer,
-  firebaseStoreRef,
 }: {
   project: AudioProject;
   player: AnalizedPlayer;
   renderer: AudioRenderer;
-  firebaseStoreRef?: firebase.storage.Reference | null;
 }) {
   const [bounceURL] = useLinkedState<string | null>(renderer.bounceURL);
   const [scaleFactor] = useLinkedState(project.scaleFactor);
@@ -247,9 +257,6 @@ export function ToolHeader({
           }}
         >
           <NewProjectButton />
-          {firebaseStoreRef && (
-            <UploadAudioButton project={project} firebaseStoreRef={firebaseStoreRef} loadClip={loadClip} />
-          )}
 
           <div style={{ flexGrow: 1 }}></div>
 
@@ -327,87 +334,6 @@ export function ToolHeader({
           player.setCanvas(ctx);
         }}
       ></canvas>
-    </div>
-  );
-}
-
-export function Library({
-  project,
-  renderer,
-  player,
-  firebaseStoreRef,
-}: {
-  project: AudioProject;
-  renderer: AudioRenderer;
-  player: AnalizedPlayer;
-  firebaseStoreRef: firebase.storage.Reference | null;
-}) {
-  const [isAudioPlaying] = useLinkedState(renderer.isAudioPlaying);
-  const audioFiles = useListProjectAudioFiles(project, firebaseStoreRef ?? undefined);
-
-  const loadClip = useCallback(
-    async function loadClip(url: string, name?: string) {
-      try {
-        console.log("LOAD CLIP");
-        // load clip
-        const clip = await AudioClip.fromURL(url, name);
-        const newTrack = AudioTrack.fromClip(clip);
-        AudioProject.addTrack(project, player, newTrack);
-        console.log("loaded");
-      } catch (e) {
-        console.trace(e);
-        return;
-      }
-    },
-    [player, project]
-  );
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column" }}>
-      {["drums.mp3", "clav.mp3", "bassguitar.mp3", "horns.mp3", "leadguitar.mp3"].map(function (url, i) {
-        return (
-          <button
-            key={i}
-            draggable
-            disabled={isAudioPlaying}
-            onDragStart={function (ev: React.DragEvent<HTMLButtonElement>) {
-              ev.dataTransfer.setData("text/uri-list", url);
-              ev.dataTransfer.setData("text/plain", url);
-            }}
-            onClick={function () {
-              ignorePromise(loadClip(url));
-            }}
-          >
-            load {url}
-          </button>
-        );
-      })}
-      <hr style={{ width: "100%" }} />
-      {/* TODO: this won't be updated when new audio gets uploaded, unless it's constantly executed when I think it might be */}
-      {audioFiles.status === "ready" && audioFiles.value !== null && (
-        <>
-          {audioFiles.value.map(function (ref, i) {
-            return (
-              <button
-                key={i}
-                draggable
-                disabled={isAudioPlaying}
-                // onDragStart={function (ev: React.DragEvent<HTMLButtonElement>) {
-                //   // ev.dataTransfer.setData("text/uri-list", url);
-                //   // ev.dataTransfer.setData("text/plain", url);
-                // }}
-                onClick={async function () {
-                  const url = await ref.getDownloadURL();
-                  ignorePromise(loadClip(url));
-                }}
-              >
-                {ref.name}
-              </button>
-            );
-          })}
-          <hr style={{ width: "100%" }} />
-        </>
-      )}
     </div>
   );
 }
