@@ -1,9 +1,11 @@
-import { TFaustUIItem } from "@shren/faust-ui/src/types";
 import { exhaustive } from "../../utils/exhaustive";
 import { FaustAudioEffect } from "../FaustAudioEffect";
 import "./faust.css";
 import { FaustGroup } from "./FaustGroup";
 import { FaustSlider } from "./FaustSlider";
+import { LayoutTypeMap } from "@shren/faust-ui/src/types";
+
+type TFaustUIItem = LayoutTypeMap[keyof LayoutTypeMap];
 
 export function FaustItem({ item, effect }: { item: TFaustUIItem; effect: FaustAudioEffect }) {
   const { type } = item;

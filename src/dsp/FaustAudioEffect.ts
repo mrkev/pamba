@@ -1,7 +1,9 @@
-import { TFaustUIItem } from "@shren/faust-ui/src/types";
 import { FaustAudioProcessorNode, ProcessorLoader } from "faust-loader-vite";
 import { LinkedMap } from "../lib/state/LinkedMap";
 import { EffectID, FAUST_EFFECTS } from "./FAUST_EFFECTS";
+import { LayoutTypeMap } from "@shren/faust-ui/src/types";
+
+type TFaustUIItem = LayoutTypeMap[keyof LayoutTypeMap];
 
 export interface INodeData {
   compile_options: string;

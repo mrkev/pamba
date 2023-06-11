@@ -1,13 +1,13 @@
-import { TFaustUIInputItem } from "@shren/faust-ui/src/types";
 import React, { useState } from "react";
 import { FaustAudioEffect } from "../FaustAudioEffect";
+import type { FaustUIInputItem } from "@shren/faustwasm";
 
 export function FaustSlider({
   item,
   effect,
   direction,
 }: {
-  item: TFaustUIInputItem;
+  item: FaustUIInputItem;
   effect: FaustAudioEffect;
   direction: "vertical" | "horizontal";
 }) {

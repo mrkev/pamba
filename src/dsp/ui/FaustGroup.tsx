@@ -1,9 +1,9 @@
-import { TFaustUIGroup } from "@shren/faust-ui/src/types";
+import type { FaustUIGroup } from "@shren/faustwasm";
 import React from "react";
+import { createUseStyles } from "react-jss";
 import { utility } from "../../ui/utility";
 import { FaustAudioEffect } from "../FaustAudioEffect";
 import { FaustItem } from "./FaustItem";
-import { createUseStyles } from "react-jss";
 
 const useStyles = createUseStyles({
   faustGroupRoot: {
@@ -33,7 +33,7 @@ export function FaustGroup({
   isSelected = false,
   canDelete = true,
 }: {
-  item: TFaustUIGroup;
+  item: FaustUIGroup;
   effect: FaustAudioEffect;
   isTopLevel?: boolean;
   onClickRemove?: () => void;
