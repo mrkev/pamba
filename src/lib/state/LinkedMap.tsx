@@ -26,7 +26,7 @@ export class LinkedMap<K, V> implements Map<K, V>, Subbable<ReadonlyMap<K, V>>, 
   }
 
   public static create<K, V>(initialValue?: Map<K, V>) {
-    return new this(initialValue ?? new Map());
+    return new this<K, V>(initialValue ?? new Map());
   }
 
   map<T>(callbackfn: (value: V, key: K, map: Map<K, V>) => T): T[] {

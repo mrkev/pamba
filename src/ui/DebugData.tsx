@@ -85,7 +85,7 @@ export function DebugData({ project }: { project: AudioProject }) {
       ))}
       <button
         onClick={() => {
-          timeMarkers.set(Math.random(), "HELLO");
+          timeMarkers.set(Math.random(), 2);
         }}
       >
         timeMarker/LinkedMap Test

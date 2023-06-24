@@ -14,7 +14,7 @@ import { TimelineView } from "./TimelineView";
 import { ToolHeader } from "./ToolHeader";
 // import { TrackThread } from "../lib/TrackThread";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
-import { Demo } from "../wam";
+import { Demo } from "../wam/wam";
 
 // var w = new TrackThread();
 // var sab = new SharedArrayBuffer(1024);

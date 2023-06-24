@@ -170,7 +170,7 @@ export function Axis({ project }: { project: AudioProject }) {
                 />
                 marker {id}
               </div>,
-            ];
+            ] as const;
           })
           .sort(([a], [b]) => a - b)
           .map(([, elem]) => elem)}

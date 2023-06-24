@@ -18,7 +18,6 @@ export function WindowPanel({ children }: { children?: React.ReactNode }) {
     titleBarRef,
     useCallback(
       (e: MouseEvent) => {
-        console.log("FO");
         setCursor({
           status: "moving",
           start: [e.clientX - position[0], e.clientY - position[1]],
@@ -32,7 +31,6 @@ export function WindowPanel({ children }: { children?: React.ReactNode }) {
     "mouseup",
     document,
     useCallback(() => {
-      console.log("FaaO");
       setCursor({ status: "idle" });
     }, [])
   );
@@ -70,6 +68,8 @@ export function WindowPanel({ children }: { children?: React.ReactNode }) {
 
 const useStyles = createUseStyles({
   window: {
+    border: "2px solid black",
+    overflow: "hidden",
     display: "flex",
     flexDirection: "column",
     position: "fixed",
