@@ -6,6 +6,7 @@ import { appEnvironment } from "../lib/AppEnvironment";
 import { useLinkedMap } from "../lib/state/LinkedMap";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { WindowPanel } from "./WindowPanel";
+import { DSPNode } from "../dsp/DSPNode";
 
 export type WAMImport = {
   prototype: WebAudioModule;
@@ -43,12 +44,24 @@ function useAsyncState<T>(cb: () => Promise<T>): T | null {
   return result;
 }
 
-export class PambaWam {
+export class PambaWamNode extends DSPNode {
+  override inputNode(): AudioNode {
+    return this.module.audioNode;
+  }
+  override outputNode(): AudioNode | DSPNode<AudioNode> {
+    return this.module.audioNode;
+  }
+
+  override effectId: string;
   readonly module: WebAudioModule<IWamNode>;
   readonly dom: Element;
+
   private constructor(module: WebAudioModule<IWamNode>, dom: Element) {
+    super();
     this.module = module;
     this.dom = dom;
+    this.effectId = this.module.moduleId;
+    // TODO: this.moduledestroyGui
   }
 
   static async fromURL(plugin1Url: string, hostGroupId: string, audioCtx: AudioContext) {
@@ -61,13 +74,17 @@ export class PambaWam {
     const WAM1: WAMImport = rawModule.default;
     let pluginInstance1 = await WAM1.createInstance(hostGroupId, audioCtx);
     let pluginDom1 = await pluginInstance1.createGui();
-    return new PambaWam(pluginInstance1, pluginDom1);
+    return new PambaWamNode(pluginInstance1, pluginDom1);
   }
 
   static async fromImport(wamImport: WAMImport, hostGroupId: string, audioCtx: AudioContext) {
     let pluginInstance1 = await wamImport.createInstance(hostGroupId, audioCtx);
     let pluginDom1 = await pluginInstance1.createGui();
-    return new PambaWam(pluginInstance1, pluginDom1);
+    return new PambaWamNode(pluginInstance1, pluginDom1);
+  }
+
+  override cloneToOfflineContext(_context: OfflineAudioContext): Promise<DSPNode<AudioNode> | null> {
+    throw new Error("PambaWamNode: cloneToOfflineContext: Method not implemented.");
   }
 }
 
@@ -77,7 +94,7 @@ function usePambaWam(wamImport: WAMImport | null, hostGroupId: string | null) {
       if (hostGroupId == null || wamImport == null) {
         return null;
       }
-      const module = await PambaWam.fromImport(wamImport, hostGroupId, liveAudioContext);
+      const module = await PambaWamNode.fromImport(wamImport, hostGroupId, liveAudioContext);
       return module;
     }, [hostGroupId, wamImport])
   );
@@ -90,7 +107,7 @@ function useWamHostGroup() {
   return wamHostGroup ? wamHostGroup[0] : null;
 }
 
-export const WamPluginContent = React.memo(function WamPluginContentImpl({ wam }: { wam: PambaWam }) {
+export const WamPluginContent = React.memo(function WamPluginContentImpl({ wam }: { wam: PambaWamNode }) {
   const divRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const div = divRef.current;
@@ -126,7 +143,7 @@ export function Demo() {
       >
         acutal start
       </button>
-      {wam1 && (
+      {/* {wam1 && (
         <WindowPanel>
           <WamPluginContent wam={wam1} />
         </WindowPanel>
@@ -135,7 +152,7 @@ export function Demo() {
         <WindowPanel>
           <WamPluginContent wam={wam2} />
         </WindowPanel>
-      )}
+      )} */}
     </>
   );
 }

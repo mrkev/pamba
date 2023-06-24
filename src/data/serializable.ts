@@ -5,6 +5,7 @@ import { AudioTrack } from "../lib/AudioTrack";
 import { exhaustive } from "../utils/exhaustive";
 import { liveAudioContext } from "../constants";
 import { EffectID } from "../dsp/FAUST_EFFECTS";
+import { PambaWamNode } from "../wam/wam";
 
 export type SAudioClip = {
   kind: "AudioClip";
@@ -15,7 +16,7 @@ export type SAudioClip = {
 export type SAudioTrack = {
   kind: "AudioTrack";
   clips: Array<SAudioClip>;
-  effects: Array<SFaustAudioEffect>;
+  effects: Array<SFaustAudioEffect | SPambaWamNode>;
   height: number;
   name: string;
 };
@@ -32,12 +33,18 @@ export type SFaustAudioEffect = {
   params: Array<[address: string, value: number]>;
 };
 
-export async function serializable(obj: FaustAudioEffect): Promise<SFaustAudioEffect>;
+export type SPambaWamNode = {
+  kind: "PambaWamNode";
+};
+
+export async function serializable(
+  obj: FaustAudioEffect | PambaWamNode
+): Promise<SFaustAudioEffect | SFaustAudioEffect>;
 export async function serializable(obj: AudioProject): Promise<SAudioProject>;
 export async function serializable(obj: AudioTrack): Promise<SAudioTrack>;
 export async function serializable(obj: AudioClip): Promise<SAudioClip>;
 export async function serializable(
-  obj: AudioClip | AudioTrack | AudioProject | FaustAudioEffect
+  obj: AudioClip | AudioTrack | AudioProject | FaustAudioEffect | PambaWamNode
 ): Promise<SAudioClip | SAudioTrack | SAudioProject | SFaustAudioEffect> {
   if (obj instanceof AudioClip) {
     const { name, bufferURL } = obj;
@@ -70,16 +77,21 @@ export async function serializable(
     };
   }
 
+  if (obj instanceof PambaWamNode) {
+    throw new Error("PambaWamNode: NOT SERIALIZABLE");
+  }
+
   exhaustive(obj);
 }
 
-export async function construct(rep: SFaustAudioEffect): Promise<FaustAudioEffect>;
+// export async function construct(rep: SPambaWamNode): Promise<PambaWamNode>;
+export async function construct(rep: SFaustAudioEffect | SPambaWamNode): Promise<FaustAudioEffect | PambaWamNode>;
 export async function construct(rep: SAudioProject): Promise<AudioProject>;
 export async function construct(rep: SAudioClip): Promise<AudioClip>;
 export async function construct(rep: SAudioTrack): Promise<AudioTrack>;
 export async function construct(
-  rep: SAudioClip | SAudioTrack | SAudioProject | SFaustAudioEffect
-): Promise<AudioClip | AudioTrack | AudioProject | FaustAudioEffect> {
+  rep: SAudioClip | SAudioTrack | SAudioProject | SFaustAudioEffect | SPambaWamNode
+): Promise<AudioClip | AudioTrack | AudioProject | FaustAudioEffect | PambaWamNode> {
   switch (rep.kind) {
     case "AudioClip": {
       const { bufferURL, name } = rep;
@@ -102,6 +114,9 @@ export async function construct(
         throw new Error(`Could not initialize effect ${rep.effectId}`);
       }
       return effect;
+    }
+    case "PambaWamNode": {
+      throw new Error("NOT PARSABLE: PambaWamNode");
     }
 
     default:

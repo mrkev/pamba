@@ -86,7 +86,7 @@ function AppProject({ project }: { project: AudioProject }) {
 
   return (
     <>
-      <Demo />
+      {/* <Demo /> */}
       <ToolHeader project={project} player={renderer.analizedPlayer} renderer={renderer} />
       <PanelGroup direction="horizontal">
         <Panel collapsible={true} defaultSize={15} onCollapse={console.log}>

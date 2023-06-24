@@ -11,6 +11,7 @@ import { RenamableLabel } from "./RenamableLabel";
 import { pressedState } from "../pressedState";
 import { utility, UtilitySlider } from "./utility";
 import { createUseStyles } from "react-jss";
+import { appEnvironment } from "../lib/AppEnvironment";
 
 const useStyles = createUseStyles({
   actionButton: {
@@ -239,8 +240,20 @@ export default function TrackHeader({ track, project, player }: Props) {
               // }
             }}
           >
-            <option onDoubleClick={async () => track.addEffect("PANNER")}>Panner</option>
-            <option onDoubleClick={async () => track.addEffect("REVERB")}>Reverb</option>
+            <option key="PANNER" onDoubleClick={async () => track.addEffect("PANNER")}>
+              Panner
+            </option>
+            <option key="REVERB" onDoubleClick={async () => track.addEffect("REVERB")}>
+              Reverb
+            </option>
+
+            {appEnvironment.wamPlugins.map((value, key) => {
+              return (
+                <option key={key} onDoubleClick={async () => track.addWAM(value)}>
+                  {key}
+                </option>
+              );
+            })}
 
             {/* <optgroup label="4-legged pets">
               <option value="dog">Dog</option>

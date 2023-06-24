@@ -7,6 +7,10 @@ import { AudioTrack } from "../lib/AudioTrack";
 import { useLinkedArray } from "../lib/state/LinkedArray";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { createUseStyles } from "react-jss";
+import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
+import { PambaWamNode, WamPluginContent } from "../wam/wam";
+import { exhaustive } from "../utils/exhaustive";
+import { WindowPanel } from "../wam/WindowPanel";
 
 const useStyles = createUseStyles({
   effectRack: {
@@ -59,51 +63,73 @@ export const EffectRack = React.memo(function EffectRack({
   }, []);
 
   return (
-    <div
-      style={{
-        height: EFFECT_HEIGHT,
-      }}
-      className={styles.effectRack}
-      onMouseDownCapture={(e) => {
-        e.stopPropagation();
-      }}
-      ref={rackRef}
-    >
-      {"↳"}
+    <>
+      {/* RENDER WAM WINDOWS OUT HERE */}
       {effects.map((effect, i) => {
-        return (
-          <React.Fragment key={i}>
-            <FaustEffectModule
-              canDelete={!isAudioPlaying}
-              effect={effect}
-              style={{
-                alignSelf: "stretch",
-                margin: "2px",
-                borderRadius: "2px",
-              }}
-              onClickRemove={() => AudioTrack.removeEffect(track, effect)}
-              onHeaderClick={() => ProjectSelection.selectEffect(project, effect, track)}
-              onClickBypass={() => AudioTrack.bypassEffect(track, effect)}
-              isSelected={selected?.status === "effects" && selected.test.has(effect)}
-            />
-            {"→"}
-          </React.Fragment>
-        );
+        if (effect instanceof PambaWamNode) {
+          return (
+            <div>
+              <WindowPanel>
+                <WamPluginContent wam={effect} />
+              </WindowPanel>
+              TODO WAM NODE
+            </div>
+          );
+        }
       })}
-
       <div
         style={{
-          alignSelf: "stretch",
-          margin: "2px",
-          borderRadius: "2px",
-          background: "gray",
-          border: "1px solid #333",
-          padding: 4,
-          fontSize: "14px",
+          height: EFFECT_HEIGHT,
         }}
+        className={styles.effectRack}
+        onMouseDownCapture={(e) => {
+          e.stopPropagation();
+        }}
+        ref={rackRef}
       >
-        Output
-        {/* <meter
+        {"↳"}
+        {effects.map((effect, i) => {
+          if (effect instanceof FaustAudioEffect) {
+            return (
+              <React.Fragment key={i}>
+                <FaustEffectModule
+                  canDelete={!isAudioPlaying}
+                  effect={effect}
+                  style={{
+                    alignSelf: "stretch",
+                    margin: "2px",
+                    borderRadius: "2px",
+                  }}
+                  onClickRemove={() => AudioTrack.removeEffect(track, effect)}
+                  onHeaderClick={() => ProjectSelection.selectEffect(project, effect, track)}
+                  onClickBypass={() => AudioTrack.bypassEffect(track, effect)}
+                  isSelected={selected?.status === "effects" && selected.test.has(effect)}
+                />
+                {"→"}
+              </React.Fragment>
+            );
+          }
+
+          if (effect instanceof PambaWamNode) {
+            return <div>TODO WAM NODE</div>;
+          }
+
+          return exhaustive(effect);
+        })}
+
+        <div
+          style={{
+            alignSelf: "stretch",
+            margin: "2px",
+            borderRadius: "2px",
+            background: "gray",
+            border: "1px solid #333",
+            padding: 4,
+            fontSize: "14px",
+          }}
+        >
+          Output
+          {/* <meter
               style={{ transform: "rotate(270deg)" }}
               id="fuel"
               min="0"
@@ -115,7 +141,8 @@ export const EffectRack = React.memo(function EffectRack({
             >
               at 50/100
             </meter> */}
+        </div>
       </div>
-    </div>
+    </>
   );
 });

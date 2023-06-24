@@ -9,6 +9,9 @@ import { SPrimitive } from "./state/LinkedState";
 import { TrackThread } from "./TrackThread";
 import { DSPNode } from "../dsp/DSPNode";
 import { PBGainNode } from "./offlineNodes";
+import { PambaWamNode, WAMImport } from "../wam/wam";
+import nullthrows from "../utils/nullthrows";
+import { appEnvironment } from "./AppEnvironment";
 
 export class AudioTrack extends DSPNode<null> {
   // A track is a collection of non-overalping clips.
@@ -16,7 +19,7 @@ export class AudioTrack extends DSPNode<null> {
   // - Sorted by start time.
   // - Non-overlapping clips.
   public clips: LinkedArray<AudioClip>;
-  public effects: LinkedArray<FaustAudioEffect>;
+  public effects: LinkedArray<FaustAudioEffect | PambaWamNode>;
   public name: SPrimitive<string>;
   public height: SPrimitive<number>;
 
@@ -38,7 +41,7 @@ export class AudioTrack extends DSPNode<null> {
     return this._hiddenGainNode;
   }
 
-  private constructor(name: string, clips: AudioClip[], effects: FaustAudioEffect[], height: number) {
+  private constructor(name: string, clips: AudioClip[], effects: (FaustAudioEffect | PambaWamNode)[], height: number) {
     super();
     this.name = SPrimitive.of(name);
     this.clips = LinkedArray.create(clips);
@@ -51,7 +54,12 @@ export class AudioTrack extends DSPNode<null> {
   }
 
   private static trackNo = 0;
-  static create(props?: { name?: string; clips?: AudioClip[]; effects?: FaustAudioEffect[]; height?: number }) {
+  static create(props?: {
+    name?: string;
+    clips?: AudioClip[];
+    effects?: (FaustAudioEffect | PambaWamNode)[];
+    height?: number;
+  }) {
     return new this(
       props?.name ?? `Track ${this.trackNo++}`,
       props?.clips ?? [],
@@ -83,6 +91,12 @@ export class AudioTrack extends DSPNode<null> {
       return;
     }
     this.effects.push(effect);
+  }
+
+  async addWAM(wamImport: WAMImport) {
+    const [hostGroupId] = nullthrows(appEnvironment.wamHostGroup.get());
+    const module = await PambaWamNode.fromImport(wamImport, hostGroupId, liveAudioContext);
+    this.effects.push(module);
   }
 
   //////////// Playback ////////////
