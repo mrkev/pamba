@@ -23,7 +23,8 @@
     "experimentalDecorators": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "noImplicitOverride": true
+    "noImplicitOverride": true,
+    "types": ["vite/client"]
   },
   "include": ["src"]
 }

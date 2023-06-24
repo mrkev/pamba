@@ -6,6 +6,8 @@ import { StorageReference, getStorage, ref } from "firebase/storage";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { useLinkedState } from "../lib/state/LinkedState";
 
+const SKIP_FIREBASE = false;
+
 // Your web app's Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyBhdehFiYqwx3ahC5yCh6NTQgW7NxZMXvk",
@@ -16,24 +18,25 @@ const firebaseConfig = {
   appId: "1:204416012722:web:9e00b129f067d20c4894ab",
 };
 
-export function useFirebaseApp(config: typeof firebaseConfig): FirebaseApp | null {
-  const [firebaseApp, setFirebaseApp] = useState<FirebaseApp | null>(null);
+export function useFirebaseApp(): FirebaseApp | null {
+  const [firebaseApp] = useLinkedState(appEnvironment.firebaseApp);
 
-  // Firebase storage
   useEffect(() => {
-    // Initialize Firebase
-    const app = initializeApp(config);
-    setFirebaseApp(app);
-  }, [config]);
+    if (firebaseApp != null) {
+      return;
+    }
+
+    const app = initializeApp(firebaseConfig);
+    appEnvironment.firebaseApp.set(app);
+    console.log("Initialized firebase app.");
+  }, [firebaseApp]);
 
   return firebaseApp;
 }
 
-const SKIP_FIREBASE = false;
-
 export function useFirebaseUser(): User | null {
-  const firebaseApp = useFirebaseApp(firebaseConfig);
-  const [firebaseUser, setFirebaseUser] = useLinkedState<User | null>(appEnvironment.user);
+  const firebaseApp = useFirebaseApp();
+  const [firebaseUser, setFirebaseUser] = useLinkedState(appEnvironment.firebaseUser);
   const [signingIn, setSigningIn] = useState<boolean>(false);
 
   useEffect(() => {
@@ -92,7 +95,7 @@ export function useFirebaseUser(): User | null {
 export function usePambaFirebaseStoreRef(): StorageReference | null {
   const [firebaseStoreRef, setFirebaseStoreRef] = useState<StorageReference | null>(null);
 
-  const firebaseApp = useFirebaseApp(firebaseConfig);
+  const firebaseApp = useFirebaseApp();
   const user = useFirebaseUser();
 
   useEffect(() => {

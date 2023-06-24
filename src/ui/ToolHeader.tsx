@@ -13,6 +13,7 @@ import { useMediaRecorder } from "../utils/useMediaRecorder";
 import { appProjectStatus } from "./App";
 import { AnchorButton } from "./FormButtons";
 import { utility } from "./utility";
+import { UserAuthControl } from "./UserAuthControl";
 
 function NewProjectButton() {
   return (
@@ -240,7 +241,6 @@ export function ToolHeader({
       <div
         style={{
           flexGrow: 1,
-          gap: 2,
           display: "flex",
           flexDirection: "column",
           alignItems: "flex-end",
@@ -278,7 +278,17 @@ export function ToolHeader({
             style={{ alignSelf: "center" }}
           />
         </div>
-        {/* <input
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            gap: "6px",
+            alignSelf: "stretch",
+            alignItems: "baseline",
+          }}
+        >
+          <UserAuthControl />
+          {/* <input
             value={""}
             type="file"
             accept="audio/*"
@@ -288,38 +298,40 @@ export function ToolHeader({
               loadClip(url, files[0].name);
             }}
           /> */}
-        <input
-          type="range"
-          min={Math.log(2)}
-          max={Math.log(100)}
-          step={0.01}
-          value={Math.log(scaleFactor)}
-          title="Zoom level"
-          onChange={(e) => {
-            const projectDiv = project.projectDiv.get();
-            if (!projectDiv) {
-              return;
-            }
-            const newFactor = Math.exp(parseFloat(e.target.value));
+          <div style={{ flexGrow: 1 }}></div>
+          <input
+            type="range"
+            min={Math.log(2)}
+            max={Math.log(100)}
+            step={0.01}
+            value={Math.log(scaleFactor)}
+            title="Zoom level"
+            onChange={(e) => {
+              const projectDiv = project.projectDiv.get();
+              if (!projectDiv) {
+                return;
+              }
+              const newFactor = Math.exp(parseFloat(e.target.value));
 
-            const renderedWidth = projectDiv.clientWidth;
-            const renderedTime = project.viewport.pxToSecs(projectDiv.clientWidth);
-            const newRenderedWidth = project.viewport.secsToPx(renderedTime, newFactor);
+              const renderedWidth = projectDiv.clientWidth;
+              const renderedTime = project.viewport.pxToSecs(projectDiv.clientWidth);
+              const newRenderedWidth = project.viewport.secsToPx(renderedTime, newFactor);
 
-            console.log("new", newRenderedWidth, "old", renderedWidth);
-            const pxDelta = newRenderedWidth - renderedWidth;
-            console.log("PXDELTA", pxDelta);
+              console.log("new", newRenderedWidth, "old", renderedWidth);
+              const pxDelta = newRenderedWidth - renderedWidth;
+              console.log("PXDELTA", pxDelta);
 
-            // console.log(currentFactor, newFactor, currentFactor - newFactor);
-            // const totalPixels = projectDiv.clientWidth * (currentFactor - newFactor);
-            // console.log(projectDiv.clientWidth, "totalPixels", totalPixels);
-            // const viewportEndPx = viewportStartPx + projectDiv.clientWidth;
-            // const middlePx = (viewportStartPx + viewportEndPx) / 2;
+              // console.log(currentFactor, newFactor, currentFactor - newFactor);
+              // const totalPixels = projectDiv.clientWidth * (currentFactor - newFactor);
+              // console.log(projectDiv.clientWidth, "totalPixels", totalPixels);
+              // const viewportEndPx = viewportStartPx + projectDiv.clientWidth;
+              // const middlePx = (viewportStartPx + viewportEndPx) / 2;
 
-            project.scaleFactor.set(newFactor);
-            project.viewportStartPx.setDyn((prev) => prev + pxDelta / 2);
-          }}
-        />
+              project.scaleFactor.set(newFactor);
+              project.viewportStartPx.setDyn((prev) => prev + pxDelta / 2);
+            }}
+          />
+        </div>
       </div>
       <canvas
         style={{
