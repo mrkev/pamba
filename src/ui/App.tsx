@@ -1,17 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { AnalizedPlayer } from "../lib/AnalizedPlayer";
-import { DebugData } from "./DebugData";
-import { usePambaFirebaseStoreRef } from "../firebase/useFirebase";
-import { AudioProject } from "../lib/AudioProject";
-import { ProjectPersistance } from "../lib/ProjectPersistance";
-import { AudioRenderer } from "../lib/AudioRenderer";
 import { modifierState, useSingletonKeyboardModifierState } from "../ModifierState";
+import { usePambaFirebaseStoreRef } from "../firebase/useFirebase";
+import { useAppProjectKeyboardEvents } from "../input/useAppProjectKeyboardEvents";
+import { AnalizedPlayer } from "../lib/AnalizedPlayer";
+import { AudioProject } from "../lib/AudioProject";
+import { AudioRenderer } from "../lib/AudioRenderer";
+import { ProjectPersistance } from "../lib/ProjectPersistance";
+import { SPrimitive, useLinkedState } from "../lib/state/LinkedState";
+import { ignorePromise } from "../utils/ignorePromise";
+import { DebugData } from "./DebugData";
+import { Library } from "./Library";
 import { TimelineView } from "./TimelineView";
 import { ToolHeader } from "./ToolHeader";
-import { Library } from "./Library";
-import { useAppProjectKeyboardEvents } from "../input/useAppProjectKeyboardEvents";
-import { ignorePromise } from "../utils/ignorePromise";
-import { SPrimitive, useLinkedState } from "../lib/state/LinkedState";
 // import { TrackThread } from "../lib/TrackThread";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 
@@ -85,6 +85,47 @@ function AppProject({ project }: { project: AudioProject }) {
 
   return (
     <>
+      {/* <button
+        onClick={async () => {
+          const auth = getAuth();
+          const provider = new GoogleAuthProvider();
+
+          try {
+            const result = await signInWithPopup(auth, provider);
+
+            // This gives you a Google Access Token. You can use it to access the Google API.
+            const credential = GoogleAuthProvider.credentialFromResult(result);
+            if (!credential) {
+              throw new Error("No credentials returned!");
+            }
+
+            // can use the token to call google apis
+            const token = credential.accessToken;
+            // The signed-in user info.
+            const user = result.user;
+
+            // IdP data available using getAdditionalUserInfo(result)
+            // ...
+
+            appEnvironment.user.set(user);
+
+            console.log("signed in", user);
+          } catch (error: any) {
+            // Handle Errors here.
+            const errorCode = error.code;
+            const errorMessage = error.message;
+            // The email of the user's account used.
+            const email = error.customData.email;
+            // The AuthCredential type that was used.
+            const credential = GoogleAuthProvider.credentialFromError(error);
+            // ...
+
+            console.error(error);
+          }
+        }}
+      >
+        login
+      </button> */}
       <ToolHeader project={project} player={renderer.analizedPlayer} renderer={renderer} />
       <PanelGroup direction="horizontal">
         <Panel collapsible={true} defaultSize={15} onCollapse={console.log}>

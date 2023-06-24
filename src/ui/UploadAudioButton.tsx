@@ -5,6 +5,7 @@ import { utility } from "./utility";
 import { UploadButton } from "./FormButtons";
 import type firebase from "firebase/compat";
 import { AudioStorage } from "../lib/audioStorage";
+import { StorageReference } from "firebase/storage";
 
 export function UploadAudioButton({
   project,
@@ -12,7 +13,7 @@ export function UploadAudioButton({
   loadClip,
 }: {
   project: AudioProject;
-  firebaseStoreRef: firebase.storage.Reference | null;
+  firebaseStoreRef: StorageReference | null;
   loadClip: (url: string, name?: string) => Promise<void>;
 }) {
   const [uploadStatus, setUploadStatus] = useState<"idle" | "uploading">("idle");

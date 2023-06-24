@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
-import firebase from "firebase/compat/app";
-import "firebase/compat/auth";
-import "firebase/compat/storage";
+import { FirebaseApp, initializeApp } from "firebase/app";
+import { User, getAuth, onAuthStateChanged, signInAnonymously } from "firebase/auth";
+import { Database, getDatabase } from "firebase/database";
+import { StorageReference, getStorage, ref } from "firebase/storage";
+import { appEnvironment } from "../lib/AppEnvironment";
+import { useLinkedState } from "../lib/state/LinkedState";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -13,31 +16,25 @@ const firebaseConfig = {
   appId: "1:204416012722:web:9e00b129f067d20c4894ab",
 };
 
-export function useFirebaseApp(config: typeof firebaseConfig): firebase.app.App | null {
-  const [firebaseApp, setFirebaseApp] = useState<firebase.app.App | null>(null);
+export function useFirebaseApp(config: typeof firebaseConfig): FirebaseApp | null {
+  const [firebaseApp, setFirebaseApp] = useState<FirebaseApp | null>(null);
 
   // Firebase storage
-  useEffect(
-    function () {
-      if (!firebase.apps.length) {
-        // Initialize Firebase
-        const app = firebase.initializeApp(config);
-        setFirebaseApp(app);
-      } else {
-        setFirebaseApp(firebase.app());
-      }
-    },
-    [config]
-  );
+  useEffect(() => {
+    // Initialize Firebase
+    const app = initializeApp(config);
+    setFirebaseApp(app);
+  }, [config]);
 
   return firebaseApp;
 }
 
 const SKIP_FIREBASE = false;
 
-export function useFirebaseUser(): firebase.User | null {
+export function useFirebaseUser(): User | null {
   const firebaseApp = useFirebaseApp(firebaseConfig);
-  const [firebaseUser, setFirebaseUser] = useState<firebase.User | null>(null);
+  const [firebaseUser, setFirebaseUser] = useLinkedState<User | null>(appEnvironment.user);
+  const [signingIn, setSigningIn] = useState<boolean>(false);
 
   useEffect(() => {
     if (SKIP_FIREBASE) {
@@ -47,27 +44,35 @@ export function useFirebaseUser(): firebase.User | null {
     if (!firebaseApp) {
       return;
     }
+
     // No need to re-sign in if we already have a user
     if (firebaseUser !== null) {
       return;
     }
 
-    const auth = firebase.auth();
-    auth.onAuthStateChanged(function (user) {
+    if (signingIn) {
+      return;
+    }
+
+    setSigningIn(true);
+    const auth = getAuth(firebaseApp);
+    onAuthStateChanged(auth, function (user) {
       if (user) {
         console.log("Anonymous user signed-in.", user);
         setFirebaseUser(user);
+        setSigningIn(false);
       } else {
         setFirebaseUser(null);
         console.log("There was no anonymous session. Creating a new anonymous user.");
         // Sign the user in anonymously since accessing Storage requires the user to be authorized.
-        auth
-          .signInAnonymously()
+        signInAnonymously(auth)
           .then((userCredential) => {
             console.log("New anonymous session successfully.");
             setFirebaseUser(userCredential.user);
+            setSigningIn(false);
           })
           .catch(function (error) {
+            setSigningIn(false);
             if (error.code === "auth/operation-not-allowed") {
               window.alert(
                 "Anonymous Sign-in failed. Please make sure that you have enabled anonymous " +
@@ -79,13 +84,13 @@ export function useFirebaseUser(): firebase.User | null {
           });
       }
     });
-  }, [firebaseApp, firebaseUser]);
+  }, [firebaseApp, firebaseUser, setFirebaseUser, signingIn]);
 
   return firebaseUser;
 }
 
-export function usePambaFirebaseStoreRef(): firebase.storage.Reference | null {
-  const [firebaseStoreRef, setFirebaseStoreRef] = useState<firebase.storage.Reference | null>(null);
+export function usePambaFirebaseStoreRef(): StorageReference | null {
+  const [firebaseStoreRef, setFirebaseStoreRef] = useState<StorageReference | null>(null);
 
   const firebaseApp = useFirebaseApp(firebaseConfig);
   const user = useFirebaseUser();
@@ -104,15 +109,17 @@ export function usePambaFirebaseStoreRef(): firebase.storage.Reference | null {
       return;
     }
 
-    setFirebaseStoreRef(firebase.storage().ref());
+    const storage = getStorage();
+
+    setFirebaseStoreRef(ref(storage));
   }, [firebaseApp, firebaseStoreRef, user]);
 
   return firebaseStoreRef;
 }
 
-export function usePambaFirebaseDBRef(): firebase.database.Database | null {
-  const firebaseApp = useFirebaseApp(firebaseConfig);
+export function usePambaFirebaseDBRef(): Database | null {
+  // const firebaseApp = useFirebaseApp(firebaseConfig);
 
-  const database = firebaseApp?.database() || null;
+  const database = getDatabase() || null;
   return database;
 }

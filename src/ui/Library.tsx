@@ -1,4 +1,4 @@
-import type firebase from "firebase/compat";
+import { StorageReference, getDownloadURL } from "firebase/storage";
 import React, { useCallback } from "react";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import AudioClip from "../lib/AudioClip";
@@ -19,7 +19,7 @@ export function Library({
   project: AudioProject;
   renderer: AudioRenderer;
   player: AnalizedPlayer;
-  firebaseStoreRef: firebase.storage.Reference | null;
+  firebaseStoreRef: StorageReference | null;
 }) {
   const [isAudioPlaying] = useLinkedState(renderer.isAudioPlaying);
   const audioFiles = useListProjectAudioFiles(project, firebaseStoreRef ?? undefined);
@@ -76,7 +76,7 @@ export function Library({
                 //   // ev.dataTransfer.setData("text/plain", url);
                 // }}
                 onClick={async function () {
-                  const url = await ref.getDownloadURL();
+                  const url = await getDownloadURL(ref);
                   ignorePromise(loadClip(url));
                 }}
               >

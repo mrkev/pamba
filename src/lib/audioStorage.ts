@@ -1,15 +1,15 @@
-import firebase from "firebase/compat";
-import type { AudioProject } from "./AudioProject";
-import * as musicMetadata from "music-metadata-browser";
+import { StorageReference, listAll, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import type { IFormat } from "music-metadata";
-import { useCallback, useMemo } from "react";
+import * as musicMetadata from "music-metadata-browser";
+import { useMemo } from "react";
 import { AsyncResultStatus, useAsyncResult } from "../ui/useAsyncResult";
+import type { AudioProject } from "./AudioProject";
 
 export class AudioStorage {
   // TODO: progress callback
   static async uploadAudioFile(
     file: File,
-    firebaseStoreRef: firebase.storage.Reference,
+    firebaseStoreRef: StorageReference,
     project: AudioProject,
     onFormatInfo?: (format: IFormat) => void
   ): Promise<string | Error> {
@@ -41,14 +41,14 @@ export class AudioStorage {
     onFormatInfo?.(metadata.format);
 
     const audioLocation = `project/${project.projectId}/audio/${file.name}`;
-    const snapshot = await firebaseStoreRef.child(audioLocation).put(file, {
+    const snapshot = await uploadBytes(ref(firebaseStoreRef, audioLocation), file, {
       contentType: file.type,
     });
 
-    console.log("Uploaded", snapshot.totalBytes, "bytes.");
+    // console.log("Uploaded", snapshot.totalBytes, "bytes.");
     console.log("File metadata:", snapshot.metadata);
     // Let's get a download URL for the file.
-    const url = await snapshot.ref.getDownloadURL();
+    const url = await getDownloadURL(snapshot.ref);
     console.log("File available at", url);
     return url;
   }
@@ -56,17 +56,15 @@ export class AudioStorage {
 
 export function useListProjectAudioFiles(
   project: AudioProject,
-  firebaseStoreRef?: firebase.storage.Reference
-): AsyncResultStatus<firebase.storage.Reference[]> {
+  firebaseStoreRef?: StorageReference
+): AsyncResultStatus<StorageReference[]> {
   const filesPromise = useMemo(() => {
     if (!firebaseStoreRef) {
       return null;
     }
 
     const location = `project/${project.projectId}/audio`;
-    const files = firebaseStoreRef
-      .child(location)
-      .listAll()
+    const files = listAll(ref(firebaseStoreRef, location))
       .then((files) => files.items)
       .catch((err) => {
         throw err;
