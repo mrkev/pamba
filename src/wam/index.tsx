@@ -23,6 +23,7 @@ import {
 import { useLinkedState } from "../lib/state/LinkedState";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { liveAudioContext } from "../constants";
+import { WindowPanel } from "./WindowPanel";
 
 export type WAMImport = {
   prototype: WebAudioModule;
@@ -48,40 +49,45 @@ const plugin2Url = "https://mainline.i3s.unice.fr/wam2/packages/BigMuff/index.js
 // const widgetLoadingDiv = document.getElementById("widget-loading");
 // const loadingWheelDiv = document.getElementById("loading-wheel");
 
-async function startDemo(audioCtx: AudioContext, node: AudioBufferSourceNode, hostGroupId: string) {
+async function startDemo(
+  audioCtx: AudioContext,
+  node: AudioBufferSourceNode,
+  hostGroupId: string,
+  pambaWam1: PambaWam
+) {
   // await audioCtx.suspend();
 
   // Import our custom WAM Processor and the plugins.
   // const { default: MyWam } = await import("./my-wam.js");
   const WAM1: WAMImport = (await import(plugin1Url)).default;
-  const { default: WAM2 } = await import(plugin2Url);
-  const { default: OperableAudioBuffer } = await import("./operable-audio-buffer.js");
+  const WAM2: WAMImport = (await import(plugin2Url)).default;
+  // const { default: OperableAudioBuffer } = await import("./operable-audio-buffer.js");
 
   // Create an instance of our Processor. We can get from the instance the audio node.
   // let wamInstance = await MyWam.createInstance(hostGroupId, audioCtx);
   /** @type {import("./audio-player-node.js").default} */
   // let node = wamInstance.audioNode;
 
-  const response = await fetch(audioUrl);
-  const audioArrayBuffer = await response.arrayBuffer();
-  const audioBuffer = await audioCtx.decodeAudioData(audioArrayBuffer);
+  // const response = await fetch(audioUrl);
+  // const audioArrayBuffer = await response.arrayBuffer();
+  // const audioBuffer = await audioCtx.decodeAudioData(audioArrayBuffer);
 
   // Transforming the audio buffer into a custom audio buffer to add logic inside. (Needed to manipulate the audio, for example, editing...)
-  const operableAudioBuffer = Object.setPrototypeOf(audioBuffer, OperableAudioBuffer.prototype);
+  // const operableAudioBuffer = Object.setPrototypeOf(audioBuffer, OperableAudioBuffer.prototype);
 
   // Drawing the waveform in the canvas.
   // drawBuffer(waveCanvas, audioBuffer, "blue", 600, 100);
   // let playhead = new Playhead(playheadCanvas, waveCanvas, audioBuffer.length);
 
   // Creating the Instance of the WAM plugins.
-  let pluginInstance1 = await WAM1.createInstance(hostGroupId, audioCtx);
-  let pluginDom1 = await pluginInstance1.createGui();
+  // let pluginInstance1 = await WAM1.createInstance(hostGroupId, audioCtx);
+  // let pluginDom1 = await pluginInstance1.createGui();
   let pluginInstance2 = await WAM2.createInstance(hostGroupId, audioCtx);
   let pluginDom2 = await pluginInstance2.createGui();
 
   // Sending audio to the processor and connecting the node to the output destination.
   // node.setAudio(operableAudioBuffer.toArray());
-  node.connect(pluginInstance1._audioNode).connect(pluginInstance2._audioNode).connect(audioCtx.destination);
+  node.connect(pambaWam1.module._audioNode).connect(pluginInstance2._audioNode).connect(audioCtx.destination);
   // node.parameters.get("playing").value = 0;
   // node.parameters.get("loop").value = 1;
 
@@ -99,9 +105,9 @@ async function startDemo(audioCtx: AudioContext, node: AudioBufferSourceNode, ho
   // }, 16);
 
   // Mounting the plugin dom to the html.
-  let mount1 = nullthrows(document.querySelector("#mount1"));
-  nullthrows(mount1).innerHTML = "";
-  await mount1.appendChild(pluginDom1);
+  // let mount1 = nullthrows(document.querySelector("#mount1"));
+  // nullthrows(mount1).innerHTML = "";
+  // await mount1.appendChild(pluginDom1);
 
   let mount2 = nullthrows(document.querySelector("#mount2"));
   mount2.innerHTML = "";
@@ -139,6 +145,20 @@ export class PambaWam {
   }
 }
 
+function usePambaWam(plugin1Url: string, hostGroupId: string | null) {
+  const [pambaWam, setPambaWam] = useState<PambaWam | null>(null);
+  useEffect(() => {
+    if (hostGroupId == null) {
+      return;
+    }
+    void (async () => {
+      const module = await PambaWam.fromURL(plugin1Url, hostGroupId, liveAudioContext);
+      setPambaWam(module);
+    })();
+  }, [hostGroupId, plugin1Url]);
+  return pambaWam;
+}
+
 function useWamHostGroup() {
   const [wamHostGroup] = useLinkedState(appEnvironment.wamHostGroup);
   return wamHostGroup ? wamHostGroup[0] : null;
@@ -147,7 +167,11 @@ function useWamHostGroup() {
 export const WamPluginContent = React.memo(function WamPluginContentImpl({ wam }: { wam: PambaWam }) {
   const divRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    divRef.current?.appendChild(wam.dom);
+    const div = divRef.current;
+    div?.appendChild(wam.dom);
+    return () => {
+      div?.removeChild(wam.dom);
+    };
   }, [wam.dom]);
   return <div ref={divRef} />;
 });
@@ -156,7 +180,11 @@ export function Demo() {
   const [audioCtx] = useState(liveAudioContext);
   const [node] = useState(createWhiteNoise(audioCtx));
   const hostGroupId = useWamHostGroup();
+  const wam1 = usePambaWam(plugin1Url, hostGroupId);
+
   console.log("hostGroupId", hostGroupId);
+
+  function addPanel() {}
 
   if (hostGroupId === null) {
     return null;
@@ -165,7 +193,7 @@ export function Demo() {
     <>
       <button
         onClick={async () => {
-          await startDemo(audioCtx, node, hostGroupId);
+          await startDemo(audioCtx, node, hostGroupId, wam1);
         }}
       >
         start demo
@@ -177,6 +205,12 @@ export function Demo() {
       >
         acutal start
       </button>
+      <button onClick={addPanel}>panel demo</button>
+      {wam1 && (
+        <WindowPanel>
+          <WamPluginContent wam={wam1} />
+        </WindowPanel>
+      )}
     </>
   );
 }

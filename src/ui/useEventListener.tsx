@@ -1,19 +1,19 @@
 import { useEffect } from "react";
 
-function useEventListener<K extends keyof HTMLElementEventMap, T extends HTMLElement>(
+export function useEventListener<K extends keyof HTMLElementEventMap, T extends HTMLElement>(
   type: K,
-  ref: React.RefObject<T>,
+  ref: React.RefObject<T> | Document,
   listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any
 ): void {
   useEffect(() => {
-    const elem = ref.current;
+    const elem = ref instanceof Document ? ref : ref.current;
     if (elem == null) {
       return;
     }
 
-    elem.addEventListener(type, listener);
+    elem.addEventListener(type, listener as any);
     return () => {
-      elem.removeEventListener(type, listener);
+      elem.removeEventListener(type, listener as any);
     };
   }, [listener, ref, type]);
 }
