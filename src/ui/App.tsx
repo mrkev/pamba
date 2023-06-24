@@ -14,6 +14,7 @@ import { TimelineView } from "./TimelineView";
 import { ToolHeader } from "./ToolHeader";
 // import { TrackThread } from "../lib/TrackThread";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
+import { Demo } from "../wam";
 
 // var w = new TrackThread();
 // var sab = new SharedArrayBuffer(1024);
@@ -85,6 +86,7 @@ function AppProject({ project }: { project: AudioProject }) {
 
   return (
     <>
+      <Demo />
       <ToolHeader project={project} player={renderer.analizedPlayer} renderer={renderer} />
       <PanelGroup direction="horizontal">
         <Panel collapsible={true} defaultSize={15} onCollapse={console.log}>
