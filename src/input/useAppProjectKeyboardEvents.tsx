@@ -12,6 +12,11 @@ export function useAppProjectKeyboardEvents(
 ): void {
   useEffect(() => {
     function keydownEvent(e: KeyboardEvent) {
+      // TODO: also, on top of of doing this to prevent keyboard events when typing on forms
+      // make the UI modal so events don't happen when modal dialogs are open for example
+      if (e.target instanceof HTMLInputElement) {
+        return;
+      }
       // console.log(e.code);
       switch (e.code) {
         case "Backspace":
@@ -32,6 +37,11 @@ export function useAppProjectKeyboardEvents(
     function keyupEvent(_e: KeyboardEvent) {}
 
     function keypressEvent(e: KeyboardEvent) {
+      // TODO: also, on top of of doing this to prevent keyboard events when typing on forms
+      // make the UI modal so events don't happen when modal dialogs are open for example
+      if (e.target instanceof HTMLInputElement) {
+        return;
+      }
       switch (e.code) {
         case "KeyM":
           project.pointerTool.set("move");

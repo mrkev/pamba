@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { FirebaseApp, initializeApp } from "firebase/app";
-import { User, getAuth, onAuthStateChanged, signInAnonymously } from "firebase/auth";
+import { Auth, User, getAuth, onAuthStateChanged, signInAnonymously } from "firebase/auth";
 import { Database, getDatabase } from "firebase/database";
 import { StorageReference, getStorage, ref } from "firebase/storage";
 import { appEnvironment } from "../lib/AppEnvironment";
@@ -8,43 +7,16 @@ import { useLinkedState } from "../lib/state/LinkedState";
 
 const SKIP_FIREBASE = false;
 
-// Your web app's Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyBhdehFiYqwx3ahC5yCh6NTQgW7NxZMXvk",
-  authDomain: "pamba-c5951.firebaseapp.com",
-  projectId: "pamba-c5951",
-  storageBucket: "pamba-c5951.appspot.com",
-  messagingSenderId: "204416012722",
-  appId: "1:204416012722:web:9e00b129f067d20c4894ab",
-};
-
-export function useFirebaseApp(): FirebaseApp | null {
-  const [firebaseApp] = useLinkedState(appEnvironment.firebaseApp);
-
-  useEffect(() => {
-    if (firebaseApp != null) {
-      return;
-    }
-
-    const app = initializeApp(firebaseConfig);
-    appEnvironment.firebaseApp.set(app);
-    console.log("Initialized firebase app.");
-  }, [firebaseApp]);
-
-  return firebaseApp;
+export function useFirebaseAuth(): Auth {
+  return getAuth(appEnvironment.firebaseApp);
 }
 
 export function useFirebaseUser(): User | null {
-  const firebaseApp = useFirebaseApp();
   const [firebaseUser, setFirebaseUser] = useLinkedState(appEnvironment.firebaseUser);
   const [signingIn, setSigningIn] = useState<boolean>(false);
 
   useEffect(() => {
     if (SKIP_FIREBASE) {
-      return;
-    }
-
-    if (!firebaseApp) {
       return;
     }
 
@@ -58,7 +30,7 @@ export function useFirebaseUser(): User | null {
     }
 
     setSigningIn(true);
-    const auth = getAuth(firebaseApp);
+    const auth = getAuth(appEnvironment.firebaseApp);
     onAuthStateChanged(auth, function (user) {
       if (user) {
         console.log("Anonymous user signed-in.", user);
@@ -87,7 +59,7 @@ export function useFirebaseUser(): User | null {
           });
       }
     });
-  }, [firebaseApp, firebaseUser, setFirebaseUser, signingIn]);
+  }, [firebaseUser, setFirebaseUser, signingIn]);
 
   return firebaseUser;
 }
@@ -95,7 +67,6 @@ export function useFirebaseUser(): User | null {
 export function usePambaFirebaseStoreRef(): StorageReference | null {
   const [firebaseStoreRef, setFirebaseStoreRef] = useState<StorageReference | null>(null);
 
-  const firebaseApp = useFirebaseApp();
   const user = useFirebaseUser();
 
   useEffect(() => {
@@ -112,10 +83,10 @@ export function usePambaFirebaseStoreRef(): StorageReference | null {
       return;
     }
 
-    const storage = getStorage();
+    const storage = getStorage(appEnvironment.firebaseApp);
 
     setFirebaseStoreRef(ref(storage));
-  }, [firebaseApp, firebaseStoreRef, user]);
+  }, [firebaseStoreRef, user]);
 
   return firebaseStoreRef;
 }

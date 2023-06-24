@@ -1,56 +1,113 @@
-import { GoogleAuthProvider, getAuth, signInWithPopup } from "firebase/auth";
+import { createUserWithEmailAndPassword, getAuth, signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { useState } from "react";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { useLinkedState } from "../lib/state/LinkedState";
+import { useModalDialog } from "./useModalDialog";
 import { utility } from "./utility";
 
 export function UserAuthControl() {
   const [firebaseUser] = useLinkedState(appEnvironment.firebaseUser);
+  const [modal, showModal] = useModalDialog(() => <LoginDialog />);
+  const auth = getAuth(appEnvironment.firebaseApp);
 
-  return firebaseUser == null ? (
-    "--"
-  ) : firebaseUser.isAnonymous ? (
-    <button
-      className={utility.button}
-      onClick={async () => {
-        const auth = getAuth();
+  const onFormSubmit = async (formData: FormData) => {
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+    const mode = formData.get("mode");
 
-        const provider = new GoogleAuthProvider();
+    try {
+      const userCredential =
+        mode === "login"
+          ? await signInWithEmailAndPassword(auth, email, password)
+          : await createUserWithEmailAndPassword(auth, email, password);
 
-        try {
-          const result = await signInWithPopup(auth, provider);
+      appEnvironment.firebaseUser.set(userCredential.user);
+    } catch (error: any) {
+      const errorCode = error.code;
+      const errorMessage = error.message;
+      console.error(error);
+    }
+  };
 
-          // This gives you a Google Access Token. You can use it to access the Google API.
-          const credential = GoogleAuthProvider.credentialFromResult(result);
-          if (!credential) {
-            throw new Error("No credentials returned!");
-          }
+  console.log("firebaseUser", firebaseUser);
 
-          // can use the token to call google apis
-          const token = credential.accessToken;
-          // The signed-in user info.
-          const user = result.user;
+  return (
+    <>
+      {modal}
+      {firebaseUser == null ? (
+        "--"
+      ) : firebaseUser.isAnonymous ? (
+        <button
+          className={utility.button}
+          onClick={() => {
+            showModal(onFormSubmit);
+          }}
+        >
+          sign-in
+        </button>
+      ) : (
+        <>
+          {firebaseUser.displayName ?? firebaseUser.email}
 
-          // IdP data available using getAdditionalUserInfo(result)
-          // ...
-          appEnvironment.firebaseUser.set(user);
+          <button
+            className={utility.button}
+            onClick={async () => {
+              try {
+                await signOut(auth);
+              } catch (error: any) {
+                const errorCode = error.code;
+                const errorMessage = error.message;
+                console.error(error);
+              }
+            }}
+          >
+            sign-out
+          </button>
+        </>
+      )}
+    </>
+  );
+}
 
-          console.log("signed in", user);
-        } catch (error: any) {
-          // Handle Errors here.
-          const errorCode = error.code;
-          const errorMessage = error.message;
-          // The email of the user's account used.
-          const email = error.customData.email;
-          // The AuthCredential type that was used.
-          const credential = GoogleAuthProvider.credentialFromError(error);
-          // ...
-          console.error(error);
-        }
-      }}
-    >
-      sign-in
-    </button>
-  ) : (
-    firebaseUser.displayName
+export function LoginDialog() {
+  const [mode, setMode] = useState<"signup" | "login">("login");
+
+  return (
+    <>
+      <div style={{ userSelect: "auto" }}>
+        <span
+          style={mode === "signup" ? { fontWeight: "bold" } : { color: "#0000EE", textDecoration: "underline" }}
+          onClick={() => {
+            console.log("FOO");
+            setMode("signup");
+          }}
+        >
+          signup
+        </span>
+        {" | "}
+        <span
+          style={mode === "login" ? { fontWeight: "bold" } : { color: "#0000EE", textDecoration: "underline" }}
+          onClick={() => setMode("login")}
+        >
+          login
+        </span>
+      </div>
+      <input type="hidden" name="mode" value={mode} />
+      <label>
+        email:
+        <input type="email" name="email" />
+      </label>
+      <label>
+        password:
+        <input type="password" name="password" />
+      </label>
+
+      <div>
+        <button value="cancel" formMethod="dialog">
+          Cancel
+        </button>
+        <button value="default">{mode === "signup" ? "Sign-up" : "Log-in"}</button>
+      </div>
+    </>
   );
 }
