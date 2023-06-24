@@ -4,6 +4,9 @@ export abstract class DSPNode<I extends AudioNode | null = AudioNode> {
   abstract inputNode(): I;
   abstract outputNode(): AudioNode | DSPNode;
 
+  abstract cloneToOfflineContext(context: OfflineAudioContext): Promise<DSPNode | null>;
+  abstract effectId: string;
+
   public connect(audioNode: AudioNode | DSPNode<AudioNode>): void {
     if (this.destinations.has(audioNode)) {
       console.warn("Destination already connected");

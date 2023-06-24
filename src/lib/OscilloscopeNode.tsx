@@ -6,6 +6,10 @@ import { DSPNode } from "../dsp/DSPNode";
  * Given a canvas, draws an oscilloscope waveform on it
  */
 export class OscilloscopeNode extends DSPNode {
+  override cloneToOfflineContext(context: OfflineAudioContext): Promise<DSPNode<AudioNode> | null> {
+    throw new Error("OscilloscopeNode: cloneToOfflineContext: Method not implemented.");
+  }
+  override effectId: string = "OscilloscopeNode";
   private readonly amplitudeArray: Uint8Array = new Uint8Array();
   private readonly analyserNode = liveAudioContext.createAnalyser();
   private readonly javascriptNode = liveAudioContext.createScriptProcessor(sampleSize, 1, 1);

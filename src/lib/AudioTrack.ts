@@ -42,7 +42,7 @@ export class AudioTrack extends DSPNode<null> {
     super();
     this.name = SPrimitive.of(name);
     this.clips = LinkedArray.create(clips);
-    this.effects = LinkedArray.create<FaustAudioEffect>(effects);
+    this.effects = LinkedArray.create(effects);
     this.height = SPrimitive.of<number>(height);
     //
     this.playingSource = null;
@@ -101,9 +101,7 @@ export class AudioTrack extends DSPNode<null> {
     // We need to keep a reference to our source node for play/pause
     this.playingSource = this.getSourceNode(context);
 
-    const effectNodes = this.effects._getRaw().map((effect) => {
-      return effect.accessAudioNode();
-    });
+    const effectNodes = this.effects._getRaw();
 
     connectSerialNodes([
       ///
@@ -131,21 +129,21 @@ export class AudioTrack extends DSPNode<null> {
         if (nextEffect == null) {
           throw new Error(`Failed to prepare ${effect.effectId} for bounce!`);
         }
-        return nextEffect.accessAudioNode();
+        return nextEffect;
       })
     );
 
-    const _hiddenGainNode = this._hiddenGainNode.offline(context);
+    const _hiddenGainNode = await this._hiddenGainNode.cloneToOfflineContext(context);
 
     connectSerialNodes([
       ///
       this.playingSource,
-      this.gainNode.offline(context),
+      await this.gainNode.cloneToOfflineContext(context),
       ...effectNodes,
       _hiddenGainNode,
     ]);
 
-    return _hiddenGainNode;
+    return _hiddenGainNode.outputNode();
   }
 
   stopPlayback(): void {
@@ -157,9 +155,10 @@ export class AudioTrack extends DSPNode<null> {
     this.playingSource.stop(0);
 
     const chain = [
+      // foo
       this.playingSource,
       this.gainNode,
-      ...this.effects._getRaw().map((effect) => effect.accessAudioNode()),
+      ...this.effects._getRaw(),
       this._hiddenGainNode.node,
     ];
 
@@ -228,6 +227,11 @@ export class AudioTrack extends DSPNode<null> {
   static bypassEffect(track: AudioTrack, effect: FaustAudioEffect) {
     console.log("todo: bypass", effect);
   }
+
+  override cloneToOfflineContext(_context: OfflineAudioContext): Promise<DSPNode<AudioNode> | null> {
+    throw new Error("AudioTrack: DSPNode: can't cloneToOfflineContext.");
+  }
+  override effectId: string = "AUDIO TRACK (TODO)";
 }
 
 function connectSerialNodes(chain: (AudioNode | DSPNode<AudioNode>)[]): void {

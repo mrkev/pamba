@@ -2,6 +2,7 @@ import { FaustAudioProcessorNode, ProcessorLoader } from "faust-loader-vite";
 import { LinkedMap } from "../lib/state/LinkedMap";
 import { EffectID, FAUST_EFFECTS } from "./FAUST_EFFECTS";
 import { LayoutTypeMap } from "@shren/faust-ui/src/types";
+import { DSPNode } from "./DSPNode";
 
 type TFaustUIItem = LayoutTypeMap[keyof LayoutTypeMap];
 
@@ -21,7 +22,7 @@ export interface INodeData {
 
 export type FaustNodeSetParamFn = (address: string, value: number) => void;
 
-export class FaustAudioEffect {
+export class FaustAudioEffect extends DSPNode<AudioNode> {
   private readonly node: FaustAudioProcessorNode;
   readonly effectId: EffectID;
   readonly ui: Array<TFaustUIItem>;
@@ -34,6 +35,7 @@ export class FaustAudioEffect {
     effectId: EffectID,
     params: Array<[string, number]>
   ) {
+    super();
     this.effectId = effectId;
     this.node = faustNode;
     this.ui = nodeData.ui;
@@ -45,6 +47,13 @@ export class FaustAudioEffect {
       // On playback the value will be correct though.
       this.node.setParam(address, value);
     }
+  }
+
+  override inputNode(): AudioNode {
+    return this.node;
+  }
+  override outputNode(): AudioNode | DSPNode<AudioNode> {
+    return this.node;
   }
 
   setParam(address: string, value: number): void {
