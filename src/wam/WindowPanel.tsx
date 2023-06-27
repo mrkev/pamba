@@ -3,19 +3,23 @@ import { createUseStyles } from "react-jss";
 import { useEventListener } from "../ui/useEventListener";
 import { exhaustive } from "../utils/exhaustive";
 
-type Position = [x: number, y: number];
+export type Position = [x: number, y: number];
+export type SetState<S> = React.Dispatch<React.SetStateAction<S>>;
 
 export function WindowPanel({
   children,
   onClose,
   title,
+  position,
+  onPositionChange,
 }: {
   children?: React.ReactNode;
   onClose: () => void;
   title?: string;
+  position: Position;
+  onPositionChange: SetState<Position>;
 }) {
   const classes = useStyles();
-  const [position, setPosition] = useState<Position>([10, 10]);
   const [cursor, setCursor] = useState<{ status: "idle" } | { status: "moving"; start: Position }>({
     status: "idle",
   });
@@ -54,14 +58,14 @@ export function WindowPanel({
           case "idle":
             break;
           case "moving":
-            setPosition([e.clientX - cursor.start[0], e.clientY - cursor.start[1]]);
+            onPositionChange([e.clientX - cursor.start[0], e.clientY - cursor.start[1]]);
             break;
           default:
             exhaustive(cursor);
         }
         // e.stopImmediatePropagation();
       },
-      [cursor]
+      [cursor, onPositionChange]
     )
   );
 

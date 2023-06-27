@@ -8,9 +8,10 @@ import { useLinkedArray } from "../lib/state/LinkedArray";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { createUseStyles } from "react-jss";
 import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
-import { PambaWamNode, WamPluginContent } from "../wam/wam";
+import { WamPluginContent } from "../wam/wam";
+import { PambaWamNode } from "../wam/PambaWamNode";
 import { exhaustive } from "../utils/exhaustive";
-import { WindowPanel } from "../wam/WindowPanel";
+import { Position, WindowPanel } from "../wam/WindowPanel";
 import { Effect } from "./Effect";
 import { LinkedMap, useLinkedMap, useNewLinkedMap } from "../lib/state/LinkedMap";
 import { DSPNode } from "../dsp/DSPNode";
@@ -72,13 +73,7 @@ export const EffectRack = React.memo(function EffectRack({
       {/* RENDER WAM WINDOWS OUT HERE */}
       {effects.map((effect, i) => {
         if (effect instanceof PambaWamNode && openEffects.has(effect)) {
-          return (
-            <div key={i}>
-              <WindowPanel onClose={() => openEffects.delete(effect)} title={effect.name}>
-                <WamPluginContent wam={effect} />
-              </WindowPanel>
-            </div>
-          );
+          return <PambaWamNodeWindowPanel key={i} effect={effect} onClose={() => openEffects.delete(effect)} />;
         } else {
           return null;
         }
@@ -169,3 +164,12 @@ export const EffectRack = React.memo(function EffectRack({
     </>
   );
 });
+
+function PambaWamNodeWindowPanel({ effect, onClose }: { effect: PambaWamNode; onClose: () => void }) {
+  const [position, setPosition] = useLinkedState(effect.windowPanelPosition);
+  return (
+    <WindowPanel onClose={onClose} title={effect.name} position={position} onPositionChange={setPosition}>
+      <WamPluginContent wam={effect} />
+    </WindowPanel>
+  );
+}

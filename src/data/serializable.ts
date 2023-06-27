@@ -5,7 +5,7 @@ import { AudioTrack } from "../lib/AudioTrack";
 import { exhaustive } from "../utils/exhaustive";
 import { liveAudioContext } from "../constants";
 import { EffectID } from "../dsp/FAUST_EFFECTS";
-import { PambaWamNode } from "../wam/wam";
+import { PambaWamNode } from "../wam/PambaWamNode";
 
 export type SAudioClip = {
   kind: "AudioClip";

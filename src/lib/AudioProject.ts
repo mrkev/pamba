@@ -12,7 +12,7 @@ import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
 import { LinkedMap } from "./state/LinkedMap";
 import { modifierState } from "../ModifierState";
 import { ulid } from "ulid";
-import { PambaWamNode } from "../wam/wam";
+import { PambaWamNode } from "../wam/PambaWamNode";
 
 /**
  * TODO:

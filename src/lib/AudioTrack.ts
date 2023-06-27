@@ -9,7 +9,8 @@ import { SPrimitive } from "./state/LinkedState";
 import { TrackThread } from "./TrackThread";
 import { DSPNode } from "../dsp/DSPNode";
 import { PBGainNode } from "./offlineNodes";
-import { PambaWamNode, WAMImport } from "../wam/wam";
+import { WAMImport } from "../wam/wam";
+import { PambaWamNode } from "../wam/PambaWamNode";
 import nullthrows from "../utils/nullthrows";
 import { appEnvironment } from "./AppEnvironment";
 

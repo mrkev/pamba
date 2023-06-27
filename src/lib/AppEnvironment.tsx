@@ -5,6 +5,7 @@ import { initFirebaseApp } from "../firebase/firebaseConfig";
 import { liveAudioContext } from "../constants";
 import { LinkedMap } from "./state/LinkedMap";
 import { WAMImport } from "../wam/wam";
+import { WamDescriptor } from "@webaudiomodules/api";
 
 const plugin1Url = "https://mainline.i3s.unice.fr/wam2/packages/StonePhaserStereo/index.js";
 const plugin2Url = "https://mainline.i3s.unice.fr/wam2/packages/BigMuff/index.js";
@@ -24,7 +25,7 @@ class AppEnvironment {
   readonly firebaseApp: FirebaseApp;
   readonly firebaseUser = SPrimitive.of<User | null>(null);
   readonly wamHostGroup = SPrimitive.of<[id: string, key: string] | null>(null);
-  readonly wamPlugins = LinkedMap.create<string, WAMImport>(new Map());
+  readonly wamPlugins = LinkedMap.create<string, { import: WAMImport; descriptor: WamDescriptor }>(new Map());
 
   constructor() {
     this.firebaseApp = initFirebaseApp();
@@ -36,16 +37,18 @@ class AppEnvironment {
       const [hostGroupId, hostGroupKey] = await initializeWamHost(liveAudioContext);
       this.wamHostGroup.set([hostGroupId, hostGroupKey]);
 
-      // Load WAM plugins
-      const plugin1 = await loadWam(plugin1Url);
-      if (plugin1) {
-        this.wamPlugins.set(plugin1Url, plugin1);
-      }
+      await Promise.all(
+        [plugin1Url, plugin2Url].map(async (url) => {
+          const plugin = await loadWam(url);
+          if (plugin) {
+            // TODO: propery initialize instead to get proper metadata?
+            const descriptor = new (plugin as any)().descriptor;
+            console.log(descriptor);
 
-      const plugin2 = await loadWam(plugin2Url);
-      if (plugin2) {
-        this.wamPlugins.set(plugin2Url, plugin2);
-      }
+            this.wamPlugins.set(url, { import: plugin, descriptor });
+          }
+        })
+      );
     })();
   }
 }
