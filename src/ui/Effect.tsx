@@ -10,11 +10,11 @@ export function Effect({
   isSelected,
   canDelete,
 }: {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   title: string;
-  onClickRemove?: () => void;
-  onHeaderClick?: () => void;
-  onClickBypass?: () => void;
+  onClickRemove: () => void;
+  onHeaderClick: () => void;
+  onClickBypass: () => void;
   isSelected?: boolean;
   canDelete?: boolean;
 }) {
@@ -23,7 +23,11 @@ export function Effect({
       style={{
         background: "gray",
         border: "1px solid #333",
-        fontSize: "14px",
+        fontSize: "12px",
+        display: "flex",
+        flexDirection: "column",
+        columnGap: 6,
+        userSelect: "none",
       }}
     >
       <EffectHeader
@@ -65,9 +69,9 @@ export function EffectHeader({
     >
       <div>{title}</div>
       <div>
-        <button className={utility.button} onClick={onClickBypass}>
+        {/* <button className={utility.button} onClick={onClickBypass}>
           bypass
-        </button>
+        </button> */}
         <button className={utility.button} disabled={!canDelete} onClick={onClickRemove}>
           x
         </button>
@@ -77,14 +81,6 @@ export function EffectHeader({
 }
 
 const useStyles = createUseStyles({
-  faustGroupRoot: {
-    display: "flex",
-    flexDirection: "column",
-    columnGap: 6,
-    background: "gray",
-    fontSize: 12,
-    userSelect: "none",
-  },
   faustTopLevelHeader: {
     display: "flex",
     flexDirection: "row",

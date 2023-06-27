@@ -6,6 +6,7 @@
   border: none;
   background: #d3d3d3;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .utilitySlider {

@@ -1,12 +1,12 @@
 import React from "react";
-import { FaustItem } from "./FaustItem";
-import { FaustGroup } from "./FaustGroup";
+import { Effect } from "../../ui/Effect";
 import { FaustAudioEffect } from "../FaustAudioEffect";
+import { faustGroupStyle } from "./FaustGroup";
+import { FaustItem } from "./FaustItem";
 
 /** Renders a FaustAudioEffect */
 export default function FaustEffectModule({
   effect,
-  style,
   onClickRemove,
   onClickBypass,
   onHeaderClick,
@@ -24,32 +24,39 @@ export default function FaustEffectModule({
   // Use the top-most group as the overall wrapper, with the close button etc
   if ((effect.ui.length === 1 && effect.ui[0].type === "hgroup") || effect.ui[0].type === "vgroup") {
     const item = effect.ui[0];
+    const { items, label, type } = item;
+    const groupStyle = faustGroupStyle(type);
+
     return (
-      <FaustGroup
-        item={item}
-        effect={effect}
-        isTopLevel={true}
+      <Effect
+        title={label}
         canDelete={canDelete}
         onClickBypass={() => onClickBypass(effect)}
         onClickRemove={() => onClickRemove(effect)}
         onHeaderClick={() => onHeaderClick(effect)}
         isSelected={isSelected}
-      />
+      >
+        <div style={groupStyle}>
+          {items.map((item, i) => {
+            return <FaustItem key={i} item={item} effect={effect} arrPos={i} />;
+          })}
+        </div>
+      </Effect>
     );
   }
 
   return (
-    <div
-      style={{
-        background: "gray",
-        border: "1px solid #333",
-        fontSize: "14px",
-        ...style,
-      }}
+    <Effect
+      title={effect.name}
+      onClickBypass={() => onClickBypass(effect)}
+      onClickRemove={() => onClickRemove(effect)}
+      onHeaderClick={() => onHeaderClick(effect)}
+      canDelete={canDelete}
+      isSelected={isSelected}
     >
       {effect.ui.map((item, i) => {
-        return <FaustItem key={i} item={item} effect={effect} />;
+        return <FaustItem key={i} item={item} effect={effect} arrPos={i} />;
       })}
-    </div>
+    </Effect>
   );
 }

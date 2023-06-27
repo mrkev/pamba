@@ -7,16 +7,16 @@ import { LayoutTypeMap } from "@shren/faust-ui/src/types";
 
 type TFaustUIItem = LayoutTypeMap[keyof LayoutTypeMap];
 
-export function FaustItem({ item, effect }: { item: TFaustUIItem; effect: FaustAudioEffect }) {
+export function FaustItem({ item, effect, arrPos }: { item: TFaustUIItem; effect: FaustAudioEffect; arrPos: number }) {
   const { type } = item;
 
   switch (type) {
     case "vgroup": {
-      return <FaustGroup item={item} effect={effect} />;
+      return <FaustGroup item={item} effect={effect} isFirstItem={arrPos === 0} />;
     }
 
     case "hgroup": {
-      return <FaustGroup item={item} effect={effect} />;
+      return <FaustGroup item={item} effect={effect} isFirstItem={arrPos === 0} />;
     }
 
     case "hslider": {
@@ -28,11 +28,12 @@ export function FaustItem({ item, effect }: { item: TFaustUIItem; effect: FaustA
     }
 
     case "tgroup":
+      // TODO: tgroup
       return (
         <div>
           "tgroup"{" "}
           {item.items.map((item, i) => {
-            return <FaustItem key={i} item={item} effect={effect} />;
+            return <FaustItem key={i} item={item} effect={effect} arrPos={i} />;
           })}
         </div>
       );
