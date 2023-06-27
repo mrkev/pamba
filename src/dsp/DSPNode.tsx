@@ -1,3 +1,5 @@
+import type { SPrimitive } from "../lib/state/LinkedState";
+
 export abstract class DSPNode<I extends AudioNode | null = AudioNode> {
   private readonly destinations: Set<AudioNode | DSPNode> = new Set();
 
@@ -6,6 +8,7 @@ export abstract class DSPNode<I extends AudioNode | null = AudioNode> {
 
   abstract cloneToOfflineContext(context: OfflineAudioContext): Promise<DSPNode | null>;
   abstract effectId: string;
+  abstract name: string | SPrimitive<string>;
 
   public connect(audioNode: AudioNode | DSPNode<AudioNode>): void {
     if (this.destinations.has(audioNode)) {

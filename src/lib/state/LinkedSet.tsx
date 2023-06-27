@@ -19,7 +19,7 @@ export class LinkedSet<S> implements Set<S>, Subbable<ReadonlySet<S>> {
 
   _subscriptors: Set<StateChangeHandler<ReadonlySet<S>>> = new Set();
   public static create<T>(initialValue?: Set<T>) {
-    return new this(initialValue ?? new Set());
+    return new this<T>(initialValue ?? new Set());
   }
 
   private mutate<V>(mutator: (clone: Set<S>) => V): V {
@@ -125,4 +125,10 @@ export function useLinkedSet<S>(linkedSet: LinkedSet<S>): [LinkedSet<S>, StateDi
   );
 
   return [linkedSet, setter];
+}
+
+export function useNewLinkedSet<S>(): LinkedSet<S> {
+  const [set] = useState<LinkedSet<S>>(() => LinkedSet.create<S>());
+  const _ = useLinkedSet<S>(set);
+  return set;
 }

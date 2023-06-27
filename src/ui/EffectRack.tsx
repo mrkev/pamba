@@ -11,6 +11,10 @@ import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
 import { PambaWamNode, WamPluginContent } from "../wam/wam";
 import { exhaustive } from "../utils/exhaustive";
 import { WindowPanel } from "../wam/WindowPanel";
+import { Effect } from "./Effect";
+import { LinkedMap, useLinkedMap, useNewLinkedMap } from "../lib/state/LinkedMap";
+import { DSPNode } from "../dsp/DSPNode";
+import { useNewLinkedSet } from "../lib/state/LinkedSet";
 
 const useStyles = createUseStyles({
   effectRack: {
@@ -46,6 +50,7 @@ export const EffectRack = React.memo(function EffectRack({
   const [selected] = useLinkedState(project.selected);
   const rackRef = useRef<HTMLDivElement | null>(null);
   const [isAudioPlaying] = useLinkedState(renderer.isAudioPlaying);
+  const openEffects = useNewLinkedSet<DSPNode>();
 
   useEffect(() => {
     const div = rackRef.current;
@@ -66,15 +71,16 @@ export const EffectRack = React.memo(function EffectRack({
     <>
       {/* RENDER WAM WINDOWS OUT HERE */}
       {effects.map((effect, i) => {
-        if (effect instanceof PambaWamNode) {
+        if (effect instanceof PambaWamNode && openEffects.has(effect)) {
           return (
-            <div>
-              <WindowPanel>
+            <div key={i}>
+              <WindowPanel onClose={() => openEffects.delete(effect)} title={effect.name}>
                 <WamPluginContent wam={effect} />
               </WindowPanel>
-              TODO WAM NODE
             </div>
           );
+        } else {
+          return null;
         }
       })}
       <div
@@ -111,7 +117,24 @@ export const EffectRack = React.memo(function EffectRack({
           }
 
           if (effect instanceof PambaWamNode) {
-            return <div>TODO WAM NODE</div>;
+            return (
+              <React.Fragment key={i}>
+                <Effect
+                  canDelete={!isAudioPlaying}
+                  onClickRemove={() => {
+                    openEffects.delete(effect);
+                    AudioTrack.removeEffect(track, effect);
+                  }}
+                  onHeaderClick={() => ProjectSelection.selectEffect(project, effect, track)}
+                  onClickBypass={() => AudioTrack.bypassEffect(track, effect)}
+                  isSelected={selected?.status === "effects" && selected.test.has(effect)}
+                  title={effect.name}
+                >
+                  <button onClick={() => openEffects.add(effect)}>Configure</button>
+                </Effect>
+                {"→"}
+              </React.Fragment>
+            );
           }
 
           return exhaustive(effect);

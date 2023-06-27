@@ -45,6 +45,7 @@ function useAsyncState<T>(cb: () => Promise<T>): T | null {
 }
 
 export class PambaWamNode extends DSPNode {
+  override name: string;
   override inputNode(): AudioNode {
     return this.module.audioNode;
   }
@@ -56,12 +57,16 @@ export class PambaWamNode extends DSPNode {
   readonly module: WebAudioModule<IWamNode>;
   readonly dom: Element;
 
+  public destroy() {
+    this.module.destroyGui(this.dom);
+  }
+
   private constructor(module: WebAudioModule<IWamNode>, dom: Element) {
     super();
     this.module = module;
     this.dom = dom;
     this.effectId = this.module.moduleId;
-    // TODO: this.moduledestroyGui
+    this.name = this.module.descriptor.name;
   }
 
   static async fromURL(plugin1Url: string, hostGroupId: string, audioCtx: AudioContext) {

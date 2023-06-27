@@ -5,7 +5,15 @@ import { exhaustive } from "../utils/exhaustive";
 
 type Position = [x: number, y: number];
 
-export function WindowPanel({ children }: { children?: React.ReactNode }) {
+export function WindowPanel({
+  children,
+  onClose,
+  title,
+}: {
+  children?: React.ReactNode;
+  onClose: () => void;
+  title?: string;
+}) {
   const classes = useStyles();
   const [position, setPosition] = useState<Position>([10, 10]);
   const [cursor, setCursor] = useState<{ status: "idle" } | { status: "moving"; start: Position }>({
@@ -22,6 +30,7 @@ export function WindowPanel({ children }: { children?: React.ReactNode }) {
           status: "moving",
           start: [e.clientX - position[0], e.clientY - position[1]],
         });
+        e.stopImmediatePropagation();
       },
       [position]
     )
@@ -30,8 +39,9 @@ export function WindowPanel({ children }: { children?: React.ReactNode }) {
   useEventListener(
     "mouseup",
     document,
-    useCallback(() => {
+    useCallback((_e: MouseEvent) => {
       setCursor({ status: "idle" });
+      // e.stopImmediatePropagation();
     }, [])
   );
 
@@ -49,6 +59,7 @@ export function WindowPanel({ children }: { children?: React.ReactNode }) {
           default:
             exhaustive(cursor);
         }
+        // e.stopImmediatePropagation();
       },
       [cursor]
     )
@@ -57,9 +68,9 @@ export function WindowPanel({ children }: { children?: React.ReactNode }) {
   return (
     <div className={classes.window} style={{ left: position[0], top: position[1] }}>
       <div className={classes.titleBar} ref={titleBarRef}>
-        <button>x</button>
+        <button onClick={onClose}>x</button>
         <div className={classes.spacer} />
-        <button>foo</button>
+        {title}
       </div>
       <div className={classes.content}>{children}</div>
     </div>
@@ -83,6 +94,7 @@ const useStyles = createUseStyles({
     flexDirection: "row",
     background: "black",
     color: "white",
+    padding: "0px 4px 0px 0px",
   },
   content: {
     background: "white",

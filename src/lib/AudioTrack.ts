@@ -233,12 +233,12 @@ export class AudioTrack extends DSPNode<null> {
 
   ///////////// statics
 
-  static removeEffect(track: AudioTrack, effect: FaustAudioEffect) {
+  static removeEffect(track: AudioTrack, effect: FaustAudioEffect | PambaWamNode) {
     track.effects.remove(effect);
     effect.destroy();
   }
 
-  static bypassEffect(track: AudioTrack, effect: FaustAudioEffect) {
+  static bypassEffect(track: AudioTrack, effect: FaustAudioEffect | PambaWamNode) {
     console.log("todo: bypass", effect);
   }
 

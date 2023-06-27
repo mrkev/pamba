@@ -2,6 +2,7 @@ import { liveAudioContext } from "../constants";
 import { DSPNode } from "../dsp/DSPNode";
 
 export class PBGainNode extends DSPNode<AudioNode> {
+  override name: string = "PBGainNode";
   override effectId: string = "PBGainNode";
 
   readonly node: GainNode;

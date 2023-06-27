@@ -109,6 +109,12 @@ export class LinkedMap<K, V> implements Map<K, V>, Subbable<ReadonlyMap<K, V>>, 
   }
 }
 
+export function useNewLinkedMap<K, V>(): LinkedMap<K, V> {
+  const [map] = useLinkedMap(LinkedMap.create<K, V>());
+  useSubscribeToSubbableMutationHashable(map);
+  return map;
+}
+
 export function useLinkedMap<K, V>(linkedMap: LinkedMap<K, V>): [LinkedMap<K, V>, StateDispath<ReadonlyMap<K, V>>] {
   useSubscribeToSubbableMutationHashable(linkedMap);
 

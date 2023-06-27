@@ -1,11 +1,11 @@
-import { liveAudioContext, sampleSize } from "../constants";
-import { CANVAS_WIDTH, CANVAS_HEIGHT } from "../constants";
+import { CANVAS_HEIGHT, CANVAS_WIDTH, liveAudioContext, sampleSize } from "../constants";
 import { DSPNode } from "../dsp/DSPNode";
 
 /**
  * Given a canvas, draws an oscilloscope waveform on it
  */
 export class OscilloscopeNode extends DSPNode {
+  override name: string = "OscilloscopeNode";
   override cloneToOfflineContext(context: OfflineAudioContext): Promise<DSPNode<AudioNode> | null> {
     throw new Error("OscilloscopeNode: cloneToOfflineContext: Method not implemented.");
   }

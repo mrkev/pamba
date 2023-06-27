@@ -1,0 +1,95 @@
+import { createUseStyles } from "react-jss";
+import { utility } from "./utility";
+
+export function Effect({
+  children,
+  title,
+  onClickBypass,
+  onClickRemove,
+  onHeaderClick,
+  isSelected,
+  canDelete,
+}: {
+  children: React.ReactNode;
+  title: string;
+  onClickRemove?: () => void;
+  onHeaderClick?: () => void;
+  onClickBypass?: () => void;
+  isSelected?: boolean;
+  canDelete?: boolean;
+}) {
+  return (
+    <div
+      style={{
+        background: "gray",
+        border: "1px solid #333",
+        fontSize: "14px",
+      }}
+    >
+      <EffectHeader
+        title={title}
+        isSelected={isSelected}
+        onClickBypass={onClickBypass}
+        onClickRemove={onClickRemove}
+        onHeaderClick={onHeaderClick}
+        canDelete={canDelete}
+      />
+      {children}
+    </div>
+  );
+}
+
+export function EffectHeader({
+  onHeaderClick,
+  onClickBypass,
+  onClickRemove,
+  canDelete,
+  title,
+  isSelected,
+}: {
+  onClickRemove?: () => void;
+  onHeaderClick?: () => void;
+  onClickBypass?: () => void;
+  canDelete?: boolean;
+  title: string;
+  isSelected?: boolean;
+}) {
+  const styles = useStyles();
+  return (
+    <div
+      className={styles.faustTopLevelHeader}
+      style={{
+        background: isSelected ? "#555" : undefined,
+      }}
+      onClick={onHeaderClick}
+    >
+      <div>{title}</div>
+      <div>
+        <button className={utility.button} onClick={onClickBypass}>
+          bypass
+        </button>
+        <button className={utility.button} disabled={!canDelete} onClick={onClickRemove}>
+          x
+        </button>
+      </div>
+    </div>
+  );
+}
+
+const useStyles = createUseStyles({
+  faustGroupRoot: {
+    display: "flex",
+    flexDirection: "column",
+    columnGap: 6,
+    background: "gray",
+    fontSize: 12,
+    userSelect: "none",
+  },
+  faustTopLevelHeader: {
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: "0px 4px",
+  },
+});

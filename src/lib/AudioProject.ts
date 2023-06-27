@@ -12,6 +12,7 @@ import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
 import { LinkedMap } from "./state/LinkedMap";
 import { modifierState } from "../ModifierState";
 import { ulid } from "ulid";
+import { PambaWamNode } from "../wam/wam";
 
 /**
  * TODO:
@@ -43,8 +44,8 @@ export type SelectionState =
     }
   | {
       status: "effects";
-      effects: Array<{ effect: FaustAudioEffect; track: AudioTrack }>;
-      test: Set<FaustAudioEffect>;
+      effects: Array<{ effect: FaustAudioEffect | PambaWamNode; track: AudioTrack }>;
+      test: Set<FaustAudioEffect | PambaWamNode>;
     }
   // Not sure if have is a good idea, since user might want to select time
   // and then select a track to operaate on (ie, delete on track 1, then same
@@ -235,7 +236,7 @@ export class ProjectSelection {
     }
   }
 
-  static selectEffect(project: AudioProject, effect: FaustAudioEffect, track: AudioTrack) {
+  static selectEffect(project: AudioProject, effect: FaustAudioEffect | PambaWamNode, track: AudioTrack) {
     project.selected.set({ status: "effects", effects: [{ effect, track }], test: new Set([effect]) });
   }
 
