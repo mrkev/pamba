@@ -1,21 +1,20 @@
 import React, { useEffect, useRef } from "react";
-import FaustEffectModule from "../dsp/ui/FaustEffectModule";
+import { createUseStyles } from "react-jss";
 import { EFFECT_HEIGHT } from "../constants";
+import { DSPNode } from "../dsp/DSPNode";
+import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
+import FaustEffectModule from "../dsp/ui/FaustEffectModule";
 import { AudioProject, ProjectSelection } from "../lib/AudioProject";
 import { AudioRenderer } from "../lib/AudioRenderer";
 import { AudioTrack } from "../lib/AudioTrack";
 import { useLinkedArray } from "../lib/state/LinkedArray";
-import { useLinkedState } from "../lib/state/LinkedState";
-import { createUseStyles } from "react-jss";
-import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
-import { WamPluginContent } from "../wam/wam";
-import { PambaWamNode } from "../wam/PambaWamNode";
-import { exhaustive } from "../utils/exhaustive";
-import { Position, WindowPanel } from "../wam/WindowPanel";
-import { Effect } from "./Effect";
-import { LinkedMap, useLinkedMap, useNewLinkedMap } from "../lib/state/LinkedMap";
-import { DSPNode } from "../dsp/DSPNode";
 import { useNewLinkedSet } from "../lib/state/LinkedSet";
+import { useLinkedState } from "../lib/state/LinkedState";
+import { exhaustive } from "../utils/exhaustive";
+import { PambaWamNode } from "../wam/PambaWamNode";
+import { WindowPanel } from "../wam/WindowPanel";
+import { WamPluginContent } from "../wam/wam";
+import { Effect } from "./Effect";
 
 const useStyles = createUseStyles({
   effectRack: {

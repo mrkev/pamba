@@ -1,7 +1,6 @@
 import type { FaustUIGroup, FaustUIGroupType } from "@shren/faustwasm";
 import React from "react";
 import { createUseStyles } from "react-jss";
-import { utility } from "../../ui/utility";
 import { FaustAudioEffect } from "../FaustAudioEffect";
 import { FaustItem } from "./FaustItem";
 

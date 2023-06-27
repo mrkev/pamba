@@ -45,7 +45,6 @@ export function Effect({
 
 export function EffectHeader({
   onHeaderClick,
-  onClickBypass,
   onClickRemove,
   canDelete,
   title,
@@ -64,10 +63,13 @@ export function EffectHeader({
       className={styles.faustTopLevelHeader}
       style={{
         background: isSelected ? "#555" : undefined,
+        display: "flex",
+        flexDirection: "row",
+        gap: 4,
       }}
       onClick={onHeaderClick}
     >
-      <div>{title}</div>
+      <div style={{ whiteSpace: "nowrap" }}>{title}</div>
       <div>
         {/* <button className={utility.button} onClick={onClickBypass}>
           bypass
