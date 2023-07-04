@@ -68,10 +68,13 @@ export const WamPluginContent = React.memo(function WamPluginContentImpl({ wam }
   useEffect(() => {
     const div = divRef.current;
     div?.appendChild(wam.dom);
+    console.log("HERE");
     return () => {
       div?.removeChild(wam.dom);
+      wam.destroy();
+      console.log("THERE");
     };
-  }, [wam.dom]);
+  }, [wam, wam.dom]);
   return <div ref={divRef} />;
 });
 

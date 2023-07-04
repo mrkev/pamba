@@ -9,6 +9,9 @@ import { useListProjectAudioFiles } from "../lib/audioStorage";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { ignorePromise } from "../utils/ignorePromise";
 import { UploadAudioButton } from "./UploadAudioButton";
+import { createUseStyles } from "react-jss";
+import classNames from "classnames";
+import { pressedState } from "../pressedState";
 
 export function Library({
   project,
@@ -21,6 +24,7 @@ export function Library({
   player: AnalizedPlayer;
   firebaseStoreRef: StorageReference | null;
 }) {
+  const classes = useStyles();
   const [isAudioPlaying] = useLinkedState(renderer.isAudioPlaying);
   const audioFiles = useListProjectAudioFiles(project, firebaseStoreRef ?? undefined);
 
@@ -42,23 +46,44 @@ export function Library({
   );
 
   return (
-    <div style={{ display: "flex", flexDirection: "column" }}>
+    <div className={classes.list}>
       {["drums.mp3", "clav.mp3", "bassguitar.mp3", "horns.mp3", "leadguitar.mp3"].map(function (url, i) {
         return (
-          <button
+          <div
+            tabIndex={0}
+            className={classNames(classes.listItem, isAudioPlaying && classes.listItemDisabled)}
             key={i}
-            draggable
-            disabled={isAudioPlaying}
-            onDragStart={function (ev: React.DragEvent<HTMLButtonElement>) {
+            draggable={!isAudioPlaying}
+            onDragStart={function (ev: React.DragEvent<HTMLDivElement>) {
+              if (isAudioPlaying) {
+                return;
+              }
               ev.dataTransfer.setData("text/uri-list", url);
               ev.dataTransfer.setData("text/plain", url);
+              pressedState.set({
+                status: "dragging_new_audio",
+                clientX: ev.clientX,
+                clientY: ev.clientY,
+              });
             }}
-            onClick={function () {
+            onDragEnd={() => {
+              pressedState.set(null);
+            }}
+            onClick={(e: React.MouseEvent<HTMLDivElement>) => {
+              if (isAudioPlaying) {
+                return;
+              }
+
+              if (e.target instanceof HTMLDivElement) {
+                e.target.focus();
+              }
+            }}
+            onDoubleClick={() => {
               ignorePromise(loadClip(url));
             }}
           >
             load {url}
-          </button>
+          </div>
         );
       })}
       <hr style={{ width: "100%" }} />
@@ -91,3 +116,21 @@ export function Library({
     </div>
   );
 }
+
+const useStyles = createUseStyles({
+  list: {
+    display: "flex",
+    flexDirection: "column",
+    border: "1px solid #999",
+  },
+  listItem: {
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+    padding: "0px 2px",
+    "&:focus": {
+      outline: "5px auto -webkit-focus-ring-color",
+      background: "white",
+    },
+  },
+  listItemDisabled: {},
+});

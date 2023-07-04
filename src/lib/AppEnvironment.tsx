@@ -38,7 +38,12 @@ class AppEnvironment {
       this.wamHostGroup.set([hostGroupId, hostGroupKey]);
 
       await Promise.all(
-        [plugin1Url, plugin2Url].map(async (url) => {
+        [
+          plugin1Url,
+          plugin2Url,
+          // has a buggy version of wam controls that prevents the knobs from spinning
+          //  "https://editor.sequencer.party/plugins/wimmics/disto_machine/src/index.js"
+        ].map(async (url) => {
           const plugin = await loadWam(url);
           if (plugin) {
             // TODO: propery initialize instead to get proper metadata?

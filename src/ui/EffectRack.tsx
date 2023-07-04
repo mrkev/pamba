@@ -15,6 +15,8 @@ import { PambaWamNode } from "../wam/PambaWamNode";
 import { WindowPanel } from "../wam/WindowPanel";
 import { WamPluginContent } from "../wam/wam";
 import { Effect } from "./Effect";
+import nullthrows from "../utils/nullthrows";
+import ReactDOM from "react-dom";
 
 const useStyles = createUseStyles({
   effectRack: {
@@ -166,9 +168,10 @@ export const EffectRack = React.memo(function EffectRack({
 
 function PambaWamNodeWindowPanel({ effect, onClose }: { effect: PambaWamNode; onClose: () => void }) {
   const [position, setPosition] = useLinkedState(effect.windowPanelPosition);
-  return (
+  return ReactDOM.createPortal(
     <WindowPanel onClose={onClose} title={effect.name} position={position} onPositionChange={setPosition}>
       <WamPluginContent wam={effect} />
-    </WindowPanel>
+    </WindowPanel>,
+    nullthrows(document.querySelector("#wam-window-panels"))
   );
 }

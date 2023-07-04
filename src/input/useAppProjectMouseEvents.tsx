@@ -79,6 +79,13 @@ export function useAppProjectMouseEvents({
           pressedState.set(null);
           break;
         }
+        case "dragging_new_audio": {
+          // Seems more reliable to end "dragging_new_audio" in the dragged
+          // div's onDragEnd, so we end it there instead.
+          // pressedState.set(null);
+          break;
+        }
+
         case "resizing_track":
         case "resizing_clip": {
           pressedState.set(null);
@@ -136,6 +143,10 @@ export function useAppProjectMouseEvents({
           const newOffset = Math.max(0, pressed.originalClipOffsetSec + deltaXSecs);
           pressed.clip.startOffsetSec = newOffset;
           pressed.clip.notifyUpdate();
+          break;
+        }
+        case "dragging_new_audio": {
+          console.log("TODO");
           break;
         }
 
