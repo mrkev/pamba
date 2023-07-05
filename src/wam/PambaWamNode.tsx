@@ -4,6 +4,8 @@ import { DSPNode } from "../dsp/DSPNode";
 import { WAMImport } from "./wam";
 import { SPrimitive } from "../lib/state/LinkedState";
 import { Position } from "./WindowPanel";
+import { appEnvironment } from "../lib/AppEnvironment";
+import { OfflineContextInfo } from "../lib/initAudioContext";
 
 export class PambaWamNode extends DSPNode {
   override name: string;
@@ -46,7 +48,7 @@ export class PambaWamNode extends DSPNode {
     this.url = url;
   }
 
-  static async fromURL(pluginUrl: string, hostGroupId: string, audioCtx: AudioContext) {
+  static async fromURL(pluginUrl: string, hostGroupId: string, audioCtx: BaseAudioContext) {
     console.log("WAM: LOADING fromURL", pluginUrl);
     const rawModule = await import(/* @vite-ignore */ pluginUrl);
     if (rawModule == null) {
@@ -59,7 +61,21 @@ export class PambaWamNode extends DSPNode {
     return new PambaWamNode(pluginInstance1, pluginDom1, pluginUrl);
   }
 
-  override cloneToOfflineContext(_context: OfflineAudioContext): Promise<DSPNode<AudioNode> | null> {
-    throw new Error("PambaWamNode: cloneToOfflineContext: Method not implemented.");
+  override async cloneToOfflineContext(
+    context: OfflineAudioContext,
+    offlineContextInfo: OfflineContextInfo
+  ): Promise<PambaWamNode | null> {
+    const state = await this.getState();
+    const {
+      wamHostGroup: [wamHostGroupId],
+    } = offlineContextInfo;
+
+    const pambaWamNode = await PambaWamNode.fromURL(this.url, wamHostGroupId, context);
+    if (pambaWamNode == null) {
+      return null;
+    }
+
+    await pambaWamNode.setState(state);
+    return pambaWamNode;
   }
 }

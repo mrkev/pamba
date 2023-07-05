@@ -24,11 +24,22 @@ import WhiteNoiseProcessorURL from "../worker/white-noise-processor?url";
 //   };
 // };
 // WorkletDemoBuilder(PageData, demoCode);
-export async function initAudioContext(audioContext: BaseAudioContext) {
+
+export type OfflineContextInfo = Readonly<{
+  wamHostGroup: [id: string, key: string];
+}>;
+
+export async function initAudioContext(audioContext: BaseAudioContext): Promise<OfflineContextInfo> {
   await audioContext.audioWorklet.addModule(WhiteNoiseProcessorURL);
   console.log("LOADED", WhiteNoiseProcessorURL);
   await audioContext.audioWorklet.addModule(SharedBufferWrokletURL);
   console.log("LOADED", "shared-buffer-worklet-processor.js");
   await audioContext.audioWorklet.addModule(MixDownProcessorURL);
   console.log("LOADED", "mix-down-processor.js");
+  const { default: initializeWamHost } = await import("../../packages/sdk/src/initializeWamHost");
+  const [hostGroupId, hostGroupKey] = await initializeWamHost(audioContext);
+  console.log("INITIALIZED", "wamHost", hostGroupId, hostGroupKey);
+  return {
+    wamHostGroup: [hostGroupId, hostGroupKey],
+  };
 }

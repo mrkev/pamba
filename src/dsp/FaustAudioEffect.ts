@@ -3,6 +3,7 @@ import { LinkedMap } from "../lib/state/LinkedMap";
 import { EffectID, FAUST_EFFECTS } from "./FAUST_EFFECTS";
 import { LayoutTypeMap } from "@shren/faust-ui/src/types";
 import { DSPNode } from "./DSPNode";
+import { OfflineContextInfo } from "../lib/initAudioContext";
 
 type TFaustUIItem = LayoutTypeMap[keyof LayoutTypeMap];
 

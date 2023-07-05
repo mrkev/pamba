@@ -180,13 +180,13 @@ export class AnalizedPlayer {
     }
 
     const offlineAudioContext = getOfflineAudioContext(end - startSec);
-    await initAudioContext(offlineAudioContext);
+    const offlineContextInfo = await initAudioContext(offlineAudioContext);
     const offlineMixDownNode: AudioWorkletNode = new AudioWorkletNode(offlineAudioContext, "mix-down-processor");
     offlineMixDownNode.connect(offlineAudioContext.destination);
 
     const trackDests = await Promise.all(
       tracks.map((track) => {
-        return track.prepareForBounce(offlineAudioContext);
+        return track.prepareForBounce(offlineAudioContext, offlineContextInfo);
       })
     );
 

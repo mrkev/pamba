@@ -1,3 +1,4 @@
+import type { OfflineContextInfo } from "../lib/initAudioContext";
 import type { SPrimitive } from "../lib/state/LinkedState";
 
 export abstract class DSPNode<I extends AudioNode | null = AudioNode> {
@@ -6,7 +7,10 @@ export abstract class DSPNode<I extends AudioNode | null = AudioNode> {
   abstract inputNode(): I;
   abstract outputNode(): AudioNode | DSPNode;
 
-  abstract cloneToOfflineContext(context: OfflineAudioContext): Promise<DSPNode | null>;
+  abstract cloneToOfflineContext(
+    context: OfflineAudioContext,
+    offlineContextInfo: OfflineContextInfo
+  ): Promise<DSPNode | null>;
   abstract effectId: string;
   abstract name: string | SPrimitive<string>;
 

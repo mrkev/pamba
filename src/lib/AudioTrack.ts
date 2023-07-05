@@ -13,6 +13,7 @@ import { WAMImport } from "../wam/wam";
 import { PambaWamNode } from "../wam/PambaWamNode";
 import nullthrows from "../utils/nullthrows";
 import { appEnvironment } from "./AppEnvironment";
+import { OfflineContextInfo } from "./initAudioContext";
 
 export class AudioTrack extends DSPNode<null> {
   // A track is a collection of non-overalping clips.
@@ -139,12 +140,12 @@ export class AudioTrack extends DSPNode<null> {
     this.playingSource.start(0, offset); // Play the sound now
   }
 
-  async prepareForBounce(context: OfflineAudioContext): Promise<AudioNode> {
+  async prepareForBounce(context: OfflineAudioContext, offlineContextInfo: OfflineContextInfo): Promise<AudioNode> {
     this.playingSource = this.getSourceNode(context);
 
     const effectNodes = await Promise.all(
       this.effects._getRaw().map(async (effect) => {
-        const nextEffect = await effect.cloneToOfflineContext(context);
+        const nextEffect = await effect.cloneToOfflineContext(context, offlineContextInfo);
         if (nextEffect == null) {
           throw new Error(`Failed to prepare ${effect.effectId} for bounce!`);
         }
