@@ -126,6 +126,10 @@ export function useAppProjectMouseEvents({
           project.selectionWidth.set(Math.abs(selWidth));
           break;
         }
+        case "selecting_track_time":
+          // TODO: handle
+          pressedState.set(null);
+          break;
         default:
           exhaustive(status);
       }
@@ -189,9 +193,14 @@ export function useAppProjectMouseEvents({
           const deltaXSecs = pxToSecs(e.clientX - pressed.clientX);
           project.selectionWidth.set(deltaXSecs);
           project.selected.set(null);
+          // project.selected.set({ status: "time", start: pressed.startTime, end: pressed.startTime + deltaXSecs });
           break;
         }
-
+        case "selecting_track_time":
+          const deltaXSecs = pxToSecs(e.clientX - pressed.clientX);
+          project.selectionWidth.set(deltaXSecs);
+          project.selected.set(null);
+          break;
         default:
           exhaustive(status);
       }

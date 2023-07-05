@@ -6,6 +6,8 @@ import { exhaustive } from "../utils/exhaustive";
 import { liveAudioContext } from "../constants";
 import { EffectID } from "../dsp/FAUST_EFFECTS";
 import { PambaWamNode } from "../wam/PambaWamNode";
+import { appEnvironment } from "../lib/AppEnvironment";
+import nullthrows from "../utils/nullthrows";
 
 export type SAudioClip = {
   kind: "AudioClip";
@@ -35,6 +37,9 @@ export type SFaustAudioEffect = {
 
 export type SPambaWamNode = {
   kind: "PambaWamNode";
+  // TODO: use effectId instead
+  pluginURL: string;
+  state: unknown;
 };
 
 export async function serializable(
@@ -45,7 +50,7 @@ export async function serializable(obj: AudioTrack): Promise<SAudioTrack>;
 export async function serializable(obj: AudioClip): Promise<SAudioClip>;
 export async function serializable(
   obj: AudioClip | AudioTrack | AudioProject | FaustAudioEffect | PambaWamNode
-): Promise<SAudioClip | SAudioTrack | SAudioProject | SFaustAudioEffect> {
+): Promise<SAudioClip | SAudioTrack | SAudioProject | SFaustAudioEffect | SPambaWamNode> {
   if (obj instanceof AudioClip) {
     const { name, bufferURL } = obj;
     return { kind: "AudioClip", name, bufferURL };
@@ -78,7 +83,11 @@ export async function serializable(
   }
 
   if (obj instanceof PambaWamNode) {
-    throw new Error("PambaWamNode: NOT SERIALIZABLE");
+    return {
+      kind: "PambaWamNode",
+      pluginURL: obj.url,
+      state: await obj.getState(),
+    };
   }
 
   exhaustive(obj);
@@ -116,7 +125,14 @@ export async function construct(
       return effect;
     }
     case "PambaWamNode": {
-      throw new Error("NOT PARSABLE: PambaWamNode");
+      const { pluginURL, state } = rep;
+      const [wamHostGroupId] = nullthrows(appEnvironment.wamHostGroup.get(), "wam host not initialized yet!");
+      const pambaWamNode = nullthrows(
+        await PambaWamNode.fromURL(pluginURL, wamHostGroupId, liveAudioContext),
+        "could not create PambaWamNode"
+      );
+      await pambaWamNode.setState(state);
+      return pambaWamNode;
     }
 
     default:

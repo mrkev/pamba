@@ -8,6 +8,8 @@ import { Position } from "./WindowPanel";
 export class PambaWamNode extends DSPNode {
   override name: string;
   override effectId: string;
+  readonly url: string;
+
   override inputNode(): AudioNode {
     return this.module.audioNode;
   }
@@ -26,17 +28,27 @@ export class PambaWamNode extends DSPNode {
     this.module.destroyGui(this.dom);
   }
 
-  private constructor(module: WebAudioModule<IWamNode>, dom: Element) {
+  async getState(): Promise<unknown> {
+    const state: unknown = await this.module.audioNode.getState();
+    return state;
+  }
+
+  async setState(state: unknown) {
+    await this.module.audioNode.setState(state);
+  }
+
+  private constructor(module: WebAudioModule<IWamNode>, dom: Element, url: string) {
     super();
     this.module = module;
     this.dom = dom;
     this.effectId = this.module.moduleId;
     this.name = this.module.descriptor.name;
+    this.url = url;
   }
 
-  static async fromURL(plugin1Url: string, hostGroupId: string, audioCtx: AudioContext) {
-    console.log("WAM: LOADING fromURL", plugin1Url);
-    const rawModule = await import(/* @vite-ignore */ plugin1Url);
+  static async fromURL(pluginUrl: string, hostGroupId: string, audioCtx: AudioContext) {
+    console.log("WAM: LOADING fromURL", pluginUrl);
+    const rawModule = await import(/* @vite-ignore */ pluginUrl);
     if (rawModule == null) {
       console.error("could not import", rawModule);
       return null;
@@ -44,13 +56,7 @@ export class PambaWamNode extends DSPNode {
     const WAM1: WAMImport = rawModule.default;
     let pluginInstance1 = await WAM1.createInstance(hostGroupId, audioCtx);
     let pluginDom1 = await pluginInstance1.createGui();
-    return new PambaWamNode(pluginInstance1, pluginDom1);
-  }
-
-  static async fromImport(wamImport: WAMImport, hostGroupId: string, audioCtx: AudioContext) {
-    let pluginInstance1 = await wamImport.createInstance(hostGroupId, audioCtx);
-    let pluginDom1 = await pluginInstance1.createGui();
-    return new PambaWamNode(pluginInstance1, pluginDom1);
+    return new PambaWamNode(pluginInstance1, pluginDom1, pluginUrl);
   }
 
   override cloneToOfflineContext(_context: OfflineAudioContext): Promise<DSPNode<AudioNode> | null> {

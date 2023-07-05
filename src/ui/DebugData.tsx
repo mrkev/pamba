@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import { useLocalState } from "@ricardo-jrm/use-local-state";
 import { AudioProject, SelectionState } from "../lib/AudioProject";
-import { useLinkedState } from "../lib/state/LinkedState";
 import { useLinkedArray } from "../lib/state/LinkedArray";
-import { exhaustive } from "../utils/exhaustive";
 import { useLinkedMap } from "../lib/state/LinkedMap";
+import { useLinkedState } from "../lib/state/LinkedState";
 import { pressedState } from "../pressedState";
+import { exhaustive } from "../utils/exhaustive";
 
 export function stringOfSelected(sel: SelectionState | null): string {
   if (!sel) {
@@ -33,6 +33,9 @@ export function stringOfSelected(sel: SelectionState | null): string {
     case "time":
       return "time";
 
+    case "track_time":
+      return "track_time";
+
     default:
       exhaustive(status);
   }
@@ -47,7 +50,7 @@ export function DebugData({ project }: { project: AudioProject }) {
   const [tracks] = useLinkedArray(project.allTracks);
   const [timeMarkers] = useLinkedMap(project.timeMarkers);
   const [pressed] = useLinkedState(pressedState);
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useLocalState("debugDataOpen", false);
 
   const allState = tracks
     .map((track, i) => {

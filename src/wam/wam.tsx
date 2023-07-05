@@ -44,15 +44,15 @@ function useAsyncState<T>(cb: () => Promise<T>): T | null {
   return result;
 }
 
-function usePambaWam(wamImport: WAMImport | null, hostGroupId: string | null) {
+function usePambaWam(wamUrl: string | null, hostGroupId: string | null) {
   const pambaWam = useAsyncState(
     useCallback(async () => {
-      if (hostGroupId == null || wamImport == null) {
+      if (hostGroupId == null || wamUrl == null) {
         return null;
       }
-      const module = await PambaWamNode.fromImport(wamImport, hostGroupId, liveAudioContext);
+      const module = await PambaWamNode.fromURL(wamUrl, hostGroupId, liveAudioContext);
       return module;
-    }, [hostGroupId, wamImport])
+    }, [hostGroupId, wamUrl])
   );
 
   return pambaWam;
@@ -83,8 +83,8 @@ export function Demo() {
   const [node] = useState(createWhiteNoise(audioCtx));
   const hostGroupId = useWamHostGroup();
   const [wams] = useLinkedMap(appEnvironment.wamPlugins);
-  const wam1 = usePambaWam(wams.get(plugin1Url)?.import ?? null, hostGroupId);
-  const wam2 = usePambaWam(wams.get(plugin2Url)?.import ?? null, hostGroupId);
+  const wam1 = usePambaWam(plugin1Url ?? null, hostGroupId);
+  const wam2 = usePambaWam(plugin1Url ?? null, hostGroupId);
 
   if (hostGroupId === null) {
     return null;

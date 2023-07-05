@@ -128,7 +128,6 @@ export function Track({
           ev.preventDefault();
         }}
         onMouseEnter={function (_e) {
-          // console.log("MOUSE ENTER");
           if (pressed && pressed.status === "moving_clip") {
             setPressed((prev) => Object.assign({}, prev, { track }));
           }
@@ -137,6 +136,18 @@ export function Track({
           // console.log("LEAVE");
         }}
         onMouseUp={() => {}}
+        onMouseDown={(e) => {
+          pressedState.set({
+            status: "selecting_track_time",
+            clientX: e.clientX,
+            clientY: e.clientY,
+            // TODOOOOOOOOOOOOO
+            startTimeFr: 0,
+            track,
+          });
+          e.stopPropagation();
+          e.preventDefault();
+        }}
         style={{
           position: "relative",
           height: height - TRACK_SEPARATOR_HEIGHT,

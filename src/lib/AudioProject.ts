@@ -56,6 +56,13 @@ export type SelectionState =
       status: "time";
       start: number;
       end: number;
+    }
+  | {
+      status: "track_time";
+      start: number;
+      end: number;
+      tracks: Array<AudioTrack>;
+      test: Set<AudioTrack>;
     };
 
 export type RenameState =
@@ -237,7 +244,11 @@ export class ProjectSelection {
   }
 
   static selectEffect(project: AudioProject, effect: FaustAudioEffect | PambaWamNode, track: AudioTrack) {
-    project.selected.set({ status: "effects", effects: [{ effect, track }], test: new Set([effect]) });
+    project.selected.set({
+      status: "effects",
+      effects: [{ effect, track }],
+      test: new Set([effect]),
+    });
   }
 
   /**
@@ -278,6 +289,9 @@ export class ProjectSelection {
         // todo
         break;
       }
+      case "track_time":
+        // todo
+        break;
       default:
         exhaustive(status);
     }

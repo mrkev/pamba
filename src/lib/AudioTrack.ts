@@ -94,9 +94,13 @@ export class AudioTrack extends DSPNode<null> {
     this.effects.push(effect);
   }
 
-  async addWAM(wamImport: WAMImport) {
+  async addWAM(url: string) {
     const [hostGroupId] = nullthrows(appEnvironment.wamHostGroup.get());
-    const module = await PambaWamNode.fromImport(wamImport, hostGroupId, liveAudioContext);
+    const module = await PambaWamNode.fromURL(url, hostGroupId, liveAudioContext);
+    if (module == null) {
+      console.error("Error: NO MODULE");
+      return;
+    }
     this.effects.push(module);
   }
 

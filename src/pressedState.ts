@@ -30,6 +30,15 @@ export type CursorState =
       startTime: number;
     }>
   | Readonly<{
+      status: "selecting_track_time";
+      // Original clientX/Y of event
+      clientX: number;
+      clientY: number;
+      // time at original click
+      startTimeFr: number;
+      track: AudioTrack;
+    }>
+  | Readonly<{
       status: "resizing_clip";
       from: "start" | "end";
       originalClipEndPosSec: number;
