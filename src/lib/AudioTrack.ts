@@ -1,19 +1,18 @@
-import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
-import { EffectID } from "../dsp/FAUST_EFFECTS";
 import { CLIP_HEIGHT, liveAudioContext } from "../constants";
+import { DSPNode } from "../dsp/DSPNode";
+import { EffectID } from "../dsp/FAUST_EFFECTS";
+import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
 import { mixDown } from "../mixDown";
+import nullthrows from "../utils/nullthrows";
+import { PambaWamNode } from "../wam/PambaWamNode";
+import { appEnvironment } from "./AppEnvironment";
 import AudioClip from "./AudioClip";
 import { addClip, deleteTime, pushClip, removeClip } from "./AudioTrackFn";
+import { TrackThread } from "./TrackThread";
+import { OfflineContextInfo } from "./initAudioContext";
+import { PBGainNode } from "./offlineNodes";
 import { LinkedArray } from "./state/LinkedArray";
 import { SPrimitive } from "./state/LinkedState";
-import { TrackThread } from "./TrackThread";
-import { DSPNode } from "../dsp/DSPNode";
-import { PBGainNode } from "./offlineNodes";
-import { WAMImport } from "../wam/wam";
-import { PambaWamNode } from "../wam/PambaWamNode";
-import nullthrows from "../utils/nullthrows";
-import { appEnvironment } from "./AppEnvironment";
-import { OfflineContextInfo } from "./initAudioContext";
 
 export class AudioTrack extends DSPNode<null> {
   // A track is a collection of non-overalping clips.

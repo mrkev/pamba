@@ -30,7 +30,6 @@ class AppEnvironment {
   constructor() {
     this.firebaseApp = initFirebaseApp();
     // async inits
-
     void (async () => {
       // Init wam host
       const { default: initializeWamHost } = await import("../../packages/sdk/src/initializeWamHost");

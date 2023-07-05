@@ -1,11 +1,10 @@
 import { WamNode as IWamNode } from "@webaudiomodules/api";
 import type { WebAudioModule } from "../../packages/sdk/dist";
 import { DSPNode } from "../dsp/DSPNode";
-import { WAMImport } from "./wam";
+import { OfflineContextInfo } from "../lib/initAudioContext";
 import { SPrimitive } from "../lib/state/LinkedState";
 import { Position } from "./WindowPanel";
-import { appEnvironment } from "../lib/AppEnvironment";
-import { OfflineContextInfo } from "../lib/initAudioContext";
+import { WAMImport } from "./wam";
 
 export class PambaWamNode extends DSPNode {
   override name: string;
