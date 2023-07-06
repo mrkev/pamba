@@ -2,7 +2,7 @@ import { scaleLinear } from "d3-scale";
 import React, { useMemo } from "react";
 import { CLIP_HEIGHT } from "../constants";
 import type AudioClip from "../lib/AudioClip";
-import type { AudioProject, Tool, XScale } from "../lib/AudioProject";
+import type { AudioProject, XScale } from "../lib/AudioProject";
 import type { AudioTrack } from "../lib/AudioTrack";
 import { useDerivedState } from "../lib/state/DerivedState";
 import { useSubscribeToSubbableMutationHashable } from "../lib/state/LinkedMap";
@@ -10,12 +10,12 @@ import { pressedState } from "../pressedState";
 // import { useLinkedState } from "../lib/state/LinkedState";
 import { createUseStyles } from "react-jss";
 import { modifierState } from "../ModifierState";
+import { useLinkedState } from "../lib/state/LinkedState";
 import { RenamableLabel } from "./RenamableLabel";
 // import { dataWaveformToCanvas } from "../lib/waveformAsync";
 
 type Props = {
   clip: AudioClip;
-  tool: Tool;
   rerender: () => void;
   isSelected: boolean;
   style?: React.CSSProperties;
@@ -42,15 +42,24 @@ const useStyles = createUseStyles({
     top: 0,
     cursor: "ew-resize",
   },
+  clipHeader: {
+    opacity: 0.8,
+    fontSize: 10,
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    flexShrink: 0,
+    paddingBottom: "0px 0px 1px 0px",
+  },
 });
 
-export function Clip({ clip, tool, rerender, isSelected, style = {}, project, track }: Props) {
+export function Clip({ clip, rerender, isSelected, style = {}, project, track }: Props) {
   const styles = useStyles();
   const secsToPx = useDerivedState(project.secsToPx);
   const pxToSecs = secsToPx.invert;
   const width = secsToPx(clip.durationSec);
   const totalBufferWidth = secsToPx(clip.lengthSec);
   const startTrimmedWidth = secsToPx(clip.trimStartSec);
+  const [tool] = useLinkedState(project.pointerTool);
   const height = CLIP_HEIGHT - 3; // to clear the bottom track separator gridlines
   // const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -159,7 +168,7 @@ export function Clip({ clip, tool, rerender, isSelected, style = {}, project, tr
         backgroundPosition: `${startTrimmedWidth * -1}px center`,
         backgroundRepeat: "no-repeat",
         imageRendering: "pixelated",
-        width,
+        width: width,
         height: "100%",
         userSelect: "none",
         borderLeft: border,
@@ -174,17 +183,12 @@ export function Clip({ clip, tool, rerender, isSelected, style = {}, project, tr
       }}
     >
       <div
+        className={styles.clipHeader}
         onMouseDown={onMouseDownToMove}
         style={{
           color: isSelected ? "white" : "black",
           background: isSelected ? "#225522" : "#bbeebb",
           border: border,
-          opacity: 0.8,
-          fontSize: 10,
-          whiteSpace: "nowrap",
-          overflow: "hidden",
-          flexShrink: 0,
-          paddingBottom: "0px 0px 1px 0px",
         }}
       >
         {/* TODO: not working */}

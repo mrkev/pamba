@@ -236,6 +236,11 @@ export class AudioTrack extends DSPNode<null> {
     this.clips._setRaw(clips);
   }
 
+  override cloneToOfflineContext(_context: OfflineAudioContext): Promise<DSPNode<AudioNode> | null> {
+    throw new Error("AudioTrack: DSPNode: can't cloneToOfflineContext.");
+  }
+  override effectId: string = "AUDIO TRACK (TODO)";
+
   ///////////// statics
 
   static removeEffect(track: AudioTrack, effect: FaustAudioEffect | PambaWamNode) {
@@ -246,11 +251,6 @@ export class AudioTrack extends DSPNode<null> {
   static bypassEffect(track: AudioTrack, effect: FaustAudioEffect | PambaWamNode) {
     console.log("todo: bypass", effect);
   }
-
-  override cloneToOfflineContext(_context: OfflineAudioContext): Promise<DSPNode<AudioNode> | null> {
-    throw new Error("AudioTrack: DSPNode: can't cloneToOfflineContext.");
-  }
-  override effectId: string = "AUDIO TRACK (TODO)";
 }
 
 function connectSerialNodes(chain: (AudioNode | DSPNode<AudioNode>)[]): void {

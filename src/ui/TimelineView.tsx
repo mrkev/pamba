@@ -50,6 +50,14 @@ const useStyles = createUseStyles({
     width: TRACK_HEADER_WIDTH,
     flexShrink: 0,
   },
+  projectDiv: {
+    position: "relative",
+    background: "#ddd",
+    overflowX: "scroll",
+    overflowY: "hidden",
+    width: "100%",
+    gridArea: "1 / 1 / 3 / 2",
+  },
 });
 
 export function TimelineView({
@@ -151,11 +159,8 @@ export function TimelineView({
     <div
       id="container"
       className={classes.container}
-      // className={containerStyle}
       style={{
         width: "100%",
-        // display: "flex",
-        // flexDirection: "row",
         flexGrow: 1,
       }}
     >
@@ -177,18 +182,18 @@ export function TimelineView({
       {/* The whole width of this div is 90s */}
       <div
         id="projectDiv"
+        className={classes.projectDiv}
         ref={(elem) => setProjectDiv(elem)}
         style={{
-          position: "relative",
-          background: "#ddd",
           paddingBottom: CLIP_HEIGHT,
-          overflowX: "scroll",
-          overflowY: "hidden",
-          width: "100%",
-          gridArea: "1 / 1 / 3 / 2",
         }}
       >
         <Axis project={project}></Axis>
+        {/* <div id="bgs" style={{ position: "absolute", width: "100%", right: 0 }}>
+          {tracks.map(function (track, i) {
+            return <TrackBg key={i} track={track} project={project} />;
+          })}
+        </div> */}
         {tracks.map(function (track, i) {
           const isDspExpanded = dspExpandedTracks.has(track);
           return <Track key={i} track={track} project={project} isDspExpanded={isDspExpanded} renderer={renderer} />;

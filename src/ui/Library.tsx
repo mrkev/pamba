@@ -64,9 +64,16 @@ export function Library({
   const loadClip = useCallback(
     async function loadClip(url: string, name?: string) {
       try {
-        console.log("LOAD CLIP");
         // load clip
+        console.log("LOAD CLIP");
         const clip = await AudioClip.fromURL(url, name);
+
+        const activeTrack = project.activeTrack.get();
+        if (activeTrack !== null) {
+          activeTrack.pushClip(clip);
+          return;
+        }
+
         const newTrack = AudioTrack.fromClip(clip);
         AudioProject.addTrack(project, player, newTrack);
         console.log("loaded");

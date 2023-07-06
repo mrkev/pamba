@@ -162,20 +162,12 @@ export function Track({
           const isSelected = selected !== null && selected.status === "clips" && selected.test.has(clip);
 
           return (
-            <Clip
-              key={i}
-              clip={clip}
-              tool={tool}
-              rerender={rerender}
-              isSelected={isSelected}
-              track={track}
-              project={project}
-            />
+            <Clip key={i} clip={clip} rerender={rerender} isSelected={isSelected} track={track} project={project} />
           );
         })}
         {/* RENDER CLIP BEING MOVED */}
         {pressed && pressed.status === "moving_clip" && pressed.track === track && (
-          <Clip clip={pressed.clip} tool={tool} rerender={rerender} isSelected={true} project={project} track={null} />
+          <Clip clip={pressed.clip} rerender={rerender} isSelected={true} project={project} track={null} />
         )}
       </div>
       {/* EFFECT RACK */}
