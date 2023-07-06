@@ -125,10 +125,14 @@ export class AudioProject {
 
   // the selected clip(s), track(s), etc
   readonly selected = SPrimitive.of<SelectionState | null>(null);
-  // the thing we're currently renaming, if any
-  readonly currentlyRenaming = SPrimitive.of<RenameState | null>(null);
   // the width of the selection at the playback cursor
   readonly selectionWidth = SPrimitive.of<number | null>(null);
+  // much like live, there's always an active track. Logic is a great model since
+  // the active track is clearly discernable in spite of multi-track selection.
+  readonly activeTrack = SPrimitive.of<AudioTrack | null>(null);
+
+  // the thing we're currently renaming, if any
+  readonly currentlyRenaming = SPrimitive.of<RenameState | null>(null);
   // the zoom level
   readonly scaleFactor = SPrimitive.of(10);
   readonly viewportStartPx = SPrimitive.of(0); // the "left" CSS position for the first second visible in the project div
@@ -240,6 +244,7 @@ export class ProjectSelection {
         tracks: [track],
         test: new Set([track]),
       });
+      project.activeTrack.set(track);
     }
   }
 
@@ -274,6 +279,9 @@ export class ProjectSelection {
           console.log("remove", selected);
           AudioProject.removeTrack(project, player, track);
           project.selected.set(null);
+          if (project.activeTrack.get() === track) {
+            project.activeTrack.set(null);
+          }
         }
         break;
       }

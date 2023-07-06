@@ -29,6 +29,7 @@ export function Track({
   const [tool] = useLinkedState(project.pointerTool);
   const [clips] = useLinkedArray(track.clips);
   const [height] = useLinkedState(track.height);
+  const [activeTrack] = useLinkedState(project.activeTrack);
   const trackRef = useRef<HTMLDivElement>(null);
   const [, setStateCounter] = useState(0);
   const rerender = useCallback(function () {
@@ -132,10 +133,8 @@ export function Track({
             setPressed((prev) => Object.assign({}, prev, { track }));
           }
         }}
-        onMouseLeave={() => {
-          // console.log("LEAVE");
-        }}
-        onMouseUp={() => {}}
+        // onMouseLeave={() => {}}
+        // onMouseUp={() => {}}
         onMouseDown={(e) => {
           pressedState.set({
             status: "selecting_track_time",
@@ -151,6 +150,7 @@ export function Track({
         style={{
           position: "relative",
           height: height - TRACK_SEPARATOR_HEIGHT,
+          background: activeTrack === track ? "rgba(64,64,64,0.1)" : "none",
           // pointerEvents: "none",
         }}
       >

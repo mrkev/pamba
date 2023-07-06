@@ -79,7 +79,7 @@ export function Library({
   );
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 4, padding: "4px 0px" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 4, padding: "4px 0px 4px 4px" }}>
       <input
         type="search"
         placeholder="Search..."

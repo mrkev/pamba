@@ -12,6 +12,7 @@ import { pressedState } from "../pressedState";
 import { utility, UtilitySlider } from "./utility";
 import { createUseStyles } from "react-jss";
 import { appEnvironment } from "../lib/AppEnvironment";
+import classNames from "classnames";
 
 const useStyles = createUseStyles({
   actionButton: {
@@ -19,15 +20,30 @@ const useStyles = createUseStyles({
     border: "none",
     background: "#d3d3d3",
   },
+  trackNumber: {
+    width: 17.5,
+    borderRight: "1px solid #eee",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    background: "white",
+    color: "black",
+  },
+  trackNumberActive: {
+    color: "white",
+    background: "#333",
+  },
 });
 
 type Props = {
   track: AudioTrack;
+  // TODO: make a property of the track?
+  trackNumber: number;
   project: AudioProject;
   player: AnalizedPlayer;
 };
 
-export default function TrackHeader({ track, project, player }: Props) {
+export default function TrackHeader({ track, trackNumber, project, player }: Props) {
   const styles = useStyles();
   const [gain, setGain] = useState<number>(track.getCurrentGain().value);
   const [muted, setMuted] = useState<boolean>(false);
@@ -39,6 +55,7 @@ export default function TrackHeader({ track, project, player }: Props) {
   const [height] = useLinkedState(track.height);
   const renameInputRef = useRef<HTMLInputElement | null>(null);
   const [selected] = useLinkedState(project.selected);
+  const [activeTrack] = useLinkedState(project.activeTrack);
   const renameStateDescriptor = useMemo(
     () =>
       ({
@@ -108,17 +125,23 @@ export default function TrackHeader({ track, project, player }: Props) {
             display: "flex",
             flexDirection: "row",
             justifyContent: "space-between",
-            alignItems: "center",
+            alignItems: "stretch",
             fontSize: "0.8em",
-            paddingLeft: "4px",
           }}
         >
+          <span
+            className={classNames(styles.trackNumber, activeTrack === track && styles.trackNumberActive)}
+            style={{ marginRight: 4 }}
+          >
+            {trackNumber}
+          </span>
           <RenamableLabel
             project={project}
             value={trackName}
             setValue={setTrackName}
             renameState={renameStateDescriptor}
           />
+          <div style={{ flexGrow: 1 }}></div>
           <button className={styles.actionButton} onClick={() => AudioProject.removeTrack(project, player, track)}>
             x
           </button>{" "}
@@ -235,17 +258,15 @@ export default function TrackHeader({ track, project, player }: Props) {
               const event = new MouseEvent("dblclick");
               e.target.dispatchEvent(event);
               e.stopPropagation();
-              // if (e.key === "Enter") {
-              //   track.addEffect(FAUST_EFFECTS.PANNER);
-              // }
             }}
           >
-            <option key="PANNER" onDoubleClick={async () => track.addEffect("PANNER")}>
-              Panner
-            </option>
-            <option key="REVERB" onDoubleClick={async () => track.addEffect("REVERB")}>
-              Reverb
-            </option>
+            {appEnvironment.faustEffects.map((effect) => {
+              return (
+                <option key={effect} onDoubleClick={async () => track.addEffect(effect)}>
+                  {effect.toLocaleLowerCase()}
+                </option>
+              );
+            })}
 
             {appEnvironment.wamPlugins.map((value, key) => {
               return (

@@ -210,7 +210,9 @@ export function TimelineView({
       {/* 3. Track headers */}
       <div className={classes.trackHeaders}>
         {tracks.map((track, i) => {
-          return <TrackHeader key={i} track={track} project={project} player={player} />;
+          return (
+            <TrackHeader key={i} track={track} project={project} player={player} trackNumber={tracks.length - i} />
+          );
         })}
       </div>
     </div>

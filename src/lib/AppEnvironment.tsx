@@ -26,6 +26,7 @@ class AppEnvironment {
   readonly firebaseUser = SPrimitive.of<User | null>(null);
   readonly wamHostGroup = SPrimitive.of<[id: string, key: string] | null>(null);
   readonly wamPlugins = LinkedMap.create<string, { import: WAMImport; descriptor: WamDescriptor }>(new Map());
+  readonly faustEffects = ["PANNER", "REVERB"] as const;
 
   constructor() {
     this.firebaseApp = initFirebaseApp();

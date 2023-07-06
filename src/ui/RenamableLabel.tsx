@@ -30,6 +30,7 @@ export function RenamableLabel({
   value,
   setValue,
   renameState,
+  style,
   ...divProps
 }: {
   project: AudioProject;
@@ -66,7 +67,18 @@ export function RenamableLabel({
   }, [isBeingRenamed, setCurrentlyRenaming]);
 
   return (
-    <span {...passedDivProps} ref={spanRef} onDoubleClick={onDoubleClick}>
+    <span
+      // TODO: change for class
+      style={{
+        display: "inline-flex",
+        flexDirection: "row",
+        alignItems: "center",
+        ...style,
+      }}
+      {...passedDivProps}
+      ref={spanRef}
+      onDoubleClick={onDoubleClick}
+    >
       {isBeingRenamed ? (
         <input
           ref={renameInputRef}

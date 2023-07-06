@@ -50,7 +50,8 @@ export function DebugData({ project }: { project: AudioProject }) {
   const [tracks] = useLinkedArray(project.allTracks);
   const [timeMarkers] = useLinkedMap(project.timeMarkers);
   const [pressed] = useLinkedState(pressedState);
-  const [open, setOpen] = useLocalState("debugDataOpen", false);
+  const [activeTrack] = useLinkedState(project.activeTrack);
+  const [open, setOpen] = useLocalState("debugDataOpen", true);
 
   const allState = tracks
     .map((track, i) => {
@@ -79,6 +80,8 @@ export function DebugData({ project }: { project: AudioProject }) {
         Selected: {stringOfSelected(selected)}
         <br />
         Pressed: {pressed?.status}
+        <br />
+        Active Track: {activeTrack?.name.get()}
       </div>
       <pre>{allState}</pre>
       {timeMarkers.map((value, key) => (
