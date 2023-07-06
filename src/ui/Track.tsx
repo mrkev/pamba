@@ -12,6 +12,7 @@ import { Clip } from "./Clip";
 import { EffectRack } from "./EffectRack";
 import { usePambaFirebaseStoreRef } from "../firebase/useFirebase";
 import { AudioStorage } from "../lib/audioStorage";
+import { useEventListener } from "./useEventListener";
 
 export function Track({
   track,
@@ -26,7 +27,6 @@ export function Track({
 }): React.ReactElement {
   const [pressed, setPressed] = useLinkedState(pressedState);
   const [selected] = useLinkedState(project.selected);
-  const [tool] = useLinkedState(project.pointerTool);
   const [clips] = useLinkedArray(track.clips);
   const [height] = useLinkedState(track.height);
   const [activeTrack] = useLinkedState(project.activeTrack);
@@ -88,7 +88,8 @@ export function Track({
     }
 
     function onMouseDown() {
-      console.log("TRACK MOUSE DOWN");
+      // TODO
+      console.log("TRACK MOUSE DOWN, TODO: TRACK BACKGROUND");
       // const div = e.currentTarget;
       // if (!(div instanceof HTMLDivElement)) return;
       // const position = {
@@ -120,6 +121,29 @@ export function Track({
     };
   }, []);
 
+  useEventListener(
+    "mouseenter",
+    trackRef,
+    useCallback(
+      function (_e) {
+        const pressed = pressedState.get();
+        if (pressed && pressed.status === "moving_clip") {
+          pressedState.setDyn((prev) => Object.assign({}, prev, { track }));
+        }
+      },
+      [track]
+    )
+  );
+
+  useEventListener(
+    "mousedown",
+    trackRef,
+    useCallback(() => {
+      project.cursorTracks.clear();
+      project.cursorTracks.add(track);
+    }, [project.cursorTracks, track])
+  );
+
   return (
     <>
       <div
@@ -127,11 +151,6 @@ export function Track({
         onDrop={onDrop}
         onDragOver={function allowDrop(ev) {
           ev.preventDefault();
-        }}
-        onMouseEnter={function (_e) {
-          if (pressed && pressed.status === "moving_clip") {
-            setPressed((prev) => Object.assign({}, prev, { track }));
-          }
         }}
         // onMouseLeave={() => {}}
         // onMouseUp={() => {}}
@@ -169,7 +188,16 @@ export function Track({
         {pressed && pressed.status === "moving_clip" && pressed.track === track && (
           <Clip clip={pressed.clip} rerender={rerender} isSelected={true} project={project} track={null} />
         )}
+        {/* <div
+          style={{
+            width: "200px",
+            height: "30px",
+            position: "fixed",
+            background: "red",
+          }}
+        /> */}
       </div>
+
       {/* EFFECT RACK */}
       {isDspExpanded && <EffectRack track={track} project={project} renderer={renderer} />}
 

@@ -43,7 +43,7 @@ const useStyles = createUseStyles({
   },
   markerContainer: {
     height: 29,
-    borderBottom: "1px solid #BBB",
+    // borderBottom: "1px solid #BBB",
     userSelect: "none",
     position: "absolute",
     top: 0,
@@ -52,7 +52,7 @@ const useStyles = createUseStyles({
   },
 });
 
-export function Axis({ project }: { project: AudioProject }) {
+export function Axis({ project, isHeader }: { project: AudioProject; isHeader?: boolean }) {
   const styles = useStyles();
   const [svg, setSvg] = useState<SVGSVGElement | null>(null);
   const [markers] = useLinkedMap(project.timeMarkers);
@@ -112,69 +112,84 @@ export function Axis({ project }: { project: AudioProject }) {
         ref={(elem: SVGSVGElement) => setSvg(elem)}
         className={styles.svgContainer}
         style={{
-          left: viewportStartPx,
+          left: !isHeader ? viewportStartPx : 0,
+          pointerEvents: "none",
+          // position: "sticky",
         }}
       >
+        ,
         {tickData?.map((secs) => {
           const px = pxForTime(secs);
           return (
             <g className="tick" key={secs}>
               <line x1={px} x2={px} y1="0" y2="100%" stroke="#CBCBCB"></line>
-              <text x={px} y="2" dx="2px" fontSize="12px" fill="#454545" textAnchor="start" alignmentBaseline="hanging">
-                {formatSecs(secs)}
-              </text>
+              {isHeader && (
+                <text
+                  x={px}
+                  y="2"
+                  dx="2px"
+                  fontSize="12px"
+                  fill="#454545"
+                  textAnchor="start"
+                  alignmentBaseline="hanging"
+                >
+                  {formatSecs(secs)}
+                </text>
+              )}
             </g>
           );
         })}
       </svg>
       {/* Spacer to make the project content not overlap with the timestamps. Needs to not
       be position: absolute so it interacts with the page flow */}
-      <div style={{ height: 30, position: "relative" }} />
-      <div
-        className={cx("marker-interaction-area", styles.markerContainer)}
-        style={{
-          left: viewportStartPx,
-        }}
-        onDoubleClick={(e: React.MouseEvent) => {
-          if ((e.target as any).className !== "marker-interaction-area") {
-            return;
-          }
-          AudioProject.addMarkerAtTime(project, timeForPx(e.nativeEvent.offsetX));
-        }}
-      >
-        {markers
-          .map((time, id) => {
-            return [
-              time,
-              <div
-                key={id}
-                style={{
-                  position: "absolute",
-                  left: pxForTime(time),
-                  background: "white",
-                  bottom: 0,
-                  borderLeft: "1px solid black",
-                  paddingRight: 20,
-                }}
-              >
-                <Marker
-                  onClick={() => {
-                    ProjectMarkers.selectMarker(project, id);
-                  }}
+      {isHeader && <div style={{ height: 30, position: "relative" }} />}
+      {isHeader && (
+        <div
+          className={cx("marker-interaction-area", styles.markerContainer)}
+          style={{
+            left: viewportStartPx,
+          }}
+          onDoubleClick={(e: React.MouseEvent) => {
+            if ((e.target as any).className !== "marker-interaction-area") {
+              return;
+            }
+            AudioProject.addMarkerAtTime(project, timeForPx(e.nativeEvent.offsetX));
+          }}
+        >
+          {markers
+            .map((time, id) => {
+              return [
+                time,
+                <div
+                  key={id}
                   style={{
-                    position: "relative",
-                    left: -9,
-                    bottom: -3,
-                    cursor: "pointer",
+                    position: "absolute",
+                    left: pxForTime(time),
+                    background: "white",
+                    bottom: 0,
+                    borderLeft: "1px solid black",
+                    paddingRight: 20,
                   }}
-                />
-                marker {id}
-              </div>,
-            ] as const;
-          })
-          .sort(([a], [b]) => a - b)
-          .map(([, elem]) => elem)}
-      </div>
+                >
+                  <Marker
+                    onClick={() => {
+                      ProjectMarkers.selectMarker(project, id);
+                    }}
+                    style={{
+                      position: "relative",
+                      left: -9,
+                      bottom: -3,
+                      cursor: "pointer",
+                    }}
+                  />
+                  marker {id}
+                </div>,
+              ] as const;
+            })
+            .sort(([a], [b]) => a - b)
+            .map(([, elem]) => elem)}
+        </div>
+      )}
     </>
   );
 }

@@ -55,8 +55,6 @@ const useStyles = createUseStyles({
     background: "#ddd",
     overflowX: "scroll",
     overflowY: "hidden",
-    width: "100%",
-    gridArea: "1 / 1 / 3 / 2",
   },
 });
 
@@ -75,7 +73,7 @@ export function TimelineView({
   const [tracks] = useLinkedArray(project.allTracks);
   const [dspExpandedTracks] = useLinkedSet(project.dspExpandedTracks);
   const secsToPx = useDerivedState(project.secsToPx);
-  const [viewportStartPx, setViewportStartPx] = useLinkedState(project.viewportStartPx);
+  const [viewportStartPx] = useLinkedState(project.viewportStartPx);
 
   useEffect(() => {
     const pbdiv = playbackPosDiv.current;
@@ -131,19 +129,19 @@ export function TimelineView({
         const widthUpToMouse = e.clientX + viewportStartPx;
         const deltaX = widthUpToMouse - widthUpToMouse * realSDelta;
         const newStart = viewportStartPx - deltaX;
-        setViewportStartPx(newStart);
+        project.viewportStartPx.set(newStart);
         e.preventDefault();
       }
       // pan
       else {
         const start = Math.max(viewportStartPx + e.deltaX, 0);
         // console.log("here");
-        setViewportStartPx(start);
+        project.viewportStartPx.set(start);
       }
     };
 
     const onScroll = (e: Event) => {
-      setViewportStartPx((e.target as any).scrollLeft);
+      project.viewportStartPx.set((e.target as any).scrollLeft);
       e.preventDefault();
     };
 
@@ -153,7 +151,7 @@ export function TimelineView({
       projectDiv.removeEventListener("wheel", onWheel, { capture: false });
       projectDiv.removeEventListener("scroll", onScroll, { capture: false });
     };
-  }, [project.scaleFactor, projectDiv, setViewportStartPx, viewportStartPx]);
+  }, [project.scaleFactor, project.viewportStartPx, projectDiv, viewportStartPx]);
 
   return (
     <div
@@ -164,6 +162,18 @@ export function TimelineView({
         flexGrow: 1,
       }}
     >
+      <div
+        style={{
+          position: "sticky",
+          top: 0,
+          left: 0,
+          zIndex: 2,
+          borderBottom: "1px solid #aaa",
+          background: "#ddd",
+        }}
+      >
+        <Axis project={project} isHeader />
+      </div>
       {/* 1. Track header overhang (bounce button) */}
       <div className={classes.axisSpacer}>
         <button
@@ -191,7 +201,18 @@ export function TimelineView({
         <Axis project={project}></Axis>
         {/* <div id="bgs" style={{ position: "absolute", width: "100%", right: 0 }}>
           {tracks.map(function (track, i) {
-            return <TrackBg key={i} track={track} project={project} />;
+            return (
+              <div
+                key={i}
+                style={{
+                  width: "200px",
+                  height: "30px",
+                  position: "sticky",
+                  left: 0,
+                  background: "red",
+                }}
+              />
+            );
           })}
         </div> */}
         {tracks.map(function (track, i) {

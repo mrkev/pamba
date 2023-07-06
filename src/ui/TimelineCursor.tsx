@@ -2,10 +2,12 @@ import React from "react";
 import { AudioProject } from "../lib/AudioProject";
 import { useDerivedState } from "../lib/state/DerivedState";
 import { useLinkedState } from "../lib/state/LinkedState";
+import { useLinkedSet } from "../lib/state/LinkedSet";
 
 export function TimelineCursor({ project }: { project: AudioProject }) {
   const secsToPx = useDerivedState(project.secsToPx);
   const [cursorPos] = useLinkedState(project.cursorPos);
+  const [cursorTracks] = useLinkedSet(project.cursorTracks);
   const [selectionWidth] = useLinkedState(project.selectionWidth);
   return (
     <div
@@ -20,6 +22,6 @@ export function TimelineCursor({ project }: { project: AudioProject }) {
         width: selectionWidth == null || selectionWidth === 0 ? 1 : secsToPx(Math.abs(selectionWidth)),
         top: 0,
       }}
-    ></div>
+    />
   );
 }

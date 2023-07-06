@@ -88,8 +88,19 @@ function AppProject({ project }: { project: AudioProject }) {
     <>
       {/* <Demo /> */}
       <ToolHeader project={project} player={renderer.analizedPlayer} renderer={renderer} />
-      <PanelGroup direction="horizontal">
-        <Panel collapsible={true} defaultSize={15} onCollapse={console.log}>
+      <PanelGroup direction="horizontal" autoSaveId="foobar">
+        <Panel
+          collapsible={true}
+          defaultSize={15}
+          onCollapse={console.log}
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 4,
+            padding: "4px 0px 4px 4px",
+            paddingBottom: "128px",
+          }}
+        >
           <Library
             project={project}
             renderer={renderer}

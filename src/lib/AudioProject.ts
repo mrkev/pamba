@@ -120,6 +120,8 @@ export class AudioProject {
   // Pointer //
   readonly pointerTool = SPrimitive.of<Tool>("move");
   readonly cursorPos = SPrimitive.of(0);
+  readonly cursorTracks = LinkedSet.create<AudioTrack>();
+  // ^^ TODO: a weak linked set might be a good idea
 
   // Selection //
 
@@ -207,6 +209,14 @@ export class AudioProject {
       };
       project.selected.set(newSelected);
     }
+
+    // Update active track
+    if (project.activeTrack.get() === track) {
+      project.activeTrack.set(null);
+    }
+
+    // Update cursor tracks
+    project.cursorTracks.delete(track);
   }
 
   static removeClip(project: AudioProject, track: AudioTrack, clip: AudioClip) {
@@ -279,9 +289,6 @@ export class ProjectSelection {
           console.log("remove", selected);
           AudioProject.removeTrack(project, player, track);
           project.selected.set(null);
-          if (project.activeTrack.get() === track) {
-            project.activeTrack.set(null);
-          }
         }
         break;
       }

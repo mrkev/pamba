@@ -5,6 +5,7 @@ import { useLinkedMap } from "../lib/state/LinkedMap";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { pressedState } from "../pressedState";
 import { exhaustive } from "../utils/exhaustive";
+import { useLinkedSet } from "../lib/state/LinkedSet";
 
 export function stringOfSelected(sel: SelectionState | null): string {
   if (!sel) {
@@ -51,6 +52,7 @@ export function DebugData({ project }: { project: AudioProject }) {
   const [timeMarkers] = useLinkedMap(project.timeMarkers);
   const [pressed] = useLinkedState(pressedState);
   const [activeTrack] = useLinkedState(project.activeTrack);
+  const [cursorTracks] = useLinkedSet(project.cursorTracks);
   const [open, setOpen] = useLocalState("debugDataOpen", true);
 
   const allState = tracks
@@ -82,6 +84,8 @@ export function DebugData({ project }: { project: AudioProject }) {
         Pressed: {pressed?.status}
         <br />
         Active Track: {activeTrack?.name.get()}
+        <br />
+        Cursor Tracks: {[...cursorTracks.values()].map((track) => track.name.get())}
       </div>
       <pre>{allState}</pre>
       {timeMarkers.map((value, key) => (

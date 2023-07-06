@@ -86,7 +86,7 @@ export function Library({
   );
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 4, padding: "4px 0px 4px 4px" }}>
+    <>
       <input
         type="search"
         placeholder="Search..."
@@ -139,7 +139,7 @@ export function Library({
       <hr style={{ width: "100%" }} />
       {/* TODO: library won't be updated when new audio gets uploaded, unless it's constantly executed when I think it might be */}
       <UploadAudioButton project={project} firebaseStoreRef={firebaseStoreRef ?? null} loadClip={loadClip} />
-    </div>
+    </>
   );
 }
 
@@ -148,6 +148,8 @@ const useStyles = createUseStyles({
     display: "flex",
     flexDirection: "column",
     border: "1px solid #999",
+    borderRadius: "3px",
+    flexGrow: 1,
   },
   listItem: {
     textOverflow: "ellipsis",
