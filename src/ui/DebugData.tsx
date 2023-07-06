@@ -53,7 +53,7 @@ export function DebugData({ project }: { project: AudioProject }) {
   const [pressed] = useLinkedState(pressedState);
   const [activeTrack] = useLinkedState(project.activeTrack);
   const [cursorTracks] = useLinkedSet(project.cursorTracks);
-  const [open, setOpen] = useLocalState("debugDataOpen", true);
+  const [open, setOpen] = useLocalState("debugDataOpen", false);
 
   const allState = tracks
     .map((track, i) => {

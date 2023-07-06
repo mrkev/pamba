@@ -28,6 +28,9 @@ const useStyles = createUseStyles({
     overflowY: "scroll",
     overflowX: "hidden",
     height: "100%",
+    width: "100%",
+    flexGrow: 1,
+    borderTopLeftRadius: "3px",
   },
   axisSpacer: {
     height: "29px",
@@ -154,14 +157,7 @@ export function TimelineView({
   }, [project.scaleFactor, project.viewportStartPx, projectDiv, viewportStartPx]);
 
   return (
-    <div
-      id="container"
-      className={classes.container}
-      style={{
-        width: "100%",
-        flexGrow: 1,
-      }}
-    >
+    <div id="container" className={classes.container}>
       <div
         style={{
           position: "sticky",
