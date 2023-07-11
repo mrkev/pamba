@@ -1,8 +1,7 @@
-import React from "react";
 import { AudioProject } from "../lib/AudioProject";
 import { useDerivedState } from "../lib/state/DerivedState";
-import { useLinkedState } from "../lib/state/LinkedState";
 import { useLinkedSet } from "../lib/state/LinkedSet";
+import { useLinkedState } from "../lib/state/LinkedState";
 
 export function TimelineCursor({ project }: { project: AudioProject }) {
   const secsToPx = useDerivedState(project.secsToPx);

@@ -21,7 +21,7 @@ export function useFirebaseUser(): User | null {
     }
 
     // No need to re-sign in if we already have a user
-    if (firebaseUser !== null) {
+    if (firebaseUser != null) {
       return;
     }
 
@@ -93,7 +93,6 @@ export function usePambaFirebaseStoreRef(): StorageReference | null {
 
 export function usePambaFirebaseDBRef(): Database | null {
   // const firebaseApp = useFirebaseApp(firebaseConfig);
-
   const database = getDatabase() || null;
   return database;
 }

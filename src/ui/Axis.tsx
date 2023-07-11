@@ -117,7 +117,6 @@ export function Axis({ project, isHeader }: { project: AudioProject; isHeader?: 
           // position: "sticky",
         }}
       >
-        ,
         {tickData?.map((secs) => {
           const px = pxForTime(secs);
           return (

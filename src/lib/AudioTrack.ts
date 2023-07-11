@@ -54,19 +54,13 @@ export class AudioTrack extends DSPNode<null> {
     this._hiddenGainNode = new PBGainNode();
   }
 
-  private static trackNo = 0;
   static create(props?: {
     name?: string;
     clips?: AudioClip[];
     effects?: (FaustAudioEffect | PambaWamNode)[];
     height?: number;
   }) {
-    return new this(
-      props?.name ?? `Track ${this.trackNo++}`,
-      props?.clips ?? [],
-      props?.effects ?? [],
-      props?.height ?? CLIP_HEIGHT
-    );
+    return new this(props?.name ?? "Audio", props?.clips ?? [], props?.effects ?? [], props?.height ?? CLIP_HEIGHT);
   }
 
   getCurrentGain(): AudioParam {

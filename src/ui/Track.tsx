@@ -152,8 +152,6 @@ export function Track({
         onDragOver={function allowDrop(ev) {
           ev.preventDefault();
         }}
-        // onMouseLeave={() => {}}
-        // onMouseUp={() => {}}
         onMouseDown={(e) => {
           pressedState.set({
             status: "selecting_track_time",
@@ -170,7 +168,6 @@ export function Track({
           position: "relative",
           height: height - TRACK_SEPARATOR_HEIGHT,
           background: activeTrack === track ? "rgba(64,64,64,0.1)" : "none",
-          // pointerEvents: "none",
         }}
       >
         {clips.map((clip, i) => {

@@ -17,3 +17,17 @@ export function useEventListener<K extends keyof HTMLElementEventMap, T extends 
     };
   }, [listener, ref, type]);
 }
+
+type EventMap<T> = T extends Document ? DocumentEventMap : T extends HTMLElement ? HTMLElementEventMap : never;
+
+export function useDocumentEventListener<K extends keyof DocumentEventMap>(
+  type: K,
+  listener: (this: HTMLElement, ev: EventMap<Document>[K]) => any
+): void {
+  useEffect(() => {
+    document.addEventListener(type, listener as any);
+    return () => {
+      document.removeEventListener(type, listener as any);
+    };
+  }, [listener, type]);
+}

@@ -59,6 +59,14 @@ const useStyles = createUseStyles({
     overflowX: "scroll",
     overflowY: "hidden",
   },
+  playbackPosDiv: {
+    background: "red",
+    width: "1px",
+    height: "100%",
+    position: "absolute",
+    left: 0,
+    top: 0,
+  },
 });
 
 export function TimelineView({
@@ -216,17 +224,7 @@ export function TimelineView({
           return <Track key={i} track={track} project={project} isDspExpanded={isDspExpanded} renderer={renderer} />;
         })}
         <TimelineCursor project={project} />
-        <div
-          ref={playbackPosDiv}
-          style={{
-            background: "red",
-            width: "1px",
-            height: "100%",
-            position: "absolute",
-            left: 0,
-            top: 0,
-          }}
-        ></div>
+        <div ref={playbackPosDiv} className={classes.playbackPosDiv}></div>
       </div>
 
       {/* 3. Track headers */}

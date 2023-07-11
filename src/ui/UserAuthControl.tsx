@@ -29,8 +29,6 @@ export function UserAuthControl() {
     }
   };
 
-  console.log("firebaseUser", firebaseUser);
-
   return (
     <>
       {modal}
