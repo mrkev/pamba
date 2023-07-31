@@ -14,7 +14,7 @@ import { TimelineView } from "./TimelineView";
 import { ToolHeader } from "./ToolHeader";
 // import { TrackThread } from "../lib/TrackThread";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
-import { Demo } from "../wam/wam";
+import { MidiDemo } from "../midi";
 
 // var w = new TrackThread();
 // var sab = new SharedArrayBuffer(1024);
@@ -86,7 +86,7 @@ function AppProject({ project }: { project: AudioProject }) {
 
   return (
     <>
-      {/* <Demo /> */}
+      <MidiDemo />
       <ToolHeader project={project} player={renderer.analizedPlayer} renderer={renderer} />
       <PanelGroup direction="horizontal" autoSaveId="foobar">
         <Panel

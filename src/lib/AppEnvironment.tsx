@@ -7,26 +7,50 @@ import { LinkedMap } from "./state/LinkedMap";
 import { WAMImport } from "../wam/wam";
 import { WamDescriptor } from "@webaudiomodules/api";
 
-const plugin1Url = "https://mainline.i3s.unice.fr/wam2/packages/StonePhaserStereo/index.js";
-const plugin2Url = "https://mainline.i3s.unice.fr/wam2/packages/BigMuff/index.js";
-
-async function loadWam(pluginUrl: string): Promise<WAMImport | null> {
+export async function fetchWam(
+  pluginUrl: string,
+  kind: "-m" | "-a" | "m-a" | "a-a"
+): Promise<WAMAvailablePlugin | null> {
   console.log("WAM: LOADING fromURLlllll", pluginUrl);
   const rawModule = await import(/* @vite-ignore */ pluginUrl);
   if (rawModule == null) {
     console.error("could not import", rawModule);
     return null;
   }
-  const WAM: WAMImport = rawModule.default;
-  return WAM;
+  const plugin: WAMImport = rawModule.default;
+
+  if (plugin == null) {
+    console.warn(`error: loading wam at url ${pluginUrl}`);
+    return null;
+  }
+  // TODO: propery initialize instead to get proper metadata?
+  const descriptor = new (plugin as any)().descriptor;
+  // console.log(descriptor);
+  return { import: plugin, descriptor, kind };
 }
 
-class AppEnvironment {
+type WAMAvailablePlugin = {
+  // midi out, audio out, midi to audio, audio to audio
+  kind: "-m" | "-a" | "m-a" | "a-a";
+  import: WAMImport;
+  descriptor: WamDescriptor;
+};
+
+export class AppEnvironment {
   readonly firebaseApp: FirebaseApp;
   readonly firebaseUser = SPrimitive.of<User | null>(null);
   readonly wamHostGroup = SPrimitive.of<[id: string, key: string] | null>(null);
-  readonly wamPlugins = LinkedMap.create<string, { import: WAMImport; descriptor: WamDescriptor }>(new Map());
+  readonly wamPlugins = LinkedMap.create<string, WAMAvailablePlugin>(new Map());
   readonly faustEffects = ["PANNER", "REVERB"] as const;
+
+  private static readonly WAM_PLUGINS: { url: string; kind: "-m" | "-a" | "m-a" | "a-a" }[] = [
+    { url: "https://mainline.i3s.unice.fr/wam2/packages/StonePhaserStereo/index.js", kind: "a-a" },
+    { url: "https://mainline.i3s.unice.fr/wam2/packages/BigMuff/index.js", kind: "a-a" },
+    { url: "https://mainline.i3s.unice.fr/wam2/packages/obxd/index.js", kind: "m-a" },
+    { url: "../midi/pianoroll/index.js", kind: "-m" },
+  ];
+
+  static readonly PIANO_ROLL_PLUGIN_URL = "../midi/pianoroll/index.js";
 
   constructor() {
     this.firebaseApp = initFirebaseApp();
@@ -38,20 +62,12 @@ class AppEnvironment {
       this.wamHostGroup.set([hostGroupId, hostGroupKey]);
 
       await Promise.all(
-        [
-          plugin1Url,
-          plugin2Url,
-          // has a buggy version of wam controls that prevents the knobs from spinning
-          //  "https://editor.sequencer.party/plugins/wimmics/disto_machine/src/index.js"
-        ].map(async (url) => {
-          const plugin = await loadWam(url);
-          if (plugin) {
-            // TODO: propery initialize instead to get proper metadata?
-            const descriptor = new (plugin as any)().descriptor;
-            console.log(descriptor);
-
-            this.wamPlugins.set(url, { import: plugin, descriptor });
+        AppEnvironment.WAM_PLUGINS.map(async ({ url, kind }) => {
+          const plugin = await fetchWam(url, kind);
+          if (plugin == null) {
+            return;
           }
+          this.wamPlugins.set(url, plugin);
         })
       );
     })();

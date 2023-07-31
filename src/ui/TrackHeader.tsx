@@ -270,7 +270,7 @@ export default function TrackHeader({ track, trackNumber, project, player }: Pro
 
             {appEnvironment.wamPlugins.map((value, key) => {
               return (
-                <option key={key} onDoubleClick={async () => track.addWAM(key)}>
+                <option key={key} disabled={value.kind !== "a-a"} onDoubleClick={async () => track.addWAM(key)}>
                   {value.descriptor.name.replace(/^WebAudioModule\_/, "").replace(/Plugin$/, "")}
                 </option>
               );

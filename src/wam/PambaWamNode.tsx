@@ -47,6 +47,7 @@ export class PambaWamNode extends DSPNode {
     this.url = url;
   }
 
+  // TODO: simplify now that we pre-fetch wam plugins?
   static async fromURL(pluginUrl: string, hostGroupId: string, audioCtx: BaseAudioContext) {
     console.log("WAM: LOADING fromURL", pluginUrl);
     const rawModule = await import(/* @vite-ignore */ pluginUrl);

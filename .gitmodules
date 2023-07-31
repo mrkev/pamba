@@ -1,3 +1,6 @@
 [submodule "packages/sdk"]
 	path = packages/sdk
 	url = https://github.com/webaudiomodules/sdk/
+[submodule "packages/burns-audio-wam"]
+	path = packages/burns-audio-wam
+	url = https://github.com/boourns/burns-audio-wam
