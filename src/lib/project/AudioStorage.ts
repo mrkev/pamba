@@ -1,18 +1,31 @@
-import { StorageReference, listAll, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { StorageReference, getDownloadURL, listAll, ref, uploadBytes } from "firebase/storage";
 import type { IFormat } from "music-metadata";
 import * as musicMetadata from "music-metadata-browser";
 import { useMemo } from "react";
-import { AsyncResultStatus, useAsyncResult } from "../ui/useAsyncResult";
+import { AsyncResultStatus, useAsyncResult } from "../../ui/useAsyncResult";
 import type { AudioProject } from "./AudioProject";
+import { LinkedArray } from "../state/LinkedArray";
 
 export class AudioStorage {
+  readonly remoteFiles: LinkedArray<string>;
+  private readonly project: AudioProject;
+  private readonly firebaseStoreRef: StorageReference;
+
+  private constructor(project: AudioProject, remoteFiles: string[], firebaseStoreRef: StorageReference) {
+    this.project = project;
+    this.remoteFiles = LinkedArray.create<string>(remoteFiles);
+    this.firebaseStoreRef = firebaseStoreRef;
+  }
+
+  static async initAtRootLocation(project: AudioProject, firebaseStoreRef: StorageReference) {
+    const location = `project/${project.projectId}/audio`;
+    const list = await listAll(ref(firebaseStoreRef, location));
+    const files = await Promise.all(list.items.map((x) => getDownloadURL(x)));
+    return new AudioStorage(project, files, firebaseStoreRef);
+  }
+
   // TODO: progress callback
-  static async uploadAudioFile(
-    file: File,
-    firebaseStoreRef: StorageReference,
-    project: AudioProject,
-    onFormatInfo?: (format: IFormat) => void
-  ): Promise<string | Error> {
+  async uploadAudioFile(file: File, onFormatInfo?: (format: IFormat) => void): Promise<string | Error> {
     switch (file.type) {
       // random list from https://www.thoughtco.com/audio-file-mime-types-3469485
       // TODO: check if all of these actually work
@@ -40,8 +53,8 @@ export class AudioStorage {
 
     onFormatInfo?.(metadata.format);
 
-    const audioLocation = `project/${project.projectId}/audio/${file.name}`;
-    const snapshot = await uploadBytes(ref(firebaseStoreRef, audioLocation), file, {
+    const audioLocation = `project/${this.project.projectId}/audio/${file.name}`;
+    const snapshot = await uploadBytes(ref(this.firebaseStoreRef, audioLocation), file, {
       contentType: file.type,
     });
 
@@ -50,6 +63,7 @@ export class AudioStorage {
     // Let's get a download URL for the file.
     const url = await getDownloadURL(snapshot.ref);
     console.log("File available at", url);
+    this.remoteFiles.push(url);
     return url;
   }
 }
@@ -69,6 +83,7 @@ export function useListProjectAudioFiles(
       .catch((err) => {
         throw err;
       });
+
     return files;
   }, [firebaseStoreRef, project.projectId]);
 

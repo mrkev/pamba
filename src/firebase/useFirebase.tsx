@@ -5,7 +5,7 @@ import { StorageReference, getStorage, ref } from "firebase/storage";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { useLinkedState } from "../lib/state/LinkedState";
 
-const SKIP_FIREBASE = false;
+export const SKIP_FIREBASE = false;
 
 export function useFirebaseAuth(): Auth {
   return getAuth(appEnvironment.firebaseApp);

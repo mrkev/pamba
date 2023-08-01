@@ -1,7 +1,8 @@
 import { MouseEvent } from "react";
 import { useCallback } from "react";
 import { useEffect, useRef } from "react";
-import { AudioProject, RenameState } from "../lib/AudioProject";
+import { AudioProject } from "../lib/project/AudioProject";
+import { RenameState } from "../lib/project/RenameState";
 import { useLinkedState } from "../lib/state/LinkedState";
 
 function shallowEquals<T extends Record<string, unknown>>(a: T | null, b: T | null): boolean {

@@ -1,6 +1,6 @@
 import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
 import AudioClip from "../lib/AudioClip";
-import { AudioProject } from "../lib/AudioProject";
+import { AudioProject } from "../lib/project/AudioProject";
 import { AudioTrack } from "../lib/AudioTrack";
 import { exhaustive } from "../utils/exhaustive";
 import { liveAudioContext } from "../constants";

@@ -278,3 +278,19 @@ export function useLinkedArray<S>(linkedSet: LinkedArray<S>): [LinkedArray<S>, S
 
   return [linkedSet, setter];
 }
+
+export function useLinkedArrayMaybe<S>(linkedArray: LinkedArray<S> | null): readonly S[] | null {
+  const [state, setState] = useState(() => linkedArray?._getRaw() ?? null);
+
+  useEffect(() => {
+    if (linkedArray == null) {
+      return;
+    }
+    setState(linkedArray._getRaw());
+    return subscribe(linkedArray, (newVal) => {
+      setState(() => newVal);
+    });
+  }, [linkedArray]);
+
+  return state;
+}

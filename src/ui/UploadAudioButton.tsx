@@ -1,24 +1,22 @@
-import React, { useState } from "react";
-import { AudioProject } from "../lib/AudioProject";
+import { useState } from "react";
+import { AudioProject } from "../lib/project/AudioProject";
+import { useLinkedState } from "../lib/state/LinkedState";
 import { ignorePromise } from "../utils/ignorePromise";
-import { utility } from "./utility";
 import { UploadButton } from "./FormButtons";
-import type firebase from "firebase/compat";
-import { AudioStorage } from "../lib/audioStorage";
-import { StorageReference } from "firebase/storage";
+import { utility } from "./utility";
 
 export function UploadAudioButton({
   project,
-  firebaseStoreRef,
   loadClip,
 }: {
   project: AudioProject;
-  firebaseStoreRef: StorageReference | null;
   loadClip: (url: string, name?: string) => Promise<void>;
 }) {
   const [uploadStatus, setUploadStatus] = useState<"idle" | "uploading">("idle");
+  const [audioStorage] = useLinkedState(project.audioStorage);
+
   return (
-    firebaseStoreRef && (
+    audioStorage && (
       <UploadButton
         className={utility.button}
         value={uploadStatus === "idle" ? "upload audio" : "uploading..."}
@@ -31,7 +29,7 @@ export function UploadAudioButton({
             return;
           }
           setUploadStatus("uploading");
-          const result = await AudioStorage.uploadAudioFile(file, firebaseStoreRef, project);
+          const result = await audioStorage.uploadAudioFile(file);
           if (result instanceof Error) {
             throw result;
           }

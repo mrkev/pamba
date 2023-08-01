@@ -3,7 +3,7 @@ import { createUseStyles } from "react-jss";
 import { CLIP_HEIGHT, TRACK_HEADER_WIDTH } from "../constants";
 import { useAppProjectMouseEvents } from "../input/useAppProjectMouseEvents";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
-import { AudioProject } from "../lib/AudioProject";
+import { AudioProject } from "../lib/project/AudioProject";
 import { AudioRenderer } from "../lib/AudioRenderer";
 import { useDerivedState } from "../lib/state/DerivedState";
 import { useLinkedArray } from "../lib/state/LinkedArray";

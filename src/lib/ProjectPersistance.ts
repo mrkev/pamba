@@ -1,6 +1,6 @@
 import { construct, serializable } from "../data/serializable";
 import { isRecord } from "./schema/schema";
-import { AudioProject } from "./AudioProject";
+import { AudioProject } from "./project/AudioProject";
 
 export class ProjectPersistance {
   static async doSave(project: AudioProject) {

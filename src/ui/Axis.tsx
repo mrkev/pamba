@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { createUseStyles } from "react-jss";
-import { AudioProject, ProjectMarkers } from "../lib/AudioProject";
+import { AudioProject, ProjectMarkers } from "../lib/project/AudioProject";
 import { useDerivedState } from "../lib/state/DerivedState";
 import { useLinkedMap } from "../lib/state/LinkedMap";
 import { useLinkedState } from "../lib/state/LinkedState";

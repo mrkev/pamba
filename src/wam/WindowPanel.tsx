@@ -1,6 +1,6 @@
 import React, { useCallback, useRef, useState } from "react";
 import { createUseStyles } from "react-jss";
-import { useEventListener } from "../ui/useEventListener";
+import { useDocumentEventListener, useEventListener } from "../ui/useEventListener";
 import { exhaustive } from "../utils/exhaustive";
 
 export type Position = [x: number, y: number];
@@ -40,18 +40,16 @@ export function WindowPanel({
     )
   );
 
-  useEventListener(
+  useDocumentEventListener(
     "mouseup",
-    document,
     useCallback((_e: MouseEvent) => {
       setCursor({ status: "idle" });
       // e.stopImmediatePropagation();
     }, [])
   );
 
-  useEventListener(
+  useDocumentEventListener(
     "mousemove",
-    document,
     useCallback(
       (e: MouseEvent) => {
         switch (cursor.status) {

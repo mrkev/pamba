@@ -1,7 +1,7 @@
 import { SPrimitive } from "./state/LinkedState";
 import { AnalizedPlayer } from "./AnalizedPlayer";
 import bufferToWav from "audiobuffer-to-wav";
-import { AudioProject } from "./AudioProject";
+import { AudioProject } from "./project/AudioProject";
 
 export class AudioRenderer {
   /** URL of last bounced audio clip, for download */

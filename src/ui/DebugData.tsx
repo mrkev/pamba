@@ -1,5 +1,6 @@
 import { useLocalState } from "@ricardo-jrm/use-local-state";
-import { AudioProject, SelectionState } from "../lib/AudioProject";
+import { AudioProject } from "../lib/project/AudioProject";
+import { SelectionState } from "../lib/project/SelectionState";
 import { useLinkedArray } from "../lib/state/LinkedArray";
 import { useLinkedMap } from "../lib/state/LinkedMap";
 import { useLinkedState } from "../lib/state/LinkedState";

@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef } from "react";
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from "../constants";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import AudioClip from "../lib/AudioClip";
-import { AudioProject } from "../lib/AudioProject";
+import { AudioProject } from "../lib/project/AudioProject";
 import { AudioRenderer } from "../lib/AudioRenderer";
 import { AudioTrack } from "../lib/AudioTrack";
 import { ProjectPersistance } from "../lib/ProjectPersistance";

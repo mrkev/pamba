@@ -1,17 +1,16 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { TRACK_SEPARATOR_HEIGHT } from "../constants";
+import { usePambaFirebaseStoreRef } from "../firebase/useFirebase";
 import AudioClip from "../lib/AudioClip";
-import { AudioProject } from "../lib/AudioProject";
 import { AudioRenderer } from "../lib/AudioRenderer";
 import { AudioTrack } from "../lib/AudioTrack";
-import { ignorePromise } from "../utils/ignorePromise";
+import { AudioProject } from "../lib/project/AudioProject";
 import { useLinkedArray } from "../lib/state/LinkedArray";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { pressedState } from "../pressedState";
+import { ignorePromise } from "../utils/ignorePromise";
 import { Clip } from "./Clip";
 import { EffectRack } from "./EffectRack";
-import { usePambaFirebaseStoreRef } from "../firebase/useFirebase";
-import { AudioStorage } from "../lib/audioStorage";
 import { useEventListener } from "./useEventListener";
 
 export function Track({
@@ -30,6 +29,7 @@ export function Track({
   const [clips] = useLinkedArray(track.clips);
   const [height] = useLinkedState(track.height);
   const [activeTrack] = useLinkedState(project.activeTrack);
+  const [audioStorage] = useLinkedState(project.audioStorage);
   const trackRef = useRef<HTMLDivElement>(null);
   const [, setStateCounter] = useState(0);
   const rerender = useCallback(function () {
@@ -62,7 +62,7 @@ export function Track({
         if (firebaseStoreRef == null) {
           continue;
         }
-        const result = await AudioStorage.uploadAudioFile(file, firebaseStoreRef, project);
+        const result = (await audioStorage?.uploadAudioFile(file)) ?? new Error("no storage");
         if (result instanceof Error) {
           throw result;
         }
@@ -78,7 +78,7 @@ export function Track({
         ignorePromise(loadClipIntoTrack(url, track));
       }
     },
-    [firebaseStoreRef, loadClipIntoTrack, project, track]
+    [audioStorage, firebaseStoreRef, loadClipIntoTrack, track]
   );
 
   useEffect(() => {

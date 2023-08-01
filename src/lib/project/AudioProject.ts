@@ -1,18 +1,24 @@
-import { AudioTrack } from "./AudioTrack";
-import { SPrimitive } from "./state/LinkedState";
-import { LinkedSet } from "./state/LinkedSet";
-import { DerivedState } from "./state/DerivedState";
-import AudioClip from "./AudioClip";
+import { AudioTrack } from "../AudioTrack";
+import { SPrimitive } from "../state/LinkedState";
+import { LinkedSet } from "../state/LinkedSet";
+import { DerivedState } from "../state/DerivedState";
+import AudioClip from "../AudioClip";
 import { scaleLinear } from "d3-scale";
 import type { ScaleLinear } from "d3-scale";
-import { LinkedArray } from "./state/LinkedArray";
-import { AnalizedPlayer } from "./AnalizedPlayer";
-import { exhaustive } from "../utils/exhaustive";
-import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
-import { LinkedMap } from "./state/LinkedMap";
-import { modifierState } from "../ModifierState";
+import { LinkedArray } from "../state/LinkedArray";
+import { AnalizedPlayer } from "../AnalizedPlayer";
+import { exhaustive } from "../../utils/exhaustive";
+import { FaustAudioEffect } from "../../dsp/FaustAudioEffect";
+import { LinkedMap } from "../state/LinkedMap";
+import { modifierState } from "../../ModifierState";
 import { ulid } from "ulid";
-import { PambaWamNode } from "../wam/PambaWamNode";
+import { PambaWamNode } from "../../wam/PambaWamNode";
+import { ProjectViewportUtil } from "./ProjectViewportUtil";
+import { RenameState } from "./RenameState";
+import { SelectionState } from "./SelectionState";
+import { AudioStorage } from "./AudioStorage";
+import { getFirebaseStorage } from "../../firebase/getFirebase";
+import { ignorePromise } from "../state/Subbable";
 
 /**
  * TODO:
@@ -31,80 +37,10 @@ export type XScale = ScaleLinear<number, number>;
 
 export type Tool = "move" | "trimStart" | "trimEnd";
 
-export type SelectionState =
-  | {
-      status: "clips";
-      clips: Array<{ clip: AudioClip; track: AudioTrack }>;
-      test: Set<AudioClip | AudioTrack>;
-    }
-  | {
-      status: "tracks";
-      tracks: Array<AudioTrack>;
-      test: Set<AudioTrack>;
-    }
-  | {
-      status: "effects";
-      effects: Array<{ effect: FaustAudioEffect | PambaWamNode; track: AudioTrack }>;
-      test: Set<FaustAudioEffect | PambaWamNode>;
-    }
-  // Not sure if have is a good idea, since user might want to select time
-  // and then select a track to operaate on (ie, delete on track 1, then same
-  // time on track 3). Ableton has 2 selection states it seems. Although, how
-  // do you know what the cursor operates on anyway (time or track). Maybe it is
-  // a good idea to have a simple model.
-  | {
-      status: "time";
-      start: number;
-      end: number;
-    }
-  | {
-      status: "track_time";
-      start: number;
-      end: number;
-      tracks: Array<AudioTrack>;
-      test: Set<AudioTrack>;
-    };
-
-export type RenameState =
-  | {
-      status: "track";
-      track: AudioTrack;
-    }
-  | {
-      status: "clip";
-      clip: AudioClip;
-    };
-
-class ProjectViewportUtil {
-  readonly project: AudioProject;
-  constructor(project: AudioProject) {
-    this.project = project;
-  }
-
-  secsToPx(s: number, factorOverride?: number) {
-    console.log("using factor", factorOverride, "instead of ", this.project.scaleFactor.get());
-    const factor = factorOverride ?? this.project.scaleFactor.get();
-    return s * factor;
-  }
-
-  pxToSecs(px: number, factorOverride?: number) {
-    const factor = factorOverride ?? this.project.scaleFactor.get();
-    return px / factor;
-  }
-
-  pxForTime(s: number): number {
-    const viewportStartPx = this.project.viewportStartPx.get();
-    return this.secsToPx(s) - viewportStartPx;
-  }
-
-  timeForPx(s: number): number {
-    const viewportStartPx = this.project.viewportStartPx.get();
-    return this.pxToSecs(s + viewportStartPx);
-  }
-}
-
 export class AudioProject {
   readonly projectId: string;
+  readonly viewport: ProjectViewportUtil;
+  readonly audioStorage = SPrimitive.of<AudioStorage | null>(null);
 
   // id -> time
   readonly timeMarkers = LinkedMap.create<number, number>();
@@ -159,12 +95,24 @@ export class AudioProject {
         .range([0 + startPx, 1 * factor + startPx]) as XScale
   );
 
-  readonly viewport: ProjectViewportUtil;
-
   constructor(tracks: AudioTrack[], projectId: string) {
     this.projectId = projectId;
     this.allTracks = LinkedArray.create<AudioTrack>(tracks);
     this.viewport = new ProjectViewportUtil(this);
+    console.log("HERE");
+    ignorePromise(this.asyncInits());
+  }
+
+  private async asyncInits() {
+    try {
+      const storage = await getFirebaseStorage();
+      if (storage !== "no-storage") {
+        const audioStorage = await AudioStorage.initAtRootLocation(this, storage);
+        this.audioStorage.set(audioStorage);
+      }
+    } catch (e) {
+      console.error(e);
+    }
   }
 
   static create() {

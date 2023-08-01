@@ -1,4 +1,4 @@
-import { AudioProject } from "../lib/AudioProject";
+import { AudioProject } from "../lib/project/AudioProject";
 import { useDerivedState } from "../lib/state/DerivedState";
 import { useLinkedSet } from "../lib/state/LinkedSet";
 import { useLinkedState } from "../lib/state/LinkedState";

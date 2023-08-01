@@ -1,44 +1,24 @@
-import { StorageReference, getDownloadURL } from "firebase/storage";
-import React, { useCallback, useEffect, useState } from "react";
+import classNames from "classnames";
+import React, { useCallback, useState } from "react";
+import { createUseStyles } from "react-jss";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import AudioClip from "../lib/AudioClip";
-import { AudioProject } from "../lib/AudioProject";
 import { AudioRenderer } from "../lib/AudioRenderer";
 import { AudioTrack } from "../lib/AudioTrack";
-import { useListProjectAudioFiles } from "../lib/audioStorage";
+import { AudioProject } from "../lib/project/AudioProject";
+import { useLinkedArrayMaybe } from "../lib/state/LinkedArray";
 import { useLinkedState } from "../lib/state/LinkedState";
-import { ignorePromise } from "../utils/ignorePromise";
-import { UploadAudioButton } from "./UploadAudioButton";
-import { createUseStyles } from "react-jss";
-import classNames from "classnames";
 import { pressedState } from "../pressedState";
+import { ignorePromise } from "../utils/ignorePromise";
+import { AudioFileUploadDropzone } from "./AudioFileUploadDropzone";
+import { UploadAudioButton } from "./UploadAudioButton";
 
-function useAudioLibrary(project: AudioProject, firebaseStoreRef: StorageReference | null, filter: string): string[] {
-  const audioFiles = useListProjectAudioFiles(project, firebaseStoreRef ?? undefined);
-  const [audioLibrary, setAudioLibrary] = useState([
-    "drums.mp3",
-    "clav.mp3",
-    "bassguitar.mp3",
-    "horns.mp3",
-    "leadguitar.mp3",
-  ]);
+const STATIC_AUDIO_FILES = ["drums.mp3", "clav.mp3", "bassguitar.mp3", "horns.mp3", "leadguitar.mp3"];
 
-  useEffect(() => {
-    if (audioFiles.status !== "ready" || audioFiles.value == null) {
-      return;
-    }
-    ignorePromise(
-      (async () => {
-        for (const ref of audioFiles.value) {
-          getDownloadURL(ref)
-            .then((url) => {
-              setAudioLibrary((prev) => prev.concat(url));
-            })
-            .catch(console.error);
-        }
-      })()
-    );
-  }, [audioFiles.status, audioFiles]);
+function useAudioLibrary(project: AudioProject, filter: string): string[] {
+  const [audioStorage] = useLinkedState(project.audioStorage);
+  const remoteFiles = useLinkedArrayMaybe(audioStorage?.remoteFiles ?? null);
+  const audioLibrary = STATIC_AUDIO_FILES.concat(remoteFiles ?? []);
 
   return audioLibrary.filter((url) => {
     return url.includes(filter);
@@ -49,17 +29,15 @@ export function Library({
   project,
   renderer,
   player,
-  firebaseStoreRef,
 }: {
   project: AudioProject;
   renderer: AudioRenderer;
   player: AnalizedPlayer;
-  firebaseStoreRef: StorageReference | null;
 }) {
   const classes = useStyles();
   const [isAudioPlaying] = useLinkedState(renderer.isAudioPlaying);
   const [libraryFilter, setLibraryFilter] = useState("");
-  const audioLibrary = useAudioLibrary(project, firebaseStoreRef, libraryFilter);
+  const audioLibrary = useAudioLibrary(project, libraryFilter);
 
   const loadClip = useCallback(
     async function loadClip(url: string, name?: string) {
@@ -95,7 +73,7 @@ export function Library({
           setLibraryFilter(e.target.value);
         }}
       />
-      <div className={classes.list}>
+      <AudioFileUploadDropzone className={classes.list} project={project}>
         {audioLibrary.map(function (url, i) {
           return (
             <div
@@ -135,10 +113,10 @@ export function Library({
             </div>
           );
         })}
-      </div>
+      </AudioFileUploadDropzone>
       <hr style={{ width: "100%" }} />
       {/* TODO: library won't be updated when new audio gets uploaded, unless it's constantly executed when I think it might be */}
-      <UploadAudioButton project={project} firebaseStoreRef={firebaseStoreRef ?? null} loadClip={loadClip} />
+      <UploadAudioButton project={project} loadClip={loadClip} />
     </>
   );
 }

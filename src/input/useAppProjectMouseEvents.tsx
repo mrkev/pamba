@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { exhaustive } from "../utils/exhaustive";
-import { AudioProject } from "../lib/AudioProject";
+import { AudioProject } from "../lib/project/AudioProject";
 import { useDerivedState } from "../lib/state/DerivedState";
 import { pressedState } from "../pressedState";
 import { MIN_TRACK_HEIGHT } from "../constants";

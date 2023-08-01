@@ -4,7 +4,7 @@ import { EFFECT_HEIGHT } from "../constants";
 import { DSPNode } from "../dsp/DSPNode";
 import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
 import FaustEffectModule from "../dsp/ui/FaustEffectModule";
-import { AudioProject, ProjectSelection } from "../lib/AudioProject";
+import { AudioProject, ProjectSelection } from "../lib/project/AudioProject";
 import { AudioRenderer } from "../lib/AudioRenderer";
 import { AudioTrack } from "../lib/AudioTrack";
 import { useLinkedArray } from "../lib/state/LinkedArray";

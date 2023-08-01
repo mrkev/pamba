@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { modifierState, useSingletonKeyboardModifierState } from "../ModifierState";
-import { usePambaFirebaseStoreRef } from "../firebase/useFirebase";
 import { useAppProjectKeyboardEvents } from "../input/useAppProjectKeyboardEvents";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
-import { AudioProject } from "../lib/AudioProject";
 import { AudioRenderer } from "../lib/AudioRenderer";
 import { ProjectPersistance } from "../lib/ProjectPersistance";
+import { AudioProject } from "../lib/project/AudioProject";
 import { SPrimitive, useLinkedState } from "../lib/state/LinkedState";
 import { ignorePromise } from "../utils/ignorePromise";
 import { DebugData } from "./DebugData";
@@ -73,8 +72,6 @@ function useStopPlaybackOnUnmount(renderer: AudioRenderer) {
 }
 
 function AppProject({ project }: { project: AudioProject }) {
-  const firebaseStoreRef = usePambaFirebaseStoreRef();
-
   // IDEA: Maybe merge player and renderer?
   const [renderer] = useState(() => new AudioRenderer(new AnalizedPlayer()));
 
@@ -101,12 +98,7 @@ function AppProject({ project }: { project: AudioProject }) {
             paddingBottom: "128px",
           }}
         >
-          <Library
-            project={project}
-            renderer={renderer}
-            player={renderer.analizedPlayer}
-            firebaseStoreRef={firebaseStoreRef}
-          />
+          <Library project={project} renderer={renderer} player={renderer.analizedPlayer} />
         </Panel>
         <PanelResizeHandle
           style={{

@@ -2,7 +2,7 @@ import { scaleLinear } from "d3-scale";
 import React, { useMemo } from "react";
 import { CLIP_HEIGHT } from "../constants";
 import type AudioClip from "../lib/AudioClip";
-import type { AudioProject, XScale } from "../lib/AudioProject";
+import type { AudioProject, XScale } from "../lib/project/AudioProject";
 import type { AudioTrack } from "../lib/AudioTrack";
 import { useDerivedState } from "../lib/state/DerivedState";
 import { useSubscribeToSubbableMutationHashable } from "../lib/state/LinkedMap";
