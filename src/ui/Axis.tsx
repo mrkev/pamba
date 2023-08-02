@@ -52,7 +52,7 @@ const useStyles = createUseStyles({
   },
 });
 
-export function Axis({ project, isHeader }: { project: AudioProject; isHeader?: boolean }) {
+export function Axis({ project, isHeader = false }: { project: AudioProject; isHeader?: boolean }) {
   const styles = useStyles();
   const [svg, setSvg] = useState<SVGSVGElement | null>(null);
   const [markers] = useLinkedMap(project.timeMarkers);
@@ -104,7 +104,6 @@ export function Axis({ project, isHeader }: { project: AudioProject; isHeader?: 
   }
 
   const tickData = getTickData();
-  console.log(tickData);
 
   return (
     <>
@@ -120,7 +119,6 @@ export function Axis({ project, isHeader }: { project: AudioProject; isHeader?: 
       >
         {tickData?.map((secs) => {
           const px = pxForTime(secs);
-          console.log("FOO");
           return (
             <g className="tick" key={secs}>
               <line x1={px} x2={px} y1="0" y2="100%" stroke="#CBCBCB"></line>
