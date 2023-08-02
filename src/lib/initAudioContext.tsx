@@ -25,11 +25,11 @@ import WhiteNoiseProcessorURL from "../worker/white-noise-processor?url";
 // };
 // WorkletDemoBuilder(PageData, demoCode);
 
-export type OfflineContextInfo = Readonly<{
+export type AudioContextInfo = Readonly<{
   wamHostGroup: [id: string, key: string];
 }>;
 
-export async function initAudioContext(audioContext: BaseAudioContext): Promise<OfflineContextInfo> {
+export async function initAudioContext(audioContext: BaseAudioContext): Promise<AudioContextInfo> {
   await audioContext.audioWorklet.addModule(WhiteNoiseProcessorURL);
   console.log("LOADED", WhiteNoiseProcessorURL);
   await audioContext.audioWorklet.addModule(SharedBufferWrokletURL);

@@ -1,14 +1,29 @@
 import { createUserWithEmailAndPassword, getAuth, signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { anonymousSignIn } from "../firebase/getFirebase";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { useLinkedState } from "../lib/state/LinkedState";
+import { ignorePromise } from "../utils/ignorePromise";
 import { useModalDialog } from "./useModalDialog";
 import { utility } from "./utility";
 
 export function UserAuthControl() {
   const [firebaseUser] = useLinkedState(appEnvironment.firebaseUser);
   const [modal, showModal] = useModalDialog(() => <LoginDialog />);
-  const auth = getAuth(appEnvironment.firebaseApp);
+
+  useEffect(() => {
+    ignorePromise(
+      (async () => {
+        const result = await anonymousSignIn(appEnvironment.firebaseAuth);
+        if (result === null) {
+          appEnvironment.firebaseUser.set(null);
+        } else {
+          appEnvironment.firebaseUser.set(result.user);
+          console.log("Anonymous user signed-in.");
+        }
+      })()
+    );
+  }, []);
 
   const onFormSubmit = async (formData: FormData) => {
     const email = formData.get("email") as string;
@@ -18,8 +33,8 @@ export function UserAuthControl() {
     try {
       const userCredential =
         mode === "login"
-          ? await signInWithEmailAndPassword(auth, email, password)
-          : await createUserWithEmailAndPassword(auth, email, password);
+          ? await signInWithEmailAndPassword(appEnvironment.firebaseAuth, email, password)
+          : await createUserWithEmailAndPassword(appEnvironment.firebaseAuth, email, password);
 
       appEnvironment.firebaseUser.set(userCredential.user);
     } catch (error: any) {
@@ -51,7 +66,7 @@ export function UserAuthControl() {
             className={utility.button}
             onClick={async () => {
               try {
-                await signOut(auth);
+                await signOut(appEnvironment.firebaseAuth);
               } catch (error: any) {
                 const errorCode = error.code;
                 const errorMessage = error.message;

@@ -14,3 +14,13 @@ export const SECS_OVER_PX = SECS_PER_PX;
 
 export const CANVAS_HEIGHT = 256 / 6;
 export const CANVAS_WIDTH = TRACK_HEADER_WIDTH; //512 / 3;
+
+// WAM
+
+export const WAM_PLUGINS: { url: string; kind: "-m" | "-a" | "m-a" | "a-a" }[] = [
+  { url: "https://mainline.i3s.unice.fr/wam2/packages/StonePhaserStereo/index.js", kind: "a-a" },
+  { url: "https://mainline.i3s.unice.fr/wam2/packages/BigMuff/index.js", kind: "a-a" },
+  { url: "https://mainline.i3s.unice.fr/wam2/packages/obxd/index.js", kind: "m-a" },
+  { url: "../midi/pianoroll/index.js", kind: "-m" },
+];
+export const PIANO_ROLL_PLUGIN_URL = "../midi/pianoroll/index.js";

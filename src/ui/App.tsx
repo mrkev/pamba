@@ -1,20 +1,12 @@
-import React, { useEffect, useState } from "react";
-import { modifierState, useSingletonKeyboardModifierState } from "../ModifierState";
-import { useAppProjectKeyboardEvents } from "../input/useAppProjectKeyboardEvents";
-import { AnalizedPlayer } from "../lib/AnalizedPlayer";
-import { AudioRenderer } from "../lib/AudioRenderer";
+import React, { useEffect } from "react";
 import { ProjectPersistance } from "../lib/ProjectPersistance";
 import { AudioProject } from "../lib/project/AudioProject";
 import { SPrimitive, useLinkedState } from "../lib/state/LinkedState";
 import { ignorePromise } from "../utils/ignorePromise";
-import { DebugData } from "./DebugData";
-import { Library } from "./Library";
-import { TimelineView } from "./TimelineView";
-import { ToolHeader } from "./ToolHeader";
 // import { TrackThread } from "../lib/TrackThread";
-import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
-import { MidiDemo } from "../midi";
+// import { MidiDemo } from "../midi";
 import { exhaustive } from "../utils/exhaustive";
+import { AppProject } from "./AppProject";
 
 // var w = new TrackThread();
 // var sab = new SharedArrayBuffer(1024);
@@ -29,7 +21,7 @@ export const appProjectStatus = SPrimitive.of<ProjectState>(
     : { status: "loaded", project: ProjectPersistance.defaultProject() }
 );
 
-function App(): React.ReactElement {
+export function App(): React.ReactElement {
   const [projectStatus, setProjectStatus] = useLinkedState(appProjectStatus);
 
   useEffect(() => {
@@ -54,65 +46,10 @@ function App(): React.ReactElement {
       return <div>Loading...</div>;
     }
     case "loaded": {
+      (window as any).project = projectStatus.project;
       return <AppProject project={projectStatus.project} />;
     }
     default:
       exhaustive(projectStatus);
   }
 }
-
-function useStopPlaybackOnUnmount(renderer: AudioRenderer) {
-  useEffect(() => {
-    return () => {
-      if (renderer.analizedPlayer.isAudioPlaying) {
-        renderer.analizedPlayer.stopSound();
-      }
-    };
-  }, [renderer.analizedPlayer]);
-}
-
-function AppProject({ project }: { project: AudioProject }) {
-  // IDEA: Maybe merge player and renderer?
-  const [renderer] = useState(() => new AudioRenderer(new AnalizedPlayer()));
-
-  (window as any).project = project;
-
-  useSingletonKeyboardModifierState(modifierState);
-  useAppProjectKeyboardEvents(project, renderer.analizedPlayer, renderer);
-  useStopPlaybackOnUnmount(renderer);
-
-  return (
-    <>
-      {/* <MidiDemo /> */}
-      <ToolHeader project={project} player={renderer.analizedPlayer} renderer={renderer} />
-      <PanelGroup direction="horizontal" autoSaveId="foobar">
-        <Panel
-          collapsible={true}
-          defaultSize={15}
-          onCollapse={console.log}
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 4,
-            padding: "4px 0px 4px 4px",
-            paddingBottom: "128px",
-          }}
-        >
-          <Library project={project} renderer={renderer} player={renderer.analizedPlayer} />
-        </Panel>
-        <PanelResizeHandle
-          style={{
-            width: 5,
-          }}
-        />
-        <Panel>
-          <TimelineView project={project} player={renderer.analizedPlayer} renderer={renderer} />
-        </Panel>
-      </PanelGroup>
-
-      <DebugData project={project} />
-    </>
-  );
-}
-
-export default App;

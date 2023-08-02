@@ -9,7 +9,7 @@ import { appEnvironment } from "./AppEnvironment";
 import AudioClip from "./AudioClip";
 import { addClip, deleteTime, pushClip, removeClip } from "./AudioTrackFn";
 import { TrackThread } from "./TrackThread";
-import { OfflineContextInfo } from "./initAudioContext";
+import { AudioContextInfo } from "./initAudioContext";
 import { PBGainNode } from "./offlineNodes";
 import { LinkedArray } from "./state/LinkedArray";
 import { SPrimitive } from "./state/LinkedState";
@@ -133,7 +133,7 @@ export class AudioTrack extends DSPNode<null> {
     this.playingSource.start(0, offset); // Play the sound now
   }
 
-  async prepareForBounce(context: OfflineAudioContext, offlineContextInfo: OfflineContextInfo): Promise<AudioNode> {
+  async prepareForBounce(context: OfflineAudioContext, offlineContextInfo: AudioContextInfo): Promise<AudioNode> {
     this.playingSource = this.getSourceNode(context);
 
     const effectNodes = await Promise.all(

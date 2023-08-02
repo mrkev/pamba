@@ -1,5 +1,5 @@
 import type { WamNode, WebAudioModule } from "@webaudiomodules/api";
-import { liveAudioContext } from "../constants";
+import { PIANO_ROLL_PLUGIN_URL, liveAudioContext } from "../constants";
 import { appEnvironment, AppEnvironment } from "../lib/AppEnvironment";
 import nullthrows, { assert } from "../utils/nullthrows";
 import { DSPNode } from "../dsp/DSPNode";
@@ -62,10 +62,7 @@ export class MidiTrack {
   static async createWithInstrument(instrument: MidiInstrument) {
     const [groupId] = nullthrows(appEnvironment.wamHostGroup.get());
 
-    const pianoRollPlugin = nullthrows(
-      appEnvironment.wamPlugins.get(AppEnvironment.PIANO_ROLL_PLUGIN_URL),
-      "Piano Roll not found!"
-    );
+    const pianoRollPlugin = nullthrows(appEnvironment.wamPlugins.get(PIANO_ROLL_PLUGIN_URL), "Piano Roll not found!");
 
     const pianoRoll = await pianoRollPlugin.import.createInstance(groupId, liveAudioContext);
     const pianoRollDom = await pianoRoll.createGui();

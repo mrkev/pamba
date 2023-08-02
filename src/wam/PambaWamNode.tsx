@@ -1,7 +1,7 @@
 import { WamNode as IWamNode } from "@webaudiomodules/api";
 import type { WebAudioModule } from "../../packages/sdk/dist";
 import { DSPNode } from "../dsp/DSPNode";
-import { OfflineContextInfo } from "../lib/initAudioContext";
+import { AudioContextInfo } from "../lib/initAudioContext";
 import { SPrimitive } from "../lib/state/LinkedState";
 import { Position } from "./WindowPanel";
 import { WAMImport } from "./wam";
@@ -63,7 +63,7 @@ export class PambaWamNode extends DSPNode {
 
   override async cloneToOfflineContext(
     context: OfflineAudioContext,
-    offlineContextInfo: OfflineContextInfo
+    offlineContextInfo: AudioContextInfo
   ): Promise<PambaWamNode | null> {
     const state = await this.getState();
     const {
