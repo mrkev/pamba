@@ -33,7 +33,6 @@ export class MidiInstrument extends DSPNode<null> {
 
     const [groupId] = nullthrows(appEnvironment.wamHostGroup.get());
     const module = await plugin.import.createInstance(groupId, liveAudioContext);
-    console.log("HERE");
     return new MidiInstrument(module);
   }
 

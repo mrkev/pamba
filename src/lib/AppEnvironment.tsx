@@ -6,6 +6,7 @@ import { liveAudioContext } from "../constants";
 import { LinkedMap } from "./state/LinkedMap";
 import { WAMImport } from "../wam/wam";
 import { WamDescriptor } from "@webaudiomodules/api";
+import { ignorePromise } from "../utils/ignorePromise";
 
 export async function fetchWam(
   pluginUrl: string,
@@ -49,28 +50,28 @@ export class AppEnvironment {
     { url: "https://mainline.i3s.unice.fr/wam2/packages/obxd/index.js", kind: "m-a" },
     { url: "../midi/pianoroll/index.js", kind: "-m" },
   ];
-
   static readonly PIANO_ROLL_PLUGIN_URL = "../midi/pianoroll/index.js";
 
   constructor() {
     this.firebaseApp = initFirebaseApp();
-    // async inits
-    void (async () => {
-      // Init wam host
-      const { default: initializeWamHost } = await import("../../packages/sdk/src/initializeWamHost");
-      const [hostGroupId, hostGroupKey] = await initializeWamHost(liveAudioContext);
-      this.wamHostGroup.set([hostGroupId, hostGroupKey]);
+    ignorePromise(this.initAsync());
+  }
 
-      await Promise.all(
-        AppEnvironment.WAM_PLUGINS.map(async ({ url, kind }) => {
-          const plugin = await fetchWam(url, kind);
-          if (plugin == null) {
-            return;
-          }
-          this.wamPlugins.set(url, plugin);
-        })
-      );
-    })();
+  async initAsync() {
+    // Init wam host
+    const { default: initializeWamHost } = await import("../../packages/sdk/src/initializeWamHost");
+    const [hostGroupId, hostGroupKey] = await initializeWamHost(liveAudioContext);
+    this.wamHostGroup.set([hostGroupId, hostGroupKey]);
+
+    await Promise.all(
+      AppEnvironment.WAM_PLUGINS.map(async ({ url, kind }) => {
+        const plugin = await fetchWam(url, kind);
+        if (plugin == null) {
+          return;
+        }
+        this.wamPlugins.set(url, plugin);
+      })
+    );
   }
 }
 

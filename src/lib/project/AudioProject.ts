@@ -31,6 +31,7 @@ import { ignorePromise } from "../state/Subbable";
  * - DSP Search Box get working
  * [x] Overscroll towards the end of the project means we got to scroll extra to come back
  * - resizing with slider should resize around the cursor, not 0:00
+ * - Load previous project if it exists, instead of creating a new one
  */
 
 export type XScale = ScaleLinear<number, number>;
@@ -99,7 +100,6 @@ export class AudioProject {
     this.projectId = projectId;
     this.allTracks = LinkedArray.create<AudioTrack>(tracks);
     this.viewport = new ProjectViewportUtil(this);
-    console.log("HERE");
     ignorePromise(this.asyncInits());
   }
 

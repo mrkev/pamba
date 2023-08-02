@@ -104,6 +104,7 @@ export function Axis({ project, isHeader }: { project: AudioProject; isHeader?: 
   }
 
   const tickData = getTickData();
+  console.log(tickData);
 
   return (
     <>
@@ -119,6 +120,7 @@ export function Axis({ project, isHeader }: { project: AudioProject; isHeader?: 
       >
         {tickData?.map((secs) => {
           const px = pxForTime(secs);
+          console.log("FOO");
           return (
             <g className="tick" key={secs}>
               <line x1={px} x2={px} y1="0" y2="100%" stroke="#CBCBCB"></line>

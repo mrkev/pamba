@@ -3,7 +3,8 @@ import { Auth, User, getAuth, onAuthStateChanged, signInAnonymously } from "fire
 import { Database, getDatabase } from "firebase/database";
 import { StorageReference, getStorage, ref } from "firebase/storage";
 import { appEnvironment } from "../lib/AppEnvironment";
-import { SKIP_FIREBASE } from "./useFirebase";
+
+const SKIP_FIREBASE = false;
 
 export function getFirebaseAuth(): Auth {
   return getAuth(appEnvironment.firebaseApp);

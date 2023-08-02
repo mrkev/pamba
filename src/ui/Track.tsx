@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { TRACK_SEPARATOR_HEIGHT } from "../constants";
-import { usePambaFirebaseStoreRef } from "../firebase/useFirebase";
 import AudioClip from "../lib/AudioClip";
 import { AudioRenderer } from "../lib/AudioRenderer";
 import { AudioTrack } from "../lib/AudioTrack";
@@ -36,8 +35,6 @@ export function Track({
     setStateCounter((x) => x + 1);
   }, []);
 
-  const firebaseStoreRef = usePambaFirebaseStoreRef();
-
   const loadClipIntoTrack = useCallback(async (url: string, track: AudioTrack, name?: string): Promise<void> => {
     try {
       // load clip
@@ -53,16 +50,17 @@ export function Track({
     async (ev: React.DragEvent<HTMLDivElement>) => {
       ev.preventDefault();
       console.log(ev.dataTransfer);
+      if (audioStorage == null) {
+        return;
+      }
       // We can drop audio files from outside the app
       let url: string | null = null;
 
       for (let i = 0; i < ev.dataTransfer.files.length; i++) {
         const file = ev.dataTransfer.files[i];
         console.log("TODO: VERIFY FILE TYPE. Parallel uploads", file);
-        if (firebaseStoreRef == null) {
-          continue;
-        }
-        const result = (await audioStorage?.uploadAudioFile(file)) ?? new Error("no storage");
+
+        const result = await audioStorage.uploadAudioFile(file);
         if (result instanceof Error) {
           throw result;
         }
@@ -78,7 +76,7 @@ export function Track({
         ignorePromise(loadClipIntoTrack(url, track));
       }
     },
-    [audioStorage, firebaseStoreRef, loadClipIntoTrack, track]
+    [audioStorage, loadClipIntoTrack, track]
   );
 
   useEffect(() => {

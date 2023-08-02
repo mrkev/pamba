@@ -15,6 +15,7 @@ export class ProjectPersistance {
 
   static hasSavedData(): boolean {
     const data = window.localStorage.getItem("pamba.project");
+    console.log("Saved data:", data !== null);
     return data !== null;
   }
 

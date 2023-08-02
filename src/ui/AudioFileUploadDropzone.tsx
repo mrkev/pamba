@@ -1,6 +1,5 @@
 import classNames from "classnames";
 import React, { useRef, useState } from "react";
-import { usePambaFirebaseStoreRef } from "../firebase/useFirebase";
 import { AudioProject } from "../lib/project/AudioProject";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { useEventListener } from "./useEventListener";
@@ -20,16 +19,15 @@ export function AudioFileUploadDropzone({
   ...props
 }: React.ComponentPropsWithoutRef<"div"> & { project: AudioProject }) {
   const [status, setStatus] = useState<"idle" | "dragover" | "loading">("idle");
-  const firebaseStoreRef = usePambaFirebaseStoreRef();
   const divRef = useRef<HTMLDivElement>(null);
   const [audioStorage] = useLinkedState(project.audioStorage);
 
   useEventListener("dragover", divRef, (e) => {
-    if (!firebaseStoreRef) {
+    if (!audioStorage) {
       return;
     }
     const { dataTransfer } = e;
-    if (!dataTransfer) {
+    if (!dataTransfer || dataTransfer.files.length < 1) {
       return;
     }
     dataTransfer.effectAllowed = "move";
@@ -41,7 +39,7 @@ export function AudioFileUploadDropzone({
   });
 
   const onDragExit = async (e: React.DragEvent<HTMLDivElement>) => {
-    if (!firebaseStoreRef) {
+    if (!audioStorage) {
       return;
     }
     const { dataTransfer } = e.nativeEvent;
@@ -53,12 +51,10 @@ export function AudioFileUploadDropzone({
 
   const onDrop = async (e: React.DragEvent<HTMLDivElement>) => {
     e.stopPropagation();
-    if (!firebaseStoreRef) {
-      return;
-    }
     if (!audioStorage) {
       return;
     }
+
     e.preventDefault();
     const { dataTransfer } = e.nativeEvent;
     if (!dataTransfer) {
@@ -69,9 +65,6 @@ export function AudioFileUploadDropzone({
     for (let i = 0; i < dataTransfer.files.length; i++) {
       const file = dataTransfer.files[i];
       console.log("TODO: VERIFY FILE TYPE. Parallel uploads", file);
-      if (firebaseStoreRef == null) {
-        continue;
-      }
       const result = await audioStorage.uploadAudioFile(file);
       if (result instanceof Error) {
         throw result;

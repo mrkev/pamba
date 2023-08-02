@@ -14,17 +14,14 @@ import { ToolHeader } from "./ToolHeader";
 // import { TrackThread } from "../lib/TrackThread";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { MidiDemo } from "../midi";
+import { exhaustive } from "../utils/exhaustive";
 
 // var w = new TrackThread();
 // var sab = new SharedArrayBuffer(1024);
 // var arr = new Int32Array(sab);
 // w.postMessage({ kind: "set", sab });
 
-type ProjectState =
-  | {
-      status: "loading";
-    }
-  | { status: "loaded"; project: AudioProject };
+type ProjectState = { status: "loading" } | { status: "loaded"; project: AudioProject };
 
 export const appProjectStatus = SPrimitive.of<ProjectState>(
   ProjectPersistance.hasSavedData()
@@ -41,6 +38,7 @@ function App(): React.ReactElement {
         if (projectStatus.status === "loading") {
           const maybeProject = await ProjectPersistance.openSaved();
           if (maybeProject == null) {
+            alert("Could not open project. Clearing");
             ProjectPersistance.clearSaved();
             setProjectStatus({ status: "loaded", project: ProjectPersistance.defaultProject() });
           } else {
@@ -58,6 +56,8 @@ function App(): React.ReactElement {
     case "loaded": {
       return <AppProject project={projectStatus.project} />;
     }
+    default:
+      exhaustive(projectStatus);
   }
 }
 
@@ -83,7 +83,7 @@ function AppProject({ project }: { project: AudioProject }) {
 
   return (
     <>
-      <MidiDemo />
+      {/* <MidiDemo /> */}
       <ToolHeader project={project} player={renderer.analizedPlayer} renderer={renderer} />
       <PanelGroup direction="horizontal" autoSaveId="foobar">
         <Panel
