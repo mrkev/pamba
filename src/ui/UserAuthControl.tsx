@@ -1,6 +1,6 @@
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { useEffect, useState } from "react";
-import { anonymousSignIn } from "../firebase/getFirebase";
+import { User, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { useCallback, useEffect, useState } from "react";
+import { anonymousSignIn, useFirebaseAuthState } from "../firebase/getFirebase";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { ignorePromise } from "../utils/ignorePromise";
@@ -11,14 +11,18 @@ export function UserAuthControl() {
   const [firebaseUser] = useLinkedState(appEnvironment.firebaseUser);
   const [modal, showModal] = useModalDialog(() => <LoginDialog />);
 
+  useFirebaseAuthState(
+    useCallback((user: User | null) => {
+      // should be the only setter for firebaseUser. It'll catch everything
+      appEnvironment.firebaseUser.set(user);
+    }, [])
+  );
+
   useEffect(() => {
     ignorePromise(
       (async () => {
         const result = await anonymousSignIn(appEnvironment.firebaseAuth);
-        if (result === null) {
-          appEnvironment.firebaseUser.set(null);
-        } else {
-          appEnvironment.firebaseUser.set(result.user);
+        if (result != null) {
           console.log("Anonymous user signed-in.");
         }
       })()
@@ -36,7 +40,7 @@ export function UserAuthControl() {
           ? await signInWithEmailAndPassword(appEnvironment.firebaseAuth, email, password)
           : await createUserWithEmailAndPassword(appEnvironment.firebaseAuth, email, password);
 
-      appEnvironment.firebaseUser.set(userCredential.user);
+      // appEnvironment.firebaseUser.set(userCredential.user);
     } catch (error: any) {
       const errorCode = error.code;
       const errorMessage = error.message;
@@ -91,7 +95,6 @@ export function LoginDialog() {
         <span
           style={mode === "signup" ? { fontWeight: "bold" } : { color: "#0000EE", textDecoration: "underline" }}
           onClick={() => {
-            console.log("FOO");
             setMode("signup");
           }}
         >
@@ -116,10 +119,8 @@ export function LoginDialog() {
       </label>
 
       <div>
-        <button value="cancel" formMethod="dialog">
-          Cancel
-        </button>
-        <button value="default">{mode === "signup" ? "Sign-up" : "Log-in"}</button>
+        <button value="cancel">Cancel</button>
+        <button value="submit">{mode === "signup" ? "Sign-up" : "Log-in"}</button>
       </div>
     </>
   );

@@ -9,6 +9,10 @@ export function useModalDialog(
 
   const onSubmit = (e: React.SyntheticEvent<HTMLFormElement, SubmitEvent>) => {
     e.preventDefault();
+    if ((e.nativeEvent.submitter as HTMLButtonElement).value.toLowerCase() !== "submit") {
+      dialogRef.current?.close();
+      return;
+    }
     const formData = new FormData(e.target as any);
     callback?.(formData);
     dialogRef.current?.close();

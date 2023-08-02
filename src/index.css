@@ -4,9 +4,12 @@ body {
     "Droid Sans", "Helvetica Neue", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  overscroll-behavior-x: none;
-  overscroll-behavior-y: none;
   font-size: 14px;
+}
+
+html,
+body {
+  overscroll-behavior-x: none;
 }
 
 html,

@@ -11,6 +11,11 @@ export function useFirebaseAuthState(observer: NextOrObserver<User>) {
   }, [auth, observer]);
 }
 
+export async function logOff() {
+  const auth = appEnvironment.firebaseAuth;
+  const unsubscribe = onAuthStateChanged(auth, (user) => {});
+}
+
 export async function anonymousSignIn(auth: Auth) {
   try {
     const credential = await signInAnonymously(auth);
