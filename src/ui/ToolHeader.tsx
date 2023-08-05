@@ -290,34 +290,34 @@ export function ToolHeader({
           <div style={{ flexGrow: 1 }}></div>
           <input
             type="range"
-            min={Math.log(2)}
-            max={Math.log(100)}
+            min={Math.log(0.64)}
+            max={Math.log(1000)}
             step={0.01}
             value={Math.log(scaleFactor)}
             title="Zoom level"
             onChange={(e) => {
-              const projectDiv = project.projectDiv.get();
-              if (!projectDiv) {
+              const projectDivWidth = project.viewport.projectDivWidth.get();
+              if (projectDivWidth === 0) {
                 return;
               }
               const newFactor = Math.exp(parseFloat(e.target.value));
+              project.viewport.setScale(newFactor);
 
-              const renderedWidth = projectDiv.clientWidth;
-              const renderedTime = project.viewport.pxToSecs(projectDiv.clientWidth);
-              const newRenderedWidth = project.viewport.secsToPx(renderedTime, newFactor);
+              // const renderedTime = project.viewport.pxToSecs(projectDivWidth);
+              // const newRenderedWidth = project.viewport.secsToPx(renderedTime, newFactor);
 
-              console.log("new", newRenderedWidth, "old", renderedWidth);
-              const pxDelta = newRenderedWidth - renderedWidth;
-              console.log("PXDELTA", pxDelta);
+              // console.log("new", newRenderedWidth, "old", projectDivWidth);
+              // const pxDelta = newRenderedWidth - projectDivWidth;
+              // console.log("PXDELTA", pxDelta);
 
-              // console.log(currentFactor, newFactor, currentFactor - newFactor);
-              // const totalPixels = projectDiv.clientWidth * (currentFactor - newFactor);
-              // console.log(projectDiv.clientWidth, "totalPixels", totalPixels);
-              // const viewportEndPx = viewportStartPx + projectDiv.clientWidth;
-              // const middlePx = (viewportStartPx + viewportEndPx) / 2;
+              // // console.log(currentFactor, newFactor, currentFactor - newFactor);
+              // // const totalPixels = projectDiv.clientWidth * (currentFactor - newFactor);
+              // // console.log(projectDiv.clientWidth, "totalPixels", totalPixels);
+              // // const viewportEndPx = viewportStartPx + projectDiv.clientWidth;
+              // // const middlePx = (viewportStartPx + viewportEndPx) / 2;
 
-              project.scaleFactor.set(newFactor);
-              project.viewportStartPx.setDyn((prev) => prev + pxDelta / 2);
+              // project.scaleFactor.set(newFactor);
+              // project.viewportStartPx.setDyn((prev) => prev + pxDelta / 2);
             }}
           />
         </div>

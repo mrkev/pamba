@@ -73,6 +73,7 @@
     "typescript-json-serializer": "4.2.0",
     "ulid": "^2.3.0",
     "use-local-storage-state": "^18.3.3",
+    "use-resize-observer": "^9.1.0",
     "vite-plugin-inspect": "^0.7.35",
     "web-vitals": "3.4.0"
   },

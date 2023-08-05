@@ -1,10 +1,8 @@
-import React, { useState } from "react";
+import React from "react";
 import { createUseStyles } from "react-jss";
-import { AudioProject, ProjectMarkers } from "../lib/project/AudioProject";
+import { AudioProject } from "../lib/project/AudioProject";
 import { useDerivedState } from "../lib/state/DerivedState";
-import { useLinkedMap } from "../lib/state/LinkedMap";
 import { useLinkedState } from "../lib/state/LinkedState";
-import { cx } from "./cx";
 
 const formatter = new Intl.NumberFormat("en-US", {
   useGrouping: false,
@@ -54,9 +52,8 @@ const useStyles = createUseStyles({
 
 export function Axis({ project, isHeader = false }: { project: AudioProject; isHeader?: boolean }) {
   const styles = useStyles();
-  const [svg, setSvg] = useState<SVGSVGElement | null>(null);
-  const [markers] = useLinkedMap(project.timeMarkers);
   const [viewportStartPx] = useLinkedState(project.viewportStartPx);
+  const [projectDivWidth] = useLinkedState(project.viewport.projectDivWidth);
   const secsToPx = useDerivedState(project.secsToPx);
   const pxToSecs = secsToPx.invert;
 
@@ -72,12 +69,8 @@ export function Axis({ project, isHeader = false }: { project: AudioProject; isH
   }
 
   function getTickData() {
-    if (!svg) {
-      return null;
-    }
-
     const viewportStartSecs = pxToSecs(viewportStartPx);
-    const viewportEndSecs = timeForPx(svg.clientWidth);
+    const viewportEndSecs = timeForPx(projectDivWidth);
     // console.log("viewportEndSecs", viewportEndSecs);
 
     const MIN_DIST_BEETWEEN_TICKS_SEC = pxToSecs(MIN_TICK_DISTANCE);
@@ -97,7 +90,6 @@ export function Axis({ project, isHeader = false }: { project: AudioProject; isH
     }
 
     // console.log("viewing from", viewportStartSecs, "to", endTime);
-
     // console.log({ viewportStartSecs, totalTime: endTime, startingTickSecs });
 
     return ticksToShow;
@@ -109,7 +101,6 @@ export function Axis({ project, isHeader = false }: { project: AudioProject; isH
     <>
       {/* Background grid */}
       <svg
-        ref={(elem: SVGSVGElement) => setSvg(elem)}
         className={styles.svgContainer}
         style={{
           left: !isHeader ? viewportStartPx : 0,
@@ -139,56 +130,6 @@ export function Axis({ project, isHeader = false }: { project: AudioProject; isH
           );
         })}
       </svg>
-      {/* Spacer to make the project content not overlap with the timestamps. Needs to not
-      be position: absolute so it interacts with the page flow */}
-      {isHeader && <div style={{ height: 30, position: "relative" }} />}
-      {isHeader && (
-        <div
-          className={cx("marker-interaction-area", styles.markerContainer)}
-          style={{
-            left: viewportStartPx,
-          }}
-          onDoubleClick={(e: React.MouseEvent) => {
-            if ((e.target as any).className !== "marker-interaction-area") {
-              return;
-            }
-            AudioProject.addMarkerAtTime(project, timeForPx(e.nativeEvent.offsetX));
-          }}
-        >
-          {markers
-            .map((time, id) => {
-              return [
-                time,
-                <div
-                  key={id}
-                  style={{
-                    position: "absolute",
-                    left: pxForTime(time),
-                    background: "white",
-                    bottom: 0,
-                    borderLeft: "1px solid black",
-                    paddingRight: 20,
-                  }}
-                >
-                  <Marker
-                    onClick={() => {
-                      ProjectMarkers.selectMarker(project, id);
-                    }}
-                    style={{
-                      position: "relative",
-                      left: -9,
-                      bottom: -3,
-                      cursor: "pointer",
-                    }}
-                  />
-                  marker {id}
-                </div>,
-              ] as const;
-            })
-            .sort(([a], [b]) => a - b)
-            .map(([, elem]) => elem)}
-        </div>
-      )}
     </>
   );
 }

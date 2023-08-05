@@ -55,6 +55,8 @@ export function DebugData({ project }: { project: AudioProject }) {
   const [activeTrack] = useLinkedState(project.activeTrack);
   const [cursorTracks] = useLinkedSet(project.cursorTracks);
   const [open, setOpen] = useLocalState("debugDataOpen", false);
+  const [viewportStartPx] = useLinkedState(project.viewportStartPx);
+  const [projectDivWidth] = useLinkedState(project.viewport.projectDivWidth);
 
   const allState = tracks
     .map((track, i) => {
@@ -70,13 +72,15 @@ export function DebugData({ project }: { project: AudioProject }) {
         position: "absolute",
         bottom: 0,
         background: "rgba(233,233,233,0.7)",
-
         border: "1px solid black",
       }}
     >
       <summary style={{ cursor: "pointer" }} onClick={() => setOpen((p) => !p)}>
         Debug
       </summary>
+      <pre>
+        |{viewportStartPx}px -{projectDivWidth}-
+      </pre>
       <div>
         Cursor: {cursorPos} {selectionWidth}
         <br />
@@ -89,11 +93,6 @@ export function DebugData({ project }: { project: AudioProject }) {
         Cursor Tracks: {[...cursorTracks.values()].map((track) => track.name.get())}
       </div>
       <pre>{allState}</pre>
-      {timeMarkers.map((value, key) => (
-        <div key={key}>
-          {key}: {value}
-        </div>
-      ))}
       <button
         onClick={() => {
           timeMarkers.set(Math.random(), 2);

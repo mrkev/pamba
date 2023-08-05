@@ -72,10 +72,10 @@ export class AudioProject {
 
   // the thing we're currently renaming, if any
   readonly currentlyRenaming = SPrimitive.of<RenameState | null>(null);
-  // the zoom level
+  // the zoom level. min scale is 0.64, max is 1000
   readonly scaleFactor = SPrimitive.of(10);
-  readonly viewportStartPx = SPrimitive.of(0); // the "left" CSS position for the first second visible in the project div
-  readonly projectDiv = SPrimitive.of<HTMLDivElement | null>(null);
+  // the "left" CSS position for the first second visible in the project div
+  readonly viewportStartPx = SPrimitive.of(0);
   // 1 sec corresponds to 10 px
   readonly secsToPx = DerivedState.from(
     [this.scaleFactor],
