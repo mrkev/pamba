@@ -2,18 +2,17 @@ import React, { useCallback, useEffect, useRef } from "react";
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from "../constants";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import AudioClip from "../lib/AudioClip";
-import { AudioProject } from "../lib/project/AudioProject";
 import { AudioRenderer } from "../lib/AudioRenderer";
 import { AudioTrack } from "../lib/AudioTrack";
 import { ProjectPersistance } from "../lib/ProjectPersistance";
+import { AudioProject } from "../lib/project/AudioProject";
 import { useLinkedArray } from "../lib/state/LinkedArray";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { ignorePromise } from "../utils/ignorePromise";
 import { useMediaRecorder } from "../utils/useMediaRecorder";
 import { appProjectStatus } from "./App";
-import { AnchorButton } from "./FormButtons";
-import { utility } from "./utility";
 import { UserAuthControl } from "./UserAuthControl";
+import { utility } from "./utility";
 
 function NewProjectButton() {
   return (
@@ -34,13 +33,13 @@ function NewProjectButton() {
   );
 }
 
-function BounceButton({ project, renderer }: { project: AudioProject; renderer: AudioRenderer }) {
+function BounceButton({ project }: { project: AudioProject; renderer: AudioRenderer }) {
   const [selectionWidth] = useLinkedState(project.selectionWidth);
   return (
     <button
       className={utility.button}
       onClick={() => {
-        ignorePromise(AudioRenderer.bounceSelection(renderer, project));
+        ignorePromise(AudioRenderer.bounceSelection(project));
       }}
     >
       {selectionWidth && Math.abs(selectionWidth) > 0 ? "bounce selected" : "bounce all"}
@@ -210,7 +209,6 @@ export function ToolHeader({
   player: AnalizedPlayer;
   renderer: AudioRenderer;
 }) {
-  const [bounceURL] = useLinkedState<string | null>(renderer.bounceURL);
   const [scaleFactor] = useLinkedState(project.scaleFactor);
 
   const loadClip = useCallback(
@@ -257,18 +255,9 @@ export function ToolHeader({
           }}
         >
           <NewProjectButton />
-
-          <div style={{ flexGrow: 1 }}></div>
-
           <BounceButton project={project} renderer={renderer} />
-          {bounceURL && (
-            <AnchorButton className={utility.button} href={bounceURL} download={"bounce.wav"}>
-              Download bounce
-            </AnchorButton>
-          )}
-          <div style={{ flexGrow: 1 }}></div>
-
           <ToolSelector project={project} />
+
           <div style={{ flexGrow: 1 }}></div>
           <TransportControl
             project={project}

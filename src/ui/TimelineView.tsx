@@ -86,6 +86,11 @@ export function TimelineView({
   const secsToPx = useDerivedState(project.secsToPx);
   const [viewportStartPx] = useLinkedState(project.viewportStartPx);
 
+  useAppProjectMouseEvents({
+    project,
+    projectDiv,
+  });
+
   useEffect(() => {
     const pbdiv = playbackPosDiv.current;
     if (pbdiv) {
@@ -101,11 +106,6 @@ export function TimelineView({
       }
     };
   }, [player, secsToPx]);
-
-  useAppProjectMouseEvents({
-    project,
-    projectDiv,
-  });
 
   useEffect(() => {
     if (!projectDiv) {
@@ -163,6 +163,8 @@ export function TimelineView({
       projectDiv.removeEventListener("scroll", onScroll, { capture: false });
     };
   }, [project.scaleFactor, project.viewportStartPx, projectDiv, viewportStartPx]);
+
+  console.log(projectDiv, "projectDiv");
 
   return (
     <div id="container" className={classes.container}>

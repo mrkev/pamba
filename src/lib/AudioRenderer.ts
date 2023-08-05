@@ -2,10 +2,9 @@ import { SPrimitive } from "./state/LinkedState";
 import { AnalizedPlayer } from "./AnalizedPlayer";
 import bufferToWav from "audiobuffer-to-wav";
 import { AudioProject } from "./project/AudioProject";
+import { downloadURL } from "../utils/downloadURL";
 
 export class AudioRenderer {
-  /** URL of last bounced audio clip, for download */
-  readonly bounceURL = SPrimitive.of<string | null>(null);
   /** Is the audio currently playing? */
   readonly isAudioPlaying = SPrimitive.of(false);
   /** */
@@ -19,11 +18,10 @@ export class AudioRenderer {
    * Bounces the current time slecteion. If no time is selected, bunces the whole track.
    * Bounced audio will be availabe at AudioRenderer.bounceURL for download.
    */
-  static async bounceSelection(renderer: AudioRenderer, project: AudioProject) {
+  static async bounceSelection(project: AudioProject) {
     const selectionWidth = project.selectionWidth.get();
     const tracks = project.allTracks._getRaw();
     const cursorPos = project.cursorPos.get();
-    const currentBounceURL = renderer.bounceURL.get();
     const bounceAll = selectionWidth == null || selectionWidth === 0;
 
     const result = await (bounceAll
@@ -34,12 +32,7 @@ export class AudioRenderer {
       type: "audio/wav",
     });
     const exportUrl = window.URL.createObjectURL(blob);
-
-    if (currentBounceURL != null) {
-      window.URL.revokeObjectURL(currentBounceURL);
-    }
-
-    renderer.bounceURL.set(exportUrl);
+    downloadURL(exportUrl, "bounce.wav");
   }
 
   /**

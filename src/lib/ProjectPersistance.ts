@@ -34,7 +34,8 @@ export class ProjectPersistance {
         return null;
       }
       return constructed;
-    } catch (_e) {
+    } catch (e) {
+      console.error(e);
       return null;
     }
   }
