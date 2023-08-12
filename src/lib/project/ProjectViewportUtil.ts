@@ -32,7 +32,7 @@ export class ProjectViewportUtil {
   // Conversions
 
   secsToPx(s: number, factorOverride?: number) {
-    console.log("using factor", factorOverride, "instead of ", this.project.scaleFactor.get());
+    // console.log("using factor", factorOverride, "instead of ", this.project.scaleFactor.get());
     const factor = factorOverride ?? this.project.scaleFactor.get();
     return s * factor;
   }

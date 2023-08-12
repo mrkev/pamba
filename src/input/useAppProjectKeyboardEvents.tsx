@@ -4,6 +4,7 @@ import { AudioProject, ProjectSelection } from "../lib/project/AudioProject";
 import { ProjectPersistance } from "../lib/ProjectPersistance";
 import { AudioRenderer } from "../lib/AudioRenderer";
 import { ignorePromise } from "../utils/ignorePromise";
+import { appEnvironment } from "../lib/AppEnvironment";
 
 export function useAppProjectKeyboardEvents(
   project: AudioProject,
@@ -63,7 +64,7 @@ export function useAppProjectKeyboardEvents(
             break;
           }
           // Rename
-          project.currentlyRenaming.set({
+          appEnvironment.currentlyRenaming.set({
             status: "track",
             track: selected.tracks[0],
           });

@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { AudioProject } from "../lib/project/AudioProject";
 import { RenameState } from "../lib/project/RenameState";
 import { useLinkedState } from "../lib/state/LinkedState";
+import { appEnvironment } from "../lib/AppEnvironment";
 
 function shallowEquals<T extends Record<string, unknown>>(a: T | null, b: T | null): boolean {
   if ((b == null) !== (a == null)) {
@@ -41,7 +42,7 @@ export function RenamableLabel({
 } & React.HTMLAttributes<HTMLDivElement>) {
   const renameInputRef = useRef<HTMLInputElement>(null);
   const spanRef = useRef<HTMLSpanElement>(null);
-  const [currentlyRenaming, setCurrentlyRenaming] = useLinkedState(project.currentlyRenaming);
+  const [currentlyRenaming, setCurrentlyRenaming] = useLinkedState(appEnvironment.currentlyRenaming);
   const isBeingRenamed = shallowEquals(currentlyRenaming, renameState);
 
   const { onDoubleClick: onDoubleClickMaybe, ...passedDivProps } = divProps;

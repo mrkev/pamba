@@ -1,17 +1,15 @@
 import { AudioProject } from "../lib/project/AudioProject";
 import { useDerivedState } from "../lib/state/DerivedState";
-import { useLinkedSet } from "../lib/state/LinkedSet";
 import { useLinkedState } from "../lib/state/LinkedState";
 
 export function TimelineCursor({ project }: { project: AudioProject }) {
   const secsToPx = useDerivedState(project.secsToPx);
   const [cursorPos] = useLinkedState(project.cursorPos);
-  const [cursorTracks] = useLinkedSet(project.cursorTracks);
   const [selectionWidth] = useLinkedState(project.selectionWidth);
   return (
     <div
       style={{
-        backdropFilter: "invert(100%)",
+        backdropFilter: "brightness(90%)",
         height: "100%",
         position: "absolute",
         userSelect: "none",

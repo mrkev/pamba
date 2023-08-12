@@ -50,11 +50,10 @@ export function DebugData({ project }: { project: AudioProject }) {
   const [cursorPos] = useLinkedState(project.cursorPos);
   const [selectionWidth] = useLinkedState(project.selectionWidth);
   const [tracks] = useLinkedArray(project.allTracks);
-  const [timeMarkers] = useLinkedMap(project.timeMarkers);
   const [pressed] = useLinkedState(pressedState);
   const [activeTrack] = useLinkedState(project.activeTrack);
   const [cursorTracks] = useLinkedSet(project.cursorTracks);
-  const [open, setOpen] = useLocalState("debugDataOpen", false);
+  const [open, setOpen] = useLocalState<boolean>("debugDataOpen", false);
   const [viewportStartPx] = useLinkedState(project.viewportStartPx);
   const [projectDivWidth] = useLinkedState(project.viewport.projectDivWidth);
 
@@ -67,6 +66,7 @@ export function DebugData({ project }: { project: AudioProject }) {
   return (
     <details
       open={open}
+      onToggle={() => setOpen((p) => !p)}
       style={{
         fontSize: 12,
         position: "absolute",
@@ -75,31 +75,22 @@ export function DebugData({ project }: { project: AudioProject }) {
         border: "1px solid black",
       }}
     >
-      <summary style={{ cursor: "pointer" }} onClick={() => setOpen((p) => !p)}>
-        Debug
-      </summary>
+      <summary style={{ cursor: "pointer" }}>Debug</summary>
       <pre>
         |{viewportStartPx}px -{projectDivWidth}-
       </pre>
       <div>
-        Cursor: {cursorPos} {selectionWidth}
+        Cursor: {cursorPos} {selectionWidth} <br />
+        Cursor Tracks: {[...cursorTracks.values()].map((track) => `${track.name.get()}`)}
+        <hr></hr>
         <br />
         Selected: {stringOfSelected(selected)}
         <br />
         Pressed: {pressed?.status}
         <br />
         Active Track: {activeTrack?.name.get()}
-        <br />
-        Cursor Tracks: {[...cursorTracks.values()].map((track) => track.name.get())}
       </div>
       <pre>{allState}</pre>
-      <button
-        onClick={() => {
-          timeMarkers.set(Math.random(), 2);
-        }}
-      >
-        timeMarker/LinkedMap Test
-      </button>
     </details>
   );
 }

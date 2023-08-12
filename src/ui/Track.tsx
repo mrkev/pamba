@@ -11,19 +11,24 @@ import { ignorePromise } from "../utils/ignorePromise";
 import { Clip } from "./Clip";
 import { EffectRack } from "./EffectRack";
 import { useEventListener } from "./useEventListener";
+import { createUseStyles } from "react-jss";
+import { useLinkedSet } from "../lib/state/LinkedSet";
 
 export function Track({
   track,
   project,
   isDspExpanded,
   renderer,
+  style,
 }: {
   track: AudioTrack;
   project: AudioProject;
   renderer: AudioRenderer;
   isDspExpanded: boolean;
+  style?: React.CSSProperties;
 }): React.ReactElement {
-  const [pressed, setPressed] = useLinkedState(pressedState);
+  const styles = useStyles();
+  const [pressed] = useLinkedState(pressedState);
   const [selected] = useLinkedState(project.selected);
   const [clips] = useLinkedArray(track.clips);
   const [height] = useLinkedState(track.height);
@@ -79,46 +84,6 @@ export function Track({
     [audioStorage, loadClipIntoTrack, track]
   );
 
-  useEffect(() => {
-    const trackDiv = trackRef.current;
-    if (!trackDiv) {
-      return;
-    }
-
-    function onMouseDown() {
-      // TODO
-      console.log("TRACK MOUSE DOWN, TODO: TRACK BACKGROUND");
-      // const div = e.currentTarget;
-      // if (!(div instanceof HTMLDivElement)) return;
-      // const position = {
-      //   x: e.clientX + div.scrollLeft - div.getBoundingClientRect().x,
-      //   y: e.clientY + div.scrollTop - div.getBoundingClientRect().y,
-      // };
-      // const asSecs = pxToSecs(position.x);
-      // // player.setCursorPos(asSecs);
-      // project.cursorPos.set(asSecs);
-      // project.selectionWidth.set(null);
-      // pressedState.set({
-      //   status: "selecting_global_time",
-      //   clientX: e.clientX,
-      //   clientY: e.clientY,
-      //   startTime: asSecs,
-      // });
-    }
-
-    function onMouseMove() {}
-    function onMouseUp() {}
-
-    trackDiv.addEventListener("mousedown", onMouseDown);
-    trackDiv.addEventListener("mousemove", onMouseMove);
-    trackDiv.addEventListener("mouseup", onMouseUp);
-    return () => {
-      trackDiv.removeEventListener("mousedown", onMouseDown);
-      trackDiv.removeEventListener("mousemove", onMouseMove);
-      trackDiv.removeEventListener("mouseup", onMouseUp);
-    };
-  }, []);
-
   useEventListener(
     "mouseenter",
     trackRef,
@@ -166,31 +131,27 @@ export function Track({
           position: "relative",
           height: height - TRACK_SEPARATOR_HEIGHT,
           background: activeTrack === track ? "rgba(64,64,64,0.1)" : "none",
+          ...style,
         }}
       >
+        {/* RENDER CLIPS */}
         {clips.map((clip, i) => {
           if (pressed && pressed.status === "moving_clip" && pressed.track !== track && pressed.clip === clip) {
             return null;
           }
-
           const isSelected = selected !== null && selected.status === "clips" && selected.test.has(clip);
-
           return (
             <Clip key={i} clip={clip} rerender={rerender} isSelected={isSelected} track={track} project={project} />
           );
         })}
+
+        {/* RENDER SELECTION */}
+        <CursorSelection track={track} project={project} />
+        {selected && selected.status === "track_time" && selected.test.has(track) && <div>FOOOOOOOOOOO</div>}
         {/* RENDER CLIP BEING MOVED */}
         {pressed && pressed.status === "moving_clip" && pressed.track === track && (
           <Clip clip={pressed.clip} rerender={rerender} isSelected={true} project={project} track={null} />
         )}
-        {/* <div
-          style={{
-            width: "200px",
-            height: "30px",
-            position: "fixed",
-            background: "red",
-          }}
-        /> */}
       </div>
 
       {/* EFFECT RACK */}
@@ -198,19 +159,12 @@ export function Track({
 
       {/* Bottom border */}
       <div
+        className={styles.trackSeparator}
         style={{
           height: TRACK_SEPARATOR_HEIGHT,
-          width: "100%",
-          background: "#BABABA",
-          // to keep the selection div from showing above this effect track
-          // So it "sticks" when we scroll the timeline
-          position: "sticky",
-          left: "0",
-          // pointerEvents: "none",
-          cursor: "ns-resize",
         }}
         onMouseDown={(e) => {
-          setPressed({
+          pressedState.set({
             status: "resizing_track",
             clientX: e.clientX,
             clientY: e.clientY,
@@ -220,5 +174,42 @@ export function Track({
         }}
       ></div>
     </>
+  );
+}
+const useStyles = createUseStyles({
+  trackSeparator: {
+    width: "100%",
+    background: "#BABABA",
+    // to keep the selection div from showing above this effect track
+    // So it "sticks" when we scroll the timeline
+    position: "sticky",
+    left: "0",
+    // pointerEvents: "none",
+    cursor: "ns-resize",
+  },
+});
+
+function CursorSelection({ project, track }: { project: AudioProject; track: AudioTrack }) {
+  const [cursorPos] = useLinkedState(project.cursorPos);
+  const [selectionWidth] = useLinkedState(project.selectionWidth);
+  const [cursorTracks] = useLinkedSet(project.cursorTracks);
+
+  if (!cursorTracks.has(track)) {
+    return null;
+  }
+
+  return (
+    <div
+      style={{
+        backdropFilter: "invert(100%)",
+        left:
+          selectionWidth == null || selectionWidth >= 0
+            ? project.viewport.secsToPx(cursorPos)
+            : project.viewport.secsToPx(cursorPos + selectionWidth),
+        width: selectionWidth == null || selectionWidth === 0 ? 1 : project.viewport.secsToPx(Math.abs(selectionWidth)),
+        position: "absolute",
+        height: "100%",
+      }}
+    ></div>
   );
 }

@@ -1,24 +1,23 @@
-import { AudioTrack } from "../AudioTrack";
-import { SPrimitive } from "../state/LinkedState";
-import { LinkedSet } from "../state/LinkedSet";
-import { DerivedState } from "../state/DerivedState";
-import AudioClip from "../AudioClip";
-import { scaleLinear } from "d3-scale";
 import type { ScaleLinear } from "d3-scale";
-import { LinkedArray } from "../state/LinkedArray";
-import { AnalizedPlayer } from "../AnalizedPlayer";
-import { exhaustive } from "../../utils/exhaustive";
-import { FaustAudioEffect } from "../../dsp/FaustAudioEffect";
-import { LinkedMap } from "../state/LinkedMap";
-import { modifierState } from "../../ModifierState";
+import { scaleLinear } from "d3-scale";
 import { ulid } from "ulid";
-import { PambaWamNode } from "../../wam/PambaWamNode";
-import { ProjectViewportUtil } from "./ProjectViewportUtil";
-import { RenameState } from "./RenameState";
-import { SelectionState } from "./SelectionState";
-import { AudioStorage } from "./AudioStorage";
+import { modifierState } from "../../ModifierState";
+import { FaustAudioEffect } from "../../dsp/FaustAudioEffect";
 import { getFirebaseStorage } from "../../firebase/getFirebase";
+import { exhaustive } from "../../utils/exhaustive";
+import { PambaWamNode } from "../../wam/PambaWamNode";
+import { AnalizedPlayer } from "../AnalizedPlayer";
+import AudioClip from "../AudioClip";
+import { AudioTrack } from "../AudioTrack";
+import { DerivedState } from "../state/DerivedState";
+import { LinkedArray } from "../state/LinkedArray";
+import { LinkedSet } from "../state/LinkedSet";
+import { SPrimitive } from "../state/LinkedState";
 import { ignorePromise } from "../state/Subbable";
+import { AudioStorage } from "./AudioStorage";
+import { ProjectViewportUtil } from "./ProjectViewportUtil";
+import { SelectionState } from "./SelectionState";
+import { LinkedMap } from "../state/LinkedMap";
 
 /**
  * TODO:
@@ -43,19 +42,21 @@ export class AudioProject {
   readonly viewport: ProjectViewportUtil;
   readonly audioStorage = SPrimitive.of<AudioStorage | null>(null);
 
-  // id -> time
-  readonly timeMarkers = LinkedMap.create<number, number>();
-  nextTimeMarkerId = 0;
-  // Track data - should persist //
-  readonly allTracks: LinkedArray<AudioTrack>;
+  readonly isRecording = SPrimitive.of(false);
 
-  // Track status //
+  // Tracks //
+  readonly allTracks: LinkedArray<AudioTrack>;
   readonly solodTracks = LinkedSet.create<AudioTrack>();
   readonly dspExpandedTracks = LinkedSet.create<AudioTrack>();
-  readonly isRecording = SPrimitive.of(false);
+  // much like live, there's always an active track. Logic is a great model since
+  // the active track is clearly discernable in spite of multi-track selection.
+  readonly activeTrack = SPrimitive.of<AudioTrack | null>(null);
 
   // Pointer //
   readonly pointerTool = SPrimitive.of<Tool>("move");
+  // the width of the selection at the playback cursor
+  // TODO: Rename cursor time width or something?
+  readonly selectionWidth = SPrimitive.of<number | null>(null);
   readonly cursorPos = SPrimitive.of(0);
   readonly cursorTracks = LinkedSet.create<AudioTrack>();
   // ^^ TODO: a weak linked set might be a good idea
@@ -64,14 +65,7 @@ export class AudioProject {
 
   // the selected clip(s), track(s), etc
   readonly selected = SPrimitive.of<SelectionState | null>(null);
-  // the width of the selection at the playback cursor
-  readonly selectionWidth = SPrimitive.of<number | null>(null);
-  // much like live, there's always an active track. Logic is a great model since
-  // the active track is clearly discernable in spite of multi-track selection.
-  readonly activeTrack = SPrimitive.of<AudioTrack | null>(null);
 
-  // the thing we're currently renaming, if any
-  readonly currentlyRenaming = SPrimitive.of<RenameState | null>(null);
   // the zoom level. min scale is 0.64, max is 1000
   readonly scaleFactor = SPrimitive.of(10);
   // the "left" CSS position for the first second visible in the project div
@@ -177,10 +171,6 @@ export class AudioProject {
       });
     }
   }
-
-  static addMarkerAtTime(project: AudioProject, secs: number) {
-    project.timeMarkers.set(project.nextTimeMarkerId++, secs);
-  }
 }
 
 export class ProjectSelection {
@@ -262,12 +252,15 @@ export class ProjectSelection {
 }
 
 export class ProjectMarkers {
+  // id -> time
+  readonly timeMarkers = LinkedMap.create<number, number>();
+  nextTimeMarkerId = 0;
   /**
    * When first clicking a marker, we move the cursor to that point in time.
    * When selecting a previously clicked marker, we select it
    */
-  static selectMarker(project: AudioProject, markerId: number) {
-    const markerTime = project.timeMarkers.get(markerId);
+  static selectMarker(project: AudioProject, markers: ProjectMarkers, markerId: number) {
+    const markerTime = markers.timeMarkers.get(markerId);
     if (!markerTime) {
       return;
     }

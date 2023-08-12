@@ -48,18 +48,18 @@ export function TimelineView({
   useEffect(() => {
     const pbdiv = playbackPosDiv.current;
     if (pbdiv) {
-      pbdiv.style.left = String(secsToPx(player.playbackTime)) + "px";
+      pbdiv.style.left = String(project.viewport.secsToPx(player.playbackTime)) + "px";
     }
-  }, [player, secsToPx]);
+  }, [player, project.viewport]);
 
   useEffect(() => {
     player.onFrame = function (playbackTime) {
       const pbdiv = playbackPosDiv.current;
       if (pbdiv) {
-        pbdiv.style.left = String(secsToPx(playbackTime)) + "px";
+        pbdiv.style.left = String(project.viewport.secsToPx(playbackTime)) + "px";
       }
     };
-  }, [player, secsToPx]);
+  }, [player, project.viewport]);
 
   useEffect(() => {
     if (!projectDivRef) {
@@ -147,24 +147,16 @@ export function TimelineView({
       </div>
 
       {/* 2. Project, including track headers */}
-      {/* The whole width of this div is 90s */}
-      <div
-        id="projectDiv"
-        className={classes.projectDiv}
-        ref={projectDivRef}
-        style={{
-          paddingBottom: CLIP_HEIGHT,
-        }}
-      >
+      <div id="projectDiv" className={classes.projectDiv} ref={projectDivRef}>
         <Axis project={project}></Axis>
-        {/* <div id="bgs" style={{ position: "absolute", width: "100%", right: 0 }}>
+        {/* <div id="bgs" style={{ position: "absolute", width: "100%", left: viewportStartPx, background: "green" }}>
           {tracks.map(function (track, i) {
             return (
               <div
                 key={i}
                 style={{
                   width: "200px",
-                  height: "30px",
+                  height: track.height.get(),
                   position: "sticky",
                   left: 0,
                   background: "red",
@@ -175,7 +167,16 @@ export function TimelineView({
         </div> */}
         {tracks.map(function (track, i) {
           const isDspExpanded = dspExpandedTracks.has(track);
-          return <Track key={i} track={track} project={project} isDspExpanded={isDspExpanded} renderer={renderer} />;
+          return (
+            <Track
+              key={i}
+              track={track}
+              project={project}
+              isDspExpanded={isDspExpanded}
+              renderer={renderer}
+              style={{ width: viewportStartPx + (projectDivRef.current?.clientWidth ?? 0) }}
+            />
+          );
         })}
         <TimelineCursor project={project} />
         <div ref={playbackPosDiv} className={classes.playbackPosDiv}></div>
