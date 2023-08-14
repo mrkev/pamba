@@ -1,11 +1,11 @@
 import { User, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { useCallback, useEffect, useState } from "react";
-import { anonymousSignIn, useFirebaseAuthState } from "../firebase/getFirebase";
-import { appEnvironment } from "../lib/AppEnvironment";
-import { useLinkedState } from "../lib/state/LinkedState";
-import { ignorePromise } from "../utils/ignorePromise";
-import { useModalDialog } from "./useModalDialog";
-import { utility } from "./utility";
+import { anonymousSignIn, useFirebaseAuthState } from "../../firebase/getFirebase";
+import { appEnvironment } from "../../lib/AppEnvironment";
+import { useLinkedState } from "../../lib/state/LinkedState";
+import { ignorePromise } from "../../utils/ignorePromise";
+import { useModalDialog } from "../useModalDialog";
+import { utility } from "../utility";
 
 export function UserAuthControl() {
   const [firebaseUser] = useLinkedState(appEnvironment.firebaseUser);

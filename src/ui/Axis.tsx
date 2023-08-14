@@ -1,6 +1,6 @@
 import React from "react";
 import { createUseStyles } from "react-jss";
-import { AudioProject } from "../lib/project/AudioProject";
+import { AudioProject, TimeSignature } from "../lib/project/AudioProject";
 import { useDerivedState } from "../lib/state/DerivedState";
 import { useLinkedState } from "../lib/state/LinkedState";
 
@@ -15,7 +15,7 @@ function formatSecs(secs: number) {
 
 const MIN_TICK_DISTANCE = 60; // 60px
 
-function getStepForRes(dist: number): number {
+function getTimeStepForRes(dist: number): number {
   switch (true) {
     case dist < 1:
       return 1;
@@ -50,52 +50,83 @@ const useStyles = createUseStyles({
   },
 });
 
+function getBeatScaleFactorForOneBeatSize(dist: number): number {
+  switch (true) {
+    case dist < 60 / 16:
+      return 16 * 4;
+    case dist < 60 / 8:
+      return 16;
+    case dist < 60 / 4:
+      return 4;
+    case dist < 40:
+      return 2;
+    default:
+      return 1;
+  }
+}
+
+// returns an array of seconds at which to show a tick
+// = for a viewport that starts at viewportStartPx px, and is projectDivWidth px wide
+function getTimeTickData(project: AudioProject, viewportStartPx: number, projectDivWidth: number) {
+  const viewportStartSecs = project.viewport.pxToSecs(viewportStartPx);
+  const viewportEndSecs = project.viewport.timeForPx(projectDivWidth);
+
+  const MIN_DIST_BEETWEEN_TICKS_SEC = project.viewport.pxToSecs(MIN_TICK_DISTANCE);
+  const STEP_SECS = getTimeStepForRes(MIN_DIST_BEETWEEN_TICKS_SEC);
+
+  const shaveOff = viewportStartSecs % STEP_SECS;
+  // (viewportStartSecs - shaveOff) gives us a time before the start of our viewport.
+  // we do want to render this one though, so that it doesn't just disappear as soon
+  // as part of it is out of view, and it does appear like we're scrolling it gradually
+  const startingTickSecs = viewportStartSecs - shaveOff;
+
+  const ticksToShow: Array<number> = [];
+  for (let s = startingTickSecs; s < viewportEndSecs; s += STEP_SECS) {
+    ticksToShow.push(s);
+  }
+  return ticksToShow;
+}
+
+function getBeatTickData(
+  project: AudioProject,
+  viewportStartPx: number,
+  projectDivWidth: number,
+  tempo: number
+): (readonly [beatNum: number, time: number])[] {
+  const viewportStartSecs = project.viewport.pxToSecs(viewportStartPx);
+  const viewportEndSecs = project.viewport.timeForPx(projectDivWidth);
+
+  const oneBeatLen = 60 / tempo;
+  const oneBeatSizePx = project.viewport.secsToPx(oneBeatLen);
+  const tickBeatFactor = getBeatScaleFactorForOneBeatSize(oneBeatSizePx);
+  const tickBeatLength = tickBeatFactor * oneBeatLen;
+
+  // Find the first beat after `viewportStartSecs` that fits our tick beat length.
+  // NOTE: technically, Math.ceil. But we render one beat before the viewport start
+  // so text doesn't just "disappear" when the "beat line" scrolls out of view
+  const firstBeatNum = Math.floor(viewportStartSecs / tickBeatLength);
+
+  const ticksToShow = [];
+  for (
+    let i = firstBeatNum, s = tickBeatLength * firstBeatNum;
+    s < viewportEndSecs;
+    i += tickBeatFactor, s += tickBeatLength
+  ) {
+    ticksToShow.push([i, s] as const);
+  }
+  return ticksToShow;
+}
+
 export function Axis({ project, isHeader = false }: { project: AudioProject; isHeader?: boolean }) {
   const styles = useStyles();
   const [viewportStartPx] = useLinkedState(project.viewportStartPx);
   const [projectDivWidth] = useLinkedState(project.viewport.projectDivWidth);
-  const secsToPx = useDerivedState(project.secsToPx);
-  const pxToSecs = secsToPx.invert;
+  const [tempo] = useLinkedState(project.tempo);
+  const [timeSignature] = useLinkedState(project.timeSignature);
+  const [primaryAxis] = useLinkedState(project.primaryAxis);
 
-  // const timeForPx = useDerivedState(project.secsToViewportPx);
-  // const pxForTime = timeForPx.invert;
-
-  function pxForTime(s: number): number {
-    return secsToPx(s) - viewportStartPx;
-  }
-
-  function timeForPx(s: number): number {
-    return pxToSecs(s + viewportStartPx);
-  }
-
-  function getTickData() {
-    const viewportStartSecs = pxToSecs(viewportStartPx);
-    const viewportEndSecs = timeForPx(projectDivWidth);
-    // console.log("viewportEndSecs", viewportEndSecs);
-
-    const MIN_DIST_BEETWEEN_TICKS_SEC = pxToSecs(MIN_TICK_DISTANCE);
-    const STEP_SECS = getStepForRes(MIN_DIST_BEETWEEN_TICKS_SEC);
-
-    const ticksToShow: Array<number> = [];
-
-    const shaveOff = viewportStartSecs % STEP_SECS;
-
-    // (viewportStartSecs - shaveOff) gives us a time before the start of our viewport.
-    // we do want to render this one though, so that it doesn't just disappear as soon
-    // as part of it is out of view, and it does appear like we're scrolling it gradually
-    const startingTickSecs = viewportStartSecs - shaveOff;
-
-    for (let s = startingTickSecs; s < viewportEndSecs; s += STEP_SECS) {
-      ticksToShow.push(s);
-    }
-
-    // console.log("viewing from", viewportStartSecs, "to", endTime);
-    // console.log({ viewportStartSecs, totalTime: endTime, startingTickSecs });
-
-    return ticksToShow;
-  }
-
-  const tickData = getTickData();
+  const timeTicksS = getTimeTickData(project, viewportStartPx, projectDivWidth);
+  const tempoTicks = getBeatTickData(project, viewportStartPx, projectDivWidth, tempo);
 
   return (
     <>
@@ -105,30 +136,54 @@ export function Axis({ project, isHeader = false }: { project: AudioProject; isH
         style={{
           left: !isHeader ? viewportStartPx : 0,
           pointerEvents: "none",
-          // position: "sticky",
         }}
       >
-        {tickData?.map((secs) => {
-          const px = pxForTime(secs);
-          return (
-            <g className="tick" key={secs}>
-              <line x1={px} x2={px} y1="0" y2="100%" stroke="#CBCBCB"></line>
-              {isHeader && (
-                <text
-                  x={px}
-                  y="2"
-                  dx="2px"
-                  fontSize="12px"
-                  fill="#454545"
-                  textAnchor="start"
-                  alignmentBaseline="hanging"
-                >
-                  {formatSecs(secs)}
-                </text>
-              )}
-            </g>
-          );
-        })}
+        {(isHeader || primaryAxis === "tempo") &&
+          tempoTicks.map(([beatNum, secs]) => {
+            const px = project.viewport.pxForTime(secs);
+            const denom = beatNum % timeSignature[0];
+            const label = `${Math.floor(beatNum / 4) + 1}` + (denom === 0 ? "" : `.${denom}`);
+            return (
+              <g className="tick" key={secs}>
+                <line x1={px} x2={px} y1={primaryAxis === "time" ? "50%" : "0"} y2="100%" stroke="#CBCBCB"></line>
+                {isHeader && (
+                  <text
+                    x={px}
+                    y={primaryAxis === "time" ? "50%" : "2"}
+                    dx="2px"
+                    fontSize="10px"
+                    fill="#454545"
+                    textAnchor="start"
+                    alignmentBaseline="hanging"
+                  >
+                    {label}
+                  </text>
+                )}
+              </g>
+            );
+          })}
+        {(isHeader || primaryAxis === "time") &&
+          timeTicksS.map((secs) => {
+            const px = project.viewport.pxForTime(secs);
+            return (
+              <g className="tick" key={secs}>
+                <line x1={px} x2={px} y1={primaryAxis === "time" ? "0" : "50%"} y2="100%" stroke="#CBCBCB"></line>
+                {isHeader && (
+                  <text
+                    x={px}
+                    y={primaryAxis === "time" ? "2" : "50%"}
+                    dx="2px"
+                    fontSize="10px"
+                    fill="#454545"
+                    textAnchor="start"
+                    alignmentBaseline="hanging"
+                  >
+                    {formatSecs(secs)}
+                  </text>
+                )}
+              </g>
+            );
+          })}
       </svg>
     </>
   );

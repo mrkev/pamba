@@ -37,12 +37,18 @@ export type XScale = ScaleLinear<number, number>;
 
 export type Tool = "move" | "trimStart" | "trimEnd";
 
+export type TimeSignature = readonly [numerator: number, denominator: number];
+export type AxisMeasures = "tempo" | "time";
+
 export class AudioProject {
   readonly projectId: string;
   readonly viewport: ProjectViewportUtil;
   readonly audioStorage = SPrimitive.of<AudioStorage | null>(null);
 
   readonly isRecording = SPrimitive.of(false);
+  readonly tempo = SPrimitive.of(75);
+  readonly timeSignature = SPrimitive.of([4, 4] as const);
+  readonly primaryAxis = SPrimitive.of<AxisMeasures>("tempo");
 
   // Tracks //
   readonly allTracks: LinkedArray<AudioTrack>;

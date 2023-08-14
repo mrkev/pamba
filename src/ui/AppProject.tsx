@@ -8,7 +8,7 @@ import { AudioProject } from "../lib/project/AudioProject";
 import { DebugData } from "./DebugData";
 import { Library } from "./Library";
 import { TimelineView } from "./TimelineView";
-import { ToolHeader } from "./ToolHeader";
+import { ToolHeader } from "./header/ToolHeader";
 
 function useStopPlaybackOnUnmount(renderer: AudioRenderer) {
   useEffect(() => {
