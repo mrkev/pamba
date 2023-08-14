@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { SetState } from "../wam/WindowPanel";
 import { useEventListener } from "./useEventListener";
 import nullthrows from "../utils/nullthrows";
+import { RenamableLabel } from "./RenamableLabel";
 
 export type Point = [number, number];
 
@@ -84,8 +85,30 @@ export function UtilityNumber({
   );
 
   return (
-    <div ref={divRef} className="utilityButton">
-      {value.toFixed(decimals)}
-    </div>
+    <>
+      {/* <div
+        
+        style={{
+          textAlign: "center",
+          // width: 17,
+          padding: "0px",
+        }}
+        className="utilityButton"
+      > */}
+      <RenamableLabel
+        value={String(value)}
+        setValue={function (newVal: string): void {
+          const val = parseFloat(newVal);
+          if (Number.isNaN(val)) {
+            return;
+          }
+          onChange(val);
+        }}
+        renameState={{ status: "number" }}
+        style={{ justifyContent: "center", width: 20 }}
+        className="utilityButton"
+      ></RenamableLabel>
+      {/* </div> */}
+    </>
   );
 }

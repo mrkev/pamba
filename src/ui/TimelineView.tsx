@@ -48,18 +48,18 @@ export function TimelineView({
   useEffect(() => {
     const pbdiv = playbackPosDiv.current;
     if (pbdiv) {
-      pbdiv.style.left = String(project.viewport.secsToPx(player.playbackTime)) + "px";
+      pbdiv.style.left = String(secsToPx(player.playbackTime)) + "px";
     }
-  }, [player, project.viewport]);
+  }, [player, project.viewport, secsToPx]);
 
   useEffect(() => {
     player.onFrame = function (playbackTime) {
       const pbdiv = playbackPosDiv.current;
       if (pbdiv) {
-        pbdiv.style.left = String(project.viewport.secsToPx(playbackTime)) + "px";
+        pbdiv.style.left = String(secsToPx(playbackTime)) + "px";
       }
     };
-  }, [player, project.viewport]);
+  }, [player, project.viewport, secsToPx]);
 
   useEffect(() => {
     if (!projectDivRef) {

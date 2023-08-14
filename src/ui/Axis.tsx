@@ -1,6 +1,6 @@
 import React from "react";
 import { createUseStyles } from "react-jss";
-import { AudioProject, TimeSignature } from "../lib/project/AudioProject";
+import { AudioProject, AxisMeasure, TimeSignature } from "../lib/project/AudioProject";
 import { useDerivedState } from "../lib/state/DerivedState";
 import { useLinkedState } from "../lib/state/LinkedState";
 
@@ -128,6 +128,8 @@ export function Axis({ project, isHeader = false }: { project: AudioProject; isH
   const timeTicksS = getTimeTickData(project, viewportStartPx, projectDivWidth);
   const tempoTicks = getBeatTickData(project, viewportStartPx, projectDivWidth, tempo);
 
+  const textDims = (axis: AxisMeasure) => (primaryAxis === axis ? ["11px", "2"] : ["8px", "70%"]);
+
   return (
     <>
       {/* Background grid */}
@@ -143,15 +145,16 @@ export function Axis({ project, isHeader = false }: { project: AudioProject; isH
             const px = project.viewport.pxForTime(secs);
             const denom = beatNum % timeSignature[0];
             const label = `${Math.floor(beatNum / 4) + 1}` + (denom === 0 ? "" : `.${denom}`);
+            const [fontSize, textY] = textDims("tempo");
             return (
               <g className="tick" key={secs}>
-                <line x1={px} x2={px} y1={primaryAxis === "time" ? "50%" : "0"} y2="100%" stroke="#CBCBCB"></line>
+                <line x1={px} x2={px} y1={primaryAxis === "time" ? "70%" : "0"} y2="100%" stroke="#CBCBCB"></line>
                 {isHeader && (
                   <text
                     x={px}
-                    y={primaryAxis === "time" ? "50%" : "2"}
+                    y={textY}
                     dx="2px"
-                    fontSize="10px"
+                    fontSize={fontSize}
                     fill="#454545"
                     textAnchor="start"
                     alignmentBaseline="hanging"
@@ -165,15 +168,16 @@ export function Axis({ project, isHeader = false }: { project: AudioProject; isH
         {(isHeader || primaryAxis === "time") &&
           timeTicksS.map((secs) => {
             const px = project.viewport.pxForTime(secs);
+            const [fontSize, textY] = textDims("time");
             return (
               <g className="tick" key={secs}>
-                <line x1={px} x2={px} y1={primaryAxis === "time" ? "0" : "50%"} y2="100%" stroke="#CBCBCB"></line>
+                <line x1={px} x2={px} y1={primaryAxis === "time" ? "0" : "70%"} y2="100%" stroke="#CBCBCB"></line>
                 {isHeader && (
                   <text
                     x={px}
-                    y={primaryAxis === "time" ? "2" : "50%"}
+                    y={textY}
                     dx="2px"
-                    fontSize="10px"
+                    fontSize={fontSize}
                     fill="#454545"
                     textAnchor="start"
                     alignmentBaseline="hanging"

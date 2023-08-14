@@ -1,10 +1,7 @@
-import { MouseEvent } from "react";
-import { useCallback } from "react";
-import { useEffect, useRef } from "react";
-import { AudioProject } from "../lib/project/AudioProject";
+import { MouseEvent, useCallback, useEffect, useRef } from "react";
+import { appEnvironment } from "../lib/AppEnvironment";
 import { RenameState } from "../lib/project/RenameState";
 import { useLinkedState } from "../lib/state/LinkedState";
-import { appEnvironment } from "../lib/AppEnvironment";
 
 function shallowEquals<T extends Record<string, unknown>>(a: T | null, b: T | null): boolean {
   if ((b == null) !== (a == null)) {
@@ -28,14 +25,12 @@ function shallowEquals<T extends Record<string, unknown>>(a: T | null, b: T | nu
 }
 
 export function RenamableLabel({
-  project,
   value,
   setValue,
   renameState,
   style,
   ...divProps
 }: {
-  project: AudioProject;
   value: string;
   setValue: (newVal: string) => void;
   readonly renameState: RenameState;

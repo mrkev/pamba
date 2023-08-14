@@ -197,7 +197,6 @@ export function Clip({ clip, rerender, isSelected, style = {}, project, track }:
             color: isSelected ? "white" : "black",
             fontSize: 10,
           }}
-          project={project}
           value={clip.name}
           setValue={console.log}
           renameState={renameStateDescriptor}

@@ -9,4 +9,7 @@ export type RenameState =
   | {
       status: "clip";
       clip: AudioClip;
+    }
+  | {
+      status: "number";
     };

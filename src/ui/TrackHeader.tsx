@@ -135,12 +135,7 @@ export default function TrackHeader({ track, trackNumber, project, player }: Pro
           >
             {trackNumber}
           </span>
-          <RenamableLabel
-            project={project}
-            value={trackName}
-            setValue={setTrackName}
-            renameState={renameStateDescriptor}
-          />
+          <RenamableLabel value={trackName} setValue={setTrackName} renameState={renameStateDescriptor} />
           <div style={{ flexGrow: 1 }}></div>
           <button className={styles.actionButton} onClick={() => AudioProject.removeTrack(project, player, track)}>
             x
