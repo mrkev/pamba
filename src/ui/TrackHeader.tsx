@@ -13,6 +13,7 @@ import { utility, UtilitySlider } from "./utility";
 import { createUseStyles } from "react-jss";
 import { appEnvironment } from "../lib/AppEnvironment";
 import classNames from "classnames";
+import React from "react";
 
 const useStyles = createUseStyles({
   actionButton: {
@@ -43,7 +44,7 @@ type Props = {
   player: AnalizedPlayer;
 };
 
-export default function TrackHeader({ track, trackNumber, project, player }: Props) {
+export const TrackHeader = React.memo(function TrackHeader({ track, trackNumber, project, player }: Props) {
   const styles = useStyles();
   const [gain, setGain] = useState<number>(track.getCurrentGain().value);
   const [muted, setMuted] = useState<boolean>(false);
@@ -300,4 +301,4 @@ export default function TrackHeader({ track, trackNumber, project, player }: Pro
       ></div>
     </div>
   );
-}
+});

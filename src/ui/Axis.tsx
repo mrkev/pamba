@@ -1,7 +1,6 @@
 import React from "react";
 import { createUseStyles } from "react-jss";
-import { AudioProject, AxisMeasure, TimeSignature } from "../lib/project/AudioProject";
-import { useDerivedState } from "../lib/state/DerivedState";
+import { AudioProject, AxisMeasure } from "../lib/project/AudioProject";
 import { useLinkedState } from "../lib/state/LinkedState";
 
 const formatter = new Intl.NumberFormat("en-US", {
@@ -108,7 +107,7 @@ function getBeatTickData(
 
   const ticksToShow = [];
   for (
-    let i = firstBeatNum, s = tickBeatLength * firstBeatNum;
+    let i = firstBeatNum * tickBeatFactor, s = tickBeatLength * firstBeatNum;
     s < viewportEndSecs;
     i += tickBeatFactor, s += tickBeatLength
   ) {

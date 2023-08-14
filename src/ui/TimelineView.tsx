@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from "react";
 import { createUseStyles } from "react-jss";
 import useResizeObserver from "use-resize-observer";
-import { CLIP_HEIGHT, TRACK_HEADER_WIDTH } from "../constants";
+import { TRACK_HEADER_WIDTH } from "../constants";
 import { useAppProjectMouseEvents } from "../input/useAppProjectMouseEvents";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import { AudioRenderer } from "../lib/AudioRenderer";
@@ -13,7 +13,7 @@ import { useLinkedState } from "../lib/state/LinkedState";
 import { Axis } from "./Axis";
 import { TimelineCursor } from "./TimelineCursor";
 import { Track } from "./Track";
-import TrackHeader from "./TrackHeader";
+import { TrackHeader } from "./TrackHeader";
 import { useEventListener } from "./useEventListener";
 
 export function TimelineView({

@@ -1,4 +1,5 @@
-import React, { useCallback } from "react";
+import { useCallback, useRef } from "react";
+import { createUseStyles } from "react-jss";
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from "../../constants";
 import { AnalizedPlayer } from "../../lib/AnalizedPlayer";
 import AudioClip from "../../lib/AudioClip";
@@ -8,13 +9,12 @@ import { ProjectPersistance } from "../../lib/ProjectPersistance";
 import { AudioProject } from "../../lib/project/AudioProject";
 import { useLinkedState } from "../../lib/state/LinkedState";
 import { appProjectStatus } from "../App";
-import { UserAuthControl } from "./UserAuthControl";
+import { UtilityNumber } from "../UtilityNumber";
 import { utility } from "../utility";
 import { BounceButton } from "./BounceButton";
 import { ToolSelector } from "./ToolSelector";
 import { TransportControl } from "./TransportControl";
-import { createUseStyles } from "react-jss";
-import { UtilityNumber } from "../UtilityNumber";
+import { UserAuthControl } from "./UserAuthControl";
 
 function NewProjectButton() {
   return (
@@ -47,6 +47,7 @@ export function ToolHeader({
   const classes = useStyles();
   const [scaleFactor] = useLinkedState(project.scaleFactor);
   const [tempo] = useLinkedState(project.tempo);
+  const playbeatCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const loadClip = useCallback(
     async function loadClip(url: string, name?: string) {
@@ -63,6 +64,31 @@ export function ToolHeader({
       }
     },
     [player, project]
+  );
+
+  const drawPlaybeatTime = useCallback(
+    (time: number) => {
+      const ctx = playbeatCanvasRef.current?.getContext("2d") ?? null;
+      if (ctx === null || playbeatCanvasRef.current == null) {
+        return;
+      }
+      const [num, denom] = project.timeSignature.get();
+      const tempo = project.tempo.get();
+
+      const oneBeatLenSec = 60 / tempo;
+      // note: 0 -> 1 index
+      const bar = String(Math.floor(time / oneBeatLenSec / num) + 1).padStart(3, " ");
+      const beat = String((Math.floor(time / oneBeatLenSec) % num) + 1).padStart(2, " ");
+      // TODO: what is sub acutally
+      const high = beat === " 1" ? " *" : beat === " 3" ? " _" : "  ";
+
+      ctx.font = "24px monospace";
+      ctx.textAlign = "start";
+      ctx.fillStyle = "#ffffff";
+      ctx.clearRect(0, 0, playbeatCanvasRef.current.width, 100);
+      ctx.fillText(String(`${bar}.${beat}.${high}`), 6, 26);
+    },
+    [project.tempo, project.timeSignature]
   );
 
   return (
@@ -84,6 +110,21 @@ export function ToolHeader({
               project.tempo.set(v);
             }}
           ></UtilityNumber>
+          <button className="utilityButton">4 / 4</button>
+          <canvas
+            style={{
+              background: "black",
+              width: 72,
+              height: 18,
+              alignSelf: "center",
+            }}
+            width={2 * 72 + "px"}
+            height={2 * 18 + "px"}
+            ref={(ref) => {
+              playbeatCanvasRef.current = ref;
+              player.drawPlaybeatTime = drawPlaybeatTime;
+            }}
+          />
           <BounceButton project={project} renderer={renderer} />
           <ToolSelector project={project} />
 

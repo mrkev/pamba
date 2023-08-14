@@ -60,7 +60,7 @@ export function UtilityNumber({
   decimals = 0,
 }: {
   value: number;
-  onChange: (v: number) => void;
+  onChange?: (v: number) => void;
   decimals?: number;
 }) {
   const divRef = useRef<HTMLDivElement>(null);
@@ -76,7 +76,7 @@ export function UtilityNumber({
             ? deltaX / Math.abs(deltaX)
             : -(deltaY / Math.abs(deltaY));
         const change = parseFloat((sign * (delta / 4)).toFixed(decimals));
-        onChange(initialValue + change);
+        onChange?.(initialValue + change);
       },
       // TODO
       [decimals]
@@ -102,7 +102,7 @@ export function UtilityNumber({
           if (Number.isNaN(val)) {
             return;
           }
-          onChange(val);
+          onChange?.(val);
         }}
         renameState={{ status: "number" }}
         style={{ justifyContent: "center", width: 20 }}

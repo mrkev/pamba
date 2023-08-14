@@ -1,8 +1,6 @@
-import { CANVAS_HEIGHT, liveAudioContext, sampleSize } from "../constants";
-import { CANVAS_WIDTH } from "../constants";
+import { liveAudioContext, sampleSize } from "../constants";
 // import SharedBufferWorkletNode from "./lib/shared-buffer-worklet-node";
 import { AudioTrack } from "./AudioTrack";
-import { initAudioContext } from "./initAudioContext";
 import { OscilloscopeNode } from "./OscilloscopeNode";
 
 // sbwNode.onInitialized = () => {
@@ -13,14 +11,6 @@ import { OscilloscopeNode } from "./OscilloscopeNode";
 // sbwNode.onError = (errorData) => {
 //   logger.post('[ERROR] ' + errorData.detail);
 // };
-
-function getOfflineAudioContext(lenSec: number) {
-  return new OfflineAudioContext({
-    numberOfChannels: 2,
-    length: liveAudioContext.sampleRate * lenSec,
-    sampleRate: liveAudioContext.sampleRate,
-  });
-}
 
 export class AnalizedPlayer {
   private readonly oscilloscope = new OscilloscopeNode();
@@ -33,6 +23,7 @@ export class AnalizedPlayer {
   private cursorAtPlaybackStart: number = 0;
 
   private playtimeCtx: CanvasRenderingContext2D | null = null;
+
   public onFrame: ((playbackTime: number) => void) | null = null;
   public playbackTime: number = 0;
 
@@ -51,9 +42,10 @@ export class AnalizedPlayer {
     this.drawPlaybackTime(0);
   }
 
+  drawPlaybeatTime: ((playbackTime: number) => void) | null = null;
+
   constructor() {
     this.mixDownNode = new AudioWorkletNode(liveAudioContext, "mix-down-processor");
-    console.log("MIX-DOWN-NODE", this.mixDownNode);
     this.mixDownNode.connect(liveAudioContext.destination);
     this.mixDownNode.connect(this.playbackTimeNode);
     this.mixDownNode.connect(this.oscilloscope.inputNode());
@@ -66,6 +58,7 @@ export class AnalizedPlayer {
           const timePassed = liveAudioContext.currentTime - this.CTX_PLAY_START_TIME;
           const currentTimeInBuffer = this.cursorAtPlaybackStart + timePassed;
           this.drawPlaybackTime(currentTimeInBuffer);
+          this.drawPlaybeatTime?.(currentTimeInBuffer);
           if (this.onFrame) this.onFrame(currentTimeInBuffer);
           this.playbackTime = currentTimeInBuffer;
         });
@@ -150,55 +143,5 @@ export class AnalizedPlayer {
     this.isAudioPlaying = false;
     this.playbackTimeNode.disconnect(liveAudioContext.destination);
     this.oscilloscope.disconnect(liveAudioContext.destination);
-  }
-
-  static async bounceTracks(
-    tracks: ReadonlyArray<AudioTrack>,
-    startSec: number = 0,
-    endSec?: number
-  ): Promise<AudioBuffer> {
-    let end = endSec;
-    // If no end is provided, bounce to the full duration of the track. We go
-    // through each clip and find when the last one ends.
-    if (endSec == null) {
-      for (let track of tracks) {
-        for (let clip of track.clips._getRaw()) {
-          end = end == null || clip.endOffsetSec > end ? clip.endOffsetSec : end;
-          console.log("endOffsetSec", clip.endOffsetSec, end);
-        }
-      }
-    }
-
-    // If we have no clips or no tracks, end will still be null. For now, we'll
-    // just throw. I could also return an empty AudioBuffer though.
-    if (end == null) {
-      throw new Error("Bouncing an empty track!");
-    }
-
-    if (end <= startSec) {
-      throw new Error("Attempted to render negative or null length");
-    }
-
-    const offlineAudioContext = getOfflineAudioContext(end - startSec);
-    const offlineContextInfo = await initAudioContext(offlineAudioContext);
-    const offlineMixDownNode: AudioWorkletNode = new AudioWorkletNode(offlineAudioContext, "mix-down-processor");
-    offlineMixDownNode.connect(offlineAudioContext.destination);
-
-    const trackDests = await Promise.all(
-      tracks.map((track) => {
-        return track.prepareForBounce(offlineAudioContext, offlineContextInfo);
-      })
-    );
-
-    for (let trackDest of trackDests) {
-      trackDest.connect(offlineMixDownNode);
-    }
-
-    for (let track of tracks) {
-      track.startPlayback(startSec);
-    }
-
-    const result = await offlineAudioContext.startRendering();
-    return result;
   }
 }

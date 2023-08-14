@@ -42,13 +42,14 @@ export type AxisMeasure = "tempo" | "time";
 
 export class AudioProject {
   readonly projectId: string;
+
   readonly viewport: ProjectViewportUtil;
   readonly audioStorage = SPrimitive.of<AudioStorage | null>(null);
 
-  readonly isRecording = SPrimitive.of(false);
-  readonly tempo = SPrimitive.of(75);
-  readonly timeSignature = SPrimitive.of([4, 4] as const);
-  readonly primaryAxis = SPrimitive.of<AxisMeasure>("time");
+  readonly isRecording = SPrimitive.of(false); // environment?
+  readonly tempo = SPrimitive.of(75); // TODO: serialize
+  readonly timeSignature = SPrimitive.of([4, 4] as const); // TODO: serialize
+  readonly primaryAxis = SPrimitive.of<AxisMeasure>("tempo"); // TODO: serialize
 
   // Tracks //
   readonly allTracks: LinkedArray<AudioTrack>;
