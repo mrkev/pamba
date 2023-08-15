@@ -5,6 +5,7 @@ import { useDerivedState } from "../lib/state/DerivedState";
 import { pressedState } from "../pressedState";
 import { useDocumentEventListener, useEventListener } from "../ui/useEventListener";
 import { exhaustive } from "../utils/exhaustive";
+import { stepNumber } from "../utils/math";
 
 export function useAppProjectMouseEvents(
   project: AudioProject,
@@ -155,10 +156,25 @@ export function useAppProjectMouseEvents(
         const { status } = pressed;
         switch (status) {
           case "moving_clip": {
-            const deltaXSecs = pxToSecs(e.clientX - pressed.clientX);
-            const newOffset = Math.max(0, pressed.originalClipOffsetSec + deltaXSecs);
-            pressed.clip.startOffsetSec = newOffset;
-            pressed.clip.notifyUpdate();
+            let snap = project.snapToGrid.get();
+            if (e.metaKey) {
+              snap = !snap;
+            }
+            const deltaXSecs = project.viewport.pxToSecs(e.clientX - pressed.clientX);
+            if (!snap) {
+              const newOffset = Math.max(0, pressed.originalClipOffsetSec + deltaXSecs);
+              pressed.clip.startOffsetSec = newOffset;
+              pressed.clip.notifyUpdate();
+            } else {
+              const potentialNewOffset = Math.max(0, pressed.originalClipOffsetSec + deltaXSecs);
+              const tempo = project.tempo.get();
+              const oneBeatLen = 60 / tempo;
+              const newOffset = stepNumber(potentialNewOffset, oneBeatLen);
+              console.log("newOffset", newOffset);
+              pressed.clip.startOffsetSec = newOffset;
+              pressed.clip.notifyUpdate();
+            }
+
             break;
           }
           case "dragging_new_audio": {

@@ -48,6 +48,7 @@ export function ToolHeader({
   const [scaleFactor] = useLinkedState(project.scaleFactor);
   const [tempo] = useLinkedState(project.tempo);
   const playbeatCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [snapToGrid] = useLinkedState(project.snapToGrid);
 
   const loadClip = useCallback(
     async function loadClip(url: string, name?: string) {
@@ -150,6 +151,17 @@ export function ToolHeader({
             }}
           /> */}
           <div style={{ flexGrow: 1 }}></div>
+          <span>
+            snap to grid
+            <input
+              type="checkbox"
+              checked={snapToGrid}
+              onChange={() => {
+                project.snapToGrid.setDyn((prev) => !prev);
+              }}
+            ></input>
+          </span>
+
           <input
             type="range"
             min={Math.log(0.64)}

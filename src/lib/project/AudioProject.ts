@@ -50,6 +50,7 @@ export class AudioProject {
   readonly tempo = SPrimitive.of(75); // TODO: serialize
   readonly timeSignature = SPrimitive.of([4, 4] as const); // TODO: serialize
   readonly primaryAxis = SPrimitive.of<AxisMeasure>("tempo"); // TODO: serialize
+  readonly snapToGrid = SPrimitive.of(true); // per project setting?
 
   // Tracks //
   readonly allTracks: LinkedArray<AudioTrack>;

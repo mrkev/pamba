@@ -87,7 +87,6 @@ export function Clip({ clip, rerender, isSelected, style = {}, project, track }:
   }
 
   function onMouseDownToMove(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
-    e.stopPropagation();
     if (tool !== "move" || track == null) {
       return;
     }
@@ -119,6 +118,8 @@ export function Clip({ clip, rerender, isSelected, style = {}, project, track }:
     });
 
     project.selectionWidth.set(null);
+    console.log(e.nativeEvent.composedPath());
+    e.stopPropagation();
   }
 
   function onClipClick(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
