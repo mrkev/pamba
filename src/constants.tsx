@@ -1,3 +1,5 @@
+import pianoRollURL from "./midi/pianoroll/index?url";
+
 export const sampleSize = 1024;
 export const staticAudioContext = new AudioContext(); // we use to decode data
 export const liveAudioContext = new AudioContext(); // we play from this one
@@ -21,6 +23,6 @@ export const WAM_PLUGINS: { url: string; kind: "-m" | "-a" | "m-a" | "a-a" }[] =
   { url: "https://mainline.i3s.unice.fr/wam2/packages/StonePhaserStereo/index.js", kind: "a-a" },
   { url: "https://mainline.i3s.unice.fr/wam2/packages/BigMuff/index.js", kind: "a-a" },
   { url: "https://mainline.i3s.unice.fr/wam2/packages/obxd/index.js", kind: "m-a" },
-  { url: "../midi/pianoroll/index.js", kind: "-m" },
+  { url: pianoRollURL, kind: "-m" },
 ];
 export const PIANO_ROLL_PLUGIN_URL = "../midi/pianoroll/index.js";
