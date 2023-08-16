@@ -18,6 +18,8 @@ import { AudioStorage } from "./AudioStorage";
 import { ProjectViewportUtil } from "./ProjectViewportUtil";
 import { SelectionState } from "./SelectionState";
 import { LinkedMap } from "../state/LinkedMap";
+import { MidiTrack } from "../../midi/MidiTrack";
+import { MidiInstrument } from "../../midi/MidiInstrument";
 
 /**
  * TODO:
@@ -52,9 +54,13 @@ export class AudioProject {
   readonly primaryAxis = SPrimitive.of<AxisMeasure>("tempo"); // TODO: serialize
   readonly snapToGrid = SPrimitive.of(true); // per project setting?
 
+  allAudioTracks_TODO_REMOVE() {
+    return this.allTracks._getRaw().filter((t) => t instanceof AudioTrack) as AudioTrack[];
+  }
+
   // Tracks //
-  readonly allTracks: LinkedArray<AudioTrack>;
-  readonly solodTracks = LinkedSet.create<AudioTrack>();
+  readonly allTracks: LinkedArray<AudioTrack | MidiTrack>;
+  readonly solodTracks = LinkedSet.create<AudioTrack | MidiTrack>(); // TODO: single track kind?
   readonly dspExpandedTracks = LinkedSet.create<AudioTrack>();
   // much like live, there's always an active track. Logic is a great model since
   // the active track is clearly discernable in spite of multi-track selection.
@@ -98,9 +104,9 @@ export class AudioProject {
         .range([0 + startPx, 1 * factor + startPx]) as XScale
   );
 
-  constructor(tracks: AudioTrack[], projectId: string) {
+  constructor(tracks: (AudioTrack | MidiTrack)[], projectId: string) {
     this.projectId = projectId;
-    this.allTracks = LinkedArray.create<AudioTrack>(tracks);
+    this.allTracks = LinkedArray.create(tracks);
     this.viewport = new ProjectViewportUtil(this);
     ignorePromise(this.asyncInits());
   }
@@ -125,13 +131,20 @@ export class AudioProject {
   //////// Methods on Projects ////////
 
   // TODO: maybe let's not try to add this track to playback
-  static addTrack(project: AudioProject, player?: AnalizedPlayer, track?: AudioTrack) {
+  static addAudioTrack(project: AudioProject, player?: AnalizedPlayer, track?: AudioTrack) {
     const newTrack = track ?? AudioTrack.create();
     project.allTracks.unshift(newTrack);
     if (player != null && player.isAudioPlaying) {
       console.log("ADDED TO PLAYBACK");
       player.addTrackToPlayback(newTrack, project.cursorPos.get());
     }
+    return newTrack;
+  }
+
+  static async addMidiTrack(project: AudioProject, track?: MidiTrack) {
+    const obxd = await MidiInstrument.createFromUrl("https://mainline.i3s.unice.fr/wam2/packages/obxd/index.js");
+    const newTrack = track ?? (await MidiTrack.createWithInstrument(obxd));
+    project.allTracks.unshift(newTrack);
     return newTrack;
   }
 

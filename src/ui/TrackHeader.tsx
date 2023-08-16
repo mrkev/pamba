@@ -36,15 +36,18 @@ const useStyles = createUseStyles({
   },
 });
 
-type Props = {
+export const TrackHeader = React.memo(function TrackHeader({
+  track,
+  trackNumber,
+  project,
+  player,
+}: {
   track: AudioTrack;
   // TODO: make a property of the track?
   trackNumber: number;
   project: AudioProject;
   player: AnalizedPlayer;
-};
-
-export const TrackHeader = React.memo(function TrackHeader({ track, trackNumber, project, player }: Props) {
+}) {
   const styles = useStyles();
   const [gain, setGain] = useState<number>(track.getCurrentGain().value);
   const [muted, setMuted] = useState<boolean>(false);

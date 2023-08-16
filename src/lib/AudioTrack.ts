@@ -8,6 +8,7 @@ import { PambaWamNode } from "../wam/PambaWamNode";
 import { appEnvironment } from "./AppEnvironment";
 import AudioClip from "./AudioClip";
 import { addClip, deleteTime, pushClip, removeClip } from "./AudioTrackFn";
+import { TrackUtilityDSP } from "./ProjectTrack";
 import { TrackThread } from "./TrackThread";
 import { AudioContextInfo } from "./initAudioContext";
 import { PBGainNode } from "./offlineNodes";
@@ -19,10 +20,12 @@ export class AudioTrack extends DSPNode<null> {
   // Invariants:
   // - Sorted by start time.
   // - Non-overlapping clips.
-  public clips: LinkedArray<AudioClip>;
-  public effects: LinkedArray<FaustAudioEffect | PambaWamNode>;
-  public name: SPrimitive<string>;
-  public height: SPrimitive<number>;
+  public readonly clips: LinkedArray<AudioClip>;
+  public readonly effects: LinkedArray<FaustAudioEffect | PambaWamNode>;
+  public readonly name: SPrimitive<string>;
+  public readonly height: SPrimitive<number>;
+
+  public readonly trackUtility: TrackUtilityDSP;
 
   // For background processing
   private thread = new TrackThread();
@@ -42,6 +45,12 @@ export class AudioTrack extends DSPNode<null> {
     return this._hiddenGainNode;
   }
 
+  override cloneToOfflineContext(_context: OfflineAudioContext): Promise<DSPNode<AudioNode> | null> {
+    throw new Error("AudioTrack: DSPNode: can't cloneToOfflineContext.");
+  }
+
+  override effectId: string = "AUDIO TRACK (TODO)";
+
   private constructor(name: string, clips: AudioClip[], effects: (FaustAudioEffect | PambaWamNode)[], height: number) {
     super();
     this.name = SPrimitive.of(name);
@@ -52,6 +61,7 @@ export class AudioTrack extends DSPNode<null> {
     this.playingSource = null;
     this.gainNode = new PBGainNode();
     this._hiddenGainNode = new PBGainNode();
+    this.trackUtility = TrackUtilityDSP.create();
   }
 
   static create(props?: {
@@ -119,8 +129,8 @@ export class AudioTrack extends DSPNode<null> {
     connectSerialNodes([
       ///
       this.playingSource,
-      this.gainNode,
       ...effectNodes,
+      this.gainNode,
       this._hiddenGainNode.node,
     ]);
   }
@@ -170,8 +180,8 @@ export class AudioTrack extends DSPNode<null> {
     const chain = [
       // foo
       this.playingSource,
-      this.gainNode,
       ...this.effects._getRaw(),
+      this.gainNode,
       this._hiddenGainNode.node,
     ];
 
@@ -230,11 +240,6 @@ export class AudioTrack extends DSPNode<null> {
     this.clips._setRaw(clips);
   }
 
-  override cloneToOfflineContext(_context: OfflineAudioContext): Promise<DSPNode<AudioNode> | null> {
-    throw new Error("AudioTrack: DSPNode: can't cloneToOfflineContext.");
-  }
-  override effectId: string = "AUDIO TRACK (TODO)";
-
   ///////////// statics
 
   static removeEffect(track: AudioTrack, effect: FaustAudioEffect | PambaWamNode) {
@@ -247,7 +252,7 @@ export class AudioTrack extends DSPNode<null> {
   }
 }
 
-function connectSerialNodes(chain: (AudioNode | DSPNode<AudioNode>)[]): void {
+export function connectSerialNodes(chain: (AudioNode | DSPNode<AudioNode>)[]): void {
   if (chain.length < 2) {
     return;
   }

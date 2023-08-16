@@ -11,7 +11,7 @@ export abstract class DSPNode<I extends AudioNode | null = AudioNode> {
     context: OfflineAudioContext,
     offlineContextInfo: AudioContextInfo
   ): Promise<DSPNode | null>;
-  abstract effectId: string;
+  abstract readonly effectId: string;
   abstract name: string | SPrimitive<string>;
 
   public connect(audioNode: AudioNode | DSPNode<AudioNode>): void {

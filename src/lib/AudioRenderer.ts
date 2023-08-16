@@ -31,7 +31,7 @@ export class AudioRenderer {
    */
   static async bounceSelection(project: AudioProject) {
     const selectionWidth = project.selectionWidth.get();
-    const tracks = project.allTracks._getRaw();
+    const tracks = project.allAudioTracks_TODO_REMOVE();
     const cursorPos = project.cursorPos.get();
     const bounceAll = selectionWidth == null || selectionWidth === 0;
 
@@ -104,7 +104,7 @@ export class AudioRenderer {
       player.stopSound();
       renderer.isAudioPlaying.set(false);
     } else {
-      player.playTracks(project.allTracks._getRaw(), project.cursorPos.get());
+      player.playTracks(project.allAudioTracks_TODO_REMOVE(), project.cursorPos.get());
       renderer.isAudioPlaying.set(true);
     }
   }

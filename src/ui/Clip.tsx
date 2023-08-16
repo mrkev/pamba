@@ -118,7 +118,6 @@ export function Clip({ clip, rerender, isSelected, style = {}, project, track }:
     });
 
     project.selectionWidth.set(null);
-    console.log(e.nativeEvent.composedPath());
     e.stopPropagation();
   }
 

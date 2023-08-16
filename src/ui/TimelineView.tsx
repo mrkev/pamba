@@ -15,6 +15,9 @@ import { TimelineCursor } from "./TimelineCursor";
 import { Track } from "./Track";
 import { TrackHeader } from "./TrackHeader";
 import { useEventListener } from "./useEventListener";
+import { AudioTrack } from "../lib/AudioTrack";
+import { MidiTrack } from "../midi/MidiTrack";
+import { exhaustive } from "../utils/exhaustive";
 
 export function TimelineView({
   project,
@@ -137,7 +140,7 @@ export function TimelineView({
         <button
           style={{ position: "absolute", left: "4px" }}
           onClick={() => {
-            AudioProject.addTrack(project, player);
+            AudioProject.addAudioTrack(project, player);
           }}
           title="Add new track"
         >
@@ -166,17 +169,24 @@ export function TimelineView({
           })}
         </div> */}
         {tracks.map(function (track, i) {
-          const isDspExpanded = dspExpandedTracks.has(track);
-          return (
-            <Track
-              key={i}
-              track={track}
-              project={project}
-              isDspExpanded={isDspExpanded}
-              renderer={renderer}
-              style={{ width: viewportStartPx + (projectDivRef.current?.clientWidth ?? 0) }}
-            />
-          );
+          // TODO: Singel track renderer??
+          if (track instanceof AudioTrack) {
+            const isDspExpanded = dspExpandedTracks.has(track);
+            return (
+              <Track
+                key={i}
+                track={track}
+                project={project}
+                isDspExpanded={isDspExpanded}
+                renderer={renderer}
+                style={{ width: viewportStartPx + (projectDivRef.current?.clientWidth ?? 0) }}
+              />
+            );
+          }
+          if (track instanceof MidiTrack) {
+            return <div>MIDI TRACK</div>;
+          }
+          exhaustive(track);
         })}
         <TimelineCursor project={project} />
         <div ref={playbackPosDiv} className={classes.playbackPosDiv}></div>
@@ -185,9 +195,16 @@ export function TimelineView({
       {/* 3. Track headers */}
       <div className={classes.trackHeaders}>
         {tracks.map((track, i) => {
-          return (
-            <TrackHeader key={i} track={track} project={project} player={player} trackNumber={tracks.length - i} />
-          );
+          // TODO: single track header
+          if (track instanceof AudioTrack) {
+            return (
+              <TrackHeader key={i} track={track} project={project} player={player} trackNumber={tracks.length - i} />
+            );
+          }
+          if (track instanceof MidiTrack) {
+            return <div>MIDI TRACK</div>;
+          }
+          exhaustive(track);
         })}
       </div>
     </div>

@@ -170,7 +170,6 @@ export function useAppProjectMouseEvents(
               const tempo = project.tempo.get();
               const oneBeatLen = 60 / tempo;
               const newOffset = stepNumber(potentialNewOffset, oneBeatLen);
-              console.log("newOffset", newOffset);
               pressed.clip.startOffsetSec = newOffset;
               pressed.clip.notifyUpdate();
             }

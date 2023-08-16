@@ -42,7 +42,7 @@ export class ProjectPersistance {
 
   static defaultProject(): AudioProject {
     const audioProject = AudioProject.create();
-    AudioProject.addTrack(audioProject);
+    AudioProject.addAudioTrack(audioProject);
     return audioProject;
   }
 }

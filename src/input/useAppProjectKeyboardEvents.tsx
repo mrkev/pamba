@@ -32,6 +32,17 @@ export function useAppProjectKeyboardEvents(
           }
           break;
         }
+
+        case "KeyT": {
+          console.log("HERE");
+          if (e.ctrlKey && e.shiftKey) {
+            ignorePromise(AudioProject.addMidiTrack(project));
+            e.preventDefault();
+          } else if (e.ctrlKey) {
+            AudioProject.addAudioTrack(project, player);
+            e.preventDefault();
+          }
+        }
       }
     }
 
@@ -43,6 +54,7 @@ export function useAppProjectKeyboardEvents(
       if (e.target instanceof HTMLInputElement) {
         return;
       }
+
       switch (e.code) {
         case "KeyM":
           project.pointerTool.set("move");

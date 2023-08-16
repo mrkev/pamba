@@ -2,7 +2,8 @@ import { useState } from "react";
 import { liveAudioContext } from "../constants";
 import { appEnvironment } from "../lib/AppEnvironment";
 import nullthrows from "../utils/nullthrows";
-import { MidiInstrument, MidiTrack } from "./MidiTrack";
+import { MidiTrack } from "./MidiTrack";
+import { MidiInstrument } from "./MidiInstrument";
 import { WamNode, WebAudioModule } from "@webaudiomodules/api";
 
 const plugin1Url = "./pianoroll/index.js";

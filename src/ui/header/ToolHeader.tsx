@@ -57,7 +57,7 @@ export function ToolHeader({
         // load clip
         const clip = await AudioClip.fromURL(url, name);
         const newTrack = AudioTrack.fromClip(clip);
-        AudioProject.addTrack(project, player, newTrack);
+        AudioProject.addAudioTrack(project, player, newTrack);
         console.log("loaded");
       } catch (e) {
         console.trace(e);

@@ -23,10 +23,7 @@ export class BaseClip {
   protected _trimStartSec: number = 0; // within the clip, where to start.
 
   clone(): BaseClip {
-    const copy = new BaseClip({
-      lengthSec: this.lengthFr,
-      sampleRate: this.sampleRate,
-    });
+    const copy = new BaseClip(this.lengthSec, this.sampleRate);
     copy._startOffsetSec = this._startOffsetSec;
     copy.trimEndSec = this._trimEndSec;
     copy._trimStartSec = this._trimStartSec;
@@ -37,7 +34,7 @@ export class BaseClip {
     return `${this.startOffsetSec} [ ${this.trimStartSec} | -- | ${this.trimEndSec} ] ${this.endOffsetSec}`;
   }
 
-  constructor({ lengthSec, sampleRate }: { lengthSec: number; sampleRate: number }) {
+  constructor(lengthSec: number, sampleRate: number) {
     // By default, there is no trim and the clip has offset 0
     this.lengthSec = lengthSec;
     this.sampleRate = sampleRate;
