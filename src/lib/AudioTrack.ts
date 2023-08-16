@@ -8,42 +8,23 @@ import { PambaWamNode } from "../wam/PambaWamNode";
 import { appEnvironment } from "./AppEnvironment";
 import AudioClip from "./AudioClip";
 import { addClip, deleteTime, pushClip, removeClip } from "./AudioTrackFn";
-import { TrackUtilityDSP } from "./ProjectTrack";
+import { ProjectTrack } from "./ProjectTrack";
 import { TrackThread } from "./TrackThread";
 import { AudioContextInfo } from "./initAudioContext";
-import { PBGainNode } from "./offlineNodes";
 import { LinkedArray } from "./state/LinkedArray";
-import { SPrimitive } from "./state/LinkedState";
 
-export class AudioTrack extends DSPNode<null> {
+export class AudioTrack extends ProjectTrack {
   // A track is a collection of non-overalping clips.
   // Invariants:
   // - Sorted by start time.
   // - Non-overlapping clips.
   public readonly clips: LinkedArray<AudioClip>;
-  public readonly effects: LinkedArray<FaustAudioEffect | PambaWamNode>;
-  public readonly name: SPrimitive<string>;
-  public readonly height: SPrimitive<number>;
-
-  public readonly trackUtility: TrackUtilityDSP;
 
   // For background processing
   private thread = new TrackThread();
 
   // if audo is playing, this is the soruce with the playing buffer
   private playingSource: AudioBufferSourceNode | null;
-  // The "volume" of the track
-  private readonly gainNode: PBGainNode;
-  // Hidden gain node, just for solo-ing tracks.
-  private readonly _hiddenGainNode: PBGainNode; // note changes for bounce
-
-  override inputNode(): null {
-    return null;
-  }
-
-  override outputNode() {
-    return this._hiddenGainNode;
-  }
 
   override cloneToOfflineContext(_context: OfflineAudioContext): Promise<DSPNode<AudioNode> | null> {
     throw new Error("AudioTrack: DSPNode: can't cloneToOfflineContext.");
@@ -52,16 +33,9 @@ export class AudioTrack extends DSPNode<null> {
   override effectId: string = "AUDIO TRACK (TODO)";
 
   private constructor(name: string, clips: AudioClip[], effects: (FaustAudioEffect | PambaWamNode)[], height: number) {
-    super();
-    this.name = SPrimitive.of(name);
+    super(name, effects, height);
     this.clips = LinkedArray.create(clips);
-    this.effects = LinkedArray.create(effects);
-    this.height = SPrimitive.of<number>(height);
-    //
     this.playingSource = null;
-    this.gainNode = new PBGainNode();
-    this._hiddenGainNode = new PBGainNode();
-    this.trackUtility = TrackUtilityDSP.create();
   }
 
   static create(props?: {
@@ -71,23 +45,6 @@ export class AudioTrack extends DSPNode<null> {
     height?: number;
   }) {
     return new this(props?.name ?? "Audio", props?.clips ?? [], props?.effects ?? [], props?.height ?? CLIP_HEIGHT);
-  }
-
-  getCurrentGain(): AudioParam {
-    return this.gainNode.gain;
-  }
-
-  setGain(val: number): void {
-    this.gainNode.gain.value = val;
-  }
-
-  // to be used only when solo-ing
-  _hidden_setIsMutedByApplication(muted: boolean) {
-    if (muted) {
-      this._hiddenGainNode.gain.value = 0;
-      return;
-    }
-    this._hiddenGainNode.gain.value = 1;
   }
 
   async addEffect(effectId: EffectID) {
@@ -123,16 +80,7 @@ export class AudioTrack extends DSPNode<null> {
   prepareForPlayback(context: AudioContext): void {
     // We need to keep a reference to our source node for play/pause
     this.playingSource = this.getSourceNode(context);
-
-    const effectNodes = this.effects._getRaw();
-
-    connectSerialNodes([
-      ///
-      this.playingSource,
-      ...effectNodes,
-      this.gainNode,
-      this._hiddenGainNode.node,
-    ]);
+    this.connectToDSPForPlayback(this.playingSource);
   }
 
   // NOTE: needs to be called right after .prepareForPlayback
@@ -176,20 +124,7 @@ export class AudioTrack extends DSPNode<null> {
     }
 
     this.playingSource.stop(0);
-
-    const chain = [
-      // foo
-      this.playingSource,
-      ...this.effects._getRaw(),
-      this.gainNode,
-      this._hiddenGainNode.node,
-    ];
-
-    for (let i = 0; i < chain.length - 1; i++) {
-      const currentNode = chain[i];
-      const nextNode = chain[i + 1];
-      currentNode.disconnect(nextNode);
-    }
+    this.disconnectDSPAfterPlayback(this.playingSource);
   }
 
   // TODO: I think I can keep 'trackBuffer' between plays

@@ -5,6 +5,7 @@ import { ProjectPersistance } from "../lib/ProjectPersistance";
 import { AudioRenderer } from "../lib/AudioRenderer";
 import { ignorePromise } from "../utils/ignorePromise";
 import { appEnvironment } from "../lib/AppEnvironment";
+import { MidiTrack } from "../midi/MidiTrack";
 
 export function useAppProjectKeyboardEvents(
   project: AudioProject,
@@ -33,8 +34,15 @@ export function useAppProjectKeyboardEvents(
           break;
         }
 
+        case "KeyM": {
+          const activeTrack = project.activeTrack.get();
+          if (e.ctrlKey && e.shiftKey && activeTrack instanceof MidiTrack) {
+            activeTrack.createBlankMidiClip();
+          }
+          break;
+        }
+
         case "KeyT": {
-          console.log("HERE");
           if (e.ctrlKey && e.shiftKey) {
             ignorePromise(AudioProject.addMidiTrack(project));
             e.preventDefault();

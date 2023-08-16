@@ -20,6 +20,7 @@ import { SelectionState } from "./SelectionState";
 import { LinkedMap } from "../state/LinkedMap";
 import { MidiTrack } from "../../midi/MidiTrack";
 import { MidiInstrument } from "../../midi/MidiInstrument";
+import { MidiClip } from "../../midi/MidiClip";
 
 /**
  * TODO:
@@ -61,10 +62,10 @@ export class AudioProject {
   // Tracks //
   readonly allTracks: LinkedArray<AudioTrack | MidiTrack>;
   readonly solodTracks = LinkedSet.create<AudioTrack | MidiTrack>(); // TODO: single track kind?
-  readonly dspExpandedTracks = LinkedSet.create<AudioTrack>();
+  readonly dspExpandedTracks = LinkedSet.create<AudioTrack | MidiTrack>();
   // much like live, there's always an active track. Logic is a great model since
   // the active track is clearly discernable in spite of multi-track selection.
-  readonly activeTrack = SPrimitive.of<AudioTrack | null>(null);
+  readonly activeTrack = SPrimitive.of<AudioTrack | MidiTrack | null>(null);
 
   // Pointer //
   readonly pointerTool = SPrimitive.of<Tool>("move");
@@ -72,7 +73,7 @@ export class AudioProject {
   // TODO: Rename cursor time width or something?
   readonly selectionWidth = SPrimitive.of<number | null>(null);
   readonly cursorPos = SPrimitive.of(0);
-  readonly cursorTracks = LinkedSet.create<AudioTrack>();
+  readonly cursorTracks = LinkedSet.create<AudioTrack | MidiTrack>();
   // ^^ TODO: a weak linked set might be a good idea
 
   // Selection //
@@ -148,7 +149,7 @@ export class AudioProject {
     return newTrack;
   }
 
-  static removeTrack(project: AudioProject, player: AnalizedPlayer, track: AudioTrack) {
+  static removeTrack(project: AudioProject, player: AnalizedPlayer, track: AudioTrack | MidiTrack) {
     const selected = project.selected.get();
     const pos = project.allTracks.indexOf(track);
     if (pos === -1) {
@@ -159,8 +160,8 @@ export class AudioProject {
 
     // Remove it from playback
     if (player.isAudioPlaying) {
-      console.log("ADDED TO PLAYBACK");
-      player.removeTrackFromPlayback(track);
+      console.log("TODO: delete track while playing");
+      // player.removeTrackFromPlayback(track);
     }
 
     // Update selected
@@ -198,7 +199,7 @@ export class ProjectSelection {
   /**
    * selects a track
    */
-  static selectTrack(project: AudioProject, track: AudioTrack) {
+  static selectTrack(project: AudioProject, track: AudioTrack | MidiTrack) {
     const selected = project.selected.get();
     const selectAdd = modifierState.meta || modifierState.shift;
     console.log("SELECTADD", selectAdd, modifierState);
@@ -238,6 +239,9 @@ export class ProjectSelection {
       case "clips": {
         for (let { clip, track } of selected.clips) {
           console.log("remove", selected);
+          if (track instanceof MidiTrack || clip instanceof MidiClip) {
+            throw new Error("MIDI TRACK NOT SUPPORTED");
+          }
           AudioProject.removeClip(project, track, clip);
           project.selected.set(null);
         }

@@ -1,6 +1,8 @@
 import AudioClip from "./lib/AudioClip";
 import { AudioTrack } from "./lib/AudioTrack";
 import { SPrimitive } from "./lib/state/LinkedState";
+import { MidiClip } from "./midi/MidiClip";
+import { MidiTrack } from "./midi/MidiTrack";
 
 export type CursorState =
   | Readonly<{
@@ -8,9 +10,9 @@ export type CursorState =
       // Original clientX/Y of event
       clientX: number;
       clientY: number;
-      clip: AudioClip;
-      track: AudioTrack;
-      originalTrack: AudioTrack;
+      clip: AudioClip | MidiClip;
+      track: AudioTrack | MidiTrack;
+      originalTrack: AudioTrack | MidiTrack;
       originalClipOffsetSec: number;
     }>
   | Readonly<{
@@ -36,7 +38,7 @@ export type CursorState =
       clientY: number;
       // time at original click
       startTimeFr: number;
-      track: AudioTrack;
+      track: AudioTrack | MidiTrack;
     }>
   | Readonly<{
       status: "resizing_clip";
@@ -44,13 +46,13 @@ export type CursorState =
       originalClipEndPosSec: number;
       originalClipStartPosSec: number;
       originalClipOffsetSec: number;
-      clip: AudioClip;
+      clip: AudioClip | MidiClip;
       clientX: number;
       clientY: number;
     }>
   | Readonly<{
       status: "resizing_track";
-      track: AudioTrack;
+      track: AudioTrack | MidiTrack;
       originalHeight: number;
       clientX: number;
       clientY: number;

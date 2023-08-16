@@ -12,12 +12,13 @@ import { useLinkedSet } from "../lib/state/LinkedSet";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { Axis } from "./Axis";
 import { TimelineCursor } from "./TimelineCursor";
-import { Track } from "./Track";
+import { TrackA } from "./TrackA";
 import { TrackHeader } from "./TrackHeader";
 import { useEventListener } from "./useEventListener";
 import { AudioTrack } from "../lib/AudioTrack";
 import { MidiTrack } from "../midi/MidiTrack";
 import { exhaustive } from "../utils/exhaustive";
+import { TrackM } from "./TrackM";
 
 export function TimelineView({
   project,
@@ -168,12 +169,12 @@ export function TimelineView({
             );
           })}
         </div> */}
-        {tracks.map(function (track, i) {
+        {tracks.map((track, i) => {
+          const isDspExpanded = dspExpandedTracks.has(track);
           // TODO: Singel track renderer??
           if (track instanceof AudioTrack) {
-            const isDspExpanded = dspExpandedTracks.has(track);
             return (
-              <Track
+              <TrackA
                 key={i}
                 track={track}
                 project={project}
@@ -184,7 +185,16 @@ export function TimelineView({
             );
           }
           if (track instanceof MidiTrack) {
-            return <div>MIDI TRACK</div>;
+            return (
+              <TrackM
+                key={i}
+                track={track}
+                project={project}
+                renderer={renderer}
+                isDspExpanded={isDspExpanded}
+                style={{ width: viewportStartPx + (projectDivRef.current?.clientWidth ?? 0) }}
+              ></TrackM>
+            );
           }
           exhaustive(track);
         })}
@@ -195,16 +205,9 @@ export function TimelineView({
       {/* 3. Track headers */}
       <div className={classes.trackHeaders}>
         {tracks.map((track, i) => {
-          // TODO: single track header
-          if (track instanceof AudioTrack) {
-            return (
-              <TrackHeader key={i} track={track} project={project} player={player} trackNumber={tracks.length - i} />
-            );
-          }
-          if (track instanceof MidiTrack) {
-            return <div>MIDI TRACK</div>;
-          }
-          exhaustive(track);
+          return (
+            <TrackHeader key={i} track={track} project={project} player={player} trackNumber={tracks.length - i} />
+          );
         })}
       </div>
     </div>

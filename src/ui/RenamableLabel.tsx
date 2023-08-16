@@ -36,7 +36,6 @@ export function RenamableLabel({
   readonly renameState: RenameState;
 } & React.HTMLAttributes<HTMLDivElement>) {
   const renameInputRef = useRef<HTMLInputElement>(null);
-  const spanRef = useRef<HTMLSpanElement>(null);
   const [currentlyRenaming, setCurrentlyRenaming] = useLinkedState(appEnvironment.currentlyRenaming);
   const isBeingRenamed = shallowEquals(currentlyRenaming, renameState);
 
@@ -51,16 +50,17 @@ export function RenamableLabel({
   );
 
   useEffect(() => {
-    if (isBeingRenamed) {
-      const stopRenaming = function () {
-        setCurrentlyRenaming(null);
-      };
-      document.addEventListener("mouseup", stopRenaming);
-      renameInputRef.current?.focus();
-      return () => {
-        document.removeEventListener("mouseup", stopRenaming);
-      };
+    if (!isBeingRenamed) {
+      return;
     }
+    const stopRenaming = function () {
+      setCurrentlyRenaming(null);
+    };
+    document.addEventListener("mouseup", stopRenaming);
+    renameInputRef.current?.focus();
+    return () => {
+      document.removeEventListener("mouseup", stopRenaming);
+    };
   }, [isBeingRenamed, setCurrentlyRenaming]);
 
   return (
@@ -73,7 +73,6 @@ export function RenamableLabel({
         ...style,
       }}
       {...passedDivProps}
-      ref={spanRef}
       onDoubleClick={onDoubleClick}
     >
       {isBeingRenamed ? (

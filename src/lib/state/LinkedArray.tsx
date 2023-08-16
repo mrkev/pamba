@@ -279,6 +279,18 @@ export function useLinkedArray<S>(linkedSet: LinkedArray<S>): [LinkedArray<S>, S
   return [linkedSet, setter];
 }
 
+export function useObserveLinkedArray<S>(linkedSet: LinkedArray<S>): LinkedArray<S> {
+  const [_, setState] = useState(() => linkedSet._getRaw());
+
+  useEffect(() => {
+    return subscribe(linkedSet, (newVal) => {
+      setState(() => newVal);
+    });
+  }, [linkedSet]);
+
+  return linkedSet;
+}
+
 export function useLinkedArrayMaybe<S>(linkedArray: LinkedArray<S> | null): readonly S[] | null {
   const [state, setState] = useState(() => linkedArray?._getRaw() ?? null);
 

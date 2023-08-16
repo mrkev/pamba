@@ -2,17 +2,19 @@ import { AudioTrack } from "../AudioTrack";
 import AudioClip from "../AudioClip";
 import { FaustAudioEffect } from "../../dsp/FaustAudioEffect";
 import { PambaWamNode } from "../../wam/PambaWamNode";
+import { MidiTrack } from "../../midi/MidiTrack";
+import { MidiClip } from "../../midi/MidiClip";
 
 export type SelectionState =
   | {
       status: "clips";
-      clips: Array<{ clip: AudioClip; track: AudioTrack }>;
-      test: Set<AudioClip | AudioTrack>;
+      clips: Array<{ clip: AudioClip; track: AudioTrack } | { clip: MidiClip; track: MidiTrack }>;
+      test: Set<AudioClip | AudioTrack | MidiClip | MidiTrack>;
     }
   | {
       status: "tracks";
-      tracks: Array<AudioTrack>;
-      test: Set<AudioTrack>;
+      tracks: Array<AudioTrack | MidiTrack>;
+      test: Set<AudioTrack | MidiTrack>;
     }
   | {
       status: "effects";
@@ -33,6 +35,6 @@ export type SelectionState =
       status: "track_time";
       start: number;
       end: number;
-      tracks: Array<AudioTrack>;
-      test: Set<AudioTrack>;
+      tracks: Array<AudioTrack | MidiTrack>;
+      test: Set<AudioTrack | MidiTrack>;
     };

@@ -18,6 +18,12 @@ export type SAudioClip = {
   bufferURL: string;
 };
 
+export type SMidiClip = {
+  kind: "MidiClip";
+  name: string;
+  lengthSec: number;
+};
+
 export type SAudioTrack = {
   kind: "AudioTrack";
   clips: Array<SAudioClip>;
@@ -26,14 +32,10 @@ export type SAudioTrack = {
   name: string;
 };
 
-export type SMidiClip = {
-  kind: "MidiClip";
-  name: string;
-};
-
 export type SMidiTrack = {
   kind: "MidiTrack";
   clips: Array<SMidiClip>;
+  name: string;
 };
 
 export type SAudioProject = {
@@ -71,8 +73,8 @@ export async function serializable(
   }
 
   if (obj instanceof MidiClip) {
-    const { name } = obj;
-    return { kind: "MidiClip", name };
+    const { name, lengthSec } = obj;
+    return { kind: "MidiClip", name, lengthSec };
   }
 
   if (obj instanceof AudioTrack) {
@@ -88,6 +90,7 @@ export async function serializable(
   if (obj instanceof MidiTrack) {
     return {
       kind: "MidiTrack",
+      name: obj.name.get(),
       clips: await Promise.all(obj.clips.map((clip) => serializable(clip))),
     };
   }
@@ -134,8 +137,8 @@ export async function construct(
       return AudioClip.fromURL(bufferURL, name);
     }
     case "MidiClip": {
-      const { name } = rep;
-      return new MidiClip(name);
+      const { name, lengthSec } = rep;
+      return new MidiClip(name, lengthSec);
     }
     case "AudioTrack": {
       const { name, clips: sClips, effects: sEffects, height } = rep;
@@ -145,11 +148,10 @@ export async function construct(
     }
 
     case "MidiTrack": {
-      const { clips: sClips } = rep;
+      const { clips: sClips, name } = rep;
       const clips = await Promise.all(sClips.map((clip) => construct(clip)));
-      // TODO
       const obxd = await MidiInstrument.createFromUrl("https://mainline.i3s.unice.fr/wam2/packages/obxd/index.js");
-      return MidiTrack.createWithInstrument(obxd);
+      return MidiTrack.createWithInstrument(obxd, name, clips);
     }
     case "AudioProject": {
       const tracks = await Promise.all(rep.tracks.map((clip) => construct(clip)));

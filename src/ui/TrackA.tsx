@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
+import { createUseStyles } from "react-jss";
 import { TRACK_SEPARATOR_HEIGHT } from "../constants";
 import AudioClip from "../lib/AudioClip";
 import { AudioRenderer } from "../lib/AudioRenderer";
@@ -8,13 +9,12 @@ import { useLinkedArray } from "../lib/state/LinkedArray";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { pressedState } from "../pressedState";
 import { ignorePromise } from "../utils/ignorePromise";
-import { Clip } from "./Clip";
+import { ClipA } from "./ClipA";
 import { EffectRack } from "./EffectRack";
 import { useEventListener } from "./useEventListener";
-import { createUseStyles } from "react-jss";
-import { useLinkedSet } from "../lib/state/LinkedSet";
+import { CursorSelection } from "./CursorSelection";
 
-export function Track({
+export function TrackA({
   track,
   project,
   isDspExpanded,
@@ -141,7 +141,7 @@ export function Track({
           }
           const isSelected = selected !== null && selected.status === "clips" && selected.test.has(clip);
           return (
-            <Clip key={i} clip={clip} rerender={rerender} isSelected={isSelected} track={track} project={project} />
+            <ClipA key={i} clip={clip} rerender={rerender} isSelected={isSelected} track={track} project={project} />
           );
         })}
 
@@ -149,9 +149,14 @@ export function Track({
         <CursorSelection track={track} project={project} />
         {selected && selected.status === "track_time" && selected.test.has(track) && <div>FOOOOOOOOOOO</div>}
         {/* RENDER CLIP BEING MOVED */}
-        {pressed && pressed.status === "moving_clip" && pressed.track === track && (
-          <Clip clip={pressed.clip} rerender={rerender} isSelected={true} project={project} track={null} />
-        )}
+        {pressed &&
+          pressed.status === "moving_clip" &&
+          pressed.track === track &&
+          (pressed.clip instanceof AudioClip ? (
+            <ClipA clip={pressed.clip} rerender={rerender} isSelected={true} project={project} track={null} />
+          ) : (
+            <div>TODO MIDI CLIP</div>
+          ))}
       </div>
 
       {/* EFFECT RACK */}
@@ -176,6 +181,7 @@ export function Track({
     </>
   );
 }
+
 const useStyles = createUseStyles({
   trackSeparator: {
     width: "100%",
@@ -188,28 +194,3 @@ const useStyles = createUseStyles({
     cursor: "ns-resize",
   },
 });
-
-function CursorSelection({ project, track }: { project: AudioProject; track: AudioTrack }) {
-  const [cursorPos] = useLinkedState(project.cursorPos);
-  const [selectionWidth] = useLinkedState(project.selectionWidth);
-  const [cursorTracks] = useLinkedSet(project.cursorTracks);
-
-  if (!cursorTracks.has(track)) {
-    return null;
-  }
-
-  return (
-    <div
-      style={{
-        backdropFilter: "invert(100%)",
-        left:
-          selectionWidth == null || selectionWidth >= 0
-            ? project.viewport.secsToPx(cursorPos)
-            : project.viewport.secsToPx(cursorPos + selectionWidth),
-        width: selectionWidth == null || selectionWidth === 0 ? 1 : project.viewport.secsToPx(Math.abs(selectionWidth)),
-        position: "absolute",
-        height: "100%",
-      }}
-    ></div>
-  );
-}

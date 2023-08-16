@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { EFFECT_HEIGHT, TRACK_SEPARATOR_HEIGHT } from "../constants";
 import { AudioProject, ProjectSelection } from "../lib/project/AudioProject";
-import type { AudioTrack } from "../lib/AudioTrack";
+import { AudioTrack } from "../lib/AudioTrack";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { useLinkedSet } from "../lib/state/LinkedSet";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
@@ -14,6 +14,7 @@ import { createUseStyles } from "react-jss";
 import { appEnvironment } from "../lib/AppEnvironment";
 import classNames from "classnames";
 import React from "react";
+import { MidiTrack } from "../midi/MidiTrack";
 
 const useStyles = createUseStyles({
   actionButton: {
@@ -42,7 +43,7 @@ export const TrackHeader = React.memo(function TrackHeader({
   project,
   player,
 }: {
-  track: AudioTrack;
+  track: AudioTrack | MidiTrack;
   // TODO: make a property of the track?
   trackNumber: number;
   project: AudioProject;
@@ -238,7 +239,8 @@ export const TrackHeader = React.memo(function TrackHeader({
           DSP ({trackEffects.length})
         </button>
       </div>
-      {isDspExpanded ? (
+      {/* TODO: Allow DSP on MIDITrack */}
+      {isDspExpanded && track instanceof AudioTrack ? (
         <div
           style={{
             background: isSelected ? "#eee" : "white",

@@ -13,9 +13,26 @@ export abstract class ProjectTrack extends DSPNode<null> {
   // DSP
   public readonly effects: LinkedArray<FaustAudioEffect | PambaWamNode>;
   // The "volume" of the track
-  private readonly gainNode: PBGainNode;
+  public readonly gainNode: PBGainNode;
   // Hidden gain node, just for solo-ing tracks.
-  private readonly _hiddenGainNode: PBGainNode;
+  public readonly _hiddenGainNode: PBGainNode;
+
+  getCurrentGain(): AudioParam {
+    return this.gainNode.gain;
+  }
+
+  setGain(val: number): void {
+    this.gainNode.gain.value = val;
+  }
+
+  // to be used only when solo-ing
+  _hidden_setIsMutedByApplication(muted: boolean) {
+    if (muted) {
+      this._hiddenGainNode.gain.value = 0;
+      return;
+    }
+    this._hiddenGainNode.gain.value = 1;
+  }
 
   constructor(name: string, effects: (FaustAudioEffect | PambaWamNode)[], height: number) {
     super();

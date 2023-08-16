@@ -6,6 +6,8 @@ import { pressedState } from "../pressedState";
 import { useDocumentEventListener, useEventListener } from "../ui/useEventListener";
 import { exhaustive } from "../utils/exhaustive";
 import { stepNumber } from "../utils/math";
+import { AudioTrack } from "../lib/AudioTrack";
+import AudioClip from "../lib/AudioClip";
 
 export function useAppProjectMouseEvents(
   project: AudioProject,
@@ -73,9 +75,16 @@ export function useAppProjectMouseEvents(
         const { status } = pressed;
         switch (status) {
           case "moving_clip": {
-            pressed.track.deleteTime(pressed.clip.startOffsetSec, pressed.clip.endOffsetSec);
-            pressed.originalTrack.removeClip(pressed.clip);
-            pressed.track.addClip(pressed.clip);
+            // TODO: MIDI CLIP
+            if (
+              pressed.track instanceof AudioTrack &&
+              pressed.originalTrack instanceof AudioTrack &&
+              pressed.clip instanceof AudioClip
+            ) {
+              pressed.track.deleteTime(pressed.clip.startOffsetSec, pressed.clip.endOffsetSec);
+              pressed.originalTrack.removeClip(pressed.clip);
+              pressed.track.addClip(pressed.clip);
+            }
 
             // const deltaX = e.clientX - pressed.clientX;
             // const asSecs = pxToSecs(deltaX);

@@ -52,7 +52,7 @@ const useStyles = createUseStyles({
   },
 });
 
-export function Clip({ clip, rerender, isSelected, style = {}, project, track }: Props) {
+export function ClipA({ clip, rerender, isSelected, style = {}, project, track }: Props) {
   const styles = useStyles();
   const secsToPx = useDerivedState(project.secsToPx);
   const pxToSecs = secsToPx.invert;

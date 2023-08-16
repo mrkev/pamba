@@ -8,14 +8,13 @@ import { MutationHashable } from "./state/MutationHashable";
 
 // A clip of audio
 export default class AudioClip extends BaseClip implements Subbable<AudioClip>, MutationHashable {
-  // MutationHashable
   _hash: number = 0;
-  // subbable
   _subscriptors: Set<(value: BaseClip) => void> = new Set();
+
   // AudioClip
+  public name: string;
   readonly buffer: SharedAudioBuffer;
   readonly numberOfChannels: number;
-  public name: string;
   readonly bufferURL: string;
 
   gainAutomation: Array<{ time: number; value: number }> = [{ time: 0, value: 1 }];

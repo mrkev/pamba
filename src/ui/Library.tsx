@@ -47,7 +47,7 @@ export function Library({
         const clip = await AudioClip.fromURL(url, name);
 
         const activeTrack = project.activeTrack.get();
-        if (activeTrack !== null) {
+        if (activeTrack !== null && activeTrack instanceof AudioTrack) {
           activeTrack.pushClip(clip);
           return;
         }

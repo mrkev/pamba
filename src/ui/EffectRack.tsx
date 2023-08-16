@@ -17,6 +17,7 @@ import { WamPluginContent } from "../wam/wam";
 import { Effect } from "./Effect";
 import nullthrows from "../utils/nullthrows";
 import ReactDOM from "react-dom";
+import { MidiTrack } from "../midi/MidiTrack";
 
 const useStyles = createUseStyles({
   effectRack: {
@@ -43,7 +44,7 @@ export const EffectRack = React.memo(function EffectRack({
   project,
   renderer,
 }: {
-  track: AudioTrack;
+  track: AudioTrack | MidiTrack;
   project: AudioProject;
   renderer: AudioRenderer;
 }) {
@@ -91,49 +92,50 @@ export const EffectRack = React.memo(function EffectRack({
       >
         {"↳"}
         {effects.map((effect, i) => {
-          if (effect instanceof FaustAudioEffect) {
-            return (
-              <React.Fragment key={i}>
-                <FaustEffectModule
-                  canDelete={!isAudioPlaying}
-                  effect={effect}
-                  style={{
-                    alignSelf: "stretch",
-                    margin: "2px",
-                    borderRadius: "2px",
-                  }}
-                  onClickRemove={() => AudioTrack.removeEffect(track, effect)}
-                  onHeaderClick={() => ProjectSelection.selectEffect(project, effect, track)}
-                  onClickBypass={() => AudioTrack.bypassEffect(track, effect)}
-                  isSelected={selected?.status === "effects" && selected.test.has(effect)}
-                />
-                {"→"}
-              </React.Fragment>
-            );
-          }
+          throw new Error("TODO");
+          // if (effect instanceof FaustAudioEffect) {
+          //   return (
+          //     <React.Fragment key={i}>
+          //       <FaustEffectModule
+          //         canDelete={!isAudioPlaying}
+          //         effect={effect}
+          //         style={{
+          //           alignSelf: "stretch",
+          //           margin: "2px",
+          //           borderRadius: "2px",
+          //         }}
+          //         onClickRemove={() => AudioTrack.removeEffect(track, effect)}
+          //         onHeaderClick={() => ProjectSelection.selectEffect(project, effect, track)}
+          //         onClickBypass={() => AudioTrack.bypassEffect(track, effect)}
+          //         isSelected={selected?.status === "effects" && selected.test.has(effect)}
+          //       />
+          //       {"→"}
+          //     </React.Fragment>
+          //   );
+          // }
 
-          if (effect instanceof PambaWamNode) {
-            return (
-              <React.Fragment key={i}>
-                <Effect
-                  canDelete={!isAudioPlaying}
-                  onClickRemove={() => {
-                    openEffects.delete(effect);
-                    AudioTrack.removeEffect(track, effect);
-                  }}
-                  onHeaderClick={() => ProjectSelection.selectEffect(project, effect, track)}
-                  onClickBypass={() => AudioTrack.bypassEffect(track, effect)}
-                  isSelected={selected?.status === "effects" && selected.test.has(effect)}
-                  title={effect.name}
-                >
-                  <button onClick={() => openEffects.add(effect)}>Configure</button>
-                </Effect>
-                {"→"}
-              </React.Fragment>
-            );
-          }
+          // if (effect instanceof PambaWamNode) {
+          //   return (
+          //     <React.Fragment key={i}>
+          //       <Effect
+          //         canDelete={!isAudioPlaying}
+          //         onClickRemove={() => {
+          //           openEffects.delete(effect);
+          //           AudioTrack.removeEffect(track, effect);
+          //         }}
+          //         onHeaderClick={() => ProjectSelection.selectEffect(project, effect, track)}
+          //         onClickBypass={() => AudioTrack.bypassEffect(track, effect)}
+          //         isSelected={selected?.status === "effects" && selected.test.has(effect)}
+          //         title={effect.name}
+          //       >
+          //         <button onClick={() => openEffects.add(effect)}>Configure</button>
+          //       </Effect>
+          //       {"→"}
+          //     </React.Fragment>
+          //   );
+          // }
 
-          return exhaustive(effect);
+          // return exhaustive(effect);
         })}
 
         <div
