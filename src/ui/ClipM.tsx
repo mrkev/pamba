@@ -164,7 +164,6 @@ export function ClipM({
           }}
           value={clip.name}
           setValue={console.log}
-          renameState={renameStateDescriptor}
         />{" "}
         ({Math.round(clip.durationSec * 100) / 100})
       </div>

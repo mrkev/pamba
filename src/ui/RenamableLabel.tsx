@@ -1,67 +1,26 @@
-import { MouseEvent, useCallback, useEffect, useRef } from "react";
-import { appEnvironment } from "../lib/AppEnvironment";
-import { RenameState } from "../lib/project/RenameState";
-import { useLinkedState } from "../lib/state/LinkedState";
-
-function shallowEquals<T extends Record<string, unknown>>(a: T | null, b: T | null): boolean {
-  if ((b == null) !== (a == null)) {
-    return false;
-  }
-
-  // the xor above means each of these is true
-  // we only get here if both a && b are null
-  // the || is to refine the type
-  if (a == null || b == null) {
-    return true;
-  }
-
-  const keysA = Object.keys(a);
-  for (const keyA of keysA) {
-    if (!Object.prototype.hasOwnProperty.call(b, keyA) || a[keyA] !== b[keyA]) {
-      return false;
-    }
-  }
-  return true;
-}
+import { MouseEvent, useCallback, useRef, useState } from "react";
 
 export function RenamableLabel({
   value,
   setValue,
-  renameState,
   style,
   ...divProps
 }: {
   value: string;
   setValue: (newVal: string) => void;
-  readonly renameState: RenameState;
 } & React.HTMLAttributes<HTMLDivElement>) {
   const renameInputRef = useRef<HTMLInputElement>(null);
-  const [currentlyRenaming, setCurrentlyRenaming] = useLinkedState(appEnvironment.currentlyRenaming);
-  const isBeingRenamed = shallowEquals(currentlyRenaming, renameState);
+  const [isRenaming, setIsRenaming] = useState(false);
 
   const { onDoubleClick: onDoubleClickMaybe, ...passedDivProps } = divProps;
 
   const onDoubleClick = useCallback(
     (e: MouseEvent<HTMLDivElement>) => {
-      setCurrentlyRenaming(renameState);
+      setIsRenaming(true);
       onDoubleClickMaybe?.(e);
     },
-    [onDoubleClickMaybe, renameState, setCurrentlyRenaming]
+    [onDoubleClickMaybe]
   );
-
-  useEffect(() => {
-    if (!isBeingRenamed) {
-      return;
-    }
-    const stopRenaming = function () {
-      setCurrentlyRenaming(null);
-    };
-    document.addEventListener("mouseup", stopRenaming);
-    renameInputRef.current?.focus();
-    return () => {
-      document.removeEventListener("mouseup", stopRenaming);
-    };
-  }, [isBeingRenamed, setCurrentlyRenaming]);
 
   return (
     <span
@@ -75,8 +34,9 @@ export function RenamableLabel({
       {...passedDivProps}
       onDoubleClick={onDoubleClick}
     >
-      {isBeingRenamed ? (
+      {isRenaming ? (
         <input
+          autoFocus
           ref={renameInputRef}
           style={{ width: "100%", fontSize: "smaller" }}
           type="text"
@@ -87,11 +47,12 @@ export function RenamableLabel({
           onKeyPress={(e) => {
             e.stopPropagation();
             if (e.key === "Enter") {
-              setCurrentlyRenaming(null);
+              setIsRenaming(false);
             }
           }}
           onClick={(e) => e.stopPropagation()}
           onMouseUp={(e) => e.stopPropagation()}
+          onBlur={() => setIsRenaming(false)}
         />
       ) : (
         value

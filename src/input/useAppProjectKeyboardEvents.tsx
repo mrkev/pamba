@@ -1,11 +1,10 @@
 import { useEffect } from "react";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
-import { AudioProject, ProjectSelection } from "../lib/project/AudioProject";
-import { ProjectPersistance } from "../lib/ProjectPersistance";
 import { AudioRenderer } from "../lib/AudioRenderer";
-import { ignorePromise } from "../utils/ignorePromise";
-import { appEnvironment } from "../lib/AppEnvironment";
+import { ProjectPersistance } from "../lib/ProjectPersistance";
+import { AudioProject, ProjectSelection } from "../lib/project/AudioProject";
 import { MidiTrack } from "../midi/MidiTrack";
+import { ignorePromise } from "../utils/ignorePromise";
 
 export function useAppProjectKeyboardEvents(
   project: AudioProject,
@@ -83,11 +82,11 @@ export function useAppProjectKeyboardEvents(
           if (selected?.status !== "tracks") {
             break;
           }
-          // Rename
-          appEnvironment.currentlyRenaming.set({
-            status: "track",
-            track: selected.tracks[0],
-          });
+          // Rename TODO. Can probably be done with some focus event listener?
+          // appEnvironment.currentlyRenaming.set({
+          //   status: "track",
+          //   track: selected.tracks[0],
+          // });
           break;
         }
         default:

@@ -3,19 +3,16 @@ import { createUseStyles } from "react-jss";
 import { TRACK_SEPARATOR_HEIGHT } from "../constants";
 import AudioClip from "../lib/AudioClip";
 import { AudioRenderer } from "../lib/AudioRenderer";
-import { AudioTrack } from "../lib/AudioTrack";
 import { AudioProject } from "../lib/project/AudioProject";
 import { useLinkedArray } from "../lib/state/LinkedArray";
-import { useLinkedSet } from "../lib/state/LinkedSet";
 import { useLinkedState } from "../lib/state/LinkedState";
-import { pressedState } from "../pressedState";
-import { ignorePromise } from "../utils/ignorePromise";
-import { ClipA } from "./ClipA";
-import { EffectRack } from "./EffectRack";
-import { useEventListener } from "./useEventListener";
 import { MidiTrack } from "../midi/MidiTrack";
+import { pressedState } from "../pressedState";
+import { ClipA } from "./ClipA";
 import { ClipM } from "./ClipM";
 import { CursorSelection } from "./CursorSelection";
+import { EffectRack } from "./EffectRack";
+import { useEventListener } from "./useEventListener";
 
 export function TrackM({
   track,

@@ -144,7 +144,7 @@ export class AudioProject {
 
   static async addMidiTrack(project: AudioProject, track?: MidiTrack) {
     const obxd = await MidiInstrument.createFromUrl("https://mainline.i3s.unice.fr/wam2/packages/obxd/index.js");
-    const newTrack = track ?? (await MidiTrack.createWithInstrument(obxd));
+    const newTrack = track ?? (await MidiTrack.createWithInstrument(obxd, "midi track"));
     project.allTracks.unshift(newTrack);
     return newTrack;
   }

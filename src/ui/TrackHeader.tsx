@@ -56,38 +56,15 @@ export const TrackHeader = React.memo(function TrackHeader({
   const [trackEffects] = useLinkedArray(track.effects);
   const [solodTracks] = useLinkedSet(project.solodTracks);
   const [trackName, setTrackName] = useLinkedState(track.name);
-  const [renameState, setRenameState] = useLinkedState(appEnvironment.currentlyRenaming);
   const [height] = useLinkedState(track.height);
   const renameInputRef = useRef<HTMLInputElement | null>(null);
   const [selected] = useLinkedState(project.selected);
   const [activeTrack] = useLinkedState(project.activeTrack);
-  const renameStateDescriptor = useMemo(
-    () =>
-      ({
-        status: "track",
-        track: track,
-      } as const),
-    [track]
-  );
 
   const isSelected = selected !== null && selected.status === "tracks" && selected.test.has(track);
 
   const isSolod = solodTracks.has(track);
   const isDspExpanded = dspExpandedTracks.has(track);
-
-  const isTrackBeingRenamed = renameState?.status === "track" && renameState.track === track;
-  useEffect(() => {
-    if (isTrackBeingRenamed) {
-      const stopRenaming = function () {
-        setRenameState(null);
-      };
-      document.addEventListener("mouseup", stopRenaming);
-      renameInputRef.current?.focus();
-      return () => {
-        document.removeEventListener("mouseup", stopRenaming);
-      };
-    }
-  }, [isTrackBeingRenamed, setRenameState]);
 
   function onMouseDownToResize(e: React.MouseEvent<HTMLDivElement>) {
     e.stopPropagation();
@@ -140,7 +117,7 @@ export const TrackHeader = React.memo(function TrackHeader({
           >
             {trackNumber}
           </span>
-          <RenamableLabel value={trackName} setValue={setTrackName} renameState={renameStateDescriptor} />
+          <RenamableLabel value={trackName} setValue={setTrackName} />
           <div style={{ flexGrow: 1 }}></div>
           <button className={styles.actionButton} onClick={() => AudioProject.removeTrack(project, player, track)}>
             x

@@ -199,7 +199,6 @@ export function ClipA({ clip, rerender, isSelected, style = {}, project, track }
           }}
           value={clip.name}
           setValue={console.log}
-          renameState={renameStateDescriptor}
         />{" "}
         ({Math.round(clip.durationSec * 100) / 100})
       </div>

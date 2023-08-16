@@ -65,7 +65,7 @@ export function MidiDemo() {
  */
 async function startHost() {
   const obxd = await MidiInstrument.createFromUrl("https://mainline.i3s.unice.fr/wam2/packages/obxd/index.js");
-  const track = await MidiTrack.createWithInstrument(obxd);
+  const track = await MidiTrack.createWithInstrument(obxd, "midi track");
 
   let gain = liveAudioContext.createGain();
   let pluginDom2 = await obxd.module.createGui();

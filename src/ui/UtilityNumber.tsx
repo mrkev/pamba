@@ -1,6 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { SetState } from "../wam/WindowPanel";
-import { useEventListener } from "./useEventListener";
+import { useCallback, useEffect, useRef } from "react";
 import nullthrows from "../utils/nullthrows";
 import { RenamableLabel } from "./RenamableLabel";
 
@@ -104,7 +102,6 @@ export function UtilityNumber({
           }
           onChange?.(val);
         }}
-        renameState={{ status: "number" }}
         style={{ justifyContent: "center", width: 20 }}
         className="utilityButton"
       ></RenamableLabel>
