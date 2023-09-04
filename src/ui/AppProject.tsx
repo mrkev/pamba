@@ -9,6 +9,7 @@ import { DebugData } from "./DebugData";
 import { Library } from "./Library";
 import { TimelineView } from "./TimelineView";
 import { ToolHeader } from "./header/ToolHeader";
+import { MidiDemo } from "../midi";
 
 function useStopPlaybackOnUnmount(renderer: AudioRenderer) {
   useEffect(() => {
@@ -30,34 +31,43 @@ export function AppProject({ project }: { project: AudioProject }) {
 
   return (
     <>
-      {/* <MidiDemo /> */}
       <ToolHeader project={project} player={renderer.analizedPlayer} renderer={renderer} />
-      <PanelGroup direction="horizontal" autoSaveId="foobar">
-        <Panel
-          collapsible={true}
-          defaultSize={15}
-          onCollapse={console.log}
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 4,
-            padding: "4px 0px 4px 4px",
-            paddingBottom: "128px",
-          }}
-        >
-          <Library project={project} renderer={renderer} player={renderer.analizedPlayer} />
+      <PanelGroup direction={"vertical"} autoSaveId="foobar2">
+        <Panel>
+          <PanelGroup direction="horizontal" autoSaveId="foobar">
+            <Panel
+              collapsible={true}
+              defaultSize={15}
+              onCollapse={console.log}
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 4,
+                padding: "4px 0px 4px 4px",
+                paddingBottom: "128px",
+              }}
+            >
+              <Library project={project} renderer={renderer} player={renderer.analizedPlayer} />
+            </Panel>
+            <PanelResizeHandle
+              style={{
+                width: 5,
+              }}
+            />
+            <Panel>
+              <TimelineView project={project} player={renderer.analizedPlayer} renderer={renderer} />
+            </Panel>
+          </PanelGroup>
         </Panel>
         <PanelResizeHandle
           style={{
-            width: 5,
+            height: 5,
           }}
         />
-        <Panel>
-          <TimelineView project={project} player={renderer.analizedPlayer} renderer={renderer} />
+        <Panel collapsible={true} defaultSize={0} onCollapse={console.log}>
+          <div>foo</div>
         </Panel>
       </PanelGroup>
-
-      <DebugData project={project} />
     </>
   );
 }

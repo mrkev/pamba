@@ -6,9 +6,6 @@ import { MidiTrack } from "./MidiTrack";
 import { MidiInstrument } from "./MidiInstrument";
 import { WamNode, WebAudioModule } from "@webaudiomodules/api";
 
-const plugin1Url = "./pianoroll/index.js";
-const plugin2Url = "https://mainline.i3s.unice.fr/wam2/packages/obxd/index.js";
-
 let keyboardInstance: WebAudioModule<WamNode>;
 
 export function MidiDemo() {

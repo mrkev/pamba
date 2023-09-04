@@ -1,28 +1,22 @@
 import React, { useEffect } from "react";
 import { ProjectPersistance } from "../lib/ProjectPersistance";
-import { AudioProject } from "../lib/project/AudioProject";
-import { SPrimitive, useLinkedState } from "../lib/state/LinkedState";
+import { useLinkedState } from "../lib/state/LinkedState";
 import { ignorePromise } from "../utils/ignorePromise";
 // import { TrackThread } from "../lib/TrackThread";
 // import { MidiDemo } from "../midi";
+import { appEnvironment } from "../lib/AppEnvironment";
 import { exhaustive } from "../utils/exhaustive";
 import { AppProject } from "./AppProject";
+import { DebugData } from "./DebugData";
+import { MidiDemo } from "../midi";
 
 // var w = new TrackThread();
 // var sab = new SharedArrayBuffer(1024);
 // var arr = new Int32Array(sab);
 // w.postMessage({ kind: "set", sab });
 
-type ProjectState = { status: "loading" } | { status: "loaded"; project: AudioProject };
-
-export const appProjectStatus = SPrimitive.of<ProjectState>(
-  ProjectPersistance.hasSavedData()
-    ? { status: "loading" }
-    : { status: "loaded", project: ProjectPersistance.defaultProject() }
-);
-
 export function App(): React.ReactElement {
-  const [projectStatus, setProjectStatus] = useLinkedState(appProjectStatus);
+  const [projectStatus, setProjectStatus] = useLinkedState(appEnvironment.projectStatus);
 
   useEffect(() => {
     ignorePromise(
@@ -47,7 +41,13 @@ export function App(): React.ReactElement {
     }
     case "loaded": {
       (window as any).project = projectStatus.project;
-      return <AppProject project={projectStatus.project} />;
+      return (
+        <>
+          <MidiDemo />
+          <AppProject project={projectStatus.project} />
+          <DebugData project={projectStatus.project} />
+        </>
+      );
     }
     default:
       exhaustive(projectStatus);

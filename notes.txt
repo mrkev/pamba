@@ -1,3 +1,8 @@
-TODO: 
+TODO:
+- Implement own panel component perhaps?
+- Implement piano roll editor area
+- Move MidiDemo piano roll into new piano roll editor
+- Figure out how to save and load data, so piano roll midi lives in clips
+
+MAYBE: 
 - Switch all timing to be frames, for maximum precision (avoid time floats)
--  

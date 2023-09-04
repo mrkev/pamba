@@ -8,13 +8,13 @@ import { AudioTrack } from "../../lib/AudioTrack";
 import { ProjectPersistance } from "../../lib/ProjectPersistance";
 import { AudioProject } from "../../lib/project/AudioProject";
 import { useLinkedState } from "../../lib/state/LinkedState";
-import { appProjectStatus } from "../App";
 import { UtilityNumber } from "../UtilityNumber";
 import { utility } from "../utility";
 import { BounceButton } from "./BounceButton";
 import { ToolSelector } from "./ToolSelector";
 import { TransportControl } from "./TransportControl";
 import { UserAuthControl } from "./UserAuthControl";
+import { appEnvironment } from "../../lib/AppEnvironment";
 
 function NewProjectButton() {
   return (
@@ -23,7 +23,7 @@ function NewProjectButton() {
       onClick={() => {
         // eslint-disable-next-line no-restricted-globals
         if (confirm("TODO: only one project is supported, so this deletes all data. Continue?")) {
-          appProjectStatus.set({
+          appEnvironment.projectStatus.set({
             status: "loaded",
             project: ProjectPersistance.defaultProject(),
           });

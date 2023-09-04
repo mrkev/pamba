@@ -3,14 +3,12 @@ import { createRoot } from "react-dom/client";
 import { liveAudioContext } from "./constants";
 import "./index.css";
 import { appEnvironment } from "./lib/AppEnvironment";
-import { initAudioContext } from "./lib/initAudioContext";
 import { ignorePromise } from "./utils/ignorePromise";
 import nullthrows from "./utils/nullthrows";
 
 async function init() {
   try {
-    const audioContextInfo = await initAudioContext(liveAudioContext);
-    await appEnvironment.initAsync(audioContextInfo);
+    await appEnvironment.initAsync(liveAudioContext);
     // We wait to load the app since some modules might import liveAudioContext
     const App = (await import("./ui/App")).App;
     const root = createRoot(nullthrows(document.getElementById("root")));
