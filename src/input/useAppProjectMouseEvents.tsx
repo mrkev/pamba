@@ -153,6 +153,7 @@ export function useAppProjectMouseEvents(
             project.selectionWidth.set(Math.abs(selWidth));
             break;
           }
+
           case "selecting_track_time": {
             pressedState.set(null);
             const { startTime, track } = pressed;
@@ -168,7 +169,22 @@ export function useAppProjectMouseEvents(
                 tracks: [track],
                 test: new Set([track]),
               });
-              return;
+            } else {
+              project.selected.set({
+                status: "track_time",
+                start: startTime + selWidthS,
+                end: startTime,
+                tracks: [track],
+                test: new Set([track]),
+              });
+              // Move the cursor to the beggining of the selection
+              // and make the selection positive
+              project.cursorPos.setDyn((pos) => {
+                // player.setCursorPos(pos + selWidth);
+                return pos + selWidthS;
+              });
+
+              project.selectionWidth.set(Math.abs(selWidthS));
             }
 
             break;

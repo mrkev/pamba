@@ -33,7 +33,6 @@ export class LinkedArray<S> implements ArrayWithoutIndexer<S>, Subbable<Readonly
   }
 
   private mutate<V>(mutator: (clone: Array<S>) => V): V {
-    console.log("mutateeeee");
     const clone = [...this._array];
     const result = mutator(clone);
     this._array = clone;

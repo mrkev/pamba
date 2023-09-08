@@ -1,15 +1,13 @@
 import { useEffect, useState } from "react";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { modifierState, useSingletonKeyboardModifierState } from "../ModifierState";
-import { useAppProjectKeyboardEvents } from "../input/useAppProjectKeyboardEvents";
+import { useDocumentKeyboardEvents } from "../input/useDocumentKeyboardEvents";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import { AudioRenderer } from "../lib/AudioRenderer";
 import { AudioProject } from "../lib/project/AudioProject";
-import { DebugData } from "./DebugData";
 import { Library } from "./Library";
 import { TimelineView } from "./TimelineView";
 import { ToolHeader } from "./header/ToolHeader";
-import { MidiDemo } from "../midi";
 
 function useStopPlaybackOnUnmount(renderer: AudioRenderer) {
   useEffect(() => {
@@ -26,7 +24,7 @@ export function AppProject({ project }: { project: AudioProject }) {
   const [renderer] = useState(() => new AudioRenderer(new AnalizedPlayer()));
 
   useSingletonKeyboardModifierState(modifierState);
-  useAppProjectKeyboardEvents(project, renderer.analizedPlayer, renderer);
+  useDocumentKeyboardEvents(project, renderer.analizedPlayer, renderer);
   useStopPlaybackOnUnmount(renderer);
 
   return (

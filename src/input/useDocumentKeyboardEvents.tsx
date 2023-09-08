@@ -6,7 +6,7 @@ import { AudioProject, ProjectSelection } from "../lib/project/AudioProject";
 import { MidiTrack } from "../midi/MidiTrack";
 import { ignorePromise } from "../utils/ignorePromise";
 
-export function useAppProjectKeyboardEvents(
+export function useDocumentKeyboardEvents(
   project: AudioProject,
   player: AnalizedPlayer,
   renderer: AudioRenderer
@@ -18,9 +18,11 @@ export function useAppProjectKeyboardEvents(
       if (e.target instanceof HTMLInputElement) {
         return;
       }
+
       // console.log(e.code);
       switch (e.code) {
         case "Backspace":
+          console.log("here");
           ProjectSelection.deleteSelection(project, player);
           break;
 

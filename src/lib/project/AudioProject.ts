@@ -231,11 +231,12 @@ export class ProjectSelection {
    */
   static deleteSelection(project: AudioProject, player: AnalizedPlayer) {
     const selected = project.selected.get();
+    console.log(selected);
     if (!selected) {
       return;
     }
-    const { status } = selected;
-    switch (status) {
+
+    switch (selected.status) {
       case "clips": {
         for (let { clip, track } of selected.clips) {
           console.log("remove", selected);
@@ -268,10 +269,14 @@ export class ProjectSelection {
         break;
       }
       case "track_time":
-        // todo
+        for (const track of selected.tracks) {
+          if (track instanceof AudioTrack) {
+            track.deleteTime(selected.start, selected.end);
+          }
+        }
         break;
       default:
-        exhaustive(status);
+        exhaustive(selected);
     }
   }
 }
