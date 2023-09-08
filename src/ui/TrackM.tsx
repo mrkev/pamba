@@ -13,6 +13,7 @@ import { ClipM } from "./ClipM";
 import { CursorSelection } from "./CursorSelection";
 import { EffectRack } from "./EffectRack";
 import { useEventListener } from "./useEventListener";
+import { shouldSnap } from "../input/useAppProjectMouseEvents";
 
 export function TrackM({
   track,
@@ -56,10 +57,37 @@ export function TrackM({
   useEventListener(
     "mousedown",
     trackRef,
-    useCallback(() => {
-      project.cursorTracks.clear();
-      project.cursorTracks.add(track);
-    }, [project.cursorTracks, track])
+    useCallback(
+      (e: MouseEvent) => {
+        project.cursorTracks.clear();
+        project.cursorTracks.add(track);
+        const div = trackRef.current;
+        if (div == null) {
+          return;
+        }
+
+        const position = {
+          x: e.clientX + div.scrollLeft - div.getBoundingClientRect().x,
+          y: e.clientY + div.scrollTop - div.getBoundingClientRect().y,
+        };
+        const asSecs = project.viewport.pxToSecs(position.x);
+
+        const newPos = shouldSnap(project, e) ? project.viewport.snapToTempo(asSecs) : asSecs;
+
+        pressedState.set({
+          status: "selecting_track_time",
+          clientX: e.clientX,
+          clientY: e.clientY,
+          // TODOOOOOOOOOOOOO
+          startTime: newPos,
+          track,
+        });
+
+        e.stopPropagation();
+        e.preventDefault();
+      },
+      [project.cursorTracks, track]
+    )
   );
 
   return (
@@ -70,16 +98,16 @@ export function TrackM({
           ev.preventDefault();
         }}
         onMouseDown={(e) => {
-          pressedState.set({
-            status: "selecting_track_time",
-            clientX: e.clientX,
-            clientY: e.clientY,
-            // TODOOOOOOOOOOOOO
-            startTimeFr: 0,
-            track,
-          });
-          e.stopPropagation();
-          e.preventDefault();
+          // pressedState.set({
+          //   status: "selecting_track_time",
+          //   clientX: e.clientX,
+          //   clientY: e.clientY,
+          //   // TODOOOOOOOOOOOOO
+          //   startTimeFr: 0,
+          //   track,
+          // });
+          // e.stopPropagation();
+          // e.preventDefault();
         }}
         style={{
           position: "relative",

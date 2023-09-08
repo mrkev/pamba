@@ -13,6 +13,8 @@ import { ClipA } from "./ClipA";
 import { EffectRack } from "./EffectRack";
 import { useEventListener } from "./useEventListener";
 import { CursorSelection } from "./CursorSelection";
+import { shouldSnap } from "../input/useAppProjectMouseEvents";
+import { useTrackMouseEvents } from "../input/useTrackMouseEvents";
 
 export function TrackA({
   track,
@@ -39,6 +41,8 @@ export function TrackA({
   const rerender = useCallback(function () {
     setStateCounter((x) => x + 1);
   }, []);
+
+  useTrackMouseEvents(trackRef, project, track);
 
   const loadClipIntoTrack = useCallback(async (url: string, track: AudioTrack, name?: string): Promise<void> => {
     try {
@@ -98,15 +102,6 @@ export function TrackA({
     )
   );
 
-  useEventListener(
-    "mousedown",
-    trackRef,
-    useCallback(() => {
-      project.cursorTracks.clear();
-      project.cursorTracks.add(track);
-    }, [project.cursorTracks, track])
-  );
-
   return (
     <>
       <div
@@ -114,18 +109,6 @@ export function TrackA({
         onDrop={onDrop}
         onDragOver={function allowDrop(ev) {
           ev.preventDefault();
-        }}
-        onMouseDown={(e) => {
-          pressedState.set({
-            status: "selecting_track_time",
-            clientX: e.clientX,
-            clientY: e.clientY,
-            // TODOOOOOOOOOOOOO
-            startTimeFr: 0,
-            track,
-          });
-          e.stopPropagation();
-          e.preventDefault();
         }}
         style={{
           position: "relative",

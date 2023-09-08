@@ -8,12 +8,20 @@ import { useDocumentEventListener, useEventListener } from "../ui/useEventListen
 import { exhaustive } from "../utils/exhaustive";
 import { stepNumber } from "../utils/math";
 
-function shouldSnap(project: AudioProject, e: MouseEvent) {
+export function shouldSnap(project: AudioProject, e: MouseEvent) {
   let snap = project.snapToGrid.get();
   if (e.metaKey) {
     snap = !snap;
   }
   return snap;
+}
+
+export function snapped(project: AudioProject, e: MouseEvent, s: number) {
+  let snap = project.snapToGrid.get();
+  if (e.metaKey) {
+    snap = !snap;
+  }
+  return snap ? project.viewport.snapToTempo(s) : s;
 }
 
 export function useAppProjectMouseEvents(
@@ -51,12 +59,7 @@ export function useAppProjectMouseEvents(
           };
           const asSecs = project.viewport.pxToSecs(position.x);
 
-          let snap = project.snapToGrid.get();
-          if (e.metaKey) {
-            snap = !snap;
-          }
-
-          const newPos = snap ? project.viewport.snapToTempo(asSecs) : asSecs;
+          const newPos = shouldSnap(project, e) ? project.viewport.snapToTempo(asSecs) : asSecs;
           // player.setCursorPos(asSecs);
           project.cursorPos.set(newPos);
           project.selectionWidth.set(null);
@@ -68,7 +71,7 @@ export function useAppProjectMouseEvents(
           });
         }
       },
-      [project.cursorPos, project.selectionWidth, project.viewport]
+      [project]
     )
   );
 
@@ -150,10 +153,26 @@ export function useAppProjectMouseEvents(
             project.selectionWidth.set(Math.abs(selWidth));
             break;
           }
-          case "selecting_track_time":
-            // TODO: handle
+          case "selecting_track_time": {
             pressedState.set(null);
+            const { startTime, track } = pressed;
+            const selWidthS = project.viewport.pxToSecs(e.clientX - pressed.clientX);
+            if (selWidthS === 0) {
+              return;
+            }
+            if (selWidthS > 0) {
+              project.selected.set({
+                status: "track_time",
+                start: startTime,
+                end: startTime + selWidthS,
+                tracks: [track],
+                test: new Set([track]),
+              });
+              return;
+            }
+
             break;
+          }
           default:
             exhaustive(status);
         }

@@ -37,7 +37,7 @@ export type CursorState =
       clientX: number;
       clientY: number;
       // time at original click
-      startTimeFr: number;
+      startTime: number;
       track: AudioTrack | MidiTrack;
     }>
   | Readonly<{
