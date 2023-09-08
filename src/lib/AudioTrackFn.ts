@@ -92,7 +92,6 @@ export function deleteTime<Clip extends BaseClip>(
   endSec: number,
   clips: ReadonlyArray<Clip>
 ): ReadonlyArray<Clip> {
-  console.log("deleteing from", startSec, endSec);
   if (startSec === endSec) {
     return clips;
   }
@@ -127,8 +126,6 @@ export function deleteTime<Clip extends BaseClip>(
       current.endOffsetSec = startSec;
       continue;
     }
-
-    // TODO: time selects nothign?
 
     // lastly, there's the case where the whole range to be removed lies within
     // this clip, in which case we would split this clip into three parts and

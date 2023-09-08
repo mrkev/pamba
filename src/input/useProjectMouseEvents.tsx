@@ -3,78 +3,53 @@ import { MIN_TRACK_HEIGHT } from "../constants";
 import AudioClip from "../lib/AudioClip";
 import { AudioTrack } from "../lib/AudioTrack";
 import { AudioProject } from "../lib/project/AudioProject";
+import { snapped } from "../lib/project/ProjectViewportUtil";
 import { pressedState } from "../pressedState";
 import { useDocumentEventListener, useEventListener } from "../ui/useEventListener";
 import { exhaustive } from "../utils/exhaustive";
 import { stepNumber } from "../utils/math";
 
-export function shouldSnap(project: AudioProject, e: MouseEvent) {
-  let snap = project.snapToGrid.get();
-  if (e.metaKey) {
-    snap = !snap;
-  }
-  return snap;
-}
-
-export function snapped(project: AudioProject, e: MouseEvent, s: number) {
-  let snap = project.snapToGrid.get();
-  if (e.metaKey) {
-    snap = !snap;
-  }
-  return snap ? project.viewport.snapToTempo(s) : s;
-}
-
-export function useAppProjectMouseEvents(
+export function useAxisContainerMouseEvents(
   project: AudioProject,
-  projectDivRef: React.MutableRefObject<HTMLDivElement | null>
-): void {
+  axisContainer: React.MutableRefObject<HTMLDivElement | null>
+) {
   useEventListener(
     "mousedown",
-    projectDivRef,
+    axisContainer,
     useCallback(
       (e: MouseEvent) => {
-        // currentTarget should always be the element the event is attatched to,
-        // so our project div.
-        if (!(e.target instanceof HTMLDivElement) || !(e.currentTarget instanceof HTMLDivElement)) {
-          console.log("WOOP");
+        const div = axisContainer.current;
+        if (div == null) {
           return;
         }
 
-        // // On a child element
-        // if (e.target !== e.currentTarget) {
-        //   console.log("CHILD");
-        //   // drag clips around
+        const position = {
+          x: e.clientX + div.scrollLeft - div.getBoundingClientRect().x,
+          y: e.clientY + div.scrollTop - div.getBoundingClientRect().y,
+        };
+        const asSecs = project.viewport.pxToSecs(position.x);
+
+        const newPos = snapped(project, e, asSecs);
+        // player.setCursorPos(asSecs);
+        project.cursorPos.set(newPos);
+        project.selectionWidth.set(null);
+        pressedState.set({
+          status: "selecting_global_time",
+          clientX: e.clientX,
+          clientY: e.clientY,
+          startTime: newPos,
+        });
         // }
-
-        // On the project div element
-        else {
-          const div = e.currentTarget;
-          if (!(div instanceof HTMLDivElement)) {
-            return;
-          }
-
-          const position = {
-            x: e.clientX + div.scrollLeft - div.getBoundingClientRect().x,
-            y: e.clientY + div.scrollTop - div.getBoundingClientRect().y,
-          };
-          const asSecs = project.viewport.pxToSecs(position.x);
-
-          const newPos = shouldSnap(project, e) ? project.viewport.snapToTempo(asSecs) : asSecs;
-          // player.setCursorPos(asSecs);
-          project.cursorPos.set(newPos);
-          project.selectionWidth.set(null);
-          pressedState.set({
-            status: "selecting_global_time",
-            clientX: e.clientX,
-            clientY: e.clientY,
-            startTime: newPos,
-          });
-        }
       },
-      [project]
+      [axisContainer, project]
     )
   );
+}
 
+export function useTimelineMouseEvents(
+  project: AudioProject,
+  projectDivRef: React.MutableRefObject<HTMLDivElement | null>
+): void {
   useDocumentEventListener(
     "mouseup",
     useCallback(
@@ -270,7 +245,7 @@ export function useAppProjectMouseEvents(
 
           case "selecting_global_time": {
             const deltaXSecs = project.viewport.pxToSecs(e.clientX - pressed.clientX);
-            const newWidth = shouldSnap(project, e) ? project.viewport.snapToTempo(deltaXSecs) : deltaXSecs;
+            const newWidth = snapped(project, e, deltaXSecs);
             project.selectionWidth.set(newWidth);
             project.selected.set(null);
             // project.selected.set({ status: "time", start: pressed.startTime, end: pressed.startTime + deltaXSecs });
@@ -279,7 +254,7 @@ export function useAppProjectMouseEvents(
 
           case "selecting_track_time":
             const deltaXSecs = project.viewport.pxToSecs(e.clientX - pressed.clientX);
-            const newWidth = shouldSnap(project, e) ? project.viewport.snapToTempo(deltaXSecs) : deltaXSecs;
+            const newWidth = snapped(project, e, deltaXSecs);
             project.selectionWidth.set(newWidth);
             project.selected.set(null);
             break;

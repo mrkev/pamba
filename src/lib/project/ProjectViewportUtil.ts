@@ -61,3 +61,19 @@ export class ProjectViewportUtil {
     return snappedTime;
   }
 }
+
+export function shouldSnap(project: AudioProject, e: MouseEvent) {
+  let snap = project.snapToGrid.get();
+  if (e.metaKey) {
+    snap = !snap;
+  }
+  return snap;
+}
+
+export function snapped(project: AudioProject, e: MouseEvent, s: number) {
+  let snap = project.snapToGrid.get();
+  if (e.metaKey) {
+    snap = !snap;
+  }
+  return snap ? project.viewport.snapToTempo(s) : s;
+}

@@ -2,23 +2,23 @@ import { useCallback, useEffect, useRef } from "react";
 import { createUseStyles } from "react-jss";
 import useResizeObserver from "use-resize-observer";
 import { TRACK_HEADER_WIDTH } from "../constants";
-import { useAppProjectMouseEvents } from "../input/useAppProjectMouseEvents";
+import { useAxisContainerMouseEvents, useTimelineMouseEvents } from "../input/useProjectMouseEvents";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import { AudioRenderer } from "../lib/AudioRenderer";
+import { AudioTrack } from "../lib/AudioTrack";
 import { AudioProject } from "../lib/project/AudioProject";
 import { useDerivedState } from "../lib/state/DerivedState";
 import { useLinkedArray } from "../lib/state/LinkedArray";
 import { useLinkedSet } from "../lib/state/LinkedSet";
 import { useLinkedState } from "../lib/state/LinkedState";
+import { MidiTrack } from "../midi/MidiTrack";
+import { exhaustive } from "../utils/exhaustive";
 import { Axis } from "./Axis";
 import { TimelineCursor } from "./TimelineCursor";
 import { TrackA } from "./TrackA";
 import { TrackHeader } from "./TrackHeader";
-import { useEventListener } from "./useEventListener";
-import { AudioTrack } from "../lib/AudioTrack";
-import { MidiTrack } from "../midi/MidiTrack";
-import { exhaustive } from "../utils/exhaustive";
 import { TrackM } from "./TrackM";
+import { useEventListener } from "./useEventListener";
 
 export function TimelineView({
   project,
@@ -32,6 +32,7 @@ export function TimelineView({
   const classes = useStyles();
   const playbackPosDiv = useRef<null | HTMLDivElement>(null);
   const projectDivRef = useRef<HTMLDivElement | null>(null);
+  const axisContainerRef = useRef<HTMLDivElement | null>(null);
   const [tracks] = useLinkedArray(project.allTracks);
   const [dspExpandedTracks] = useLinkedSet(project.dspExpandedTracks);
   const secsToPx = useDerivedState(project.secsToPx);
@@ -46,8 +47,6 @@ export function TimelineView({
       [project.viewport.projectDivWidth]
     ),
   });
-
-  useAppProjectMouseEvents(project, projectDivRef);
 
   useEffect(() => {
     const pbdiv = playbackPosDiv.current;
@@ -122,17 +121,16 @@ export function TimelineView({
     )
   );
 
+  useAxisContainerMouseEvents(project, axisContainerRef);
+  useTimelineMouseEvents(project, projectDivRef);
+
   return (
     <div id="container" className={classes.container}>
       <div
-        style={{
-          position: "sticky",
-          top: 0,
-          left: 0,
-          zIndex: 2,
-          borderBottom: "1px solid #aaa",
-          background: "#ddd",
-        }}
+        ref={axisContainerRef}
+        className={classes.axisContainer}
+
+        // TODO THIS SELECTS GLOBAL TIME
       >
         <Axis project={project} isHeader />
       </div>
@@ -265,5 +263,13 @@ const useStyles = createUseStyles({
     position: "absolute",
     left: 0,
     top: 0,
+  },
+  axisContainer: {
+    position: "sticky",
+    top: 0,
+    left: 0,
+    zIndex: 2,
+    borderBottom: "1px solid #aaa",
+    background: "#ddd",
   },
 });

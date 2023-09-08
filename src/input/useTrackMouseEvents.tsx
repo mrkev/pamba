@@ -3,7 +3,7 @@ import { AudioTrack } from "../lib/AudioTrack";
 import { AudioProject } from "../lib/project/AudioProject";
 import { pressedState } from "../pressedState";
 import { useEventListener } from "../ui/useEventListener";
-import { snapped } from "./useAppProjectMouseEvents";
+import { snapped } from "../lib/project/ProjectViewportUtil";
 
 export function useTrackMouseEvents(
   trackRef: React.RefObject<HTMLDivElement>,
@@ -45,7 +45,7 @@ export function useTrackMouseEvents(
         // selection state
         project.selected.set(null);
 
-        e.stopPropagation();
+        // e.stopPropagation();
         e.preventDefault();
       },
       [project, track, trackRef]

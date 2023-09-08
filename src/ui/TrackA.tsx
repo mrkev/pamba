@@ -1,6 +1,7 @@
 import React, { useCallback, useRef, useState } from "react";
 import { createUseStyles } from "react-jss";
 import { TRACK_SEPARATOR_HEIGHT } from "../constants";
+import { useTrackMouseEvents } from "../input/useTrackMouseEvents";
 import AudioClip from "../lib/AudioClip";
 import { AudioRenderer } from "../lib/AudioRenderer";
 import { AudioTrack } from "../lib/AudioTrack";
@@ -10,11 +11,9 @@ import { useLinkedState } from "../lib/state/LinkedState";
 import { pressedState } from "../pressedState";
 import { ignorePromise } from "../utils/ignorePromise";
 import { ClipA } from "./ClipA";
+import { CursorSelection } from "./CursorSelection";
 import { EffectRack } from "./EffectRack";
 import { useEventListener } from "./useEventListener";
-import { CursorSelection } from "./CursorSelection";
-import { shouldSnap } from "../input/useAppProjectMouseEvents";
-import { useTrackMouseEvents } from "../input/useTrackMouseEvents";
 
 export function TrackA({
   track,
