@@ -1,10 +1,9 @@
+import { WamNode, WebAudioModule } from "@webaudiomodules/api";
 import { useState } from "react";
 import { liveAudioContext } from "../constants";
-import { appEnvironment } from "../lib/AppEnvironment";
 import nullthrows from "../utils/nullthrows";
-import { MidiTrack } from "./MidiTrack";
 import { MidiInstrument } from "./MidiInstrument";
-import { WamNode, WebAudioModule } from "@webaudiomodules/api";
+import { MidiTrack } from "./MidiTrack";
 
 let keyboardInstance: WebAudioModule<WamNode>;
 

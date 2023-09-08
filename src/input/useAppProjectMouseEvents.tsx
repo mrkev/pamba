@@ -1,31 +1,33 @@
 import { useCallback } from "react";
 import { MIN_TRACK_HEIGHT } from "../constants";
+import AudioClip from "../lib/AudioClip";
+import { AudioTrack } from "../lib/AudioTrack";
 import { AudioProject } from "../lib/project/AudioProject";
-import { useDerivedState } from "../lib/state/DerivedState";
 import { pressedState } from "../pressedState";
 import { useDocumentEventListener, useEventListener } from "../ui/useEventListener";
 import { exhaustive } from "../utils/exhaustive";
 import { stepNumber } from "../utils/math";
-import { AudioTrack } from "../lib/AudioTrack";
-import AudioClip from "../lib/AudioClip";
+
+function shouldSnap(project: AudioProject, e: MouseEvent) {
+  let snap = project.snapToGrid.get();
+  if (e.metaKey) {
+    snap = !snap;
+  }
+  return snap;
+}
 
 export function useAppProjectMouseEvents(
   project: AudioProject,
   projectDivRef: React.MutableRefObject<HTMLDivElement | null>
 ): void {
-  const secsToPx = useDerivedState(project.secsToPx);
-
   useEventListener(
     "mousedown",
     projectDivRef,
     useCallback(
       (e: MouseEvent) => {
-        const pxToSecs = secsToPx.invert;
-
         // currentTarget should always be the element the event is attatched to,
         // so our project div.
-        const { target, currentTarget } = e;
-        if (!(target instanceof HTMLDivElement) || !(currentTarget instanceof HTMLDivElement)) {
+        if (!(e.target instanceof HTMLDivElement) || !(e.currentTarget instanceof HTMLDivElement)) {
           console.log("WOOP");
           return;
         }
@@ -39,25 +41,34 @@ export function useAppProjectMouseEvents(
         // On the project div element
         else {
           const div = e.currentTarget;
-          if (!(div instanceof HTMLDivElement)) return;
+          if (!(div instanceof HTMLDivElement)) {
+            return;
+          }
+
           const position = {
             x: e.clientX + div.scrollLeft - div.getBoundingClientRect().x,
             y: e.clientY + div.scrollTop - div.getBoundingClientRect().y,
           };
-          const asSecs = pxToSecs(position.x);
-          // player.setCursorPos(asSecs);
-          project.cursorPos.set(asSecs);
+          const asSecs = project.viewport.pxToSecs(position.x);
 
+          let snap = project.snapToGrid.get();
+          if (e.metaKey) {
+            snap = !snap;
+          }
+
+          const newPos = snap ? project.viewport.snapToTempo(asSecs) : asSecs;
+          // player.setCursorPos(asSecs);
+          project.cursorPos.set(newPos);
           project.selectionWidth.set(null);
           pressedState.set({
             status: "selecting_global_time",
             clientX: e.clientX,
             clientY: e.clientY,
-            startTime: asSecs,
+            startTime: newPos,
           });
         }
       },
-      [project.cursorPos, project.selectionWidth, secsToPx.invert]
+      [project.cursorPos, project.selectionWidth, project.viewport]
     )
   );
 
@@ -65,8 +76,6 @@ export function useAppProjectMouseEvents(
     "mouseup",
     useCallback(
       (e: MouseEvent) => {
-        const pxToSecs = secsToPx.invert;
-
         const pressed = pressedState.get();
         if (!pressed) {
           return;
@@ -110,7 +119,7 @@ export function useAppProjectMouseEvents(
           case "selecting_global_time": {
             const { startTime } = pressed;
             pressedState.set(null);
-            const selWidth = pxToSecs(e.clientX - pressed.clientX);
+            const selWidth = project.viewport.pxToSecs(e.clientX - pressed.clientX);
 
             if (selWidth === 0) {
               return;
@@ -149,7 +158,7 @@ export function useAppProjectMouseEvents(
             exhaustive(status);
         }
       },
-      [project.cursorPos, project.selected, project.selectionWidth, secsToPx.invert]
+      [project.cursorPos, project.selected, project.selectionWidth, project.viewport]
     )
   );
 
@@ -157,7 +166,6 @@ export function useAppProjectMouseEvents(
     "mousemove",
     useCallback(
       (e: MouseEvent) => {
-        const pxToSecs = secsToPx.invert;
         const pressed = pressedState.get();
         if (!pressed) {
           return;
@@ -198,7 +206,7 @@ export function useAppProjectMouseEvents(
           }
 
           case "resizing_clip": {
-            const deltaXSecs = pxToSecs(e.clientX - pressed.clientX);
+            const deltaXSecs = project.viewport.pxToSecs(e.clientX - pressed.clientX);
             if (pressed.from === "end") {
               // We can't trim a clip to end before it's beggining
               let newEndPosSec = Math.max(0, pressed.originalClipEndPosSec + deltaXSecs);
@@ -226,22 +234,25 @@ export function useAppProjectMouseEvents(
           }
 
           case "selecting_global_time": {
-            const deltaXSecs = pxToSecs(e.clientX - pressed.clientX);
-            project.selectionWidth.set(deltaXSecs);
+            const deltaXSecs = project.viewport.pxToSecs(e.clientX - pressed.clientX);
+            const newWidth = shouldSnap(project, e) ? project.viewport.snapToTempo(deltaXSecs) : deltaXSecs;
+            project.selectionWidth.set(newWidth);
             project.selected.set(null);
             // project.selected.set({ status: "time", start: pressed.startTime, end: pressed.startTime + deltaXSecs });
             break;
           }
+
           case "selecting_track_time":
-            const deltaXSecs = pxToSecs(e.clientX - pressed.clientX);
-            project.selectionWidth.set(deltaXSecs);
+            const deltaXSecs = project.viewport.pxToSecs(e.clientX - pressed.clientX);
+            const newWidth = shouldSnap(project, e) ? project.viewport.snapToTempo(deltaXSecs) : deltaXSecs;
+            project.selectionWidth.set(newWidth);
             project.selected.set(null);
             break;
           default:
             exhaustive(status);
         }
       },
-      [project.selected, project.selectionWidth, secsToPx.invert]
+      [project]
     )
   );
 }

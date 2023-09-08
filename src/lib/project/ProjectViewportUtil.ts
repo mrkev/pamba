@@ -1,4 +1,4 @@
-import { clamp } from "../../utils/math";
+import { clamp, stepNumber } from "../../utils/math";
 import { SPrimitive } from "../state/LinkedState";
 import { AudioProject } from "./AudioProject";
 
@@ -50,5 +50,14 @@ export class ProjectViewportUtil {
   timeForPx(s: number): number {
     const viewportStartPx = this.project.viewportStartPx.get();
     return this.pxToSecs(s + viewportStartPx);
+  }
+
+  // snapping
+
+  snapToTempo(s: number) {
+    const tempo = this.project.tempo.get();
+    const oneBeatLen = 60 / tempo;
+    const snappedTime = stepNumber(s, oneBeatLen);
+    return snappedTime;
   }
 }

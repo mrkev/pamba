@@ -1,20 +1,18 @@
-import { useEffect, useMemo, useState } from "react";
-import { EFFECT_HEIGHT, TRACK_SEPARATOR_HEIGHT } from "../constants";
-import { AudioProject, ProjectSelection } from "../lib/project/AudioProject";
-import { AudioTrack } from "../lib/AudioTrack";
-import { useLinkedState } from "../lib/state/LinkedState";
-import { useLinkedSet } from "../lib/state/LinkedSet";
-import { AnalizedPlayer } from "../lib/AnalizedPlayer";
-import { useLinkedArray } from "../lib/state/LinkedArray";
-import { useRef } from "react";
-import { RenamableLabel } from "./RenamableLabel";
-import { pressedState } from "../pressedState";
-import { utility, UtilitySlider } from "./utility";
-import { createUseStyles } from "react-jss";
-import { appEnvironment } from "../lib/AppEnvironment";
 import classNames from "classnames";
-import React from "react";
+import React, { useState } from "react";
+import { createUseStyles } from "react-jss";
+import { EFFECT_HEIGHT, TRACK_SEPARATOR_HEIGHT } from "../constants";
+import { AnalizedPlayer } from "../lib/AnalizedPlayer";
+import { appEnvironment } from "../lib/AppEnvironment";
+import { AudioTrack } from "../lib/AudioTrack";
+import { AudioProject, ProjectSelection } from "../lib/project/AudioProject";
+import { useLinkedArray } from "../lib/state/LinkedArray";
+import { useLinkedSet } from "../lib/state/LinkedSet";
+import { useLinkedState } from "../lib/state/LinkedState";
 import { MidiTrack } from "../midi/MidiTrack";
+import { pressedState } from "../pressedState";
+import { RenamableLabel } from "./RenamableLabel";
+import { UtilitySlider, utility } from "./utility";
 
 const useStyles = createUseStyles({
   actionButton: {
@@ -57,7 +55,6 @@ export const TrackHeader = React.memo(function TrackHeader({
   const [solodTracks] = useLinkedSet(project.solodTracks);
   const [trackName, setTrackName] = useLinkedState(track.name);
   const [height] = useLinkedState(track.height);
-  const renameInputRef = useRef<HTMLInputElement | null>(null);
   const [selected] = useLinkedState(project.selected);
   const [activeTrack] = useLinkedState(project.activeTrack);
 
