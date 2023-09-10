@@ -180,8 +180,7 @@ export function useTimelineMouseEvents(
         if (!pressed) {
           return;
         }
-        const { status } = pressed;
-        switch (status) {
+        switch (pressed.status) {
           case "moving_clip": {
             let snap = project.snapToGrid.get();
             if (e.metaKey) {
@@ -259,7 +258,7 @@ export function useTimelineMouseEvents(
             project.selected.set(null);
             break;
           default:
-            exhaustive(status);
+            exhaustive(pressed);
         }
       },
       [project]

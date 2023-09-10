@@ -13,7 +13,6 @@ import { ignorePromise } from "../utils/ignorePromise";
 import { ClipA } from "./ClipA";
 import { CursorSelection } from "./CursorSelection";
 import { EffectRack } from "./EffectRack";
-import { useEventListener } from "./useEventListener";
 
 export function TrackA({
   track,
@@ -87,20 +86,6 @@ export function TrackA({
     [audioStorage, loadClipIntoTrack, track]
   );
 
-  useEventListener(
-    "mouseenter",
-    trackRef,
-    useCallback(
-      function (_e) {
-        const pressed = pressedState.get();
-        if (pressed && pressed.status === "moving_clip") {
-          pressedState.setDyn((prev) => Object.assign({}, prev, { track }));
-        }
-      },
-      [track]
-    )
-  );
-
   return (
     <>
       <div
@@ -129,7 +114,7 @@ export function TrackA({
 
         {/* RENDER SELECTION */}
         <CursorSelection track={track} project={project} />
-        {selected && selected.status === "track_time" && selected.test.has(track) && <div>FOOOOOOOOOOO</div>}
+        {/* {selected && selected.status === "track_time" && selected.test.has(track) && <div>FOOOOOOOOOOO</div>} */}
         {/* RENDER CLIP BEING MOVED */}
         {pressed &&
           pressed.status === "moving_clip" &&

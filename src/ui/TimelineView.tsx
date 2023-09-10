@@ -99,12 +99,12 @@ export function TimelineView({
         }
         // pan
         else {
-          const start = Math.max(viewportStartPx + e.deltaX, 0);
+          const start = Math.max(project.viewportStartPx.get() + e.deltaX, 0);
           // console.log("here");
           project.viewportStartPx.set(start);
         }
       },
-      [project.scaleFactor, project.viewport, project.viewportStartPx, viewportStartPx]
+      [project.scaleFactor, project.viewport, project.viewportStartPx]
     ),
     { capture: false }
   );

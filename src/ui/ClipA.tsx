@@ -23,35 +23,6 @@ type Props = {
   track: AudioTrack | null; // null if clip is being rendered for move
 };
 
-const useStyles = createUseStyles({
-  resizerEnd: {
-    width: 10,
-    background: "rgba(0,0,0,0)",
-    height: "100%",
-    position: "absolute",
-    right: -5,
-    top: 0,
-    cursor: "ew-resize",
-  },
-  resizerStart: {
-    width: 10,
-    background: "rgba(0,0,0,0)",
-    height: "100%",
-    position: "absolute",
-    left: -5,
-    top: 0,
-    cursor: "ew-resize",
-  },
-  clipHeader: {
-    opacity: 0.8,
-    fontSize: 10,
-    whiteSpace: "nowrap",
-    overflow: "hidden",
-    flexShrink: 0,
-    paddingBottom: "0px 0px 1px 0px",
-  },
-});
-
 export function ClipA({ clip, rerender, isSelected, style = {}, project, track }: Props) {
   const styles = useStyles();
   const secsToPx = useDerivedState(project.secsToPx);
@@ -255,3 +226,32 @@ function _ClipAutomation({ clip, secsToPx }: { clip: AudioClip; secsToPx: XScale
     </svg>
   );
 }
+
+const useStyles = createUseStyles({
+  resizerEnd: {
+    width: 10,
+    background: "rgba(0,0,0,0)",
+    height: "100%",
+    position: "absolute",
+    right: -5,
+    top: 0,
+    cursor: "ew-resize",
+  },
+  resizerStart: {
+    width: 10,
+    background: "rgba(0,0,0,0)",
+    height: "100%",
+    position: "absolute",
+    left: -5,
+    top: 0,
+    cursor: "ew-resize",
+  },
+  clipHeader: {
+    opacity: 0.8,
+    fontSize: 10,
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    flexShrink: 0,
+    paddingBottom: "0px 0px 1px 0px",
+  },
+});

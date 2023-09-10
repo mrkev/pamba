@@ -51,4 +51,18 @@ export function useTrackMouseEvents(
       [project, track, trackRef]
     )
   );
+
+  useEventListener(
+    "mouseenter",
+    trackRef,
+    useCallback(
+      function (_e) {
+        const pressed = pressedState.get();
+        if (pressed && pressed.status === "moving_clip") {
+          pressedState.setDyn((prev) => Object.assign({}, prev, { track }));
+        }
+      },
+      [track]
+    )
+  );
 }
