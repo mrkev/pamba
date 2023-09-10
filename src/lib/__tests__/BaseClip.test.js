@@ -2,10 +2,7 @@ import { BaseClip } from "../BaseClip";
 
 function clip(startOffset, endOffset) {
   const DEFAULT_SAMPLE_RATE = 1000;
-  const result = new BaseClip({
-    lengthSec: endOffset - startOffset,
-    sampleRate: DEFAULT_SAMPLE_RATE,
-  });
+  const result = new BaseClip(endOffset - startOffset, DEFAULT_SAMPLE_RATE);
   result.startOffsetSec = startOffset;
   return result;
 }
