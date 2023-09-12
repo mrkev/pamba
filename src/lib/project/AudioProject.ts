@@ -66,6 +66,7 @@ export class AudioProject {
   // much like live, there's always an active track. Logic is a great model since
   // the active track is clearly discernable in spite of multi-track selection.
   readonly activeTrack = SPrimitive.of<AudioTrack | MidiTrack | null>(null);
+  readonly armedTrack = SPrimitive.of<AudioTrack | MidiTrack | null>(null);
 
   // Pointer //
   readonly pointerTool = SPrimitive.of<Tool>("move");

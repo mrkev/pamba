@@ -64,7 +64,7 @@ export function ToolHeader({
         return;
       }
     },
-    [player, project]
+    [player, project],
   );
 
   const drawPlaybeatTime = useCallback(
@@ -89,7 +89,7 @@ export function ToolHeader({
       ctx.clearRect(0, 0, playbeatCanvasRef.current.width, 100);
       ctx.fillText(String(`${bar}.${beat}.${high}`), 6, 26);
     },
-    [project.tempo, project.timeSignature]
+    [project.tempo, project.timeSignature],
   );
 
   return (

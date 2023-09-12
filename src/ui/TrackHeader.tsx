@@ -57,10 +57,13 @@ export const TrackHeader = React.memo(function TrackHeader({
   const [height] = useLinkedState(track.height);
   const [selected] = useLinkedState(project.selected);
   const [activeTrack] = useLinkedState(project.activeTrack);
+  const [armedTrack] = useLinkedState(project.armedTrack);
 
   const isSelected = selected !== null && selected.status === "tracks" && selected.test.has(track);
-
   const isSolod = solodTracks.has(track);
+  const isActive = activeTrack === track;
+  const isArmed = armedTrack === track;
+
   const isDspExpanded = dspExpandedTracks.has(track);
 
   function onMouseDownToResize(e: React.MouseEvent<HTMLDivElement>) {
@@ -109,7 +112,7 @@ export const TrackHeader = React.memo(function TrackHeader({
           }}
         >
           <span
-            className={classNames(styles.trackNumber, activeTrack === track && styles.trackNumberActive)}
+            className={classNames(styles.trackNumber, isActive && styles.trackNumberActive)}
             style={{ marginRight: 4 }}
           >
             {trackNumber}
@@ -192,6 +195,21 @@ export const TrackHeader = React.memo(function TrackHeader({
               track.setGain(val);
             }}
           /> */}
+        </div>
+        <div>
+          <button
+            className={utility.button}
+            style={isArmed ? { background: "red" } : undefined}
+            onClick={function () {
+              if (isArmed) {
+                project.armedTrack.set(null);
+              } else {
+                project.armedTrack.set(track);
+              }
+            }}
+          >
+            {"\u23fa"}
+          </button>
         </div>
 
         <div style={{ flexGrow: 1 }}></div>
