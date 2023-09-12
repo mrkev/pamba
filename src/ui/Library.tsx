@@ -12,6 +12,7 @@ import { pressedState } from "../pressedState";
 import { ignorePromise } from "../utils/ignorePromise";
 import { AudioFileUploadDropzone } from "./AudioFileUploadDropzone";
 import { UploadAudioButton } from "./UploadAudioButton";
+import { UserAuthControl } from "./header/UserAuthControl";
 
 const STATIC_AUDIO_FILES = ["drums.mp3", "clav.mp3", "bassguitar.mp3", "horns.mp3", "leadguitar.mp3"];
 
@@ -60,7 +61,7 @@ export function Library({
         return;
       }
     },
-    [player, project]
+    [player, project],
   );
 
   return (
@@ -117,6 +118,7 @@ export function Library({
       <hr style={{ width: "100%" }} />
       {/* TODO: library won't be updated when new audio gets uploaded, unless it's constantly executed when I think it might be */}
       <UploadAudioButton project={project} loadClip={loadClip} />
+      <UserAuthControl />
     </>
   );
 }

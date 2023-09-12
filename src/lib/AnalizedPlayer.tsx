@@ -71,10 +71,10 @@ export class AnalizedPlayer {
   private drawPlaybackTime(playbackTime: number) {
     const ctx = this.playtimeCtx;
     if (ctx == null) return;
-    ctx.font = "24px Helvetica";
+    ctx.font = "24px monospace";
     ctx.textAlign = "start";
     ctx.fillStyle = "#ffffff";
-    ctx.clearRect(0, 0, 100, 100);
+    ctx.clearRect(0, 0, 200, 100);
     ctx.fillText(String(playbackTime.toFixed(2)) + "s", 6, 26);
   }
 

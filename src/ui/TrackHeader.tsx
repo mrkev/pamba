@@ -22,7 +22,6 @@ const useStyles = createUseStyles({
   },
   trackNumber: {
     width: 17.5,
-    borderRight: "1px solid #eee",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -32,6 +31,14 @@ const useStyles = createUseStyles({
   trackNumberActive: {
     color: "white",
     background: "#333",
+    borderRight: "1px solid #eee",
+  },
+  buttonRow: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: "2px",
+    padding: "2px 2px 0px 2px",
   },
 });
 
@@ -123,7 +130,7 @@ export const TrackHeader = React.memo(function TrackHeader({
             x
           </button>{" "}
         </div>
-        <div style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "2px" }}>
+        <div className={styles.buttonRow}>
           <button
             className={utility.button}
             style={isSolod ? { background: "#DDCC33" } : undefined}
@@ -196,7 +203,7 @@ export const TrackHeader = React.memo(function TrackHeader({
             }}
           /> */}
         </div>
-        <div>
+        <div className={styles.buttonRow}>
           <button
             className={utility.button}
             style={isArmed ? { background: "red" } : undefined}
@@ -220,12 +227,13 @@ export const TrackHeader = React.memo(function TrackHeader({
             color: isDspExpanded ? "white" : undefined,
             fontSize: "0.8em",
           }}
-          onClick={function () {
+          onClick={function (e) {
             if (dspExpandedTracks.has(track)) {
               dspExpandedTracks.delete(track);
             } else {
               dspExpandedTracks.add(track);
             }
+            e.stopPropagation();
           }}
         >
           DSP ({trackEffects.length})

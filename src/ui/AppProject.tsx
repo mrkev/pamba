@@ -68,7 +68,7 @@ export function AppProject({ project }: { project: AudioProject }) {
                 display: "flex",
                 flexDirection: "column",
                 gap: 4,
-                padding: "4px 0px 4px 4px",
+                padding: "0px 0px 4px 4px",
                 paddingBottom: "128px",
               }}
             >

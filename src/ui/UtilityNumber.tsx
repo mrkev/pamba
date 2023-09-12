@@ -7,7 +7,7 @@ export type Point = [number, number];
 export function useMouseDrag<T>(
   ref: React.RefObject<HTMLDivElement>,
   onMove: (e: MouseEvent, delta: [number, number], initialState: T) => void,
-  initialState?: (e: MouseEvent) => T
+  initialState?: (e: MouseEvent) => T,
 ) {
   const initial = useRef<null | { pos: Point; state: T }>(null);
   const getInitialState = useRef<((e: MouseEvent) => T) | undefined>(initialState);
@@ -77,9 +77,9 @@ export function UtilityNumber({
         onChange?.(initialValue + change);
       },
       // TODO
-      [decimals]
+      [decimals],
     ),
-    useCallback(() => value, [value])
+    useCallback(() => value, [value]),
   );
 
   return (
@@ -102,7 +102,7 @@ export function UtilityNumber({
           }
           onChange?.(val);
         }}
-        style={{ justifyContent: "center", width: 20 }}
+        style={{ justifyContent: "center", width: 20, paddingTop: 0, paddingBottom: 0 }}
         className="utilityButton"
       ></RenamableLabel>
       {/* </div> */}

@@ -11,6 +11,70 @@ import { utility } from "../utility";
 export function TransportControl({
   project,
   renderer,
+  recorder,
+}: {
+  project: AudioProject;
+  renderer: AudioRenderer;
+  recorder: AudioRecorder;
+}) {
+  const cursorCanvasRef = useRef<HTMLCanvasElement>(null);
+  const [isAudioPlaying] = useLinkedState(renderer.isAudioPlaying);
+  const [selectionWidth] = useLinkedState(project.selectionWidth);
+  const [recorderStatus] = useLinkedState(recorder.status);
+  const [cursorPos] = useLinkedState(project.cursorPos);
+  const isRecording = recorderStatus === "recording";
+
+  useEffect(() => {
+    const canvas = cursorCanvasRef.current;
+    const ctx = canvas?.getContext("2d");
+    if (ctx == null || canvas == null) return;
+    ctx.font = "bold 22px monospace";
+    ctx.textAlign = "start";
+    ctx.fillStyle = "#D3D3D3";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const start = cursorPos.toFixed(2);
+    const end = selectionWidth !== null ? (cursorPos + selectionWidth).toFixed(2) : "--.--";
+    const duration = selectionWidth !== null ? selectionWidth.toFixed(2) : "0.00";
+
+    ctx.fillStyle = "#777";
+    ctx.fillText(`Time Selection:  Start: ${start}s  End: ${end}s  (Duration: ${duration}s)`, 6, 24);
+  }, [cursorPos, selectionWidth]);
+
+  return (
+    <div style={{ display: "flex", flexDirection: "row", alignItems: "center" }}>
+      <button
+        className={utility.button}
+        disabled={isAudioPlaying || isRecording || (cursorPos === 0 && selectionWidth === 0)}
+        style={isRecording ? { color: "red" } : undefined}
+        onClick={() => {
+          project.cursorPos.set(0);
+          project.selectionWidth.set(0);
+        }}
+      >
+        {"\u23ee" /* rewind */}
+      </button>
+
+      {/* Cursor canvas */}
+      <canvas
+        style={{
+          background: "black",
+          width: 2 * 220,
+          height: 18,
+          alignSelf: "center",
+          marginRight: 4,
+        }}
+        width={2 * (2 * 220) + "px"}
+        height={2 * 18 + "px"}
+        ref={cursorCanvasRef}
+      />
+    </div>
+  );
+}
+
+export function PlaybackControl({
+  project,
+  renderer,
   player,
   style,
   recorder,
@@ -22,65 +86,14 @@ export function TransportControl({
   recorder: AudioRecorder;
 }) {
   const [tracks] = useLinkedArray(project.allTracks);
-  const [isAudioPlaying] = useLinkedState(renderer.isAudioPlaying);
-  const cursorCanvasRef = useRef<HTMLCanvasElement>(null);
-  const [cursorPos] = useLinkedState(project.cursorPos);
-  const [selectionWidth] = useLinkedState(project.selectionWidth);
-  const [recorderStatus] = useLinkedState(recorder.status);
   const [armedTrack] = useLinkedState(project.armedTrack);
+  const [isAudioPlaying] = useLinkedState(renderer.isAudioPlaying);
+  const [recorderStatus] = useLinkedState(recorder.status);
   const isRecording = recorderStatus === "recording";
   const isTrackArmed = armedTrack != null;
 
-  useEffect(() => {
-    const canvas = cursorCanvasRef.current;
-    const ctx = canvas?.getContext("2d");
-    if (ctx == null || canvas == null) return;
-    ctx.font = "24px Verdana";
-    ctx.textAlign = "start";
-    ctx.fillStyle = "#ffffff";
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    if (selectionWidth !== null) {
-      const start = cursorPos.toFixed(2);
-      const end = (cursorPos + selectionWidth).toFixed(2);
-      ctx.fillText(
-        `Time Selection:   Start: ${start}s   End: ${end}s   (Duration: ${selectionWidth.toFixed(2)}s)`,
-        6,
-        26,
-      );
-    } else {
-      ctx.fillText(`Time Selection:   Start: ${cursorPos.toFixed(2)}s   End: --.--s   (Duration: 0.00s)`, 6, 26);
-    }
-  }, [cursorPos, selectionWidth]);
-
   return (
     <div style={{ display: "flex", flexDirection: "row", ...style }}>
-      <button
-        className={utility.button}
-        disabled={isAudioPlaying || (cursorPos === 0 && selectionWidth === 0)}
-        style={isRecording ? { color: "red" } : undefined}
-        onClick={() => {
-          project.cursorPos.set(0);
-          project.selectionWidth.set(0);
-        }}
-      >
-        {"\u23ee"}
-      </button>
-
-      {/* Cursor canvas */}
-      <canvas
-        style={{
-          background: "black",
-          width: 2 * 210,
-          height: 18,
-          alignSelf: "center",
-          marginRight: 4,
-        }}
-        width={2 * (2 * 210) + "px"}
-        height={2 * 18 + "px"}
-        ref={cursorCanvasRef}
-      />
-
       {!isAudioPlaying && (
         <button
           className={utility.button}
@@ -141,7 +154,7 @@ export function TransportControl({
       <canvas
         style={{
           background: "black",
-          width: 56,
+          width: 58,
           height: 18,
           alignSelf: "center",
         }}

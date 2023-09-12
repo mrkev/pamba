@@ -137,7 +137,7 @@ export function UtilitySlider({
       style={{
         position: "relative",
         textAlign: "center",
-        height: 16,
+        height: 18,
         flexGrow: 1,
       }}
     >

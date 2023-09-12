@@ -2,20 +2,17 @@ import { useCallback, useRef } from "react";
 import { createUseStyles } from "react-jss";
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from "../../constants";
 import { AnalizedPlayer } from "../../lib/AnalizedPlayer";
-import AudioClip from "../../lib/AudioClip";
+import { appEnvironment } from "../../lib/AppEnvironment";
 import { AudioRenderer } from "../../lib/AudioRenderer";
-import { AudioTrack } from "../../lib/AudioTrack";
 import { ProjectPersistance } from "../../lib/ProjectPersistance";
 import { AudioProject } from "../../lib/project/AudioProject";
 import { useLinkedState } from "../../lib/state/LinkedState";
+import { AudioRecorder } from "../../utils/useMediaRecorder";
 import { UtilityNumber } from "../UtilityNumber";
 import { utility } from "../utility";
 import { BounceButton } from "./BounceButton";
 import { ToolSelector } from "./ToolSelector";
-import { TransportControl } from "./TransportControl";
-import { UserAuthControl } from "./UserAuthControl";
-import { appEnvironment } from "../../lib/AppEnvironment";
-import { AudioRecorder } from "../../utils/useMediaRecorder";
+import { PlaybackControl, TransportControl } from "./TransportControl";
 
 function NewProjectButton() {
   return (
@@ -80,64 +77,49 @@ export function ToolHeader({
 
   return (
     <div className={classes.headerContainer}>
-      <div
-        style={{
-          flexGrow: 1,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "flex-end",
-          marginRight: 12,
-        }}
-      >
+      <div className={classes.tools}>
         <div className={classes.topRow}>
           <NewProjectButton />
-          <UtilityNumber
-            value={tempo}
-            onChange={(v) => {
-              project.tempo.set(v);
-            }}
-          ></UtilityNumber>
-          <button className="utilityButton">4 / 4</button>
-          <canvas
-            style={{
-              background: "black",
-              width: 72,
-              height: 18,
-              alignSelf: "center",
-            }}
-            width={2 * 72 + "px"}
-            height={2 * 18 + "px"}
-            ref={(ref) => {
-              playbeatCanvasRef.current = ref;
-              player.drawPlaybeatTime = drawPlaybeatTime;
-            }}
-          />
-          <BounceButton project={project} renderer={renderer} />
-          <ToolSelector project={project} />
+          <div style={{ display: "flex", flexDirection: "row", alignItems: "center" }}>
+            <UtilityNumber
+              value={tempo}
+              onChange={(v) => {
+                project.tempo.set(v);
+              }}
+            ></UtilityNumber>
+            <button className="utilityButton">4 / 4</button>
+            <canvas
+              style={{
+                background: "black",
+                width: 72,
+                height: 18,
+                alignSelf: "center",
+              }}
+              width={2 * 72 + "px"}
+              height={2 * 18 + "px"}
+              ref={(ref) => {
+                playbeatCanvasRef.current = ref;
+                player.drawPlaybeatTime = drawPlaybeatTime;
+              }}
+            />
+          </div>
 
           <div style={{ flexGrow: 1 }}></div>
-          <TransportControl
+          <PlaybackControl
             project={project}
             player={player}
             renderer={renderer}
             style={{ alignSelf: "center" }}
             recorder={recorder}
           />
+          <ToolSelector project={project} />
+          <div style={{ flexGrow: 1 }}></div>
+          <BounceButton project={project} renderer={renderer} />
         </div>
         <div className={classes.bottomRow}>
-          <UserAuthControl />
-          {/* <input
-            value={""}
-            type="file"
-            accept="audio/*"
-            onChange={function (e) {
-              const files = e.target.files || [];
-              const url = URL.createObjectURL(files[0]);
-              loadClip(url, files[0].name);
-            }}
-          /> */}
+          <TransportControl project={project} renderer={renderer} recorder={recorder} />
           <div style={{ flexGrow: 1 }}></div>
-          <span>
+          <span style={{ fontSize: 12, display: "flex", flexDirection: "row", alignItems: "center" }}>
             snap to grid
             <input
               type="checkbox"
@@ -205,18 +187,25 @@ const useStyles = createUseStyles({
     flexDirection: "row",
     width: "100%",
   },
+  tools: {
+    flexGrow: 1,
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-around",
+    marginRight: 12,
+  },
   topRow: {
     display: "flex",
     flexDirection: "row",
     gap: "6px",
     alignSelf: "stretch",
-    alignItems: "baseline",
+    alignItems: "center",
   },
   bottomRow: {
     display: "flex",
     flexDirection: "row",
     gap: "6px",
     alignSelf: "stretch",
-    alignItems: "baseline",
+    alignItems: "center",
   },
 });
