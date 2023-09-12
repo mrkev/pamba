@@ -1,14 +1,12 @@
-import React, { useEffect } from "react";
-import { ProjectPersistance } from "../lib/ProjectPersistance";
+import React from "react";
 import { useLinkedState } from "../lib/state/LinkedState";
-import { ignorePromise } from "../utils/ignorePromise";
 // import { TrackThread } from "../lib/TrackThread";
 // import { MidiDemo } from "../midi";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { exhaustive } from "../utils/exhaustive";
 import { AppProject } from "./AppProject";
 import { DebugData } from "./DebugData";
-import { MidiDemo } from "../midi";
+// import { MidiDemo } from "../midi";
 
 // var w = new TrackThread();
 // var sab = new SharedArrayBuffer(1024);
@@ -16,24 +14,7 @@ import { MidiDemo } from "../midi";
 // w.postMessage({ kind: "set", sab });
 
 export function App(): React.ReactElement {
-  const [projectStatus, setProjectStatus] = useLinkedState(appEnvironment.projectStatus);
-
-  useEffect(() => {
-    ignorePromise(
-      (async function doLoad() {
-        if (projectStatus.status === "loading") {
-          const maybeProject = await ProjectPersistance.openSaved();
-          if (maybeProject == null) {
-            alert("Could not open project. Clearing");
-            ProjectPersistance.clearSaved();
-            setProjectStatus({ status: "loaded", project: ProjectPersistance.defaultProject() });
-          } else {
-            setProjectStatus({ status: "loaded", project: maybeProject });
-          }
-        }
-      })()
-    );
-  }, [projectStatus.status, setProjectStatus]);
+  const [projectStatus] = useLinkedState(appEnvironment.projectStatus);
 
   switch (projectStatus.status) {
     case "loading": {

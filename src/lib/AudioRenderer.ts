@@ -49,7 +49,7 @@ export class AudioRenderer {
   static async bounceTracks(
     tracks: ReadonlyArray<AudioTrack>,
     startSec: number = 0,
-    endSec?: number
+    endSec?: number,
   ): Promise<AudioBuffer> {
     let end = endSec;
     // If no end is provided, bounce to the full duration of the track. We go
@@ -81,7 +81,7 @@ export class AudioRenderer {
     const trackDests = await Promise.all(
       tracks.map((track) => {
         return track.prepareForBounce(offlineAudioContext, offlineContextInfo);
-      })
+      }),
     );
 
     for (let trackDest of trackDests) {
@@ -106,6 +106,24 @@ export class AudioRenderer {
     } else {
       player.playTracks(project.allAudioTracks_TODO_REMOVE(), project.cursorPos.get());
       renderer.isAudioPlaying.set(true);
+    }
+  }
+
+  static ensurePlaybackGoing(renderer: AudioRenderer, project: AudioProject, player: AnalizedPlayer) {
+    if (renderer.isAudioPlaying.get()) {
+      return;
+    } else {
+      player.playTracks(project.allAudioTracks_TODO_REMOVE(), project.cursorPos.get());
+      renderer.isAudioPlaying.set(true);
+    }
+  }
+
+  static ensurePlaybackStopped(renderer: AudioRenderer, project: AudioProject, player: AnalizedPlayer) {
+    if (renderer.isAudioPlaying.get()) {
+      player.stopSound();
+      renderer.isAudioPlaying.set(false);
+    } else {
+      return;
     }
   }
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { modifierState, useSingletonKeyboardModifierState } from "../ModifierState";
 import { useDocumentKeyboardEvents } from "../input/useDocumentKeyboardEvents";
@@ -8,6 +8,9 @@ import { AudioProject } from "../lib/project/AudioProject";
 import { Library } from "./Library";
 import { TimelineView } from "./TimelineView";
 import { ToolHeader } from "./header/ToolHeader";
+import { AudioRecorder } from "../utils/useMediaRecorder";
+import AudioClip from "../lib/AudioClip";
+import { AudioTrack } from "../lib/AudioTrack";
 
 function useStopPlaybackOnUnmount(renderer: AudioRenderer) {
   useEffect(() => {
@@ -22,6 +25,24 @@ function useStopPlaybackOnUnmount(renderer: AudioRenderer) {
 export function AppProject({ project }: { project: AudioProject }) {
   // IDEA: Maybe merge player and renderer?
   const [renderer] = useState(() => new AudioRenderer(new AnalizedPlayer()));
+  const loadClip = useCallback(
+    async function loadClip(url: string, name?: string) {
+      try {
+        console.log("LOAD CLIP", project.cursorPos.get());
+        // load clip
+        const clip = await AudioClip.fromURL(url, name);
+        const newTrack = AudioTrack.fromClip(clip);
+        AudioProject.addAudioTrack(project, renderer.analizedPlayer, newTrack);
+        console.log("loaded");
+      } catch (e) {
+        console.trace(e);
+        return;
+      }
+    },
+    [project, renderer.analizedPlayer],
+  );
+
+  const [recorder] = useState(() => new AudioRecorder(loadClip));
 
   useSingletonKeyboardModifierState(modifierState);
   useDocumentKeyboardEvents(project, renderer.analizedPlayer, renderer);
@@ -29,7 +50,7 @@ export function AppProject({ project }: { project: AudioProject }) {
 
   return (
     <>
-      <ToolHeader project={project} player={renderer.analizedPlayer} renderer={renderer} />
+      <ToolHeader project={project} player={renderer.analizedPlayer} renderer={renderer} recorder={recorder} />
       <PanelGroup direction={"vertical"} autoSaveId="foobar2">
         <Panel>
           <PanelGroup direction="horizontal" autoSaveId="foobar">

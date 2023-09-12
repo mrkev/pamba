@@ -15,6 +15,7 @@ import { ToolSelector } from "./ToolSelector";
 import { TransportControl } from "./TransportControl";
 import { UserAuthControl } from "./UserAuthControl";
 import { appEnvironment } from "../../lib/AppEnvironment";
+import { AudioRecorder } from "../../utils/useMediaRecorder";
 
 function NewProjectButton() {
   return (
@@ -39,33 +40,18 @@ export function ToolHeader({
   project,
   player,
   renderer,
+  recorder,
 }: {
   project: AudioProject;
   player: AnalizedPlayer;
   renderer: AudioRenderer;
+  recorder: AudioRecorder;
 }) {
   const classes = useStyles();
   const [scaleFactor] = useLinkedState(project.scaleFactor);
   const [tempo] = useLinkedState(project.tempo);
   const playbeatCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const [snapToGrid] = useLinkedState(project.snapToGrid);
-
-  const loadClip = useCallback(
-    async function loadClip(url: string, name?: string) {
-      try {
-        console.log("LOAD CLIP");
-        // load clip
-        const clip = await AudioClip.fromURL(url, name);
-        const newTrack = AudioTrack.fromClip(clip);
-        AudioProject.addAudioTrack(project, player, newTrack);
-        console.log("loaded");
-      } catch (e) {
-        console.trace(e);
-        return;
-      }
-    },
-    [player, project],
-  );
 
   const drawPlaybeatTime = useCallback(
     (time: number) => {
@@ -132,10 +118,10 @@ export function ToolHeader({
           <div style={{ flexGrow: 1 }}></div>
           <TransportControl
             project={project}
-            loadClip={loadClip}
             player={player}
             renderer={renderer}
             style={{ alignSelf: "center" }}
+            recorder={recorder}
           />
         </div>
         <div className={classes.bottomRow}>

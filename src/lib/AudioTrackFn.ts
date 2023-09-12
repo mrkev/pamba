@@ -90,7 +90,7 @@ export function addClip<Clip extends BaseClip>(newClip: Clip, clips: ReadonlyArr
 export function deleteTime<Clip extends BaseClip>(
   startSec: number,
   endSec: number,
-  clips: ReadonlyArray<Clip>
+  clips: ReadonlyArray<Clip>,
 ): ReadonlyArray<Clip> {
   if (startSec === endSec) {
     return clips;
@@ -182,7 +182,7 @@ export function removeClip<Clip extends BaseClip>(clip: Clip, clips: ReadonlyArr
 export function splitClip<T extends BaseClip>(
   clip: T,
   timeSec: number,
-  clips: ReadonlyArray<T>
+  clips: ReadonlyArray<T>,
 ): [before: T, after: T, clips: ReadonlyArray<T>] | null {
   if (timeSec > clip.endOffsetSec || timeSec < clip.startOffsetSec) {
     return null;

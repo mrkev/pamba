@@ -8,7 +8,7 @@ import { notify, Subbable, subscribe } from "./Subbable";
 export class LinkedMap<K, V> implements Map<K, V>, Subbable<ReadonlyMap<K, V>>, MutationHashable {
   private _map = new Map<K, V>();
 
-  _subscriptors = new Set<StateChangeHandler<ReadonlyMap<K, V>>>();
+  readonly _subscriptors = new Set<StateChangeHandler<ReadonlyMap<K, V>>>();
   _hash: number = 0;
 
   _setRaw(map: ReadonlyMap<K, V>) {
@@ -126,7 +126,7 @@ export function useLinkedMap<K, V>(linkedMap: LinkedMap<K, V>): [LinkedMap<K, V>
         linkedMap._setRaw(newVal);
       }
     },
-    [linkedMap]
+    [linkedMap],
   );
 
   return [linkedMap, setter];
@@ -134,7 +134,7 @@ export function useLinkedMap<K, V>(linkedMap: LinkedMap<K, V>): [LinkedMap<K, V>
 
 export function useSubscribeToSubbableMutationHashable<T extends MutationHashable & Subbable<any>>(
   obj: T,
-  cb?: () => void
+  cb?: () => void,
 ): T {
   const [, setHash] = useState(() => MutationHashable.getMutationHash(obj));
 

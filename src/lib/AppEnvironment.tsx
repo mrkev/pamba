@@ -9,6 +9,7 @@ import { initAudioContext } from "./initAudioContext";
 import { AudioProject } from "./project/AudioProject";
 import { LinkedMap } from "./state/LinkedMap";
 import { SPrimitive } from "./state/LinkedState";
+import nullthrows from "../utils/nullthrows";
 
 export type WAMAvailablePlugin = {
   // midi out, audio out, midi to audio, audio to audio
@@ -38,12 +39,17 @@ export class AppEnvironment {
     this.projectStatus = SPrimitive.of<ProjectState>(
       ProjectPersistance.hasSavedData()
         ? { status: "loading" }
-        : { status: "loaded", project: ProjectPersistance.defaultProject() }
+        : { status: "loaded", project: ProjectPersistance.defaultProject() },
     );
   }
 
   async initAsync(liveAudioContext: AudioContext) {
-    const audioContextInfo = await initAudioContext(liveAudioContext);
+    const [audioContextInfo, _] = await Promise.all([
+      initAudioContext(liveAudioContext),
+      // no return
+      this.initialLoadProject(),
+    ]);
+
     // Init wam host
     this.wamHostGroup.set(audioContextInfo.wamHostGroup);
     await Promise.all(
@@ -53,10 +59,31 @@ export class AppEnvironment {
           return;
         }
         this.wamPlugins.set(url, plugin);
-      })
+      }),
     );
     this.wamStatus.set("ready");
   }
+
+  private async initialLoadProject() {
+    if (this.projectStatus.get().status === "loading") {
+      const maybeProject = await ProjectPersistance.openSaved();
+      if (maybeProject == null) {
+        alert("Could not open project. Clearing");
+        ProjectPersistance.clearSaved();
+        this.projectStatus.set({ status: "loaded", project: ProjectPersistance.defaultProject() });
+      } else {
+        this.projectStatus.set({ status: "loaded", project: maybeProject });
+      }
+    }
+  }
+
+  // project(): AudioProject {
+  //   const projectStatus = this.projectStatus.get();
+  //   if (projectStatus.status === "loading") {
+  //     throw new Error("loading project");
+  //   }
+  //   return projectStatus.project;
+  // }
 }
 
 export const appEnvironment = new AppEnvironment();

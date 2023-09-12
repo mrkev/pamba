@@ -3,7 +3,7 @@ import { StateChangeHandler } from "./LinkedState";
 // Subbables are things one can subscribe to
 
 export interface Subbable<S> {
-  _subscriptors: Set<StateChangeHandler<S>>;
+  readonly _subscriptors: Set<StateChangeHandler<S>>;
 }
 
 export function subscribe<S>(subbable: Subbable<S>, cb: StateChangeHandler<S>): () => void {
@@ -33,7 +33,7 @@ export function notify<S>(subbable: Subbable<S>, value: S, priority: "task" | "m
           subbable._subscriptors.forEach((cb) => {
             cb(value);
           });
-        })
+        }),
       );
       break;
 

@@ -15,7 +15,7 @@ async function init() {
     root.render(
       <React.StrictMode>
         <App />
-      </React.StrictMode>
+      </React.StrictMode>,
     );
   } catch (e) {
     console.trace(e);

@@ -4,29 +4,30 @@ import { AudioRenderer } from "../../lib/AudioRenderer";
 import { AudioProject } from "../../lib/project/AudioProject";
 import { useLinkedArray } from "../../lib/state/LinkedArray";
 import { useLinkedState } from "../../lib/state/LinkedState";
-import { useMediaRecorder } from "../../utils/useMediaRecorder";
+import { exhaustive } from "../../utils/exhaustive";
+import { AudioRecorder } from "../../utils/useMediaRecorder";
 import { utility } from "../utility";
 
 export function TransportControl({
   project,
   renderer,
   player,
-  loadClip,
   style,
+  recorder,
 }: {
-  loadClip: (url: string, name?: string) => Promise<void>;
   project: AudioProject;
   player: AnalizedPlayer;
   renderer: AudioRenderer;
   style: React.CSSProperties;
+  recorder: AudioRecorder;
 }) {
-  const mediaRecorder = useMediaRecorder(loadClip);
   const [tracks] = useLinkedArray(project.allTracks);
-  const [isRecording, setIsRecording] = useLinkedState(project.isRecording);
   const [isAudioPlaying] = useLinkedState(renderer.isAudioPlaying);
   const cursorCanvasRef = useRef<HTMLCanvasElement>(null);
   const [cursorPos] = useLinkedState(project.cursorPos);
   const [selectionWidth] = useLinkedState(project.selectionWidth);
+  const [recorderStatus] = useLinkedState(recorder.status);
+  const isRecording = recorderStatus === "recording";
 
   useEffect(() => {
     const canvas = cursorCanvasRef.current;
@@ -43,7 +44,7 @@ export function TransportControl({
       ctx.fillText(
         `Time Selection:   Start: ${start}s   End: ${end}s   (Duration: ${selectionWidth.toFixed(2)}s)`,
         6,
-        26
+        26,
       );
     } else {
       ctx.fillText(`Time Selection:   Start: ${cursorPos.toFixed(2)}s   End: --.--s   (Duration: 0.00s)`, 6, 26);
@@ -78,28 +79,54 @@ export function TransportControl({
         ref={cursorCanvasRef}
       />
 
-      <button
-        className={utility.button}
-        style={{ color: isRecording ? "red" : undefined, width: 17.56 }}
-        disabled={tracks.length === 0 || isRecording}
-        onClick={() => {
-          AudioRenderer.togglePlayback(renderer, project, player);
-        }}
-      >
-        {isAudioPlaying ? "\u23f9" /*stop*/ : "\u23f5" /*play*/}
-      </button>
-      {mediaRecorder && (
+      {!isAudioPlaying && (
+        <button
+          className={utility.button}
+          style={{ color: isRecording ? "red" : undefined, width: 17.56 }}
+          disabled={tracks.length === 0}
+          onClick={() => {
+            AudioRenderer.ensurePlaybackGoing(renderer, project, player);
+          }}
+        >
+          {"\u23f5" /*play*/}
+        </button>
+      )}
+
+      {isAudioPlaying && (
+        <button
+          className={utility.button}
+          style={{ color: isRecording ? "red" : undefined, width: 17.56 }}
+          disabled={tracks.length === 0}
+          onClick={() => {
+            AudioRenderer.ensurePlaybackStopped(renderer, project, player);
+            if (isRecording) {
+              recorder.stop();
+            }
+          }}
+        >
+          {"\u23f9" /*stop*/}
+        </button>
+      )}
+
+      {recorder && (
         <button
           className={utility.button}
           disabled={isAudioPlaying}
           style={isRecording ? { color: "red" } : undefined}
           onClick={function () {
-            if (!isRecording) {
-              mediaRecorder.start();
-              setIsRecording(true);
-            } else {
-              mediaRecorder.stop();
-              setIsRecording(false);
+            switch (recorderStatus) {
+              case "error":
+                console.error("errorrrrr");
+                return;
+              case "idle":
+                recorder.record();
+                AudioRenderer.ensurePlaybackGoing(renderer, project, player);
+                return;
+              case "recording":
+                recorder.stop();
+                return;
+              default:
+                exhaustive(recorderStatus);
             }
           }}
         >
