@@ -31,9 +31,15 @@ export function AppProject({ project }: { project: AudioProject }) {
         console.log("LOAD CLIP", project.cursorPos.get());
         // load clip
         const clip = await AudioClip.fromURL(url, name);
-        const newTrack = AudioTrack.fromClip(clip);
-        AudioProject.addAudioTrack(project, renderer.analizedPlayer, newTrack);
-        console.log("loaded");
+        clip.startOffsetSec = project.cursorPos.get();
+
+        const armedTrack = project.armedTrack.get();
+        if (armedTrack == null) {
+          const newTrack = AudioTrack.fromClip(clip);
+          AudioProject.addAudioTrack(project, renderer.analizedPlayer, newTrack);
+        } else if (armedTrack instanceof AudioTrack) {
+          armedTrack.addClip(clip);
+        }
       } catch (e) {
         console.trace(e);
         return;

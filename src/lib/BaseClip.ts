@@ -18,12 +18,12 @@ export class BaseClip {
   // been trimmed to be of another length.
   readonly lengthSec: number; // seconds, whole buffer
   readonly sampleRate: number; // how many frames per second
-  protected _startOffsetSec: number = 0; // on the timeline, the x position
+  protected _startOffsetSec: number; // on the timeline, the x position
   protected _trimEndSec: number; // within the clip, time considered the end.
   protected _trimStartSec: number = 0; // within the clip, where to start.
 
   clone(): BaseClip {
-    const copy = new BaseClip(this.lengthSec, this.sampleRate);
+    const copy = new BaseClip(this.lengthSec, this.sampleRate, this._startOffsetSec);
     copy._startOffsetSec = this._startOffsetSec;
     copy.trimEndSec = this._trimEndSec;
     copy._trimStartSec = this._trimStartSec;
@@ -34,11 +34,12 @@ export class BaseClip {
     return `${this.startOffsetSec} [ ${this.trimStartSec} | -- | ${this.trimEndSec} ] ${this.endOffsetSec}`;
   }
 
-  constructor(lengthSec: number, sampleRate: number) {
+  constructor(lengthSec: number, sampleRate: number, startOffsetSec: number) {
     // By default, there is no trim and the clip has offset 0
     this.lengthSec = lengthSec;
     this.sampleRate = sampleRate;
     this._trimEndSec = lengthSec;
+    this._startOffsetSec = startOffsetSec;
   }
 
   private secToFr(sec: number): number {

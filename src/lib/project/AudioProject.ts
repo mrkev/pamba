@@ -203,7 +203,6 @@ export class ProjectSelection {
   static selectTrack(project: AudioProject, track: AudioTrack | MidiTrack) {
     const selected = project.selected.get();
     const selectAdd = modifierState.meta || modifierState.shift;
-    console.log("SELECTADD", selectAdd, modifierState);
     if (selectAdd && selected?.status === "tracks") {
       const next = { ...selected };
       next.tracks.push(track);
@@ -232,7 +231,7 @@ export class ProjectSelection {
    */
   static deleteSelection(project: AudioProject, player: AnalizedPlayer) {
     const selected = project.selected.get();
-    console.log(selected);
+
     if (!selected) {
       return;
     }

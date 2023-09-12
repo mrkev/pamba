@@ -29,7 +29,7 @@ export default class AudioClip extends BaseClip implements Subbable<AudioClip>, 
   private constructor(buffer: AudioBuffer, name: string, bufferURL: string) {
     // todo, should convert buffer.length to seconds myself? Are buffer.duration
     // and buffer.length always congruent?
-    super(buffer.duration, buffer.sampleRate);
+    super(buffer.duration, buffer.sampleRate, 0);
     this.buffer = new SharedAudioBuffer(buffer);
     this.numberOfChannels = buffer.numberOfChannels;
     this.name = name;

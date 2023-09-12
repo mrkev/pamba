@@ -11,7 +11,7 @@ import { stepNumber } from "../utils/math";
 
 export function useAxisContainerMouseEvents(
   project: AudioProject,
-  axisContainer: React.MutableRefObject<HTMLDivElement | null>
+  axisContainer: React.MutableRefObject<HTMLDivElement | null>,
 ) {
   useEventListener(
     "mousedown",
@@ -41,14 +41,14 @@ export function useAxisContainerMouseEvents(
         });
         // }
       },
-      [axisContainer, project]
-    )
+      [axisContainer, project],
+    ),
   );
 }
 
 export function useTimelineMouseEvents(
   project: AudioProject,
-  projectDivRef: React.MutableRefObject<HTMLDivElement | null>
+  projectDivRef: React.MutableRefObject<HTMLDivElement | null>,
 ): void {
   useDocumentEventListener(
     "mouseup",
@@ -168,8 +168,8 @@ export function useTimelineMouseEvents(
             exhaustive(status);
         }
       },
-      [project.cursorPos, project.selected, project.selectionWidth, project.viewport]
-    )
+      [project.cursorPos, project.selected, project.selectionWidth, project.viewport],
+    ),
   );
 
   useDocumentEventListener(
@@ -261,7 +261,7 @@ export function useTimelineMouseEvents(
             exhaustive(pressed);
         }
       },
-      [project]
-    )
+      [project],
+    ),
   );
 }

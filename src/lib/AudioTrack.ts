@@ -141,7 +141,7 @@ export class AudioTrack extends ProjectTrack {
   // New track with a single clip
   static fromClip(clip: AudioClip) {
     const track = AudioTrack.create();
-    track.pushClip(clip);
+    track.addClip(clip);
     return track;
   }
 

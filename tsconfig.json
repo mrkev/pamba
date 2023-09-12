@@ -26,5 +26,6 @@
     "noImplicitOverride": true,
     "types": ["vite/client"]
   },
-  "include": ["src", ".eslintrc.js"]
+  "include": ["src", ".eslintrc.js"],
+  "exclude": ["packages/burns-audio-wam"]
 }

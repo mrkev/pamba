@@ -27,7 +27,9 @@ export function TransportControl({
   const [cursorPos] = useLinkedState(project.cursorPos);
   const [selectionWidth] = useLinkedState(project.selectionWidth);
   const [recorderStatus] = useLinkedState(recorder.status);
+  const [armedTrack] = useLinkedState(project.armedTrack);
   const isRecording = recorderStatus === "recording";
+  const isTrackArmed = armedTrack != null;
 
   useEffect(() => {
     const canvas = cursorCanvasRef.current;
@@ -113,6 +115,7 @@ export function TransportControl({
           className={utility.button}
           disabled={isAudioPlaying}
           style={isRecording ? { color: "red" } : undefined}
+          title={isTrackArmed ? "record to armed track" : "record to new track"}
           onClick={function () {
             switch (recorderStatus) {
               case "error":
@@ -130,7 +133,8 @@ export function TransportControl({
             }
           }}
         >
-          {"\u23fa"}
+          {"\u23fa" /* record */}
+          {isTrackArmed ? "" : " +"}
         </button>
       )}
       {/* Playtime canvas */}

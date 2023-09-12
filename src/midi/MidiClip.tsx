@@ -10,7 +10,7 @@ export class MidiClip extends BaseClip implements Subbable<MidiClip>, MutationHa
   constructor(name: string, length: number) {
     // todo: sample rate doesn't really mean much for a midi clip?
     // Maybe this applies just to audio clips?
-    super(length, 44_100);
+    super(length, 44_100, 0);
     this.name = name;
   }
 
