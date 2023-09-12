@@ -14,34 +14,6 @@ import { pressedState } from "../pressedState";
 import { RenamableLabel } from "./RenamableLabel";
 import { UtilitySlider, utility } from "./utility";
 
-const useStyles = createUseStyles({
-  actionButton: {
-    cursor: "pointer",
-    border: "none",
-    background: "#d3d3d3",
-  },
-  trackNumber: {
-    width: 17.5,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    background: "white",
-    color: "black",
-  },
-  trackNumberActive: {
-    color: "white",
-    background: "#333",
-    borderRight: "1px solid #eee",
-  },
-  buttonRow: {
-    display: "flex",
-    flexDirection: "row",
-    alignItems: "center",
-    gap: "2px",
-    padding: "2px 2px 0px 2px",
-  },
-});
-
 export const TrackHeader = React.memo(function TrackHeader({
   track,
   trackNumber,
@@ -65,6 +37,7 @@ export const TrackHeader = React.memo(function TrackHeader({
   const [selected] = useLinkedState(project.selected);
   const [activeTrack] = useLinkedState(project.activeTrack);
   const [armedTrack] = useLinkedState(project.armedTrack);
+  const [isLocked, setIsLocked] = useState(false);
 
   const isSelected = selected !== null && selected.status === "tracks" && selected.test.has(track);
   const isSolod = solodTracks.has(track);
@@ -88,7 +61,6 @@ export const TrackHeader = React.memo(function TrackHeader({
   return (
     <div
       style={{
-        background: isSelected ? "#eee" : "white",
         position: "relative",
         borderBottom: `${TRACK_SEPARATOR_HEIGHT}px solid #BABABA`,
         cursor: "pointer",
@@ -132,9 +104,10 @@ export const TrackHeader = React.memo(function TrackHeader({
         </div>
         <div className={styles.buttonRow}>
           <button
-            className={utility.button}
+            className={classNames(utility.button, styles.headerButton)}
+            title="solo track"
             style={isSolod ? { background: "#DDCC33" } : undefined}
-            onClick={function () {
+            onClick={function (e) {
               if (solodTracks.has(track)) {
                 solodTracks.delete(track);
               } else {
@@ -148,14 +121,16 @@ export const TrackHeader = React.memo(function TrackHeader({
                   track._hidden_setIsMutedByApplication(true);
                 }
               }
+              e.stopPropagation();
             }}
           >
             S
           </button>
           <button
-            className={utility.button}
+            className={classNames(utility.button, styles.headerButton)}
             style={muted ? { background: "#5566EE" } : undefined}
-            onClick={function () {
+            title="mute track"
+            onClick={function (e) {
               setMuted((prev) => {
                 if (!prev) {
                   track.setGain(0);
@@ -164,6 +139,7 @@ export const TrackHeader = React.memo(function TrackHeader({
                 }
                 return !prev;
               });
+              e.stopPropagation();
             }}
           >
             M
@@ -205,27 +181,44 @@ export const TrackHeader = React.memo(function TrackHeader({
         </div>
         <div className={styles.buttonRow}>
           <button
-            className={utility.button}
+            className={classNames(utility.button)}
             style={isArmed ? { background: "red" } : undefined}
-            onClick={function () {
+            title="arm track (record to this track)"
+            onClick={function (e) {
               if (isArmed) {
                 project.armedTrack.set(null);
               } else {
                 project.armedTrack.set(track);
               }
+              e.stopPropagation();
             }}
           >
-            {"\u23fa"}
+            {"\u23fa" /* record */}
+          </button>
+
+          <button
+            className={classNames(utility.button, styles.lockButton)}
+            style={isLocked ? { background: "purple", color: "white" } : undefined}
+            title="lock track"
+            onClick={function (e) {
+              setIsLocked((prev) => !prev);
+              console.log("TODOOOOO LOCK TRACK");
+              e.stopPropagation();
+            }}
+          >
+            {isLocked ? "\u26BF" : "\u26f6" /* squared key, square four corners */}
           </button>
         </div>
 
         <div style={{ flexGrow: 1 }}></div>
+        {/* TODO: allow rezising track by dragging either line below dsp, or line between dsp and clips */}
         <button
           className={styles.actionButton}
           style={{
             background: isDspExpanded ? "#444" : undefined,
             color: isDspExpanded ? "white" : undefined,
             fontSize: "0.8em",
+            margin: "2px",
           }}
           onClick={function (e) {
             if (dspExpandedTracks.has(track)) {
@@ -243,18 +236,20 @@ export const TrackHeader = React.memo(function TrackHeader({
       {isDspExpanded && track instanceof AudioTrack ? (
         <div
           style={{
-            background: isSelected ? "#eee" : "white",
-            height: EFFECT_HEIGHT + 17 - TRACK_SEPARATOR_HEIGHT,
+            background: "#444444",
+            height: EFFECT_HEIGHT + 17 - TRACK_SEPARATOR_HEIGHT - 2,
             position: "relative",
             userSelect: "none",
             display: "flex",
             flexDirection: "column",
+            gap: 2,
+            padding: "0px 2px 2px 2px",
           }}
         >
-          <input style={{ width: "100%", border: "none" }} type="search" placeholder="Search..." />
+          <input style={{ width: "100%", border: "none", fontSize: 12 }} type="search" placeholder="Search..." />
           <select
             multiple
-            style={{ flexGrow: 1 }}
+            style={{ flexGrow: 1, border: "none", fontSize: 12 }}
             onKeyPress={(e) => {
               const event = new MouseEvent("dblclick");
               e.target.dispatchEvent(event);
@@ -306,4 +301,40 @@ export const TrackHeader = React.memo(function TrackHeader({
       ></div>
     </div>
   );
+});
+
+const useStyles = createUseStyles({
+  actionButton: {
+    cursor: "pointer",
+    border: "none",
+    background: "#d3d3d3",
+    fontSize: 11,
+  },
+  trackNumber: {
+    width: 17.5,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    background: "white",
+    color: "black",
+  },
+  trackNumberActive: {
+    color: "white",
+    background: "#333",
+    borderRight: "1px solid #eee",
+  },
+  buttonRow: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: "2px",
+    padding: "2px 2px 0px 2px",
+  },
+  headerButton: {
+    fontSize: 10,
+  },
+  lockButton: {
+    fontSize: 19,
+    padding: "1.5px 3px 0px 3px",
+  },
 });

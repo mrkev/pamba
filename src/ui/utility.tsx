@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import "./UtilitySlider.css";
 import "./utility.css";
+import { useEventListener } from "./useEventListener";
 
 export const utility = {
   button: "utilityButton",
@@ -66,7 +67,7 @@ export function UtilitySlider({
       onChange(newSliderVal);
     };
 
-    const onMouseUp = () => {
+    const onMouseUp = (e: MouseEvent) => {
       window.removeEventListener("mousemove", onMouseMove);
       window.document.body.style.removeProperty("cursor");
     };
@@ -131,6 +132,12 @@ export function UtilitySlider({
       elem.removeEventListener("blur", onBlur);
     };
   }, []);
+
+  useEventListener(
+    "click",
+    ref,
+    useCallback((e) => e.stopPropagation(), []),
+  );
 
   return (
     <div
