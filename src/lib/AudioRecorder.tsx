@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
-import { SPrimitive } from "../lib/state/LinkedState";
-import nullthrows from "./nullthrows";
+import { SPrimitive } from "./state/LinkedState";
+import nullthrows from "../utils/nullthrows";
+import { LinkedArray } from "./state/LinkedArray";
+import { LinkedMap } from "./state/LinkedMap";
 
-export function useMediaRecorder(loadClip: (url: string, name?: string) => void) {
+function useMediaRecorder(loadClip: (url: string, name?: string) => void) {
   const [mediaRecorder, setMediaRecorder] = useState<null | MediaRecorder>(null);
 
   // Microphone recording
@@ -38,35 +40,30 @@ export class AudioRecorder {
   readonly status = SPrimitive.of<"idle" | "recording" | "error">("idle");
   private mediaRecorder: MediaRecorder | null;
   private chunks: Array<BlobPart>;
-
-  record() {
-    if (this.status.get() !== "idle") {
-      return;
-    }
-
-    nullthrows(this.mediaRecorder).start();
-    this.status.set("recording");
-  }
-
-  stop() {
-    if (this.status.get() !== "recording") {
-      return;
-    }
-
-    nullthrows(this.mediaRecorder).stop();
-    this.status.set("idle");
-  }
+  readonly audioInputDevices: LinkedMap<string, MediaDeviceInfo>;
+  readonly currentInput = SPrimitive.of<string | null>(null);
 
   constructor(loadClip: (url: string, name?: string) => void) {
     this.mediaRecorder = null;
     this.chunks = [];
+    this.audioInputDevices = LinkedMap.create();
     this.init(loadClip).catch(() => this.status.set("error"));
   }
 
   private async init(loadClip: (url: string, name?: string) => void) {
     const mediaStream = await navigator.mediaDevices.getUserMedia({
+      // TODO: can I get stereo input? higher quality?
       audio: true,
     });
+    // we can't do these concurrently. getUserMedia has to be called before enumerateDevices to get the right permisisons
+    const deviceEntries = (await navigator.mediaDevices.enumerateDevices())
+      .filter((device) => device.kind === "audioinput")
+      .map((device) => [device.deviceId, device] as const);
+
+    this.currentInput.set(mediaStream.getTracks()[0].getSettings().deviceId ?? null);
+    this.audioInputDevices.replace(deviceEntries);
+
+    navigator.mediaDevices.addEventListener("devicechange", () => console.log("TODO"));
 
     this.mediaRecorder = new MediaRecorder(mediaStream);
     this.mediaRecorder.ondataavailable = function (this: AudioRecorder, e: BlobEvent) {
@@ -81,5 +78,26 @@ export class AudioRecorder {
       loadClip(audioURL, "recording");
       console.log("recorder stopped");
     }.bind(this);
+  }
+
+  public selectInputDevice(deviceId: string) {
+    this.currentInput.set(deviceId);
+    // TODO: record audio with this device
+  }
+
+  public record() {
+    if (this.status.get() !== "idle") {
+      return;
+    }
+    nullthrows(this.mediaRecorder).start();
+    this.status.set("recording");
+  }
+
+  public stop() {
+    if (this.status.get() !== "recording") {
+      return;
+    }
+    nullthrows(this.mediaRecorder).stop();
+    this.status.set("idle");
   }
 }

@@ -40,6 +40,14 @@ export class LinkedArray<S> implements ArrayWithoutIndexer<S>, Subbable<Readonly
     return result;
   }
 
+  // Own methods
+
+  public replaceContents(arr: Array<S>) {
+    this._setRaw(arr);
+  }
+
+  // Array methods
+
   // Array<S> interface
   get length(): number {
     return this._array.length;

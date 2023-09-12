@@ -1,4 +1,4 @@
-import { useCallback, useRef } from "react";
+import { useCallback, useRef, useState } from "react";
 import { createUseStyles } from "react-jss";
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from "../../constants";
 import { AnalizedPlayer } from "../../lib/AnalizedPlayer";
@@ -7,12 +7,14 @@ import { AudioRenderer } from "../../lib/AudioRenderer";
 import { ProjectPersistance } from "../../lib/ProjectPersistance";
 import { AudioProject } from "../../lib/project/AudioProject";
 import { useLinkedState } from "../../lib/state/LinkedState";
-import { AudioRecorder } from "../../utils/useMediaRecorder";
+import { AudioRecorder } from "../../lib/AudioRecorder";
 import { UtilityNumber } from "../UtilityNumber";
 import { utility } from "../utility";
 import { BounceButton } from "./BounceButton";
 import { ToolSelector } from "./ToolSelector";
 import { PlaybackControl, TransportControl } from "./TransportControl";
+import { useLinkedArray } from "../../lib/state/LinkedArray";
+import { useLinkedMap } from "../../lib/state/LinkedMap";
 
 function NewProjectButton() {
   return (
@@ -49,6 +51,8 @@ export function ToolHeader({
   const [tempo] = useLinkedState(project.tempo);
   const playbeatCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const [snapToGrid] = useLinkedState(project.snapToGrid);
+  const [inputDevices] = useLinkedMap(recorder.audioInputDevices);
+  const [selectedDevice] = useLinkedState(recorder.currentInput);
 
   const drawPlaybeatTime = useCallback(
     (time: number) => {
@@ -80,6 +84,17 @@ export function ToolHeader({
       <div className={classes.tools}>
         <div className={classes.topRow}>
           <NewProjectButton />
+          <select
+            style={{ width: 100, fontSize: 12 }}
+            value={selectedDevice ?? undefined}
+            onChange={(e) => recorder.selectInputDevice(e.target.value)}
+          >
+            {inputDevices.map((device) => (
+              <option value={device.deviceId} key={device.deviceId}>
+                {device.label}
+              </option>
+            ))}
+          </select>
           <div style={{ display: "flex", flexDirection: "row", alignItems: "center" }}>
             <UtilityNumber
               value={tempo}

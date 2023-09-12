@@ -8,7 +8,7 @@ import { AudioProject } from "../lib/project/AudioProject";
 import { Library } from "./Library";
 import { TimelineView } from "./TimelineView";
 import { ToolHeader } from "./header/ToolHeader";
-import { AudioRecorder } from "../utils/useMediaRecorder";
+import { AudioRecorder } from "../lib/AudioRecorder";
 import AudioClip from "../lib/AudioClip";
 import { AudioTrack } from "../lib/AudioTrack";
 

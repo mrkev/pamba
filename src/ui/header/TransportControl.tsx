@@ -5,7 +5,7 @@ import { AudioProject } from "../../lib/project/AudioProject";
 import { useLinkedArray } from "../../lib/state/LinkedArray";
 import { useLinkedState } from "../../lib/state/LinkedState";
 import { exhaustive } from "../../utils/exhaustive";
-import { AudioRecorder } from "../../utils/useMediaRecorder";
+import { AudioRecorder } from "../../lib/AudioRecorder";
 import { utility } from "../utility";
 
 export function TransportControl({

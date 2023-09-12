@@ -38,6 +38,12 @@ export class LinkedMap<K, V> implements Map<K, V>, Subbable<ReadonlyMap<K, V>>, 
     return mapped;
   }
 
+  replace(entries: readonly (readonly [K, V])[] | null) {
+    this._map = new Map(entries);
+    MutationHashable.mutated(this);
+    notify(this, this._map);
+  }
+
   //////////// Map interface
 
   // Map<K, V> interface, mutates
