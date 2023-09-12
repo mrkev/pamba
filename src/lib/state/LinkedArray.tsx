@@ -244,11 +244,27 @@ export class LinkedArray<S> implements ArrayWithoutIndexer<S>, Subbable<Readonly
   }
   flatMap<U, This = undefined>(
     callback: (this: This, value: S, index: number, array: S[]) => U | readonly U[],
-    thisArg?: This
+    thisArg?: This,
   ): U[] {
     throw new Error("Method not implemented.");
   }
   flat<A, D extends number = 1>(this: A, depth?: D): FlatArray<A, D>[] {
+    throw new Error("Method not implemented.");
+  }
+
+  toReversed(): S[] {
+    throw new Error("Method not implemented.");
+  }
+
+  toSorted(compareFn?: (a: S, b: S) => number): S[] {
+    throw new Error("Method not implemented.");
+  }
+
+  toSpliced(start: number, deleteCount?: number): S[] {
+    throw new Error("Method not implemented.");
+  }
+
+  with(index: number, value: S): S[] {
     throw new Error("Method not implemented.");
   }
 }
@@ -272,7 +288,7 @@ export function useLinkedArray<S>(linkedSet: LinkedArray<S>): [LinkedArray<S>, S
         linkedSet._setRaw(newVal);
       }
     },
-    [linkedSet]
+    [linkedSet],
   );
 
   return [linkedSet, setter];

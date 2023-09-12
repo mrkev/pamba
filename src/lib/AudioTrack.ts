@@ -101,7 +101,7 @@ export class AudioTrack extends ProjectTrack {
           throw new Error(`Failed to prepare ${effect.effectId} for bounce!`);
         }
         return nextEffect;
-      })
+      }),
     );
 
     const _hiddenGainNode = await this._hiddenGainNode.cloneToOfflineContext(context);

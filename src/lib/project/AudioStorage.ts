@@ -70,7 +70,7 @@ export class AudioStorage {
 
 export function useListProjectAudioFiles(
   project: AudioProject,
-  firebaseStoreRef?: StorageReference
+  firebaseStoreRef?: StorageReference,
 ): AsyncResultStatus<StorageReference[]> {
   const filesPromise = useMemo(() => {
     if (!firebaseStoreRef) {

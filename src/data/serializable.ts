@@ -58,14 +58,14 @@ export type SPambaWamNode = {
 };
 
 export async function serializable(
-  obj: FaustAudioEffect | PambaWamNode
+  obj: FaustAudioEffect | PambaWamNode,
 ): Promise<SFaustAudioEffect | SFaustAudioEffect>;
 export async function serializable(obj: AudioProject): Promise<SAudioProject>;
 export async function serializable(obj: AudioTrack | MidiTrack): Promise<SAudioTrack | SMidiTrack>;
 export async function serializable(obj: AudioClip): Promise<SAudioClip>;
 export async function serializable(obj: MidiClip): Promise<SMidiClip>;
 export async function serializable(
-  obj: AudioClip | AudioTrack | MidiClip | MidiTrack | AudioProject | FaustAudioEffect | PambaWamNode
+  obj: AudioClip | AudioTrack | MidiClip | MidiTrack | AudioProject | FaustAudioEffect | PambaWamNode,
 ): Promise<SAudioClip | SAudioTrack | SMidiClip | SMidiTrack | SAudioProject | SFaustAudioEffect | SPambaWamNode> {
   if (obj instanceof AudioClip) {
     const { name, bufferURL } = obj;
@@ -129,7 +129,7 @@ export async function construct(rep: SAudioClip): Promise<AudioClip>;
 export async function construct(rep: SMidiClip): Promise<MidiClip>;
 export async function construct(rep: SAudioTrack | SMidiTrack): Promise<AudioTrack | MidiTrack>;
 export async function construct(
-  rep: SAudioClip | SMidiClip | SAudioTrack | SMidiTrack | SAudioProject | SFaustAudioEffect | SPambaWamNode
+  rep: SAudioClip | SMidiClip | SAudioTrack | SMidiTrack | SAudioProject | SFaustAudioEffect | SPambaWamNode,
 ): Promise<AudioClip | MidiClip | AudioTrack | MidiTrack | AudioProject | FaustAudioEffect | PambaWamNode> {
   switch (rep.kind) {
     case "AudioClip": {
@@ -170,7 +170,7 @@ export async function construct(
       const [wamHostGroupId] = nullthrows(appEnvironment.wamHostGroup.get(), "wam host not initialized yet!");
       const pambaWamNode = nullthrows(
         await PambaWamNode.fromURL(pluginURL, wamHostGroupId, liveAudioContext),
-        "could not create PambaWamNode"
+        "could not create PambaWamNode",
       );
       await pambaWamNode.setState(state);
       return pambaWamNode;

@@ -83,7 +83,7 @@ export function TrackA({
         ignorePromise(loadClipIntoTrack(url, track));
       }
     },
-    [audioStorage, loadClipIntoTrack, track]
+    [audioStorage, loadClipIntoTrack, track],
   );
 
   return (

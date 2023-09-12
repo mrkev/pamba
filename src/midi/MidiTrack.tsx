@@ -19,7 +19,7 @@ export class MidiTrack extends ProjectTrack {
     pianoRoll: WebAudioModule<WamNode>,
     pianoRollDom: Element,
     instrument: MidiInstrument,
-    clips: MidiClip[]
+    clips: MidiClip[],
   ) {
     super("midi track", [], CLIP_HEIGHT);
     this.pianoRoll = pianoRoll;

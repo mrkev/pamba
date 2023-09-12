@@ -24,6 +24,8 @@
     "@types/node": "18.11.18",
     "@types/react": "18.2.21",
     "@types/react-dom": "18.2.7",
+    "@typescript-eslint/eslint-plugin": "^6.7.0",
+    "@typescript-eslint/parser": "^6.7.0",
     "@webaudiomodules/api": "^2.0.0-alpha.6",
     "audiobuffer-to-wav": "1.0.0",
     "babel-jest": "^29.5.0",
@@ -37,8 +39,11 @@
     "d3-axis": "3.0.0",
     "dotenv": "^16.3.1",
     "dotenv-expand": "^10.0.0",
-    "eslint": "^8.47.0",
-    "eslint-config-react-app": "^7.0.1",
+    "eslint": "^8.49.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-config-standard-with-typescript": "^39.0.0",
+    "eslint-plugin-prettier": "^5.0.0",
+    "eslint-plugin-react": "^7.33.2",
     "faust-loader-vite": "https://github.com/mrkev/faust-loader-vite#changes",
     "faust2webaudio": "grame-cncm/faust2webaudio",
     "file-loader": "^6.2.0",
@@ -83,12 +88,6 @@
     "test": "node scripts/test.js",
     "deploy": "npm run build && firebase deploy --only hosting"
   },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
   "browserslist": {
     "production": [
       ">0.2%",
@@ -108,6 +107,7 @@
     "@vitejs/plugin-react": "^4.0.0",
     "babel-plugin-parameter-decorator": "1.0.16",
     "babel-plugin-transform-typescript-metadata": "0.3.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
     "jest-environment-jsdom": "^29.6.2",
     "vite": "^4.4.9",
     "vite-plugin-svgr": "^3.2.0",

@@ -91,7 +91,7 @@ export class AudioProject {
     (factor: number) =>
       scaleLinear()
         .domain([0, 1])
-        .range([0, 1 * factor]) as XScale
+        .range([0, 1 * factor]) as XScale,
   );
   // factor 2: 1sec => 2px
   // factor 3: 1sec => 3px
@@ -102,7 +102,7 @@ export class AudioProject {
     (factor: number, startPx: number) =>
       scaleLinear()
         .domain([0, 1])
-        .range([0 + startPx, 1 * factor + startPx]) as XScale
+        .range([0 + startPx, 1 * factor + startPx]) as XScale,
   );
 
   constructor(tracks: (AudioTrack | MidiTrack)[], projectId: string) {

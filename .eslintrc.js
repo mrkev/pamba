@@ -1,13 +1,15 @@
 process.env.BABEL_ENV = "development";
 
 module.exports = {
-  extends: ["react-app", "react-app/jest"],
+  extends: ["plugin:react/recommended", "plugin:prettier/recommended", "plugin:react-hooks/recommended"],
   parserOptions: {
+    ecmaVersion: "latest",
+    sourceType: "module",
     project: "./tsconfig.json",
   },
   ignorePatterns: ["vite.config.ts"],
-  // parser: "@typescript-eslint/parser",
-  // plugins: ["@typescript-eslint"],
+  parser: "@typescript-eslint/parser",
+  plugins: ["react", "prettier", "@typescript-eslint", "react-hooks"],
   rules: {
     "no-useless-concat": "off",
     // Require Promise-like statements to be handled appropriately.
@@ -25,10 +27,29 @@ module.exports = {
         caughtErrorsIgnorePattern: "^_",
       },
     ],
+    "@typescript-eslint/explicit-function-return-type": "off",
+    "object-shorthand": "off",
+    "@typescript-eslint/no-confusing-void-expression": "off",
+    "@typescript-eslint/no-misused-promises": "off",
+    "@typescript-eslint/return-await": "off",
+    "no-useless-escape": "off",
+    "@typescript-eslint/consistent-type-imports": "off",
+    "@typescript-eslint/array-type": "off",
+    "@typescript-eslint/lines-between-class-members": "off",
+    "@typescript-eslint/consistent-generic-constructors": "off",
+    "spaced-comment": "off",
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn",
   },
 
   globals: {
     Atomics: "readonly",
     SharedArrayBuffer: "readonly",
+  },
+
+  settings: {
+    react: {
+      version: "detect",
+    },
   },
 };
