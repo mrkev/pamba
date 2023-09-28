@@ -27,6 +27,7 @@
     "@typescript-eslint/eslint-plugin": "^6.7.0",
     "@typescript-eslint/parser": "^6.7.0",
     "@webaudiomodules/api": "^2.0.0-alpha.6",
+    "@webaudiomodules/sdk": "^0.0.11",
     "audiobuffer-to-wav": "1.0.0",
     "babel-jest": "^29.5.0",
     "babel-loader": "^9.1.2",
@@ -79,7 +80,9 @@
     "ulid": "^2.3.0",
     "use-local-storage-state": "^18.3.3",
     "use-resize-observer": "^9.1.0",
+    "uuid": "^9.0.1",
     "vite-plugin-inspect": "^0.7.38",
+    "wam-extensions": "^0.2.3",
     "web-vitals": "3.4.0"
   },
   "scripts": {

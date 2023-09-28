@@ -175,13 +175,18 @@ export class AudioProject {
       project.selected.set(newSelected);
     }
 
-    // Update active track
+    // Update potential direct references
     if (project.activeTrack.get() === track) {
       project.activeTrack.set(null);
     }
 
-    // Update cursor tracks
+    if (project.armedTrack.get() === track) {
+      project.armedTrack.set(null);
+    }
+
+    // Update from trakc state
     project.cursorTracks.delete(track);
+    project.solodTracks.delete(track);
   }
 
   static removeClip(project: AudioProject, track: AudioTrack, clip: AudioClip) {

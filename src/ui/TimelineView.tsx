@@ -19,6 +19,8 @@ import { TrackA } from "./TrackA";
 import { TrackHeader } from "./TrackHeader";
 import { TrackM } from "./TrackM";
 import { useEventListener } from "./useEventListener";
+import nullthrows from "../utils/nullthrows";
+import { CursorSelection } from "./CursorSelection";
 
 export function TimelineView({
   project,
@@ -44,7 +46,7 @@ export function TimelineView({
       ({ width }: { width?: number; height?: number }) => {
         project.viewport.projectDivWidth.set(width ?? 0);
       },
-      [project.viewport.projectDivWidth]
+      [project.viewport.projectDivWidth],
     ),
   });
 
@@ -77,6 +79,9 @@ export function TimelineView({
     projectDivRef,
     useCallback(
       (e: WheelEvent) => {
+        const projectDiv = nullthrows(projectDivRef.current);
+        const mouseX = e.clientX - projectDiv.getBoundingClientRect().left;
+
         // both pinches and two-finger pans trigger the wheel event trackpads.
         // ctrlKey is true for pinches though, so we can use it to differentiate
         // one from the other.
@@ -89,24 +94,28 @@ export function TimelineView({
           // // min scale is 0.64, max is 1000
           // const newScale = clamp(0.64, expectedNewScale, 1000);
           // project.scaleFactor.set(newScale);
-          // const realSDelta = newScale / project.scaleFactor.get();
+          // const realSDelta = expectedNewScale / project.scaleFactor.get();
 
-          // const widthUpToMouse = e.clientX + viewportStartPx;
+          // const widthUpToMouse = mouseX + viewportStartPx;
           // const deltaX = widthUpToMouse - widthUpToMouse * realSDelta;
           // const newStart = viewportStartPx - deltaX;
           // project.viewportStartPx.set(newStart);
+          console.log(project.viewportStartPx.get(), mouseX);
           e.preventDefault();
+
+          // translate so mouse is at zero
+          // zoom in
+          // translate so mouse is at right position again
         }
         // pan
         else {
           const start = Math.max(project.viewportStartPx.get() + e.deltaX, 0);
-          // console.log("here");
           project.viewportStartPx.set(start);
         }
       },
-      [project.scaleFactor, project.viewport, project.viewportStartPx]
+      [project.scaleFactor, project.viewport, project.viewportStartPx],
     ),
-    { capture: false }
+    { capture: false },
   );
 
   useEventListener(
@@ -117,8 +126,8 @@ export function TimelineView({
         project.viewportStartPx.set((e.target as any).scrollLeft);
         e.preventDefault();
       },
-      [project.viewportStartPx]
-    )
+      [project.viewportStartPx],
+    ),
   );
 
   useAxisContainerMouseEvents(project, axisContainerRef);
@@ -126,13 +135,10 @@ export function TimelineView({
 
   return (
     <div id="container" className={classes.container}>
-      <div
-        ref={axisContainerRef}
-        className={classes.axisContainer}
-
-        // TODO THIS SELECTS GLOBAL TIME
-      >
+      <div ref={axisContainerRef} className={classes.axisContainer}>
         <Axis project={project} isHeader />
+        <CursorSelection track={null} project={project} leftOffset={-viewportStartPx} />
+        {/* <TimelineCursor project={project} isHeader /> */}
       </div>
       {/* 1. Track header overhang (bounce button) */}
       <div className={classes.axisSpacer}>

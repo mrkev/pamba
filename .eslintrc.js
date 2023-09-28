@@ -1,7 +1,7 @@
 process.env.BABEL_ENV = "development";
 
 module.exports = {
-  extends: ["plugin:react/recommended", "plugin:prettier/recommended", "plugin:react-hooks/recommended"],
+  extends: ["plugin:react/recommended", "plugin:react-hooks/recommended"],
   parserOptions: {
     ecmaVersion: "latest",
     sourceType: "module",

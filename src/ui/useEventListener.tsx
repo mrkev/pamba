@@ -4,7 +4,7 @@ export function useEventListener<K extends keyof HTMLElementEventMap, T extends 
   type: K,
   ref: React.RefObject<T> | React.MutableRefObject<T>,
   listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any,
-  options?: AddEventListenerOptions
+  options?: AddEventListenerOptions,
 ): void {
   const { capture, once, passive, signal } = options ?? {};
   useEffect(() => {
@@ -23,7 +23,7 @@ type EventMap<T> = T extends Document ? DocumentEventMap : T extends HTMLElement
 
 export function useDocumentEventListener<K extends keyof DocumentEventMap>(
   type: K,
-  listener: (this: HTMLElement, ev: EventMap<Document>[K]) => any
+  listener: (this: HTMLElement, ev: EventMap<Document>[K]) => any,
 ): void {
   useEffect(() => {
     document.addEventListener(type, listener as any);

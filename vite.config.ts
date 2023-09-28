@@ -3,6 +3,7 @@ import { defineConfig } from "vite";
 import svgrPlugin from "vite-plugin-svgr";
 import viteTsconfigPaths from "vite-tsconfig-paths";
 import { faustLoder } from "./faustLoader/faustLoder";
+import * as path from "path";
 
 // To polyfill Buffer
 import RollupPluginNodePolyfill from "rollup-plugin-node-polyfills";
@@ -15,7 +16,16 @@ export default defineConfig({
     outDir: "./build",
     rollupOptions: {
       plugins: [RollupPluginNodePolyfill()],
+      // input: {
+      //   index: path.resolve(__dirname, "index.html"),
+      //   // path.resolve(__dirname, "src", "wam", "pianorollme", "PianoRollProcessor.ts"),
+      //   foo: path.resolve(__dirname, "src", "wam", "pianorollme", "PianoRollNode.tsx"),
+      // },
     },
+  },
+  esbuild: {
+    // target: "es2020",
+    // banner: "console.log('hi');",
   },
   server: {
     headers: {

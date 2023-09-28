@@ -22,12 +22,12 @@ export function useAxisContainerMouseEvents(
         if (div == null) {
           return;
         }
-
+        const viewportStartPx = project.viewportStartPx.get();
         const position = {
           x: e.clientX + div.scrollLeft - div.getBoundingClientRect().x,
           y: e.clientY + div.scrollTop - div.getBoundingClientRect().y,
         };
-        const asSecs = project.viewport.pxToSecs(position.x);
+        const asSecs = project.viewport.pxToSecs(position.x + viewportStartPx);
 
         const newPos = snapped(project, e, asSecs);
         // player.setCursorPos(asSecs);
@@ -39,7 +39,6 @@ export function useAxisContainerMouseEvents(
           clientY: e.clientY,
           startTime: newPos,
         });
-        // }
       },
       [axisContainer, project],
     ),

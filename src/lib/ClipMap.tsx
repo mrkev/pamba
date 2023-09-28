@@ -4,6 +4,7 @@ import { StateChangeHandler } from "./state/LinkedState";
 import { MutationHashable } from "./state/MutationHashable";
 import { Subbable, notify } from "./state/Subbable";
 
+// startOffsetSec => Clip
 export class ClipMap<T extends BaseClip> implements Subbable<null>, MutationHashable {
   _subscriptors = new Set<StateChangeHandler<null>>();
   _hash: number = 0;

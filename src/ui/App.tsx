@@ -6,7 +6,7 @@ import { appEnvironment } from "../lib/AppEnvironment";
 import { exhaustive } from "../utils/exhaustive";
 import { AppProject } from "./AppProject";
 import { DebugData } from "./DebugData";
-// import { MidiDemo } from "../midi";
+import { MidiDemo } from "../midi";
 
 // var w = new TrackThread();
 // var sab = new SharedArrayBuffer(1024);
@@ -24,7 +24,7 @@ export function App(): React.ReactElement {
       (window as any).project = projectStatus.project;
       return (
         <>
-          {/* <MidiDemo /> */}
+          <MidiDemo />
           <AppProject project={projectStatus.project} />
           <DebugData project={projectStatus.project} />
         </>

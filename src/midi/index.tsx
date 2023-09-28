@@ -18,6 +18,7 @@ export function MidiDemo() {
         }
 
         if (state === 1) {
+          console.log("PLAY", keyboardInstance);
           nullthrows(keyboardInstance).audioNode.scheduleEvents({
             type: "wam-transport",
             data: {
@@ -81,6 +82,7 @@ async function startHost() {
   const mount1 = nullthrows(document.querySelector("#mount1"));
   mount1.innerHTML = "";
   await mount1.appendChild(track.pianoRollDom);
+  console.log(track.pianoRollDom);
 
   return [track.pianoRoll];
 }
