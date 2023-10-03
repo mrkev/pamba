@@ -10,6 +10,11 @@ export abstract class ProjectTrack extends DSPNode<null> {
   public readonly name: SPrimitive<string>;
   public readonly height: SPrimitive<number>;
 
+  abstract prepareForPlayback(context: AudioContext): void;
+  // NOTE: needs to be called right after .prepareForPlayback
+  abstract startPlayback(tempo: number, offset?: number): void;
+  abstract stopPlayback(): void;
+
   // DSP
   public readonly effects: LinkedArray<FaustAudioEffect | PambaWamNode>;
   // The "volume" of the track

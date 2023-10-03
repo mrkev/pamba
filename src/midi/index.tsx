@@ -8,16 +8,16 @@ import { MidiTrack } from "./MidiTrack";
 let keyboardInstance: WebAudioModule<WamNode>;
 
 export function MidiDemo() {
-  const [state, setState] = useState(0);
+  const [state, setState] = useState<null | "ready" | "playing">(null);
   return (
     <button
       onClick={async () => {
-        if (state === 0) {
+        if (state == null) {
           [keyboardInstance] = await startHost();
-          setState(1);
+          setState("ready");
         }
 
-        if (state === 1) {
+        if (state === "ready") {
           console.log("PLAY", keyboardInstance);
           nullthrows(keyboardInstance).audioNode.scheduleEvents({
             type: "wam-transport",
@@ -30,6 +30,23 @@ export function MidiDemo() {
               tempo: 120,
             },
           });
+          setState("playing");
+        }
+
+        if (state === "playing") {
+          console.log("STOP");
+          nullthrows(keyboardInstance).audioNode.scheduleEvents({
+            type: "wam-transport",
+            data: {
+              playing: false,
+              timeSigDenominator: 4,
+              timeSigNumerator: 4,
+              currentBar: 0,
+              currentBarStarted: liveAudioContext.currentTime,
+              tempo: 120,
+            },
+          });
+          setState("ready");
         }
 
         if (liveAudioContext.state === "running") {

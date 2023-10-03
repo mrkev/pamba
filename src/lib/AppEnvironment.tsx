@@ -9,7 +9,7 @@ import { initAudioContext } from "./initAudioContext";
 import { AudioProject } from "./project/AudioProject";
 import { LinkedMap } from "./state/LinkedMap";
 import { SPrimitive } from "./state/LinkedState";
-import nullthrows from "../utils/nullthrows";
+import { ignorePromise } from "./state/Subbable";
 
 export type WAMAvailablePlugin = {
   // midi out, audio out, midi to audio, audio to audio
@@ -44,11 +44,7 @@ export class AppEnvironment {
   }
 
   async initAsync(liveAudioContext: AudioContext) {
-    const [audioContextInfo, _] = await Promise.all([
-      initAudioContext(liveAudioContext),
-      // no return
-      this.initialLoadProject(),
-    ]);
+    const [audioContextInfo] = await Promise.all([initAudioContext(liveAudioContext)]);
 
     // Init wam host
     this.wamHostGroup.set(audioContextInfo.wamHostGroup);
@@ -62,6 +58,8 @@ export class AppEnvironment {
       }),
     );
     this.wamStatus.set("ready");
+    // once plugins have been loaded, so they're available to the project
+    await this.initialLoadProject();
   }
 
   private async initialLoadProject() {

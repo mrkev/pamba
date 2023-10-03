@@ -89,7 +89,7 @@ export class AudioRenderer {
     }
 
     for (let track of tracks) {
-      track.startPlayback(startSec);
+      track.startPlayback(75, startSec);
     }
 
     const result = await offlineAudioContext.startRendering();
@@ -104,7 +104,7 @@ export class AudioRenderer {
       player.stopSound();
       renderer.isAudioPlaying.set(false);
     } else {
-      player.playTracks(project.allAudioTracks_TODO_REMOVE(), project.cursorPos.get());
+      player.playTracks(project.allTracks._getRaw(), project.cursorPos.get());
       renderer.isAudioPlaying.set(true);
     }
   }
@@ -113,7 +113,7 @@ export class AudioRenderer {
     if (renderer.isAudioPlaying.get()) {
       return;
     } else {
-      player.playTracks(project.allAudioTracks_TODO_REMOVE(), project.cursorPos.get());
+      player.playTracks(project.allTracks._getRaw(), project.cursorPos.get());
       renderer.isAudioPlaying.set(true);
     }
   }

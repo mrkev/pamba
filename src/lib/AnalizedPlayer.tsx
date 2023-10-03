@@ -1,4 +1,5 @@
 import { liveAudioContext, sampleSize } from "../constants";
+import { MidiTrack } from "../midi/MidiTrack";
 // import SharedBufferWorkletNode from "./lib/shared-buffer-worklet-node";
 import { AudioTrack } from "./AudioTrack";
 import { OscilloscopeNode } from "./OscilloscopeNode";
@@ -24,7 +25,10 @@ export class AnalizedPlayer {
 
   private playtimeCtx: CanvasRenderingContext2D | null = null;
 
+  // For main timeline
   public onFrame: ((playbackTime: number) => void) | null = null;
+  // For subview timeline
+  public onFrame2: ((playbackTime: number) => void) | null = null;
   public playbackTime: number = 0;
 
   // The time in the audio context we should count as zero
@@ -60,6 +64,7 @@ export class AnalizedPlayer {
           this.drawPlaybackTime(currentTimeInBuffer);
           this.drawPlaybeatTime?.(currentTimeInBuffer);
           if (this.onFrame) this.onFrame(currentTimeInBuffer);
+          if (this.onFrame2) this.onFrame2(currentTimeInBuffer);
           this.playbackTime = currentTimeInBuffer;
         });
       } else {
@@ -78,9 +83,9 @@ export class AnalizedPlayer {
     ctx.fillText(String(playbackTime.toFixed(2)) + "s", 6, 26);
   }
 
-  playingTracks: ReadonlyArray<AudioTrack> | null = null;
+  playingTracks: ReadonlyArray<AudioTrack | MidiTrack> | null = null;
   // Position of the cursor; where the playback is going to start
-  playTracks(tracks: ReadonlyArray<AudioTrack>, cursorPos: number) {
+  playTracks(tracks: ReadonlyArray<AudioTrack | MidiTrack>, cursorPos: number) {
     // Need to connect to dest, otherwrise audio just doesn't flow through. This adds nothing, just silence though
     this.oscilloscope.connect(liveAudioContext.destination);
     this.playbackTimeNode.connect(liveAudioContext.destination);
@@ -95,7 +100,7 @@ export class AnalizedPlayer {
       track.connect(this.mixDownNode);
     }
     for (let track of tracks) {
-      track.startPlayback(cursorPos);
+      track.startPlayback(75, cursorPos);
     }
     this.playingTracks = tracks;
 
@@ -115,7 +120,7 @@ export class AnalizedPlayer {
     this.playingTracks = this.playingTracks.concat(track);
     const LATENCY = 10;
     track.prepareForPlayback(liveAudioContext);
-    track.startPlayback(startAt + LATENCY);
+    track.startPlayback(75, startAt + LATENCY);
   }
 
   removeTrackFromPlayback(track: AudioTrack) {

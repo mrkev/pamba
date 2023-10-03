@@ -110,7 +110,8 @@ export class AudioProject {
     this.projectId = projectId;
     this.allTracks = LinkedArray.create(tracks);
     this.viewport = new ProjectViewportUtil(this);
-    ignorePromise(this.asyncInits());
+    // so it initializes after app environment is initialized
+    setTimeout(() => ignorePromise(this.asyncInits()), 0);
   }
 
   private async asyncInits() {

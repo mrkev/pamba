@@ -71,7 +71,7 @@ export class PianoRollModule extends WebAudioModule<PianoRollNode> {
   }
 
   sequencer: PianoRollNode = null as any; // todo as any
-  transport?: WamTransportData;
+  // transport?: WamTransportData;
 
   override async initialize(state: any) {
     await this._loadDescriptor();
@@ -102,7 +102,7 @@ export class PianoRollModule extends WebAudioModule<PianoRollNode> {
 
     this.sequencer.port.addEventListener("message", (ev) => {
       if (ev.data.event == "transport") {
-        this.transport = ev.data.transport;
+        // this.transport = ev.data.transport;
       } else if (ev.data.event == "addNote") {
         const clip = this.sequencer.pianoRoll.getClip(this.sequencer.pianoRoll.playingClip as any); // todo as any
         const note = ev.data.note;
@@ -149,7 +149,32 @@ export class PianoRollModule extends WebAudioModule<PianoRollNode> {
 
     const content = document.createElement("div");
     container.appendChild(document.createTextNode("hello world"));
+    const canvasRenderer = new NoteCanvasRenderer(document);
+
+    let clip = this.sequencer.pianoRoll.getClip("default");
+    let rendererState: NoteCanvasRenderState = {
+      width: 300,
+      height: 300,
+      position: 0,
+      horizontalZoom: 1,
+      clip: clip,
+      visibleNotes: this.sequencer.pianoRoll.noteList ?? [],
+      layingNewNote: undefined as any,
+      transportData: {
+        currentBar: 0,
+        currentBarStarted: 0,
+        tempo: 120,
+        timeSigNumerator: 4,
+        timeSigDenominator: 4,
+        playing: false,
+      },
+    };
+
+    const result = canvasRenderer.render(rendererState);
+
     div.appendChild(content);
+    // div.appendChild(result);
+    container.appendChild(result);
 
     // render(<PianoRollView plugin={this} pianoRoll={this.sequencer.pianoRoll} clipId={clipId}></PianoRollView>, shadow);
 
@@ -238,6 +263,7 @@ import { ClipState } from "./PianoRollClip";
 import { NoteDefinition } from "wam-extensions";
 import { MIDIConfiguration } from "./MIDIConfiguration";
 import { ignorePromise } from "../../utils/ignorePromise";
+import { NoteCanvasRenderState, NoteCanvasRenderer } from "./NoteCanvasRenderer";
 
 export type MIDIEvent = Uint8Array;
 export type ScheduledMIDIEvent = {

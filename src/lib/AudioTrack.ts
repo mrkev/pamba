@@ -77,14 +77,14 @@ export class AudioTrack extends ProjectTrack {
   // [ _Hidden Gain Node (for soloing)]
   //        V
   // [ Out Node ]
-  prepareForPlayback(context: AudioContext): void {
+  override prepareForPlayback(context: AudioContext): void {
     // We need to keep a reference to our source node for play/pause
     this.playingSource = this.getSourceNode(context);
     this.connectToDSPForPlayback(this.playingSource);
   }
 
   // NOTE: needs to be called right after .prepareForPlayback
-  startPlayback(offset?: number) {
+  startPlayback(tempo: number, offset?: number) {
     if (!this.playingSource) {
       throw new Error("Track is not ready for playback!");
     }

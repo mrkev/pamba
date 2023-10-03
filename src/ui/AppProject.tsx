@@ -11,6 +11,9 @@ import { ToolHeader } from "./header/ToolHeader";
 import { AudioRecorder } from "../lib/AudioRecorder";
 import AudioClip from "../lib/AudioClip";
 import { AudioTrack } from "../lib/AudioTrack";
+import { useLinkedState } from "../lib/state/LinkedState";
+import { MidiTrack } from "../midi/MidiTrack";
+import { MidiClipEditor } from "./MidiClipEditor";
 
 function useStopPlaybackOnUnmount(renderer: AudioRenderer) {
   useEffect(() => {
@@ -89,10 +92,30 @@ export function AppProject({ project }: { project: AudioProject }) {
             height: 5,
           }}
         />
-        <Panel collapsible={true} defaultSize={0} onCollapse={console.log}>
-          <div>foo</div>
+        <Panel
+          collapsible={true}
+          defaultSize={0}
+          onCollapse={console.log}
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            gap: 4,
+            padding: "0px 4px 5px 4px",
+          }}
+        >
+          <BottomPanel project={project} player={renderer.analizedPlayer} />
         </Panel>
       </PanelGroup>
     </>
   );
+}
+
+function BottomPanel({ project, player }: { project: AudioProject; player: AnalizedPlayer }) {
+  const [activeTrack] = useLinkedState(project.activeTrack);
+  if (!(activeTrack instanceof MidiTrack)) {
+    return "nothing to show";
+  }
+
+  const clip = activeTrack.pianoRoll.sequencer.pianoRoll.clips["default"];
+  return <MidiClipEditor clip={clip} player={player} />;
 }

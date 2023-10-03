@@ -93,6 +93,8 @@ class PianoRollProcessor extends WamProcessor {
     // lookahead
     var schedulerTime = currentTime + 0.05;
 
+    // kevin: this is called all the time, as soon as we initialize apparently. I think that's just how
+    // I run the audio context? In any case, the "wam-transport" event just sets isPlaying = true
     // did we just start playing? set ticks to the beginning of 'currentBar'
     if (!this.isPlaying && this.transportData.playing && this.transportData!.currentBarStarted <= currentTime) {
       this.isPlaying = true;
@@ -107,6 +109,8 @@ class PianoRollProcessor extends WamProcessor {
     if (!this.transportData.playing && this.isPlaying) {
       this.isPlaying = false;
     }
+
+    // console.log(this.transportData!.playing, this.transportData!.currentBarStarted <= schedulerTime);
 
     if (this.transportData!.playing && this.transportData!.currentBarStarted <= schedulerTime) {
       var timeElapsed = schedulerTime - this.transportData!.currentBarStarted;

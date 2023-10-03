@@ -9,10 +9,69 @@ import { LinkedArray } from "../lib/state/LinkedArray";
 
 import { PianoRollModule, PianoRollNode } from "../wam/pianorollme/PianoRollNode";
 
+const SAMPLE_STATE = {
+  clips: {
+    default: {
+      length: 96,
+      notes: [
+        {
+          tick: 0,
+          number: 60,
+          duration: 6,
+          velocity: 100,
+        },
+        {
+          tick: 12,
+          number: 60,
+          duration: 6,
+          velocity: 100,
+        },
+        {
+          tick: 24,
+          number: 60,
+          duration: 6,
+          velocity: 100,
+        },
+        {
+          tick: 36,
+          number: 60,
+          duration: 6,
+          velocity: 100,
+        },
+        {
+          tick: 48,
+          number: 60,
+          duration: 6,
+          velocity: 100,
+        },
+        {
+          tick: 60,
+          number: 60,
+          duration: 6,
+          velocity: 100,
+        },
+        {
+          tick: 72,
+          number: 60,
+          duration: 6,
+          velocity: 100,
+        },
+        {
+          tick: 84,
+          number: 60,
+          duration: 6,
+          velocity: 100,
+        },
+      ],
+      id: "default",
+    },
+  },
+};
+
 export class MidiTrack extends ProjectTrack {
   override effectId: string = "MIDI TRACK TODO";
   instrument: MidiInstrument;
-  pianoRoll: WebAudioModule<PianoRollNode>;
+  pianoRoll: PianoRollModule;
   pianoRollDom: Element;
   clips: LinkedArray<MidiClip>;
 
@@ -24,70 +83,17 @@ export class MidiTrack extends ProjectTrack {
     clips: MidiClip[],
   ) {
     super("midi track", [], CLIP_HEIGHT);
-    this.pianoRoll = pianoRoll;
-    console.log(
-      (this.pianoRoll as PianoRollModule).sequencer.setState({
-        clips: {
-          default: {
-            length: 96,
-            notes: [
-              {
-                tick: 0,
-                number: 60,
-                duration: 6,
-                velocity: 100,
-              },
-              {
-                tick: 12,
-                number: 60,
-                duration: 6,
-                velocity: 100,
-              },
-              {
-                tick: 24,
-                number: 60,
-                duration: 6,
-                velocity: 100,
-              },
-              {
-                tick: 36,
-                number: 60,
-                duration: 6,
-                velocity: 100,
-              },
-              {
-                tick: 48,
-                number: 60,
-                duration: 6,
-                velocity: 100,
-              },
-              {
-                tick: 60,
-                number: 60,
-                duration: 6,
-                velocity: 100,
-              },
-              {
-                tick: 72,
-                number: 60,
-                duration: 6,
-                velocity: 100,
-              },
-              {
-                tick: 84,
-                number: 60,
-                duration: 6,
-                velocity: 100,
-              },
-            ],
-            id: "default",
-          },
-        },
-      }),
-    );
+    this.pianoRoll = pianoRoll as any;
+    console.log((this.pianoRoll as PianoRollModule).sequencer.setState(SAMPLE_STATE));
     this.pianoRollDom = pianoRollDom;
     this.instrument = instrument;
     this.clips = LinkedArray.create(clips);
+
+    // todo: output node?
+    instrument.module.audioNode.connect(this._hiddenGainNode.inputNode());
+    // gain.connect(liveAudioContext.destination);
+    instrument.module.audioNode.connect(pianoRoll.audioNode);
+    pianoRoll.audioNode.connectEvents(instrument.module.instanceId);
   }
 
   public createBlankMidiClip() {
@@ -103,6 +109,39 @@ export class MidiTrack extends ProjectTrack {
 
     const pianoRollDom = await pianoRoll.createGui();
     return new MidiTrack(name, pianoRoll as any, pianoRollDom, instrument, clips ?? []);
+  }
+
+  override prepareForPlayback(context: AudioContext): void {
+    // nothing to do
+  }
+
+  override startPlayback(tempo: number, offset?: number | undefined): void {
+    // todo
+    this.pianoRoll.audioNode.scheduleEvents({
+      type: "wam-transport",
+      data: {
+        playing: true,
+        timeSigDenominator: 4,
+        timeSigNumerator: 4,
+        currentBar: 0,
+        currentBarStarted: liveAudioContext.currentTime,
+        tempo: tempo,
+      },
+    });
+    console.log("here");
+  }
+  override stopPlayback(): void {
+    this.pianoRoll.audioNode.scheduleEvents({
+      type: "wam-transport",
+      data: {
+        playing: false,
+        timeSigDenominator: 4,
+        timeSigNumerator: 4,
+        currentBar: 0,
+        currentBarStarted: liveAudioContext.currentTime,
+        tempo: 120, // todo: tempo
+      },
+    });
   }
 
   override toString() {
