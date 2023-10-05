@@ -2,6 +2,7 @@ import { CLIP_HEIGHT, liveAudioContext } from "../constants";
 import { DSPNode } from "../dsp/DSPNode";
 import { EffectID } from "../dsp/FAUST_EFFECTS";
 import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
+import { MidiTrack } from "../midi/MidiTrack";
 import { mixDown } from "../mixDown";
 import nullthrows from "../utils/nullthrows";
 import { PambaWamNode } from "../wam/PambaWamNode";
@@ -177,12 +178,12 @@ export class AudioTrack extends ProjectTrack {
 
   ///////////// statics
 
-  static removeEffect(track: AudioTrack, effect: FaustAudioEffect | PambaWamNode) {
+  static removeEffect(track: AudioTrack | MidiTrack, effect: FaustAudioEffect | PambaWamNode) {
     track.effects.remove(effect);
     effect.destroy();
   }
 
-  static bypassEffect(track: AudioTrack, effect: FaustAudioEffect | PambaWamNode) {
+  static bypassEffect(track: AudioTrack | MidiTrack, effect: FaustAudioEffect | PambaWamNode) {
     console.log("todo: bypass", effect);
   }
 }

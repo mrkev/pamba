@@ -18,7 +18,7 @@ export type SelectionState =
     }
   | {
       status: "effects";
-      effects: Array<{ effect: FaustAudioEffect | PambaWamNode; track: AudioTrack }>;
+      effects: Array<{ effect: FaustAudioEffect | PambaWamNode; track: AudioTrack | MidiTrack }>;
       test: Set<FaustAudioEffect | PambaWamNode>;
     }
   // Not sure if have is a good idea, since user might want to select time

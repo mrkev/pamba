@@ -1,4 +1,5 @@
 import { DSPNode } from "../dsp/DSPNode";
+import { EffectID } from "../dsp/FAUST_EFFECTS";
 import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
 import { PambaWamNode } from "../wam/PambaWamNode";
 import { connectSerialNodes } from "./AudioTrack";
@@ -14,6 +15,9 @@ export abstract class ProjectTrack extends DSPNode<null> {
   // NOTE: needs to be called right after .prepareForPlayback
   abstract startPlayback(tempo: number, offset?: number): void;
   abstract stopPlayback(): void;
+
+  abstract addEffect(effectId: EffectID): Promise<void>;
+  abstract addWAM(url: string): Promise<void>;
 
   // DSP
   public readonly effects: LinkedArray<FaustAudioEffect | PambaWamNode>;

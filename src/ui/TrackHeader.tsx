@@ -233,7 +233,7 @@ export const TrackHeader = React.memo(function TrackHeader({
         </button>
       </div>
       {/* TODO: Allow DSP on MIDITrack */}
-      {isDspExpanded && track instanceof AudioTrack ? (
+      {isDspExpanded ? (
         <div
           style={{
             background: "#444444",

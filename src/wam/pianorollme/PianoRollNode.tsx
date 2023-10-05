@@ -75,7 +75,7 @@ export class PianoRollModule extends WebAudioModule<PianoRollNode> {
 
   override async initialize(state: any) {
     await this._loadDescriptor();
-    console.log("INIT FOO");
+    // console.log("INIT FOO");
 
     return super.initialize(state);
   }

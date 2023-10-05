@@ -8,6 +8,7 @@ import nullthrows from "./utils/nullthrows";
 
 async function init() {
   try {
+    await wait(1);
     await appEnvironment.initAsync(liveAudioContext);
     // We wait to load the app since some modules might import liveAudioContext
     const App = (await import("./ui/App")).App;
@@ -23,6 +24,10 @@ async function init() {
 }
 
 ignorePromise(init());
+
+async function wait(ms: number) {
+  return new Promise((res) => setTimeout(res, ms));
+}
 
 // import reportWebVitals from "./reportWebVitals";
 // If you want to start measuring performance in your app, pass a function

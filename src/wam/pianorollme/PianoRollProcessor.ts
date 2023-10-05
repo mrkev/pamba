@@ -9,7 +9,6 @@ import { MIDIConfiguration, MIDI, PPQN } from "./MIDIConfiguration";
 
 const moduleId = "com.foo.pianoRoll";
 
-console.log("A");
 const audioWorkletGlobalScope: AudioWorkletGlobalScope = globalThis as unknown as AudioWorkletGlobalScope;
 const ModuleScope = audioWorkletGlobalScope.webAudioModules.getModuleScope(moduleId);
 const WamProcessor = ModuleScope.WamProcessor;
@@ -37,7 +36,7 @@ class PianoRollProcessor extends WamProcessor {
   midiConfig: MIDIConfiguration;
 
   constructor(options: { processorOptions: { moduleId: string; instanceId: string } }) {
-    console.log("PRE");
+    // console.log("PRE");
     super(options);
 
     const { moduleId, instanceId } = options.processorOptions;

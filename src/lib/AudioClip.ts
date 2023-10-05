@@ -63,7 +63,7 @@ export default class AudioClip extends BaseClip implements Subbable<AudioClip>, 
     }
     const waveform = dataURLForWaveform(width, height, this.buffer);
     this.memodWaveformDataURL = { width, height, data: waveform };
-    console.log("generated waveform for", this.name);
+    // console.log("generated waveform for", this.name);
     return waveform;
   }
 

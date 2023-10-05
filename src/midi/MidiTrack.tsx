@@ -8,6 +8,8 @@ import { MidiInstrument } from "./MidiInstrument";
 import { LinkedArray } from "../lib/state/LinkedArray";
 
 import { PianoRollModule, PianoRollNode } from "../wam/pianorollme/PianoRollNode";
+import { PambaWamNode } from "../wam/PambaWamNode";
+import { ignorePromise } from "../utils/ignorePromise";
 
 const SAMPLE_STATE = {
   clips: {
@@ -72,28 +74,38 @@ export class MidiTrack extends ProjectTrack {
   override effectId: string = "MIDI TRACK TODO";
   instrument: MidiInstrument;
   pianoRoll: PianoRollModule;
-  pianoRollDom: Element;
+  // pianoRollDom: Element;
   clips: LinkedArray<MidiClip>;
 
   private constructor(
     name: string,
     pianoRoll: WebAudioModule<PianoRollNode>,
-    pianoRollDom: Element,
+    // pianoRollDom: Element,
     instrument: MidiInstrument,
     clips: MidiClip[],
   ) {
     super("midi track", [], CLIP_HEIGHT);
     this.pianoRoll = pianoRoll as any;
-    console.log((this.pianoRoll as PianoRollModule).sequencer.setState(SAMPLE_STATE));
-    this.pianoRollDom = pianoRollDom;
+    // this.pianoRollDom = pianoRollDom;
     this.instrument = instrument;
     this.clips = LinkedArray.create(clips);
 
-    // todo: output node?
     instrument.module.audioNode.connect(this._hiddenGainNode.inputNode());
     // gain.connect(liveAudioContext.destination);
     instrument.module.audioNode.connect(pianoRoll.audioNode);
     pianoRoll.audioNode.connectEvents(instrument.module.instanceId);
+
+    // this.instrument.module
+    //   .createGui()
+    //   .then((elem) => (this.instrument.dom = elem))
+    //   .catch(console.error);
+  }
+
+  override addEffect(effectId: "PANNER" | "REVERB"): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  override addWAM(url: string): Promise<void> {
+    throw new Error("Method not implemented.");
   }
 
   public createBlankMidiClip() {
@@ -106,9 +118,10 @@ export class MidiTrack extends ProjectTrack {
     const pianoRollPlugin = nullthrows(appEnvironment.wamPlugins.get(PIANO_ROLL_PLUGIN_URL), "Piano Roll not found!");
     // const pianoRoll = await pianoRollPlugin.import.createInstance(groupId, liveAudioContext);
     const pianoRoll = await PianoRollModule.createInstance<PianoRollNode>(groupId, liveAudioContext);
+    await (pianoRoll as PianoRollModule).sequencer.setState(SAMPLE_STATE);
 
-    const pianoRollDom = await pianoRoll.createGui();
-    return new MidiTrack(name, pianoRoll as any, pianoRollDom, instrument, clips ?? []);
+    // const pianoRollDom = await pianoRoll.createGui();
+    return new MidiTrack(name, pianoRoll as any, instrument, clips ?? []);
   }
 
   override prepareForPlayback(context: AudioContext): void {

@@ -61,9 +61,14 @@ export class PambaWamNode extends DSPNode {
     return new PambaWamNode(pluginInstance1, pluginDom1, pluginUrl);
   }
 
+  static async wrapModule(module: WebAudioModule<IWamNode>, url: string) {
+    let pluginDom1 = await module.createGui();
+    return new PambaWamNode(module, pluginDom1, url);
+  }
+
   override async cloneToOfflineContext(
     context: OfflineAudioContext,
-    offlineContextInfo: AudioContextInfo
+    offlineContextInfo: AudioContextInfo,
   ): Promise<PambaWamNode | null> {
     const state = await this.getState();
     const {

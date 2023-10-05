@@ -13,11 +13,13 @@ import { useLinkedState } from "../lib/state/LinkedState";
 import { exhaustive } from "../utils/exhaustive";
 import { PambaWamNode } from "../wam/PambaWamNode";
 import { WindowPanel } from "../wam/WindowPanel";
-import { WamPluginContent } from "../wam/wam";
+import { WamInstrumentContent, WamPluginContent } from "../wam/wam";
 import { Effect } from "./Effect";
 import nullthrows from "../utils/nullthrows";
 import ReactDOM from "react-dom";
 import { MidiTrack } from "../midi/MidiTrack";
+import { PianoRollModule } from "../wam/pianorollme/PianoRollNode";
+import { MidiInstrument } from "../midi/MidiInstrument";
 
 const useStyles = createUseStyles({
   effectRack: {
@@ -53,7 +55,7 @@ export const EffectRack = React.memo(function EffectRack({
   const [selected] = useLinkedState(project.selected);
   const rackRef = useRef<HTMLDivElement | null>(null);
   const [isAudioPlaying] = useLinkedState(renderer.isAudioPlaying);
-  const openEffects = useNewLinkedSet<DSPNode>();
+  const openEffects = useNewLinkedSet<DSPNode | MidiInstrument>();
 
   useEffect(() => {
     const div = rackRef.current;
@@ -73,12 +75,15 @@ export const EffectRack = React.memo(function EffectRack({
   return (
     <>
       {/* RENDER WAM WINDOWS OUT HERE */}
-      {effects.map((effect, i) => {
-        if (effect instanceof PambaWamNode && openEffects.has(effect)) {
+      {[...openEffects.values()].map((effect, i) => {
+        if (effect instanceof PambaWamNode) {
           return <PambaWamNodeWindowPanel key={i} effect={effect} onClose={() => openEffects.delete(effect)} />;
-        } else {
-          return null;
         }
+        if (effect instanceof MidiInstrument) {
+          return <PambaWamNodeWindowPanel key={i} effect={effect} onClose={() => openEffects.delete(effect)} />;
+        }
+
+        return null;
       })}
       <div
         style={{
@@ -91,51 +96,68 @@ export const EffectRack = React.memo(function EffectRack({
         ref={rackRef}
       >
         {"↳"}
+        {track instanceof MidiTrack && (
+          <React.Fragment>
+            <Effect
+              canDelete={!isAudioPlaying}
+              onClickRemove={() => {
+                console.log("CANT REMOVE");
+              }}
+              onHeaderClick={() => console.log("TODO")}
+              onClickBypass={() => console.log("TODO")}
+              isSelected={false}
+              title={"Instrument"}
+            >
+              <button onClick={() => openEffects.add(track.instrument)}>Configure</button>
+            </Effect>
+            {"→"}
+          </React.Fragment>
+        )}
+
         {effects.map((effect, i) => {
-          throw new Error("TODO");
-          // if (effect instanceof FaustAudioEffect) {
-          //   return (
-          //     <React.Fragment key={i}>
-          //       <FaustEffectModule
-          //         canDelete={!isAudioPlaying}
-          //         effect={effect}
-          //         style={{
-          //           alignSelf: "stretch",
-          //           margin: "2px",
-          //           borderRadius: "2px",
-          //         }}
-          //         onClickRemove={() => AudioTrack.removeEffect(track, effect)}
-          //         onHeaderClick={() => ProjectSelection.selectEffect(project, effect, track)}
-          //         onClickBypass={() => AudioTrack.bypassEffect(track, effect)}
-          //         isSelected={selected?.status === "effects" && selected.test.has(effect)}
-          //       />
-          //       {"→"}
-          //     </React.Fragment>
-          //   );
-          // }
+          if (effect instanceof FaustAudioEffect) {
+            return (
+              <React.Fragment key={i}>
+                <FaustEffectModule
+                  canDelete={!isAudioPlaying}
+                  effect={effect}
+                  style={{
+                    alignSelf: "stretch",
+                    margin: "2px",
+                    borderRadius: "2px",
+                  }}
+                  onClickRemove={() => AudioTrack.removeEffect(track, effect)}
+                  onHeaderClick={() => ProjectSelection.selectEffect(project, effect, track)}
+                  onClickBypass={() => AudioTrack.bypassEffect(track, effect)}
+                  isSelected={selected?.status === "effects" && selected.test.has(effect)}
+                />
+                {"→"}
+              </React.Fragment>
+            );
+          }
 
-          // if (effect instanceof PambaWamNode) {
-          //   return (
-          //     <React.Fragment key={i}>
-          //       <Effect
-          //         canDelete={!isAudioPlaying}
-          //         onClickRemove={() => {
-          //           openEffects.delete(effect);
-          //           AudioTrack.removeEffect(track, effect);
-          //         }}
-          //         onHeaderClick={() => ProjectSelection.selectEffect(project, effect, track)}
-          //         onClickBypass={() => AudioTrack.bypassEffect(track, effect)}
-          //         isSelected={selected?.status === "effects" && selected.test.has(effect)}
-          //         title={effect.name}
-          //       >
-          //         <button onClick={() => openEffects.add(effect)}>Configure</button>
-          //       </Effect>
-          //       {"→"}
-          //     </React.Fragment>
-          //   );
-          // }
+          if (effect instanceof PambaWamNode) {
+            return (
+              <React.Fragment key={i}>
+                <Effect
+                  canDelete={!isAudioPlaying}
+                  onClickRemove={() => {
+                    openEffects.delete(effect);
+                    AudioTrack.removeEffect(track, effect);
+                  }}
+                  onHeaderClick={() => ProjectSelection.selectEffect(project, effect, track)}
+                  onClickBypass={() => AudioTrack.bypassEffect(track, effect)}
+                  isSelected={selected?.status === "effects" && selected.test.has(effect)}
+                  title={effect.name}
+                >
+                  <button onClick={() => openEffects.add(effect)}>Configure</button>
+                </Effect>
+                {"→"}
+              </React.Fragment>
+            );
+          }
 
-          // return exhaustive(effect);
+          return exhaustive(effect);
         })}
 
         <div
@@ -168,12 +190,12 @@ export const EffectRack = React.memo(function EffectRack({
   );
 });
 
-function PambaWamNodeWindowPanel({ effect, onClose }: { effect: PambaWamNode; onClose: () => void }) {
+function PambaWamNodeWindowPanel({ effect, onClose }: { effect: PambaWamNode | MidiInstrument; onClose: () => void }) {
   const [position, setPosition] = useLinkedState(effect.windowPanelPosition);
   return ReactDOM.createPortal(
     <WindowPanel onClose={onClose} title={effect.name} position={position} onPositionChange={setPosition}>
-      <WamPluginContent wam={effect} />
+      {effect instanceof PambaWamNode ? <WamPluginContent wam={effect} /> : <WamInstrumentContent wam={effect} />}
     </WindowPanel>,
-    nullthrows(document.querySelector("#wam-window-panels"))
+    nullthrows(document.querySelector("#wam-window-panels")),
   );
 }

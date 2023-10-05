@@ -224,7 +224,7 @@ export class ProjectSelection {
     }
   }
 
-  static selectEffect(project: AudioProject, effect: FaustAudioEffect | PambaWamNode, track: AudioTrack) {
+  static selectEffect(project: AudioProject, effect: FaustAudioEffect | PambaWamNode, track: AudioTrack | MidiTrack) {
     project.selected.set({
       status: "effects",
       effects: [{ effect, track }],
