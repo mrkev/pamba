@@ -1,9 +1,8 @@
-import { useCallback, useEffect, useRef, useState } from "react";
 import { createUseStyles } from "react-jss";
-import { AnalizedPlayer } from "../lib/AnalizedPlayer";
-import { useLinkedArray } from "../lib/state/LinkedArray";
-import { MidiClip } from "../midi/MidiClip";
+import { Clip } from "../wam/pianorollme/PianoRollClip";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useEventListener } from "./useEventListener";
+import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 
 const NOTE_HEIGHT = 10;
 const TOTAL_NOTES = 128;
@@ -29,12 +28,12 @@ function secsToPx(secs: number): number {
   return ticks * TICK_WIDTH;
 }
 
-export function MidiClipEditor({ clip, player }: { clip: MidiClip; player: AnalizedPlayer }) {
+export function OldMidiClipEditor({ clip, player }: { clip: Clip; player: AnalizedPlayer }) {
   const styles = useStyles();
   const containerRef = useRef<HTMLDivElement>(null);
   const cursorDiv = useRef<HTMLDivElement>(null);
   const backgroundRef = useRef(null);
-  const [notes] = useLinkedArray(clip.notes);
+  const notes = clip.state.notes;
   const [, rerender] = useState({});
 
   useEffect(() => {
@@ -44,7 +43,7 @@ export function MidiClipEditor({ clip, player }: { clip: MidiClip; player: Anali
         pbdiv.style.left = String(secsToPx(playbackTimeSecs)) + "px";
       }
     };
-  }, [player, player.isAudioPlaying]);
+  }, [clip.state.length, player, player.isAudioPlaying]);
 
   useEventListener(
     "mousedown",
@@ -57,16 +56,15 @@ export function MidiClipEditor({ clip, player }: { clip: MidiClip; player: Anali
         const noteX = Math.floor(e.offsetX / NOTE_WDITH);
         const tick = noteX * NOTE_DURATION;
 
-        const prevNote = clip.findNote(tick, noteNum);
-        if (prevNote != null) {
-          clip.removeNote(prevNote);
+        if (clip.hasNote(tick, noteNum)) {
+          clip.removeNote(tick, noteNum);
         } else {
           clip.addNote(tick, noteNum, NOTE_DURATION, 100);
         }
 
         rerender({});
 
-        // console.log("note", noteNum, tick, clip.hasNote(tick, noteNum));
+        console.log("note", noteNum, tick, clip.hasNote(tick, noteNum));
       },
       [clip],
     ),
@@ -95,18 +93,17 @@ export function MidiClipEditor({ clip, player }: { clip: MidiClip; player: Anali
           }}
         /> */}
         {notes.map((note, i) => {
-          const [tick, num, duration, velocity] = note;
           return (
             <div
               key={i}
               className={styles.note}
               style={{
-                bottom: num * NOTE_HEIGHT,
+                bottom: note.number * NOTE_HEIGHT,
                 height: NOTE_HEIGHT,
-                left: tick * TICK_WIDTH,
+                left: note.tick * TICK_WIDTH,
                 width: NOTE_WDITH,
                 overflow: "hidden",
-                opacity: velocity / 100,
+                opacity: note.velocity / 100,
                 pointerEvents: "none",
               }}
             >

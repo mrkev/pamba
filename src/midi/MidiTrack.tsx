@@ -1,15 +1,13 @@
-import type { WamNode, WebAudioModule } from "@webaudiomodules/api";
+import type { WebAudioModule } from "@webaudiomodules/api";
 import { CLIP_HEIGHT, PIANO_ROLL_PLUGIN_URL, liveAudioContext } from "../constants";
 import { appEnvironment } from "../lib/AppEnvironment";
-import nullthrows from "../utils/nullthrows";
 import { ProjectTrack } from "../lib/ProjectTrack";
+import { LinkedArray } from "../lib/state/LinkedArray";
+import nullthrows from "../utils/nullthrows";
 import { MidiClip } from "./MidiClip";
 import { MidiInstrument } from "./MidiInstrument";
-import { LinkedArray } from "../lib/state/LinkedArray";
 
 import { PianoRollModule, PianoRollNode } from "../wam/pianorollme/PianoRollNode";
-import { PambaWamNode } from "../wam/PambaWamNode";
-import { ignorePromise } from "../utils/ignorePromise";
 
 const SAMPLE_STATE = {
   clips: {
@@ -80,13 +78,11 @@ export class MidiTrack extends ProjectTrack {
   private constructor(
     name: string,
     pianoRoll: WebAudioModule<PianoRollNode>,
-    // pianoRollDom: Element,
     instrument: MidiInstrument,
     clips: MidiClip[],
   ) {
-    super("midi track", [], CLIP_HEIGHT);
+    super(name, [], CLIP_HEIGHT);
     this.pianoRoll = pianoRoll as any;
-    // this.pianoRollDom = pianoRollDom;
     this.instrument = instrument;
     this.clips = LinkedArray.create(clips);
 
@@ -94,11 +90,7 @@ export class MidiTrack extends ProjectTrack {
     // gain.connect(liveAudioContext.destination);
     instrument.module.audioNode.connect(pianoRoll.audioNode);
     pianoRoll.audioNode.connectEvents(instrument.module.instanceId);
-
-    // this.instrument.module
-    //   .createGui()
-    //   .then((elem) => (this.instrument.dom = elem))
-    //   .catch(console.error);
+    this.createSampleMidiClip();
   }
 
   override addEffect(effectId: "PANNER" | "REVERB"): Promise<void> {
@@ -108,8 +100,12 @@ export class MidiTrack extends ProjectTrack {
     throw new Error("Method not implemented.");
   }
 
-  public createBlankMidiClip() {
+  public createSampleMidiClip() {
     const newClip = new MidiClip("new midi clip", 30);
+    for (const note of SAMPLE_STATE.clips.default.notes) {
+      newClip.addNote(note.tick, note.number, note.duration, note.velocity);
+    }
+
     this.clips.push(newClip);
   }
 
@@ -125,7 +121,7 @@ export class MidiTrack extends ProjectTrack {
   }
 
   override prepareForPlayback(context: AudioContext): void {
-    // nothing to do
+    // take all clips, make a single note array
   }
 
   override startPlayback(tempo: number, offset?: number | undefined): void {

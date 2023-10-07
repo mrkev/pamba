@@ -13,6 +13,9 @@ import AudioClip from "../lib/AudioClip";
 import { AudioTrack } from "../lib/AudioTrack";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { MidiTrack } from "../midi/MidiTrack";
+import { OldMidiClipEditor } from "./OldMidiClipEditor";
+import { SelectionState } from "../lib/project/SelectionState";
+import { MidiClip } from "../midi/MidiClip";
 import { MidiClipEditor } from "./MidiClipEditor";
 
 function useStopPlaybackOnUnmount(renderer: AudioRenderer) {
@@ -112,10 +115,37 @@ export function AppProject({ project }: { project: AudioProject }) {
 
 function BottomPanel({ project, player }: { project: AudioProject; player: AnalizedPlayer }) {
   const [activeTrack] = useLinkedState(project.activeTrack);
+  const [selected] = useLinkedState(project.selected);
+  const midiClipMaybe = getOnlyOneSelectedMidiClip(selected);
+
+  console.log(selected);
+
+  if (midiClipMaybe != null) {
+    return <MidiClipEditor clip={midiClipMaybe} player={player} />;
+  }
+
   if (!(activeTrack instanceof MidiTrack)) {
     return "nothing to show";
   }
 
   const clip = activeTrack.pianoRoll.sequencer.pianoRoll.clips["default"];
-  return <MidiClipEditor clip={clip} player={player} />;
+  return <OldMidiClipEditor clip={clip} player={player} />;
+}
+
+function getOnlyOneSelectedMidiClip(selected: SelectionState | null) {
+  if (selected == null) {
+    return null;
+  }
+
+  if (!(selected.status === "clips" && selected.clips.length === 1)) {
+    return null;
+  }
+
+  const clip = selected.clips[0];
+
+  if (clip.clip instanceof MidiClip) {
+    return clip.clip;
+  } else {
+    return null;
+  }
 }

@@ -2,16 +2,15 @@ import React, { useMemo } from "react";
 import { createUseStyles } from "react-jss";
 import { modifierState } from "../ModifierState";
 import { CLIP_HEIGHT } from "../constants";
-import type AudioClip from "../lib/AudioClip";
-import type { AudioTrack } from "../lib/AudioTrack";
 import type { AudioProject } from "../lib/project/AudioProject";
 import { useDerivedState } from "../lib/state/DerivedState";
+import { useLinkedArray } from "../lib/state/LinkedArray";
 import { useSubscribeToSubbableMutationHashable } from "../lib/state/LinkedMap";
 import { useLinkedState } from "../lib/state/LinkedState";
-import { pressedState } from "../pressedState";
-import { RenamableLabel } from "./RenamableLabel";
 import { MidiClip } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
+import { pressedState } from "../pressedState";
+import { RenamableLabel } from "./RenamableLabel";
 
 export function ClipM({
   clip,
@@ -32,6 +31,7 @@ export function ClipM({
   const secsToPx = useDerivedState(project.secsToPx);
   const pxToSecs = secsToPx.invert;
   const width = secsToPx(clip.durationSec);
+  const [notes] = useLinkedArray(clip.notes);
 
   const startTrimmedWidth = secsToPx(clip.trimStartSec);
   const [tool] = useLinkedState(project.pointerTool);
@@ -124,8 +124,8 @@ export function ClipM({
       ({
         status: "clip",
         clip: clip,
-      } as const),
-    [clip]
+      }) as const,
+    [clip],
   );
 
   return (
@@ -169,7 +169,7 @@ export function ClipM({
       </div>
       <div className={styles.resizerStart} onMouseDown={(e) => onMouseDownToResize(e, "start")}></div>
       <div className={styles.resizerEnd} onMouseDown={(e) => onMouseDownToResize(e, "end")}></div>
-
+      {notes.length}
       {/* <button
         onClick={() => {
           if (canvasRef.current) {

@@ -57,7 +57,7 @@ export class LinkedArray<S> implements ArrayWithoutIndexer<S>, Subbable<Readonly
   // THis makes this a cointainer, and makes us wonder if this should be
   // a LinkedState too insteaed.
   at(index: number): S | undefined {
-    throw new Error("Method not implemented.");
+    return this._array.at(index);
   }
 
   [Symbol.iterator](): IterableIterator<S> {
@@ -222,7 +222,7 @@ export class LinkedArray<S> implements ArrayWithoutIndexer<S>, Subbable<Readonly
   find<S>(predicate: (this: void, value: S, index: number, obj: S[]) => value is S, thisArg?: any): S | undefined;
   find(predicate: (value: S, index: number, obj: S[]) => unknown, thisArg?: any): S | undefined;
   find(predicate: any, thisArg?: any): S | S | undefined {
-    throw new Error("Method not implemented.");
+    return this._array.find(predicate, thisArg);
   }
   findIndex(predicate: (value: S, index: number, obj: S[]) => unknown, thisArg?: any): number {
     throw new Error("Method not implemented.");

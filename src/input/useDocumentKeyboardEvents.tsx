@@ -9,7 +9,7 @@ import { ignorePromise } from "../utils/ignorePromise";
 export function useDocumentKeyboardEvents(
   project: AudioProject,
   player: AnalizedPlayer,
-  renderer: AudioRenderer
+  renderer: AudioRenderer,
 ): void {
   useEffect(() => {
     function keydownEvent(e: KeyboardEvent) {
@@ -38,7 +38,7 @@ export function useDocumentKeyboardEvents(
         case "KeyM": {
           const activeTrack = project.activeTrack.get();
           if (e.ctrlKey && e.shiftKey && activeTrack instanceof MidiTrack) {
-            activeTrack.createBlankMidiClip();
+            activeTrack.createSampleMidiClip();
           }
           break;
         }
