@@ -3,6 +3,7 @@ import { Clip } from "../wam/pianorollme/PianoRollClip";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useEventListener } from "./useEventListener";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
+import { PPQN } from "../wam/pianorollme/MIDIConfiguration";
 
 const NOTE_HEIGHT = 10;
 const TOTAL_NOTES = 128;
@@ -12,8 +13,6 @@ const NOTE_DURATION = 6;
 const NOTE_WDITH = TICK_WIDTH * NOTE_DURATION;
 
 const CLIP_TOTAL_BARS = 4; //
-
-export const PPQN = 24; // ticks per beat (?)
 
 const TEMPO = 75;
 

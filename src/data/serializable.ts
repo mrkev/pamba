@@ -11,6 +11,7 @@ import nullthrows from "../utils/nullthrows";
 import { MidiTrack } from "../midi/MidiTrack";
 import { MidiInstrument } from "../midi/MidiInstrument";
 import { MidiClip } from "../midi/MidiClip";
+import { Note } from "../midi/SharedMidiTypes";
 
 export type SAudioClip = {
   kind: "AudioClip";
@@ -21,7 +22,8 @@ export type SAudioClip = {
 export type SMidiClip = {
   kind: "MidiClip";
   name: string;
-  lengthSec: number;
+  lengthPulses: number;
+  notes: readonly Note[];
 };
 
 export type SAudioTrack = {
@@ -73,8 +75,8 @@ export async function serializable(
   }
 
   if (obj instanceof MidiClip) {
-    const { name, lengthSec } = obj;
-    return { kind: "MidiClip", name, lengthSec };
+    const { name, lenPulses, notes } = obj;
+    return { kind: "MidiClip", name, lengthPulses: lenPulses, notes: notes._getRaw() };
   }
 
   if (obj instanceof AudioTrack) {
@@ -137,8 +139,8 @@ export async function construct(
       return AudioClip.fromURL(bufferURL, name);
     }
     case "MidiClip": {
-      const { name, lengthSec } = rep;
-      return new MidiClip(name, lengthSec);
+      const { name, lengthPulses, notes } = rep;
+      return new MidiClip(name, lengthPulses, notes);
     }
     case "AudioTrack": {
       const { name, clips: sClips, effects: sEffects, height } = rep;

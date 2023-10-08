@@ -2,7 +2,15 @@ import { useEffect, useRef, useState } from "react";
 import { createUseStyles } from "react-jss";
 import { utility } from "./utility";
 
-export function UtilityMenu({ label, items }: { label: string; items: Record<string, () => void> }) {
+export function UtilityMenu({
+  label,
+  items,
+  style,
+}: {
+  label: string;
+  items: Record<string, () => void>;
+  style?: React.CSSProperties;
+}) {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
   const styles = useStyles();
@@ -33,7 +41,7 @@ export function UtilityMenu({ label, items }: { label: string; items: Record<str
   }, []);
 
   return (
-    <div style={{ position: "relative" }}>
+    <div style={{ position: "relative", ...style }}>
       <button ref={buttonRef} className={utility.button}>
         {label}
       </button>
@@ -46,6 +54,8 @@ export function UtilityMenu({ label, items }: { label: string; items: Record<str
             background: "#D3D3D3",
             width: 100,
             fontSize: 12,
+            borderBottom: "1px solid #bababa",
+            // borderLeft: "1px solid #bababa",
           }}
         >
           {Object.entries(items).map(([label, cb]) => (

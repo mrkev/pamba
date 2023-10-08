@@ -3,6 +3,7 @@ import type { AudioWorkletGlobalScope, WamMidiData, WamTransportData } from "@we
 import nullthrows from "../../utils/nullthrows";
 import { Clip, MIDINoteRecorder } from "./PianoRollClip";
 import { MIDIConfiguration, MIDI, PPQN } from "./MIDIConfiguration";
+import type { PianoRollProcessorMessage, SimpleClip, Note } from "../../midi/SharedMidiTypes";
 // import { Clip } from "./Clip";
 // import { MIDINoteRecorder } from "./MIDINoteRecorder";
 // import { MIDIConfiguration } from "./MIDIConfiguration";
@@ -28,6 +29,8 @@ class PianoRollProcessor extends WamProcessor {
   count: number;
 
   clips: Map<string, Clip>;
+  // new system
+  seqClips: SimpleClip[] = [];
 
   pendingClipChange?: { id: string; timestamp: number };
   currentClipId: string;
@@ -90,7 +93,7 @@ class PianoRollProcessor extends WamProcessor {
     }
 
     // lookahead
-    var schedulerTime = currentTime + 0.05;
+    const schedulerTime = currentTime + 0.05;
 
     // kevin: this is called all the time, as soon as we initialize apparently. I think that's just how
     // I run the audio context? In any case, the "wam-transport" event just sets isPlaying = true
@@ -111,12 +114,21 @@ class PianoRollProcessor extends WamProcessor {
 
     // console.log(this.transportData!.playing, this.transportData!.currentBarStarted <= schedulerTime);
 
+    if (
+      this.transportData!.playing &&
+      this.transportData!.currentBarStarted <= schedulerTime &&
+      this.seqClips.length != 0
+    ) {
+      this.newSystemPlayback(schedulerTime);
+      return;
+    }
+
     if (this.transportData!.playing && this.transportData!.currentBarStarted <= schedulerTime) {
-      var timeElapsed = schedulerTime - this.transportData!.currentBarStarted;
-      var beatPosition =
+      const timeElapsed = schedulerTime - this.transportData!.currentBarStarted;
+      const beatPosition =
         this.transportData!.currentBar * this.transportData!.timeSigNumerator +
         (this.transportData!.tempo / 60.0) * timeElapsed;
-      var absoluteTickPosition = Math.floor(beatPosition * PPQN);
+      const absoluteTickPosition = Math.floor(beatPosition * PPQN);
 
       let clipPosition = absoluteTickPosition % clip.state.length;
 
@@ -151,11 +163,57 @@ class PianoRollProcessor extends WamProcessor {
     return;
   }
 
+  private newSystemPlayback(schedulerTime: number) {
+    const clipLength = 96; // todo, clip length in PPQN units // clip.state.length
+    const theClips = this.seqClips;
+
+    const timeElapsed = schedulerTime - this.transportData!.currentBarStarted;
+    const beatPosition =
+      this.transportData!.currentBar * this.transportData!.timeSigNumerator +
+      (this.transportData!.tempo / 60.0) * timeElapsed;
+    const absoluteTickPosition = Math.floor(beatPosition * PPQN);
+
+    const clipPosition = absoluteTickPosition % clipLength;
+
+    if (this.recordingArmed && this.ticks % clipLength > clipPosition) {
+      // we just circled back, so finalize any notes in the buffer
+      this.noteRecorder.finalizeAllNotes(clipLength - 1);
+    }
+
+    const secondsPerTick = 1.0 / ((this.transportData!.tempo / 60.0) * PPQN);
+
+    while (this.ticks < absoluteTickPosition) {
+      this.ticks = this.ticks + 1;
+
+      const tickMoment = this.transportData!.currentBarStarted + (this.ticks - this.startingTicks) * secondsPerTick;
+      notesForTickNew(this.ticks % clipLength, theClips).forEach(([ntick, nnumber, nduration, nvelocity]: Note) => {
+        this.emitEvents(
+          {
+            type: "wam-midi",
+            time: tickMoment,
+            data: { bytes: [MIDI.NOTE_ON | this.midiConfig.outputMidiChannel, nnumber, nvelocity] },
+          },
+          {
+            type: "wam-midi",
+            time: tickMoment + nduration * secondsPerTick - 0.001,
+            data: { bytes: [MIDI.NOTE_OFF | this.midiConfig.outputMidiChannel, nnumber, nvelocity] },
+          },
+        );
+      });
+    }
+  }
+
   /**
    * Messages from main thread appear here.
    * @param {MessageEvent} message
    */
-  async _onMessage(message: any): Promise<void> {
+  async _onMessage(message: { data: PianoRollProcessorMessage }): Promise<void> {
+    if (message.data && message.data.action === "newclip") {
+      this.seqClips = message.data.seqClips;
+      console.log(message);
+      return;
+    }
+
     if (message.data && message.data.action == "clip") {
       let clip = new Clip(message.data.id, message.data.state);
       this.clips.set(message.data.id, clip);
@@ -211,4 +269,27 @@ try {
 } catch (error) {
   // eslint-disable-next-line no-console
   console.warn(error);
+}
+
+function notesForTickNew(currMidiTick: number, simpleClips: SimpleClip[]): readonly Note[] {
+  if (simpleClips.length === 0) {
+    return [];
+  }
+
+  // todo
+  let currentClip = simpleClips[0];
+  const notes = currentClip.notes.filter(([ntick]) => ntick === currMidiTick);
+  console.log(notes, currMidiTick);
+
+  return notes;
+
+  // for (let i = 0; i < simpleClips.length; i++) {
+  //   const clip = simpleClips[i];
+  //   // TODO: sec to -> PPQN unit
+  //   if (clip.endOffsetTicks < currMidiTick) {
+  //     continue;
+  //   }
+
+  //   // TODO
+  // }
 }

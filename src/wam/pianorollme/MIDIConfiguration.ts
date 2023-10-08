@@ -24,5 +24,7 @@ export function token() {
     .substr(0, 16);
 }
 
+// pulses per quarter note (beat)
 export const PPQN = 24;
+// pulses per 16th note
 export const PP16 = PPQN / 4;

@@ -4,6 +4,8 @@ import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import { useLinkedArray } from "../lib/state/LinkedArray";
 import { MidiClip } from "../midi/MidiClip";
 import { useEventListener } from "./useEventListener";
+import { PPQN } from "../wam/pianorollme/MIDIConfiguration";
+import { useSubscribeToSubbableMutationHashable } from "../lib/state/LinkedMap";
 
 const NOTE_HEIGHT = 10;
 const TOTAL_NOTES = 128;
@@ -14,9 +16,15 @@ const NOTE_WDITH = TICK_WIDTH * NOTE_DURATION;
 
 const CLIP_TOTAL_BARS = 4; //
 
-export const PPQN = 24; // ticks per beat (?)
-
 const TEMPO = 75;
+
+const CANVAS_SCALE = Math.floor(window.devicePixelRatio);
+
+type NoteStr = "C" | "C#" | "D" | "D#" | "E" | "F" | "F#" | "G" | "G#" | "A" | "A#" | "B";
+const NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"] as const;
+function keyboardColorOfNote(noteStr: NoteStr): "black" | "white" {
+  return noteStr.length === 2 ? "black" : "white";
+}
 
 function secsToTicks(secs: number) {
   const oneBeatLen = 60 / TEMPO;
@@ -29,13 +37,62 @@ function secsToPx(secs: number): number {
   return ticks * TICK_WIDTH;
 }
 
+function useDrawOnCanvas(
+  ref: React.RefObject<HTMLCanvasElement>,
+  cb: (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => void,
+) {
+  useEffect(() => {
+    const elem = ref.current;
+    const ctx = elem?.getContext("2d") ?? null;
+    if (ctx == null || elem == null) {
+      return;
+    }
+
+    ctx.save();
+    cb(ctx, elem);
+    return () => {
+      console.log("clearing");
+      ctx.clearRect(0, 0, elem.width, elem.height);
+      ctx.restore();
+    };
+  }, [cb, ref]);
+}
+
+function pulsesToPx(pulses: number) {
+  return pulses * 5; //horizontal scale factor
+}
+
 export function MidiClipEditor({ clip, player }: { clip: MidiClip; player: AnalizedPlayer }) {
   const styles = useStyles();
   const containerRef = useRef<HTMLDivElement>(null);
   const cursorDiv = useRef<HTMLDivElement>(null);
-  const backgroundRef = useRef(null);
+  const backgroundRef = useRef<HTMLCanvasElement>(null);
   const [notes] = useLinkedArray(clip.notes);
-  const [, rerender] = useState({});
+
+  useSubscribeToSubbableMutationHashable(clip);
+
+  useDrawOnCanvas(
+    backgroundRef,
+    useCallback((ctx, canvas) => {
+      console.log("drawing", ctx.getTransform());
+      ctx.scale(CANVAS_SCALE, CANVAS_SCALE);
+      ctx.strokeStyle = "#bbb";
+      for (let n = 0; n < TOTAL_NOTES; n++) {
+        const noteStr = NOTES[n % NOTES.length];
+        ctx.fillStyle = keyboardColorOfNote(noteStr);
+
+        ctx.fillRect(0, n * NOTE_HEIGHT, NOTE_WDITH, NOTE_HEIGHT);
+
+        // https://stackoverflow.com/questions/13879322/drawing-a-1px-thick-line-in-canvas-creates-a-2px-thick-line
+        ctx.beginPath();
+        ctx.moveTo(0, n * NOTE_HEIGHT + 0.5);
+        ctx.lineTo(canvas.width, n * NOTE_HEIGHT + 0.5);
+        ctx.stroke();
+      }
+      ctx.scale(1, 1);
+      console.log("done");
+    }, []),
+  );
 
   useEffect(() => {
     player.onFrame2 = function (playbackTimeSecs) {
@@ -63,37 +120,37 @@ export function MidiClipEditor({ clip, player }: { clip: MidiClip; player: Anali
         } else {
           clip.addNote(tick, noteNum, NOTE_DURATION, 100);
         }
-
-        rerender({});
-
-        // console.log("note", noteNum, tick, clip.hasNote(tick, noteNum));
       },
       [clip],
     ),
   );
 
   return (
-    <div className={styles.container}>
-      <div
-        className={styles.canvas}
+    <div className={styles.container} style={{ paddingLeft: NOTE_WDITH }}>
+      <canvas
+        ref={backgroundRef}
+        height={CANVAS_SCALE * NOTE_HEIGHT * TOTAL_NOTES}
+        width={CANVAS_SCALE * 512}
         style={{
+          pointerEvents: "none",
+          position: "absolute",
+          top: 0,
+          left: 0,
           height: NOTE_HEIGHT * TOTAL_NOTES,
           background: "#DDD",
+          width: 512,
+          // imageRendering: "pixelated",
+        }}
+      />
+      <div
+        className={styles.noteEditor}
+        style={{
+          height: NOTE_HEIGHT * TOTAL_NOTES,
         }}
         ref={containerRef}
       >
         <div className={styles.cursor} ref={cursorDiv} />
-        {/* <canvas
-          ref={backgroundRef}
-          style={{
-            pointerEvents: "none",
-            position: "absolute",
-            top: 0,
-            left: 0,
-            height: NOTE_HEIGHT * TOTAL_NOTES,
-            background: "#DDD",
-          }}
-        /> */}
+
         {notes.map((note, i) => {
           const [tick, num, duration, velocity] = note;
           return (
@@ -101,17 +158,15 @@ export function MidiClipEditor({ clip, player }: { clip: MidiClip; player: Anali
               key={i}
               className={styles.note}
               style={{
-                bottom: num * NOTE_HEIGHT,
-                height: NOTE_HEIGHT,
+                bottom: num * NOTE_HEIGHT - 1,
+                height: NOTE_HEIGHT + 1,
                 left: tick * TICK_WIDTH,
-                width: NOTE_WDITH,
+                width: pulsesToPx(duration) + 1,
                 overflow: "hidden",
                 opacity: velocity / 100,
                 pointerEvents: "none",
               }}
-            >
-              {JSON.stringify(note)}
-            </div>
+            ></div>
           );
         })}
       </div>
@@ -122,17 +177,18 @@ export function MidiClipEditor({ clip, player }: { clip: MidiClip; player: Anali
 const useStyles = createUseStyles({
   container: {
     borderRadius: 3,
-    margin: "0px 4px",
     position: "relative",
     flexGrow: 1,
     overflow: "scroll",
   },
-  canvas: {
+  noteEditor: {
     position: "relative",
   },
   note: {
     position: "absolute",
     background: "red",
+    border: "1px solid #bb0000",
+    boxSizing: "border-box",
   },
   cursor: {
     position: "absolute",

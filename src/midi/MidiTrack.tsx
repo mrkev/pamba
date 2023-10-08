@@ -8,6 +8,8 @@ import { MidiClip } from "./MidiClip";
 import { MidiInstrument } from "./MidiInstrument";
 
 import { PianoRollModule, PianoRollNode } from "../wam/pianorollme/PianoRollNode";
+import { removeClip } from "../lib/AudioTrackFn";
+import type { SimpleClip } from "./SharedMidiTypes";
 
 const SAMPLE_STATE = {
   clips: {
@@ -90,7 +92,7 @@ export class MidiTrack extends ProjectTrack {
     // gain.connect(liveAudioContext.destination);
     instrument.module.audioNode.connect(pianoRoll.audioNode);
     pianoRoll.audioNode.connectEvents(instrument.module.instanceId);
-    this.createSampleMidiClip();
+    if (clips.length === 0) this.createSampleMidiClip();
   }
 
   override addEffect(effectId: "PANNER" | "REVERB"): Promise<void> {
@@ -101,12 +103,19 @@ export class MidiTrack extends ProjectTrack {
   }
 
   public createSampleMidiClip() {
-    const newClip = new MidiClip("new midi clip", 30);
+    const newClip = new MidiClip("new midi clip", 96, []);
     for (const note of SAMPLE_STATE.clips.default.notes) {
       newClip.addNote(note.tick, note.number, note.duration, note.velocity);
     }
 
+    console.log(newClip);
+
     this.clips.push(newClip);
+  }
+
+  public removeClip(clip: MidiClip): void {
+    const clips = removeClip(clip, this.clips._getRaw());
+    this.clips._setRaw(clips);
   }
 
   static async createWithInstrument(instrument: MidiInstrument, name: string, clips?: MidiClip[]) {
@@ -121,6 +130,21 @@ export class MidiTrack extends ProjectTrack {
   }
 
   override prepareForPlayback(context: AudioContext): void {
+    // mix clips
+
+    // should already be in ascending order of startOffsetSec
+    const simpleClips: SimpleClip[] = [];
+    for (const clip of this.clips) {
+      simpleClips.push({
+        notes: clip.notes._getRaw(),
+        startOffsetSec: clip.startOffsetSec,
+        endOffsetSec: clip.endOffsetSec,
+      });
+    }
+
+    this.pianoRoll.prepareForPlayback(simpleClips);
+    console.log("sending", simpleClips);
+
     // take all clips, make a single note array
   }
 

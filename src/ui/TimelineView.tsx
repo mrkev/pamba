@@ -21,6 +21,7 @@ import { TrackM } from "./TrackM";
 import { useEventListener } from "./useEventListener";
 import nullthrows from "../utils/nullthrows";
 import { CursorSelection } from "./CursorSelection";
+import { UtilityMenu } from "./UtilityMenu";
 
 export function TimelineView({
   project,
@@ -142,7 +143,7 @@ export function TimelineView({
       </div>
       {/* 1. Track header overhang (bounce button) */}
       <div className={classes.axisSpacer}>
-        <button
+        {/* <button
           style={{ position: "absolute", left: "4px" }}
           onClick={() => {
             AudioProject.addAudioTrack(project, player);
@@ -150,7 +151,15 @@ export function TimelineView({
           title="Add new track"
         >
           +
-        </button>
+        </button> */}
+        <UtilityMenu
+          style={{ position: "absolute", left: "4px" }}
+          label={"+"}
+          items={{
+            "audio track": () => AudioProject.addAudioTrack(project, player),
+            "midi track": () => AudioProject.addMidiTrack(project),
+          }}
+        />
         {"↑"}
       </div>
 

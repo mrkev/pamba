@@ -190,9 +190,24 @@ export class AudioProject {
     project.solodTracks.delete(track);
   }
 
-  static removeClip(project: AudioProject, track: AudioTrack, clip: AudioClip) {
+  static removeAudioClip(project: AudioProject, track: AudioTrack, clip: AudioClip): void {
     const selected = project.selected.get();
-    track.removeClip(clip);
+    if (track instanceof AudioTrack) {
+      track.removeClip(clip);
+    }
+    if (selected && selected.status === "clips") {
+      project.selected.set({
+        ...selected,
+        clips: selected.clips.filter((selection) => selection.clip !== clip),
+      });
+    }
+  }
+
+  static removeMidiClip(project: AudioProject, track: MidiTrack, clip: MidiClip): void {
+    const selected = project.selected.get();
+    if (track instanceof AudioTrack) {
+      track.removeClip(clip);
+    }
     if (selected && selected.status === "clips") {
       project.selected.set({
         ...selected,
@@ -246,10 +261,13 @@ export class ProjectSelection {
       case "clips": {
         for (let { clip, track } of selected.clips) {
           console.log("remove", selected);
-          if (track instanceof MidiTrack || clip instanceof MidiClip) {
-            throw new Error("MIDI TRACK NOT SUPPORTED");
+          if (track instanceof MidiTrack && clip instanceof MidiClip) {
+            AudioProject.removeMidiClip(project, track, clip);
+          } else if (track instanceof AudioTrack && clip instanceof AudioClip) {
+            AudioProject.removeAudioClip(project, track, clip);
+          } else {
+            console.log("TODO, delete mixed!");
           }
-          AudioProject.removeClip(project, track, clip);
           project.selected.set(null);
         }
         break;

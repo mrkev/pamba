@@ -3,7 +3,6 @@ import { createUseStyles } from "react-jss";
 import { modifierState } from "../ModifierState";
 import { CLIP_HEIGHT } from "../constants";
 import type { AudioProject } from "../lib/project/AudioProject";
-import { useDerivedState } from "../lib/state/DerivedState";
 import { useLinkedArray } from "../lib/state/LinkedArray";
 import { useSubscribeToSubbableMutationHashable } from "../lib/state/LinkedMap";
 import { useLinkedState } from "../lib/state/LinkedState";
@@ -28,19 +27,13 @@ export function ClipM({
   track: MidiTrack | null; // null if clip is being rendered for move
 }) {
   const styles = useStyles();
-  const secsToPx = useDerivedState(project.secsToPx);
-  const pxToSecs = secsToPx.invert;
-  const width = secsToPx(clip.durationSec);
+  const width = project.viewport.secsToPx(clip.durationSec);
   const [notes] = useLinkedArray(clip.notes);
-
-  const startTrimmedWidth = secsToPx(clip.trimStartSec);
+  const startTrimmedWidth = project.viewport.secsToPx(clip.trimStartSec);
   const [tool] = useLinkedState(project.pointerTool);
-  const height = CLIP_HEIGHT - 3; // to clear the bottom track separator gridlines
   // const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  useSubscribeToSubbableMutationHashable(clip, () => {
-    rerender();
-  });
+  useSubscribeToSubbableMutationHashable(clip);
 
   function onMouseDownToResize(e: React.MouseEvent<HTMLDivElement>, from: "start" | "end") {
     e.stopPropagation();
@@ -103,14 +96,14 @@ export function ClipM({
     }
     if (tool === "trimStart") {
       const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
-      const asSec = pxToSecs(pxFromStartOfClip);
+      const asSec = project.viewport.pxToSecs(pxFromStartOfClip);
       clip.trimStartSec += asSec;
       clip.startOffsetSec += asSec;
       clip.notifyUpdate();
     }
     if (tool === "trimEnd") {
       const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
-      const secsFromStartPos = pxToSecs(pxFromStartOfClip);
+      const secsFromStartPos = project.viewport.pxToSecs(pxFromStartOfClip);
       const secsFromZero = clip.trimStartSec + secsFromStartPos;
       clip.trimEndSec = secsFromZero;
       clip.notifyUpdate();
@@ -118,15 +111,6 @@ export function ClipM({
   }
 
   const border = isSelected ? "1px solid #114411" : "1px solid #aaddaa";
-
-  const renameStateDescriptor = useMemo(
-    () =>
-      ({
-        status: "clip",
-        clip: clip,
-      }) as const,
-    [clip],
-  );
 
   return (
     <div
@@ -143,7 +127,7 @@ export function ClipM({
         display: "flex",
         flexDirection: "column",
         position: "absolute",
-        left: secsToPx(clip.startOffsetSec),
+        left: project.viewport.secsToPx(clip.startOffsetSec),
         ...style,
       }}
     >
@@ -170,16 +154,6 @@ export function ClipM({
       <div className={styles.resizerStart} onMouseDown={(e) => onMouseDownToResize(e, "start")}></div>
       <div className={styles.resizerEnd} onMouseDown={(e) => onMouseDownToResize(e, "end")}></div>
       {notes.length}
-      {/* <button
-        onClick={() => {
-          if (canvasRef.current) {
-            dataWaveformToCanvas(100, 20, clip.buffer, canvasRef.current);
-          }
-        }}
-      >
-        Test waveform worker
-      </button> */}
-      {/* <ClipAutomation clip={clip} secsToPx={secsToPx} /> */}
     </div>
   );
 }
