@@ -19,3 +19,4 @@ export type PianoRollProcessorMessage =
   | { action: "midiConfig"; config: any }
   | { action: "play"; id: string }
   | { action: "newclip"; seqClips: SimpleMidiClip[] };
+// | { action: "setPlaybackStartOffset"; offsetSec: number };

@@ -92,20 +92,22 @@ class PianoRollProcessor extends WamProcessor {
       return;
     }
 
+    const transportData = nullthrows(this.transportData, "no transport dataa");
+
     // lookahead
     const schedulerTime = currentTime + 0.05;
 
     // kevin: this is called all the time, as soon as we initialize apparently. I think that's just how
     // I run the audio context? In any case, the "wam-transport" event just sets isPlaying = true
     // did we just start playing? set ticks to the beginning of 'currentBar'
-    if (!this.isPlaying && this.transportData.playing && this.transportData!.currentBarStarted <= currentTime) {
+    if (!this.isPlaying && transportData.playing && transportData.currentBarStarted <= currentTime) {
       this.isPlaying = true;
 
       // current position in ticks = (current bar * beats per bar) * (ticks per beat) % (clip length in ticks)
-      this.startingTicks = this.transportData!.currentBar * this.transportData!.timeSigNumerator * PPQN;
+      this.startingTicks = transportData.currentBar * transportData.timeSigNumerator * PPQN;
 
       // rewind one tick so that on our first loop we process notes for the first tick
-      this.ticks = this.startingTicks - 1;
+      this.ticks = Math.floor(this.startingTicks - 1);
     }
 
     if (!this.transportData.playing && this.isPlaying) {
@@ -143,6 +145,7 @@ class PianoRollProcessor extends WamProcessor {
         this.ticks = this.ticks + 1;
 
         const tickMoment = this.transportData.currentBarStarted + (this.ticks - this.startingTicks) * secondsPerTick;
+
         clip.notesForTick(this.ticks % clip.state.length).forEach((note) => {
           this.emitEvents(
             {
@@ -167,26 +170,32 @@ class PianoRollProcessor extends WamProcessor {
     const clipLength = 96; // todo, clip length in PPQN units // clip.state.length
     const theClips = this.seqClips;
 
-    const timeElapsed = schedulerTime - this.transportData!.currentBarStarted;
+    const transportData = nullthrows(this.transportData, "no transport data");
+
+    const timeElapsed = schedulerTime - transportData.currentBarStarted;
     const beatPosition =
-      this.transportData!.currentBar * this.transportData!.timeSigNumerator +
-      (this.transportData!.tempo / 60.0) * timeElapsed;
+      transportData.currentBar * transportData.timeSigNumerator + (transportData.tempo / 60.0) * timeElapsed;
+
     const absoluteTickPosition = Math.floor(beatPosition * PPQN);
 
-    const clipPosition = absoluteTickPosition % clipLength;
+    const clipPosition = absoluteTickPosition % clipLength; // remove `% clipLength`. But unimportant for now, only used when recordingArmed
+    const currMidiPulse = this.ticks; // % clipLength; // todo, remove `% clipLength`, add offset
 
-    if (this.recordingArmed && this.ticks % clipLength > clipPosition) {
+    if (this.recordingArmed && currMidiPulse > clipPosition) {
       // we just circled back, so finalize any notes in the buffer
       this.noteRecorder.finalizeAllNotes(clipLength - 1);
     }
 
-    const secondsPerTick = 1.0 / ((this.transportData!.tempo / 60.0) * PPQN);
+    const secondsPerTick = 1.0 / ((transportData.tempo / 60.0) * PPQN);
+
+    // console.log(currMidiPulse, "->", absoluteTickPosition);
 
     while (this.ticks < absoluteTickPosition) {
       this.ticks = this.ticks + 1;
 
-      const tickMoment = this.transportData!.currentBarStarted + (this.ticks - this.startingTicks) * secondsPerTick;
-      notesForTickNew(this.ticks % clipLength, theClips).forEach(([ntick, nnumber, nduration, nvelocity]: Note) => {
+      const tickMoment = transportData.currentBarStarted + (this.ticks - this.startingTicks) * secondsPerTick;
+      // console.log(this.ticks, tickMoment);
+      notesForTickNew(this.ticks, theClips).forEach(([ntick, nnumber, nduration, nvelocity]: Note) => {
         this.emitEvents(
           {
             type: "wam-midi",
@@ -276,12 +285,41 @@ function notesForTickNew(currMidiTick: number, simpleClips: SimpleMidiClip[]): r
     return [];
   }
 
+  // console.log(currMidiTick, simpleClips );
+
   // todo
   let currentClip = simpleClips[0];
-  const notes = currentClip.notes.filter(([ntick]) => ntick === currMidiTick);
+
+  // clip already happened
+  if (currentClip.endOffsetPulses < currMidiTick) {
+    return [];
+  }
+
+  const notesToPlay = [];
+
+  for (let i = 0; i < currentClip.notes.length; i++) {
+    const [ntick] = currentClip.notes[i];
+
+    if (currentClip.startOffsetPulses + ntick < currMidiTick) {
+      // in the past
+      continue;
+    }
+
+    if (currentClip.startOffsetPulses + ntick === currMidiTick) {
+      notesToPlay.push(currentClip.notes[i]);
+    }
+
+    if (currentClip.startOffsetPulses + ntick > currMidiTick) {
+      // in the future
+      // notes are ordered by start, so we can exit early
+      break;
+    }
+  }
+
+  // const notes = currentClip.notes.filter(([ntick]) => ntick === currMidiTick);
   // console.log(notes, currMidiTick);/
 
-  return notes;
+  return notesToPlay;
 
   // for (let i = 0; i < simpleClips.length; i++) {
   //   const clip = simpleClips[i];

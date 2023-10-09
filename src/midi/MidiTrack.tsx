@@ -1,5 +1,5 @@
 import type { WebAudioModule } from "@webaudiomodules/api";
-import { CLIP_HEIGHT, PIANO_ROLL_PLUGIN_URL, liveAudioContext } from "../constants";
+import { CLIP_HEIGHT, PIANO_ROLL_PLUGIN_URL, SECS_IN_MINUTE, TIME_SIGNATURE, liveAudioContext } from "../constants";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { ProjectTrack } from "../lib/ProjectTrack";
 import { LinkedArray } from "../lib/state/LinkedArray";
@@ -148,21 +148,25 @@ export class MidiTrack extends ProjectTrack {
     // take all clips, make a single note array
   }
 
-  override startPlayback(tempo: number, offset?: number | undefined): void {
-    // todo
+  override startPlayback(bpm: number, offsetSec: number): void {
+    // todo: only supports X/4 (ie, quarter note denominator in time signature) for now
+    const [BEATS_PER_BAR] = TIME_SIGNATURE;
+    const currentBar = (offsetSec * bpm) / (BEATS_PER_BAR * SECS_IN_MINUTE);
+
+    // this.pianoRoll.sendMessageToProcessor({ action: "setPlaybackStartOffset", offsetSec });
     this.pianoRoll.audioNode.scheduleEvents({
       type: "wam-transport",
       data: {
         playing: true,
         timeSigDenominator: 4,
         timeSigNumerator: 4,
-        currentBar: 0,
+        currentBar,
         currentBarStarted: liveAudioContext.currentTime,
-        tempo: tempo,
+        tempo: bpm,
       },
     });
-    console.log("here");
   }
+
   override stopPlayback(): void {
     this.pianoRoll.audioNode.scheduleEvents({
       type: "wam-transport",

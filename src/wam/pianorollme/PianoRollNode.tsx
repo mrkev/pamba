@@ -85,6 +85,10 @@ export class PianoRollModule extends WebAudioModule<PianoRollNode> {
     this.sequencer.port.postMessage(message);
   }
 
+  public sendMessageToProcessor(seqClips: PianoRollProcessorMessage) {
+    this.sequencer.port.postMessage(seqClips);
+  }
+
   override async createAudioNode(initialState: any) {
     await PianoRollNode.addModules(this.audioContext, this.moduleId);
     await this.audioContext.audioWorklet.addModule(this._pianoRollProcessorUrl);
@@ -107,6 +111,7 @@ export class PianoRollModule extends WebAudioModule<PianoRollNode> {
 
     this.sequencer.port.addEventListener("message", (ev) => {
       if (ev.data.event == "transport") {
+        console.log("TRANSPORT");
         // this.transport = ev.data.transport;
       } else if (ev.data.event == "addNote") {
         const clip = this.sequencer.pianoRoll.getClip(this.sequencer.pianoRoll.playingClip as any); // todo as any
