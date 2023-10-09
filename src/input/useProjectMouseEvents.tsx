@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { MIN_TRACK_HEIGHT } from "../constants";
-import AudioClip from "../lib/AudioClip";
+import AudioClip, { clipMovePPQN, clipMoveSec } from "../lib/AudioClip";
 import { AudioTrack } from "../lib/AudioTrack";
 import { AudioProject } from "../lib/project/AudioProject";
 import { snapped } from "../lib/project/ProjectViewportUtil";
@@ -8,6 +8,8 @@ import { pressedState } from "../pressedState";
 import { useDocumentEventListener, useEventListener } from "../ui/useEventListener";
 import { exhaustive } from "../utils/exhaustive";
 import { stepNumber } from "../utils/math";
+import { ClipM } from "../ui/ClipM";
+import { MidiClip } from "../midi/MidiClip";
 
 export function useAxisContainerMouseEvents(
   project: AudioProject,
@@ -181,22 +183,15 @@ export function useTimelineMouseEvents(
         }
         switch (pressed.status) {
           case "moving_clip": {
-            let snap = project.snapToGrid.get();
-            if (e.metaKey) {
-              snap = !snap;
-            }
-            const deltaXSecs = project.viewport.pxToSecs(e.clientX - pressed.clientX);
-            if (!snap) {
-              const newOffset = Math.max(0, pressed.originalClipOffsetSec + deltaXSecs);
-              pressed.clip.startOffsetSec = newOffset;
-              pressed.clip.notifyUpdate();
+            // metaKey flips it
+            const snap = e.metaKey ? !project.snapToGrid.get() : project.snapToGrid.get();
+            const deltaX = e.clientX - pressed.clientX;
+            const deltaXSecs = project.viewport.pxToSecs(deltaX);
+            const newOffset = Math.max(0, pressed.originalClipOffsetSec + deltaXSecs);
+            if (pressed.clip instanceof AudioClip) {
+              clipMoveSec(pressed.clip, newOffset, project, snap);
             } else {
-              const potentialNewOffset = Math.max(0, pressed.originalClipOffsetSec + deltaXSecs);
-              const tempo = project.tempo.get();
-              const oneBeatLen = 60 / tempo;
-              const newOffset = stepNumber(potentialNewOffset, oneBeatLen);
-              pressed.clip.startOffsetSec = newOffset;
-              pressed.clip.notifyUpdate();
+              clipMovePPQN(pressed.clip, newOffset, project, snap);
             }
 
             break;
@@ -215,6 +210,10 @@ export function useTimelineMouseEvents(
 
           case "resizing_clip": {
             const deltaXSecs = project.viewport.pxToSecs(e.clientX - pressed.clientX);
+            if (pressed.clip instanceof MidiClip) {
+              throw new Error("MidiClip unimplemented");
+            }
+
             if (pressed.from === "end") {
               // We can't trim a clip to end before it's beggining
               let newEndPosSec = Math.max(0, pressed.originalClipEndPosSec + deltaXSecs);

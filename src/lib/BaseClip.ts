@@ -13,6 +13,18 @@
 // +--startOffsetSec--+
 // +--endOffsetSec-----------------------------+
 
+// rn mostly used for invariants
+export interface AbstractClip {
+  _startOffset(): number;
+  _setStartOffset(num: number): void;
+
+  _endOffset(): number;
+  _setEndOffset(num: number): void;
+
+  trimToOffset(offset: number): void;
+  clone(): AbstractClip;
+}
+
 export class BaseClip {
   // A BaseClip represents media that has a certain length (in frames), but has
   // been trimmed to be of another length.
@@ -147,8 +159,10 @@ export class BaseClip {
     this.startOffsetSec = s;
   }
 
+  // Trim start to time.
   trimToOffsetSec(timeSec: number) {
     if (timeSec < this.startOffsetSec) {
+      // can't grow back past beggining of clip audio
       return;
     }
 

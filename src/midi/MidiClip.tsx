@@ -1,5 +1,5 @@
 import { LIVE_SAMPLE_RATE } from "../constants";
-import { BaseClip } from "../lib/BaseClip";
+import { AbstractClip } from "../lib/BaseClip";
 import { LinkedArray } from "../lib/state/LinkedArray";
 import { MutationHashable } from "../lib/state/MutationHashable";
 import { Subbable, notify } from "../lib/state/Subbable";
@@ -11,33 +11,39 @@ import type { Note } from "./SharedMidiTypes";
 
 const SECS_IN_MIN = 60;
 
-function pulsesToFr(pulses: number, bpm: number) {
+export function pulsesToFr(pulses: number, bpm: number) {
   const k = (LIVE_SAMPLE_RATE * SECS_IN_MIN) / PPQN;
   return (k * pulses) / bpm;
 }
 
-function pulsesToSec(pulses: number, bpm: number) {
+export function pulsesToSec(pulses: number, bpm: number) {
   return (pulses * SECS_IN_MIN) / (PPQN * bpm);
 }
 
-export class MidiClip extends BaseClip implements Subbable<MidiClip>, MutationHashable {
+export function secsToPulses(secs: number, bpm: number) {
+  return Math.floor((secs * PPQN * bpm) / SECS_IN_MIN);
+}
+
+export class MidiClip implements Subbable<MidiClip>, MutationHashable, AbstractClip {
   _hash: number = 0;
-  _subscriptors: Set<(value: BaseClip) => void> = new Set();
+  _subscriptors: Set<(value: MidiClip) => void> = new Set();
   // ordered by tick (start)
   notes: LinkedArray<Note>;
   public name: string;
 
   // TODO: use sec, fr functions, but source of truth is PPQN unit?
-  public lenPulses: number;
+  public lengthPulses: number;
+  public startOffsetPulses: number;
 
   constructor(name: string, lengthPulses: number, notes: readonly Note[]) {
-    const lenSec = pulsesToSec(lengthPulses, 75); // todo: tempo
+    // const lenSec = pulsesToSec(lengthPulses, 75); // todo: tempo
     // todo: sample rate doesn't really mean much for a midi clip?
     // Maybe this applies just to audio clips?
-    super(lenSec, LIVE_SAMPLE_RATE, 0);
+    // super(lenSec, LIVE_SAMPLE_RATE, 0);
     this.name = name;
     this.notes = LinkedArray.create(notes);
-    this.lenPulses = lengthPulses;
+    this.lengthPulses = lengthPulses;
+    this.startOffsetPulses = 0;
   }
 
   addNote(tick: number, num: number, duration: number, velocity: number) {
@@ -59,6 +65,50 @@ export class MidiClip extends BaseClip implements Subbable<MidiClip>, MutationHa
   public notifyUpdate() {
     MutationHashable.mutated(this);
     notify(this, this);
+  }
+
+  // interface AbstractClip
+
+  _startOffset(): number {
+    return this.startOffsetPulses;
+  }
+
+  _setStartOffset(): void {
+    this.startOffsetPulses = this.startOffsetPulses;
+  }
+
+  _endOffset(): number {
+    return this.startOffsetPulses + this.lengthPulses;
+  }
+
+  _setEndOffset(newEnd: number): void {
+    if (newEnd < this.startOffsetPulses) {
+      throw new Error("Can't set endOffsetSec to be before startOffsetSec");
+    }
+    this.lengthPulses = newEnd - this.startOffsetPulses;
+  }
+
+  trimToOffset(timePulses: number) {
+    if (timePulses < this.startOffsetPulses) {
+      return;
+    }
+
+    if (timePulses > this._endOffset()) {
+      throw new Error("trimming past end time");
+    }
+
+    const delta = timePulses - this.startOffsetPulses;
+
+    this.startOffsetPulses = timePulses;
+    // TODO
+    // this.trimStartSec = this.trimStartSec + delta;
+  }
+
+  clone(): MidiClip {
+    // TODO: subscriptors?
+    const newClip = new MidiClip(this.name, this.lengthPulses, this.notes._getRaw());
+    newClip.startOffsetPulses = this.startOffsetPulses;
+    return newClip;
   }
 }
 

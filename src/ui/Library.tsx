@@ -44,7 +44,6 @@ export function Library({
     async function loadClip(url: string, name?: string) {
       try {
         // load clip
-        console.log("LOAD CLIP");
         const clip = await AudioClip.fromURL(url, name);
 
         const activeTrack = project.activeTrack.get();

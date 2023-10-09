@@ -1,16 +1,14 @@
 import { scaleLinear } from "d3-scale";
-import React, { useMemo } from "react";
-import { CLIP_HEIGHT } from "../constants";
-import type AudioClip from "../lib/AudioClip";
-import type { AudioProject, XScale } from "../lib/project/AudioProject";
-import type { AudioTrack } from "../lib/AudioTrack";
-import { useDerivedState } from "../lib/state/DerivedState";
-import { useSubscribeToSubbableMutationHashable } from "../lib/state/LinkedMap";
-import { pressedState } from "../pressedState";
-// import { useLinkedState } from "../lib/state/LinkedState";
+import React from "react";
 import { createUseStyles } from "react-jss";
 import { modifierState } from "../ModifierState";
+import { CLIP_HEIGHT } from "../constants";
+import type AudioClip from "../lib/AudioClip";
+import type { AudioTrack } from "../lib/AudioTrack";
+import type { AudioProject, XScale } from "../lib/project/AudioProject";
+import { useSubscribeToSubbableMutationHashable } from "../lib/state/LinkedMap";
 import { useLinkedState } from "../lib/state/LinkedState";
+import { pressedState } from "../pressedState";
 import { RenamableLabel } from "./RenamableLabel";
 // import { dataWaveformToCanvas } from "../lib/waveformAsync";
 
@@ -25,11 +23,9 @@ type Props = {
 
 export function ClipA({ clip, rerender, isSelected, style = {}, project, track }: Props) {
   const styles = useStyles();
-  const secsToPx = useDerivedState(project.secsToPx);
-  const pxToSecs = secsToPx.invert;
-  const width = secsToPx(clip.durationSec);
-  const totalBufferWidth = secsToPx(clip.lengthSec);
-  const startTrimmedWidth = secsToPx(clip.trimStartSec);
+  const width = project.viewport.secsToPx(clip.durationSec);
+  const totalBufferWidth = project.viewport.secsToPx(clip.lengthSec);
+  const startTrimmedWidth = project.viewport.secsToPx(clip.trimStartSec);
   const [tool] = useLinkedState(project.pointerTool);
   const height = CLIP_HEIGHT - 3; // to clear the bottom track separator gridlines
   // const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -99,14 +95,14 @@ export function ClipA({ clip, rerender, isSelected, style = {}, project, track }
     }
     if (tool === "trimStart") {
       const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
-      const asSec = pxToSecs(pxFromStartOfClip);
+      const asSec = project.viewport.pxToSecs(pxFromStartOfClip);
       clip.trimStartSec += asSec;
       clip.startOffsetSec += asSec;
       clip.notifyUpdate();
     }
     if (tool === "trimEnd") {
       const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
-      const secsFromStartPos = pxToSecs(pxFromStartOfClip);
+      const secsFromStartPos = project.viewport.pxToSecs(pxFromStartOfClip);
       const secsFromZero = clip.trimStartSec + secsFromStartPos;
       clip.trimEndSec = secsFromZero;
       clip.notifyUpdate();
@@ -117,16 +113,7 @@ export function ClipA({ clip, rerender, isSelected, style = {}, project, track }
   const backgroundImageData = clip.getWaveformDataURL(
     // totalBufferWidth,
     1000,
-    CLIP_HEIGHT
-  );
-
-  const renameStateDescriptor = useMemo(
-    () =>
-      ({
-        status: "clip",
-        clip: clip,
-      } as const),
-    [clip]
+    CLIP_HEIGHT,
   );
 
   return (
@@ -149,7 +136,7 @@ export function ClipA({ clip, rerender, isSelected, style = {}, project, track }
         display: "flex",
         flexDirection: "column",
         position: "absolute",
-        left: secsToPx(clip.startOffsetSec),
+        left: project.viewport.secsToPx(clip.startOffsetSec),
         ...style,
       }}
     >

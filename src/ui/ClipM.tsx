@@ -1,58 +1,57 @@
-import React, { useMemo } from "react";
+import React from "react";
 import { createUseStyles } from "react-jss";
 import { modifierState } from "../ModifierState";
-import { CLIP_HEIGHT } from "../constants";
 import type { AudioProject } from "../lib/project/AudioProject";
 import { useLinkedArray } from "../lib/state/LinkedArray";
 import { useSubscribeToSubbableMutationHashable } from "../lib/state/LinkedMap";
 import { useLinkedState } from "../lib/state/LinkedState";
-import { MidiClip } from "../midi/MidiClip";
+import { MidiClip, pulsesToSec } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
 import { pressedState } from "../pressedState";
 import { RenamableLabel } from "./RenamableLabel";
 
 export function ClipM({
   clip,
-  rerender,
   isSelected,
   style = {},
   project,
   track,
 }: {
   clip: MidiClip;
-  rerender: () => void;
+  rerender: () => void; // todo: unused
   isSelected: boolean;
   style?: React.CSSProperties;
   project: AudioProject;
   track: MidiTrack | null; // null if clip is being rendered for move
 }) {
   const styles = useStyles();
-  const width = project.viewport.secsToPx(clip.durationSec);
+  const width = project.viewport.pulsesToPx(clip.lengthPulses);
+  const [bpm] = useLinkedState(project.tempo);
   const [notes] = useLinkedArray(clip.notes);
-  const startTrimmedWidth = project.viewport.secsToPx(clip.trimStartSec);
+  // const startTrimmedWidth = project.viewport.secsToPx(clip.trimStartSec);
   const [tool] = useLinkedState(project.pointerTool);
   // const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useSubscribeToSubbableMutationHashable(clip);
 
-  function onMouseDownToResize(e: React.MouseEvent<HTMLDivElement>, from: "start" | "end") {
-    e.stopPropagation();
-    if (tool !== "move") {
-      return;
-    }
+  // function onMouseDownToResize(e: React.MouseEvent<HTMLDivElement>, from: "start" | "end") {
+  //   e.stopPropagation();
+  //   if (tool !== "move") {
+  //     return;
+  //   }
 
-    pressedState.set({
-      status: "resizing_clip",
-      clip,
-      // IDEA: just clone and have the original clip at hand
-      originalClipEndPosSec: clip.trimEndSec,
-      originalClipStartPosSec: clip.trimStartSec,
-      originalClipOffsetSec: clip.startOffsetSec,
-      from,
-      clientX: e.clientX,
-      clientY: e.clientY,
-    });
-  }
+  //   pressedState.set({
+  //     status: "resizing_clip",
+  //     clip,
+  //     // IDEA: just clone and have the original clip at hand
+  //     originalClipEndPosSec: clip.trimEndSec,
+  //     originalClipStartPosSec: clip.trimStartSec,
+  //     originalClipOffsetSec: clip.startOffsetSec,
+  //     from,
+  //     clientX: e.clientX,
+  //     clientY: e.clientY,
+  //   });
+  // }
 
   function onMouseDownToMove(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
     if (tool !== "move" || track == null) {
@@ -60,13 +59,14 @@ export function ClipM({
     }
 
     pressedState.set({
+      // TODO: move clip in pulses state? or abstract unit away?
       status: "moving_clip",
       clientX: e.clientX,
       clientY: e.clientY,
       clip,
       track,
       originalTrack: track,
-      originalClipOffsetSec: clip.startOffsetSec,
+      originalClipOffsetSec: pulsesToSec(clip.startOffsetPulses, bpm),
     });
 
     project.selected.setDyn((prev) => {
@@ -89,32 +89,32 @@ export function ClipM({
     e.stopPropagation();
   }
 
-  function onClipClick(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
-    const div = e.currentTarget;
-    if (!(div instanceof HTMLDivElement)) {
-      return;
-    }
-    if (tool === "trimStart") {
-      const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
-      const asSec = project.viewport.pxToSecs(pxFromStartOfClip);
-      clip.trimStartSec += asSec;
-      clip.startOffsetSec += asSec;
-      clip.notifyUpdate();
-    }
-    if (tool === "trimEnd") {
-      const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
-      const secsFromStartPos = project.viewport.pxToSecs(pxFromStartOfClip);
-      const secsFromZero = clip.trimStartSec + secsFromStartPos;
-      clip.trimEndSec = secsFromZero;
-      clip.notifyUpdate();
-    }
-  }
+  // function onClipClick(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
+  //   const div = e.currentTarget;
+  //   if (!(div instanceof HTMLDivElement)) {
+  //     return;
+  //   }
+  //   if (tool === "trimStart") {
+  //     const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
+  //     const asSec = project.viewport.pxToSecs(pxFromStartOfClip);
+  //     clip.trimStartSec += asSec;
+  //     clip.startOffsetSec += asSec;
+  //     clip.notifyUpdate();
+  //   }
+  //   if (tool === "trimEnd") {
+  //     const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
+  //     const secsFromStartPos = project.viewport.pxToSecs(pxFromStartOfClip);
+  //     const secsFromZero = clip.trimStartSec + secsFromStartPos;
+  //     clip.trimEndSec = secsFromZero;
+  //     clip.notifyUpdate();
+  //   }
+  // }
 
   const border = isSelected ? "1px solid #114411" : "1px solid #aaddaa";
 
   return (
     <div
-      onClick={onClipClick}
+      // onClick={onClipClick}
       style={{
         backgroundColor: "#ccffcc",
         width: width,
@@ -127,7 +127,7 @@ export function ClipM({
         display: "flex",
         flexDirection: "column",
         position: "absolute",
-        left: project.viewport.secsToPx(clip.startOffsetSec),
+        left: project.viewport.pulsesToPx(clip.startOffsetPulses),
         ...style,
       }}
     >
@@ -149,10 +149,10 @@ export function ClipM({
           value={clip.name}
           setValue={console.log}
         />{" "}
-        ({Math.round(clip.durationSec * 100) / 100})
+        {/* ({Math.round(clip.durationSec * 100) / 100}) */}
       </div>
-      <div className={styles.resizerStart} onMouseDown={(e) => onMouseDownToResize(e, "start")}></div>
-      <div className={styles.resizerEnd} onMouseDown={(e) => onMouseDownToResize(e, "end")}></div>
+      {/* <div className={styles.resizerStart} onMouseDown={(e) => onMouseDownToResize(e, "start")}></div>
+      <div className={styles.resizerEnd} onMouseDown={(e) => onMouseDownToResize(e, "end")}></div> */}
       {notes.length}
     </div>
   );

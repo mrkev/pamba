@@ -2,12 +2,12 @@
 
 export type Note = readonly [tick: number, number: number, duration: number, velocity: number];
 
-export type SimpleClip = {
+export type SimpleMidiClip = {
   notes: readonly Note[];
   // todo, make all secs frames?
-  startOffsetSec: number;
+  startOffsetPulses: number;
   // so we know
-  endOffsetSec: number; // todo, make frames?
+  endOffsetPulses: number; // todo, make frames?
 };
 
 export type PianoRollProcessorMessage =
@@ -18,4 +18,4 @@ export type PianoRollProcessorMessage =
     }
   | { action: "midiConfig"; config: any }
   | { action: "play"; id: string }
-  | { action: "newclip"; seqClips: SimpleClip[] };
+  | { action: "newclip"; seqClips: SimpleMidiClip[] };

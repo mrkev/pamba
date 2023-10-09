@@ -75,7 +75,7 @@ export async function serializable(
   }
 
   if (obj instanceof MidiClip) {
-    const { name, lenPulses, notes } = obj;
+    const { name, lengthPulses: lenPulses, notes } = obj;
     return { kind: "MidiClip", name, lengthPulses: lenPulses, notes: notes._getRaw() };
   }
 

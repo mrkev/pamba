@@ -80,7 +80,7 @@ export class PianoRollModule extends WebAudioModule<PianoRollNode> {
     return super.initialize(state);
   }
 
-  public prepareForPlayback(seqClips: SimpleClip[]) {
+  public prepareForPlayback(seqClips: SimpleMidiClip[]) {
     const message: PianoRollProcessorMessage = { action: "newclip", seqClips };
     this.sequencer.port.postMessage(message);
   }
@@ -269,7 +269,7 @@ import { NoteDefinition } from "wam-extensions";
 import { MIDIConfiguration } from "./MIDIConfiguration";
 import { ignorePromise } from "../../utils/ignorePromise";
 import { NoteCanvasRenderState, NoteCanvasRenderer } from "./NoteCanvasRenderer";
-import { PianoRollProcessorMessage, SimpleClip } from "../../midi/SharedMidiTypes";
+import { PianoRollProcessorMessage, SimpleMidiClip } from "../../midi/SharedMidiTypes";
 
 export type MIDIEvent = Uint8Array;
 export type ScheduledMIDIEvent = {

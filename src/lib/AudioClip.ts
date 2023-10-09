@@ -1,13 +1,16 @@
-import { loadSound } from "./loadSound";
-import { dataURLForWaveform } from "../utils/waveform";
 import { staticAudioContext } from "../constants";
-import { BaseClip } from "./BaseClip";
+import { MidiClip, secsToPulses } from "../midi/MidiClip";
+import { stepNumber } from "../utils/math";
+import { dataURLForWaveform } from "../utils/waveform";
+import { AbstractClip, BaseClip } from "./BaseClip";
 import { SharedAudioBuffer } from "./SharedAudioBuffer";
-import { notify, Subbable } from "./state/Subbable";
+import { loadSound } from "./loadSound";
+import { AudioProject } from "./project/AudioProject";
 import { MutationHashable } from "./state/MutationHashable";
+import { Subbable, notify } from "./state/Subbable";
 
 // A clip of audio
-export default class AudioClip extends BaseClip implements Subbable<AudioClip>, MutationHashable {
+export default class AudioClip extends BaseClip implements Subbable<AudioClip>, MutationHashable, AbstractClip {
   _hash: number = 0;
   _subscriptors: Set<(value: BaseClip) => void> = new Set();
 
@@ -47,7 +50,7 @@ export default class AudioClip extends BaseClip implements Subbable<AudioClip>, 
     notify(this, this);
   }
 
-  override clone() {
+  override clone(): AudioClip {
     const newClip = new AudioClip(this.buffer, this.name, this.bufferURL);
     newClip.startOffsetSec = this.startOffsetSec;
     newClip.trimStartSec = this.trimStartSec;
@@ -72,4 +75,47 @@ export default class AudioClip extends BaseClip implements Subbable<AudioClip>, 
       this.name
     } | ${this.trimEndSec.toFixed(2)} ] ${this.endOffsetSec.toFixed(2)}`;
   }
+
+  // interface AbstractClip
+
+  _startOffset(): number {
+    return this._startOffsetSec;
+  }
+
+  _setStartOffset(num: number): void {
+    this._startOffsetSec = num;
+  }
+
+  _endOffset(): number {
+    return this.endOffsetSec;
+  }
+
+  _setEndOffset(num: number): void {
+    this.endOffsetSec = num;
+  }
+
+  trimToOffset(offset: number): void {
+    return this.trimToOffsetSec(offset);
+  }
+}
+
+export function clipMoveSec(clip: AudioClip, newOffsetSec: number, project: AudioProject, snap: boolean) {
+  if (!snap) {
+    clip.startOffsetSec = newOffsetSec;
+    clip.notifyUpdate();
+  } else {
+    const tempo = project.tempo.get();
+    const oneBeatLen = 60 / tempo;
+    const actualNewOffsetSec = stepNumber(newOffsetSec, oneBeatLen);
+    clip.startOffsetSec = actualNewOffsetSec;
+    clip.notifyUpdate();
+  }
+}
+
+export function clipMovePPQN(clip: MidiClip, newOffsetSec: number, project: AudioProject, snap: boolean) {
+  // todo: snap arg to snap to larger grid, vs PPQN
+  const bpm = project.tempo.get();
+  const pulses = secsToPulses(newOffsetSec, bpm);
+  clip.startOffsetPulses = pulses;
+  clip.notifyUpdate();
 }

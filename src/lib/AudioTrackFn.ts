@@ -1,21 +1,21 @@
-import { BaseClip } from "./BaseClip";
 import nullthrows from "../utils/nullthrows";
+import { AbstractClip } from "./BaseClip";
 
-export function printClips(clips: ReadonlyArray<BaseClip>) {
+export function printClips(clips: ReadonlyArray<AbstractClip>) {
   return clips.map((c) => c.toString()).join("\n");
 }
 
-export function assertClipInvariants(clips: ReadonlyArray<BaseClip>) {
+export function assertClipInvariants(clips: ReadonlyArray<AbstractClip>) {
   let cStart = 0;
   let cEnd = 0;
   for (let i = 0; i < clips.length; i++) {
     const clip = clips[i];
-    if (clip.startOffsetSec < cStart) {
+    if (clip._startOffset() < cStart) {
       // console.log(`Out of place clip at position ${i}!`, clip, clips);
       throw new Error("Failed invariant: clips are not sorted.\n" + "They look like this:\n" + printClips(clips));
     }
 
-    if (cEnd > clip.startOffsetSec) {
+    if (cEnd > clip._startOffset()) {
       // console.log(
       //   `Clip at position ${i} overlaps with previous!`,
       //   clip.toString(),
@@ -25,12 +25,12 @@ export function assertClipInvariants(clips: ReadonlyArray<BaseClip>) {
       throw new Error("Failed invariant: clips overlap.\n" + "They look like this:\n" + printClips(clips));
     }
 
-    cStart = clip.startOffsetSec;
-    cEnd = clip.endOffsetSec;
+    cStart = clip._startOffset();
+    cEnd = clip._startOffset();
   }
 }
 
-export function addClip<Clip extends BaseClip>(newClip: Clip, clips: ReadonlyArray<Clip>): ReadonlyArray<Clip> {
+export function addClip<Clip extends AbstractClip>(newClip: Clip, clips: ReadonlyArray<Clip>): ReadonlyArray<Clip> {
   // Essentially, we want to insert in order, sorted
   // by the startOffsetSec of each clip.
   let i = 0;
@@ -43,17 +43,17 @@ export function addClip<Clip extends BaseClip>(newClip: Clip, clips: ReadonlyArr
     // We want to iterate until i
     // we find a spot where if we were to keep going we'd be
     // later than the next clip
-    if (next && next.startOffsetSec < newClip.startOffsetSec) {
+    if (next && next._startOffset() < newClip._startOffset()) {
       continue;
     }
 
-    if (next && next.startOffsetSec === newClip.startOffsetSec) {
+    if (next && next._startOffset() === newClip._startOffset()) {
       // Overlap
     }
 
     if (
-      (prev && prev.startOffsetSec === newClip.startOffsetSec) ||
-      (next && next.startOffsetSec === newClip.startOffsetSec)
+      (prev && prev._startOffset() === newClip._startOffset()) ||
+      (next && next._startOffset() === newClip._startOffset())
     ) {
       // perfect overlap, TODO
       throw new Error("OOPS");
@@ -62,7 +62,7 @@ export function addClip<Clip extends BaseClip>(newClip: Clip, clips: ReadonlyArr
     }
   }
 
-  const res = deleteTime(newClip.startOffsetSec, newClip.endOffsetSec, clips);
+  const res = deleteTime(newClip._startOffset(), newClip._endOffset(), clips);
 
   // Insert the clip
   const clone = [...res];
@@ -87,7 +87,7 @@ export function addClip<Clip extends BaseClip>(newClip: Clip, clips: ReadonlyArr
  * deletes/trims clips as necessary to make the time from
  * startSec to endSec is blank
  */
-export function deleteTime<Clip extends BaseClip>(
+export function deleteTime<Clip extends AbstractClip>(
   startSec: number,
   endSec: number,
   clips: ReadonlyArray<Clip>,
@@ -106,8 +106,8 @@ export function deleteTime<Clip extends BaseClip>(
   for (let i = 0; i < clips.length; i++) {
     const current = clips[i];
 
-    const remStart = startSec < current.startOffsetSec && current.startOffsetSec < endSec;
-    const remEnd = startSec < current.endOffsetSec && current.endOffsetSec < endSec;
+    const remStart = startSec < current._startOffset() && current._startOffset() < endSec;
+    const remEnd = startSec < current._endOffset() && current._endOffset() < endSec;
 
     // remove the whole clip
     if (remStart && remEnd) {
@@ -117,13 +117,13 @@ export function deleteTime<Clip extends BaseClip>(
 
     // Trim the start of the clip
     if (remStart) {
-      current.trimToOffsetSec(endSec);
+      current.trimToOffset(endSec);
       continue;
     }
 
     // Trim the end of the clip
     if (remEnd) {
-      current.endOffsetSec = startSec;
+      current._setEndOffset(startSec);
       continue;
     }
 
@@ -131,10 +131,10 @@ export function deleteTime<Clip extends BaseClip>(
     // this clip, in which case we would split this clip into three parts and
     // remove the one corresponding to the time we want to delete
     if (
-      current.startOffsetSec < startSec &&
-      startSec < current.endOffsetSec &&
-      current.startOffsetSec < endSec &&
-      endSec < current.endOffsetSec
+      current._startOffset() < startSec &&
+      startSec < current._endOffset() &&
+      current._startOffset() < endSec &&
+      endSec < current._endOffset()
     ) {
       // console.log("CLIPS HERE\n", printClips(clips));
       const [, after, out] = nullthrows(splitClip(current, startSec, clips));
@@ -165,7 +165,7 @@ export function deleteTime<Clip extends BaseClip>(
  * Deletes a clip.
  * Returns new array if modified, same if unchaged.
  */
-export function removeClip<Clip extends BaseClip>(clip: Clip, clips: ReadonlyArray<Clip>): ReadonlyArray<Clip> {
+export function removeClip<Clip extends AbstractClip>(clip: Clip, clips: ReadonlyArray<Clip>): ReadonlyArray<Clip> {
   const i = clips.indexOf(clip);
   if (i === -1) {
     return clips;
@@ -179,12 +179,12 @@ export function removeClip<Clip extends BaseClip>(clip: Clip, clips: ReadonlyArr
 /**
  * Splits a clip into two at the specified time
  */
-export function splitClip<T extends BaseClip>(
-  clip: T,
+export function splitClip<Clip extends AbstractClip>(
+  clip: Clip,
   timeSec: number,
-  clips: ReadonlyArray<T>,
-): [before: T, after: T, clips: ReadonlyArray<T>] | null {
-  if (timeSec > clip.endOffsetSec || timeSec < clip.startOffsetSec) {
+  clips: ReadonlyArray<Clip>,
+): [before: Clip, after: Clip, clips: ReadonlyArray<Clip>] | null {
+  if (timeSec > clip._endOffset() || timeSec < clip._startOffset()) {
     return null;
   }
 
@@ -196,10 +196,10 @@ export function splitClip<T extends BaseClip>(
   //         [         clip         |     clipAfter    ]
   // ^0:00   ^clip.startOffsetSec   ^timeSec
 
-  const clipAfter: T = clip.clone() as any; // todo
+  const clipAfter = clip.clone() as Clip;
 
-  clipAfter.trimToOffsetSec(timeSec);
-  clip.endOffsetSec = timeSec;
+  clipAfter.trimToOffset(timeSec);
+  clip._setEndOffset(timeSec);
 
   const clone = [...clips];
   clone.splice(i + 1, 0, clipAfter);
@@ -211,13 +211,13 @@ export function splitClip<T extends BaseClip>(
 /**
  * Adds a clip right after the last clip
  */
-export function pushClip<Clip extends BaseClip>(newClip: Clip, clips: ReadonlyArray<Clip>): ReadonlyArray<Clip> {
+export function pushClip<Clip extends AbstractClip>(newClip: Clip, clips: ReadonlyArray<Clip>): ReadonlyArray<Clip> {
   const lastClip = clips.length > 0 ? clips[clips.length - 1] : null;
 
   if (!lastClip) {
-    newClip.startOffsetSec = 0;
+    newClip._setStartOffset(0);
   } else {
-    newClip.startOffsetSec = lastClip.endOffsetSec;
+    newClip._setStartOffset(lastClip._endOffset());
   }
 
   const clone = [...clips];

@@ -1,3 +1,4 @@
+import { pulsesToSec } from "../../midi/MidiClip";
 import { clamp, stepNumber } from "../../utils/math";
 import { SPrimitive } from "../state/LinkedState";
 import { AudioProject } from "./AudioProject";
@@ -50,6 +51,12 @@ export class ProjectViewportUtil {
   timeForPx(s: number): number {
     const viewportStartPx = this.project.viewportStartPx.get();
     return this.pxToSecs(s + viewportStartPx);
+  }
+
+  // TODO: more direct method?
+  pulsesToPx(p: number) {
+    const bpm = this.project.tempo.get();
+    return this.secsToPx(pulsesToSec(p, bpm));
   }
 
   // snapping

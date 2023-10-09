@@ -3,7 +3,7 @@ import type { AudioWorkletGlobalScope, WamMidiData, WamTransportData } from "@we
 import nullthrows from "../../utils/nullthrows";
 import { Clip, MIDINoteRecorder } from "./PianoRollClip";
 import { MIDIConfiguration, MIDI, PPQN } from "./MIDIConfiguration";
-import type { PianoRollProcessorMessage, SimpleClip, Note } from "../../midi/SharedMidiTypes";
+import type { PianoRollProcessorMessage, SimpleMidiClip, Note } from "../../midi/SharedMidiTypes";
 // import { Clip } from "./Clip";
 // import { MIDINoteRecorder } from "./MIDINoteRecorder";
 // import { MIDIConfiguration } from "./MIDIConfiguration";
@@ -30,7 +30,7 @@ class PianoRollProcessor extends WamProcessor {
 
   clips: Map<string, Clip>;
   // new system
-  seqClips: SimpleClip[] = [];
+  seqClips: SimpleMidiClip[] = [];
 
   pendingClipChange?: { id: string; timestamp: number };
   currentClipId: string;
@@ -271,7 +271,7 @@ try {
   console.warn(error);
 }
 
-function notesForTickNew(currMidiTick: number, simpleClips: SimpleClip[]): readonly Note[] {
+function notesForTickNew(currMidiTick: number, simpleClips: SimpleMidiClip[]): readonly Note[] {
   if (simpleClips.length === 0) {
     return [];
   }
@@ -279,7 +279,7 @@ function notesForTickNew(currMidiTick: number, simpleClips: SimpleClip[]): reado
   // todo
   let currentClip = simpleClips[0];
   const notes = currentClip.notes.filter(([ntick]) => ntick === currMidiTick);
-  console.log(notes, currMidiTick);
+  // console.log(notes, currMidiTick);/
 
   return notes;
 

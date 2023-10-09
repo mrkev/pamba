@@ -118,8 +118,6 @@ function BottomPanel({ project, player }: { project: AudioProject; player: Anali
   const [selected] = useLinkedState(project.selected);
   const midiClipMaybe = getOnlyOneSelectedMidiClip(selected);
 
-  console.log(selected);
-
   if (midiClipMaybe != null) {
     return <MidiClipEditor clip={midiClipMaybe} player={player} />;
   }

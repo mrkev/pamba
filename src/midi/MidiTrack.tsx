@@ -7,9 +7,9 @@ import nullthrows from "../utils/nullthrows";
 import { MidiClip } from "./MidiClip";
 import { MidiInstrument } from "./MidiInstrument";
 
-import { PianoRollModule, PianoRollNode } from "../wam/pianorollme/PianoRollNode";
 import { removeClip } from "../lib/AudioTrackFn";
-import type { SimpleClip } from "./SharedMidiTypes";
+import { PianoRollModule, PianoRollNode } from "../wam/pianorollme/PianoRollNode";
+import type { SimpleMidiClip } from "./SharedMidiTypes";
 
 const SAMPLE_STATE = {
   clips: {
@@ -132,13 +132,13 @@ export class MidiTrack extends ProjectTrack {
   override prepareForPlayback(context: AudioContext): void {
     // mix clips
 
-    // should already be in ascending order of startOffsetSec
-    const simpleClips: SimpleClip[] = [];
+    // should already be in ascending order of startOffsetPulses
+    const simpleClips: SimpleMidiClip[] = [];
     for (const clip of this.clips) {
       simpleClips.push({
         notes: clip.notes._getRaw(),
-        startOffsetSec: clip.startOffsetSec,
-        endOffsetSec: clip.endOffsetSec,
+        startOffsetPulses: clip.startOffsetPulses,
+        endOffsetPulses: clip._endOffset(),
       });
     }
 
