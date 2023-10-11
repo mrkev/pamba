@@ -5,4 +5,9 @@ TODO:
 - Figure out how to save and load data, so piano roll midi lives in clips
 
 MAYBE: 
-- Switch all timing to be frames, for maximum precision (avoid time floats)
+- Switch audio timing to be frames, for maximum precision (avoid time floats)
+
+NAME:
+- Orion
+- Cephei
+  - cephei.app available

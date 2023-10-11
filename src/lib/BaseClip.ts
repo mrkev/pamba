@@ -2,16 +2,16 @@
 // Allows for easier testing than having to worry
 // about and mock AudioContext, etc.
 //
-//  Basic topology:
+// Basic topology:
 //
 //
-//                    [~~~|====== clip ========|~~~]
-// length:            +----------------------------+
-// duration:              +--------------------+
-// trimEndSec:        +------------------------+
-// trimStartSec:      +---+
-// +--startOffsetSec--+
-// +--endOffsetSec-----------------------------+
+//                        [~~~|====== clip ========|~~~]
+// buffer.length:         +----------------------------+
+// duration:                  +--------------------+
+// trimEndSec:            +------------------------+
+// trimStartSec:          +---+
+// +--startOffsetSec------+
+// +--endOffsetSec---------------------------------+
 
 // rn mostly used for invariants
 export interface AbstractClip {
@@ -29,13 +29,12 @@ export class BaseClip {
   // A BaseClip represents media that has a certain length (in frames), but has
   // been trimmed to be of another length.
   readonly lengthSec: number; // seconds, whole buffer
-  readonly sampleRate: number; // how many frames per second
   protected _startOffsetSec: number; // on the timeline, the x position
   protected _trimEndSec: number; // within the clip, time considered the end.
   protected _trimStartSec: number = 0; // within the clip, where to start.
 
   clone(): BaseClip {
-    const copy = new BaseClip(this.lengthSec, this.sampleRate, this._startOffsetSec);
+    const copy = new BaseClip(this.lengthSec, this._startOffsetSec);
     copy._startOffsetSec = this._startOffsetSec;
     copy.trimEndSec = this._trimEndSec;
     copy._trimStartSec = this._trimStartSec;
@@ -46,45 +45,20 @@ export class BaseClip {
     return `${this.startOffsetSec} [ ${this.trimStartSec} | -- | ${this.trimEndSec} ] ${this.endOffsetSec}`;
   }
 
-  constructor(lengthSec: number, sampleRate: number, startOffsetSec: number) {
+  constructor(lengthSec: number, startOffsetSec: number) {
     // By default, there is no trim and the clip has offset 0
     this.lengthSec = lengthSec;
-    this.sampleRate = sampleRate;
     this._trimEndSec = lengthSec;
     this._startOffsetSec = startOffsetSec;
   }
 
-  private secToFr(sec: number): number {
-    return Math.floor(sec * this.sampleRate);
-  }
-
-  private frToSec(fr: number): number {
-    return fr / this.sampleRate;
-  }
-
-  get lengthFr(): number {
-    return this.secToFr(this.lengthSec);
-  }
-
-  // Offset relates to the clip in the timeline
-  // Pos referes to the position the audio-clip plays in an audio file
-  get startOffsetFr() {
-    return this.secToFr(this._startOffsetSec);
-  }
   get startOffsetSec() {
     return this._startOffsetSec;
   }
   set startOffsetSec(secs: number) {
     this._startOffsetSec = secs;
   }
-  set startOffsetFr(frs: number) {
-    this._startOffsetSec = this.frToSec(frs);
-  }
 
-  // on the timeline, the x position where + width (duration)
-  get endOffsetFr() {
-    return this.startOffsetFr + this.durationFr;
-  }
   get endOffsetSec() {
     return this.startOffsetSec + this.durationSec;
   }
@@ -110,9 +84,7 @@ export class BaseClip {
   get trimEndSec() {
     return this._trimEndSec;
   }
-  get trimEndFr() {
-    return this.secToFr(this._trimEndSec);
-  }
+
   set trimEndSec(s: number) {
     if (s > this.durationSec) {
       // todo
@@ -124,15 +96,9 @@ export class BaseClip {
 
     this._trimEndSec = s;
   }
-  set trimEndFr(f: number) {
-    this._trimEndSec = this.frToSec(f);
-  }
 
   get durationSec() {
     return this._trimEndSec - this._trimStartSec;
-  }
-  get durationFr() {
-    return this.secToFr(this.durationSec);
   }
 
   //
@@ -141,22 +107,13 @@ export class BaseClip {
   get trimStartSec() {
     return this._trimStartSec;
   }
-  get trimStartFr() {
-    return this.secToFr(this._trimStartSec);
-  }
+
   set trimStartSec(s: number) {
     if (s > this.lengthSec) {
       throw new Error("Can't set trimStartSec to be more than duration");
     }
 
     this._trimStartSec = s;
-  }
-  set trimStartFr(f: number) {
-    this._trimStartSec = this.frToSec(f);
-  }
-
-  moveToOffsetSec(s: number) {
-    this.startOffsetSec = s;
   }
 
   // Trim start to time.

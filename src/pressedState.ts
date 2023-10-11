@@ -21,8 +21,6 @@ export type CursorState =
       clientX: number;
       clientY: number;
     }>
-  // TODO: selectring_track_time
-  // TODO: selecting_global_time (time header)
   | Readonly<{
       status: "selecting_global_time";
       // Original clientX/Y of event

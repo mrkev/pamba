@@ -13,10 +13,12 @@ export class AudioClip extends BaseClip implements Subbable<AudioClip>, Mutation
   _subscriptors: Set<(value: BaseClip) => void> = new Set();
 
   // AudioClip
+  readonly unit = "sec";
   readonly name: SPrimitive<string>;
   readonly buffer: SharedAudioBuffer;
   readonly numberOfChannels: number;
   readonly bufferURL: string;
+  readonly sampleRate: number; // how many frames per second
 
   gainAutomation: Array<{ time: number; value: number }> = [{ time: 0, value: 1 }];
   // Let's not pre-compute this since we don't know the acutal dimensions
@@ -30,11 +32,12 @@ export class AudioClip extends BaseClip implements Subbable<AudioClip>, Mutation
   private constructor(buffer: AudioBuffer, name: string, bufferURL: string) {
     // todo, should convert buffer.length to seconds myself? Are buffer.duration
     // and buffer.length always congruent?
-    super(buffer.duration, buffer.sampleRate, 0);
+    super(buffer.duration, 0);
     this.buffer = new SharedAudioBuffer(buffer);
     this.numberOfChannels = buffer.numberOfChannels;
     this.name = SPrimitive.of(name);
     this.bufferURL = bufferURL;
+    this.sampleRate = buffer.sampleRate;
   }
 
   static async fromURL(url: string, name?: string) {
@@ -72,6 +75,55 @@ export class AudioClip extends BaseClip implements Subbable<AudioClip>, Mutation
     return `${this.startOffsetSec.toFixed(2)} [ ${this.trimStartSec.toFixed(2)} | ${
       this.name
     } | ${this.trimEndSec.toFixed(2)} ] ${this.endOffsetSec.toFixed(2)}`;
+  }
+
+  // Frames units
+
+  private secToFr(sec: number): number {
+    return Math.floor(sec * this.sampleRate);
+  }
+
+  private frToSec(fr: number): number {
+    return fr / this.sampleRate;
+  }
+
+  get lengthFr(): number {
+    return this.secToFr(this.lengthSec);
+  }
+
+  // Offset relates to the clip in the timeline
+  // Pos referes to the position the audio-clip plays in an audio file
+  get startOffsetFr() {
+    return this.secToFr(this._startOffsetSec);
+  }
+
+  set startOffsetFr(frs: number) {
+    this._startOffsetSec = this.frToSec(frs);
+  }
+
+  // on the timeline, the x position where + width (duration)
+  get endOffsetFr() {
+    return this.startOffsetFr + this.durationFr;
+  }
+
+  get trimEndFr() {
+    return this.secToFr(this._trimEndSec);
+  }
+
+  set trimEndFr(f: number) {
+    this._trimEndSec = this.frToSec(f);
+  }
+
+  get durationFr() {
+    return this.secToFr(this.durationSec);
+  }
+
+  get trimStartFr() {
+    return this.secToFr(this._trimStartSec);
+  }
+
+  set trimStartFr(f: number) {
+    this._trimStartSec = this.frToSec(f);
   }
 
   // interface AbstractClip

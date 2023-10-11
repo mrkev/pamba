@@ -129,6 +129,7 @@ const useStyles = createUseStyles({
     border: "1px solid #999",
     borderRadius: "3px",
     flexGrow: 1,
+    fontSize: 12,
   },
   listItem: {
     textOverflow: "ellipsis",

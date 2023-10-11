@@ -7,6 +7,10 @@ import { exhaustive } from "../utils/exhaustive";
 import { AppProject } from "./AppProject";
 import { DebugData } from "./DebugData";
 import { MidiDemo } from "../midi";
+import { useLinkedSet } from "../lib/state/LinkedSet";
+import { PambaWamNodeWindowPanel } from "./PambaWamNodeWindowPanel";
+import { PambaWamNode } from "../wam/PambaWamNode";
+import { MidiInstrument } from "../midi/MidiInstrument";
 
 // var w = new TrackThread();
 // var sab = new SharedArrayBuffer(1024);
@@ -15,6 +19,7 @@ import { MidiDemo } from "../midi";
 
 export function App(): React.ReactElement {
   const [projectStatus] = useLinkedState(appEnvironment.projectStatus);
+  const [openEffects] = useLinkedSet(appEnvironment.openEffects);
 
   switch (projectStatus.status) {
     case "loading": {
@@ -24,6 +29,17 @@ export function App(): React.ReactElement {
       (window as any).project = projectStatus.project;
       return (
         <>
+          {/* RENDER WAM WINDOWS OUT HERE */}
+          {[...openEffects.values()].map((effect, i) => {
+            if (effect instanceof PambaWamNode) {
+              return <PambaWamNodeWindowPanel key={i} effect={effect} onClose={() => openEffects.delete(effect)} />;
+            }
+            if (effect instanceof MidiInstrument) {
+              return <PambaWamNodeWindowPanel key={i} effect={effect} onClose={() => openEffects.delete(effect)} />;
+            }
+
+            return null;
+          })}
           {/* <MidiDemo /> */}
           <AppProject project={projectStatus.project} />
           <DebugData project={projectStatus.project} />

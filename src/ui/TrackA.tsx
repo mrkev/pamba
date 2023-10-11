@@ -11,9 +11,16 @@ import { useLinkedState } from "../lib/state/LinkedState";
 import { pressedState } from "../pressedState";
 import { ignorePromise } from "../utils/ignorePromise";
 import { ClipA } from "./ClipA";
+import { ClipInvalid, ClipPlaceholder } from "./ClipInvalid";
 import { CursorSelection } from "./CursorSelection";
 import { EffectRack } from "./EffectRack";
-import { ClipInvalid } from "./ClipInvalid";
+
+function clientXToTrackX(trackElem: HTMLDivElement | null, clientX: number) {
+  if (trackElem == null) {
+    return 0;
+  }
+  return clientX + trackElem.scrollLeft - trackElem.getBoundingClientRect().x;
+}
 
 export function TrackA({
   track,
@@ -36,6 +43,7 @@ export function TrackA({
   const [activeTrack] = useLinkedState(project.activeTrack);
   const [audioStorage] = useLinkedState(project.audioStorage);
   const trackRef = useRef<HTMLDivElement>(null);
+  const [draggingOver, setDraggingOver] = useState<number | null>(null);
   const [, setStateCounter] = useState(0);
   const rerender = useCallback(function () {
     setStateCounter((x) => x + 1);
@@ -43,16 +51,20 @@ export function TrackA({
 
   useTrackMouseEvents(trackRef, project, track);
 
-  const loadClipIntoTrack = useCallback(async (url: string, track: AudioTrack, name?: string): Promise<void> => {
-    try {
-      // load clip
-      const clip = await AudioClip.fromURL(url, name);
-      track.pushClip(clip);
-    } catch (e) {
-      console.trace(e);
-      return;
-    }
-  }, []);
+  const loadClipIntoTrack = useCallback(
+    async (url: string, track: AudioTrack, startOffsetSec: number, name?: string): Promise<void> => {
+      try {
+        // load clip
+        const clip = await AudioClip.fromURL(url, name);
+        clip.startOffsetSec = startOffsetSec;
+        track.addClip(clip);
+      } catch (e) {
+        console.trace(e);
+        return;
+      }
+    },
+    [],
+  );
 
   const onDrop = useCallback(
     async (ev: React.DragEvent<HTMLDivElement>) => {
@@ -81,10 +93,11 @@ export function TrackA({
       }
 
       if (url.length > 0) {
-        ignorePromise(loadClipIntoTrack(url, track));
+        ignorePromise(loadClipIntoTrack(url, track, project.viewport.pxToSecs(draggingOver ?? 0)));
       }
+      setDraggingOver(null);
     },
-    [audioStorage, loadClipIntoTrack, track],
+    [audioStorage, draggingOver, loadClipIntoTrack, project.viewport, track],
   );
 
   return (
@@ -93,7 +106,12 @@ export function TrackA({
         ref={trackRef}
         onDrop={onDrop}
         onDragOver={function allowDrop(ev) {
+          const draggedOffsetPx = clientXToTrackX(trackRef.current, ev.clientX);
+          setDraggingOver(draggedOffsetPx);
           ev.preventDefault();
+        }}
+        onDragLeave={() => {
+          setDraggingOver(null);
         }}
         style={{
           position: "relative",
@@ -115,6 +133,21 @@ export function TrackA({
 
         {/* RENDER SELECTION */}
         <CursorSelection track={track} project={project} />
+
+        {/* RENDER DRAG DROP MARKER */}
+        {pressed && pressed.status === "dragging_new_audio" && draggingOver != null && (
+          <div
+            style={{
+              width: 1,
+              left: draggingOver,
+              backgroundColor: "#114411",
+              height: "100%",
+              userSelect: "none",
+              pointerEvents: "none",
+              position: "absolute",
+            }}
+          ></div>
+        )}
 
         {/* RENDER CLIP BEING MOVED FROM ANOTHER TRACK */}
         {pressed &&

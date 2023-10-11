@@ -1,9 +1,9 @@
+import { LayoutTypeMap } from "@shren/faust-ui/src/types";
 import { exhaustive } from "../../utils/exhaustive";
 import { FaustAudioEffect } from "../FaustAudioEffect";
 import "./faust.css";
 import { FaustGroup } from "./FaustGroup";
 import { FaustSlider } from "./FaustSlider";
-import { LayoutTypeMap } from "@shren/faust-ui/src/types";
 
 type TFaustUIItem = LayoutTypeMap[keyof LayoutTypeMap];
 
@@ -31,7 +31,7 @@ export function FaustItem({ item, effect, arrPos }: { item: TFaustUIItem; effect
       // TODO: tgroup
       return (
         <div>
-          "tgroup"{" "}
+          tgroup
           {item.items.map((item, i) => {
             return <FaustItem key={i} item={item} effect={effect} arrPos={i} />;
           })}
@@ -39,19 +39,19 @@ export function FaustItem({ item, effect, arrPos }: { item: TFaustUIItem; effect
       );
 
     case "hbargraph":
-      return <div>"hbargraph"</div>;
+      return <div>hbargraph</div>;
 
     case "vbargraph":
-      return <div>"vbargraph"</div>;
+      return <div>vbargraph</div>;
 
     case "button":
-      return <button>"button"</button>;
+      return <button>button</button>;
 
     case "checkbox":
-      return <input type="checkbox">"checkbox"</input>;
+      return <input type="checkbox">checkbox</input>;
 
     case "nentry":
-      return <div>"nentry"</div>;
+      return <div>nentry</div>;
 
     default:
       return exhaustive(type);

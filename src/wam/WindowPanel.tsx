@@ -36,8 +36,8 @@ export function WindowPanel({
         });
         e.stopImmediatePropagation();
       },
-      [position]
-    )
+      [position],
+    ),
   );
 
   useDocumentEventListener(
@@ -45,7 +45,7 @@ export function WindowPanel({
     useCallback((_e: MouseEvent) => {
       setCursor({ status: "idle" });
       // e.stopImmediatePropagation();
-    }, [])
+    }, []),
   );
 
   useDocumentEventListener(
@@ -63,8 +63,8 @@ export function WindowPanel({
         }
         // e.stopImmediatePropagation();
       },
-      [cursor, onPositionChange]
-    )
+      [cursor, onPositionChange],
+    ),
   );
 
   return (
@@ -87,6 +87,7 @@ const useStyles = createUseStyles({
     flexDirection: "column",
     position: "fixed",
     zIndex: 9999,
+    userSelect: "none",
   },
   spacer: {
     flexGrow: 1,

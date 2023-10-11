@@ -1,13 +1,5 @@
+import { addClip, assertClipInvariants, deleteTime, pushClip, removeClip, splitClip } from "../AudioTrackFn";
 import { BaseClip } from "../BaseClip";
-import {
-  addClip,
-  deleteTime,
-  removeClip,
-  pushClip,
-  assertClipInvariants,
-  printClips,
-  splitClip,
-} from "../AudioTrackFn";
 
 function clip(startOffset, endOffset) {
   const DEFAULT_SAMPLE_RATE = 1000;

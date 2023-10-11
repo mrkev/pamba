@@ -9,7 +9,9 @@ import { initAudioContext } from "./initAudioContext";
 import { AudioProject } from "./project/AudioProject";
 import { LinkedMap } from "./state/LinkedMap";
 import { SPrimitive } from "./state/LinkedState";
-import { ignorePromise } from "./state/Subbable";
+import { LinkedSet } from "./state/LinkedSet";
+import type { DSPNode } from "../dsp/DSPNode";
+import type { MidiInstrument } from "../midi/MidiInstrument";
 
 export type WAMAvailablePlugin = {
   // midi out, audio out, midi to audio, audio to audio
@@ -32,10 +34,13 @@ export class AppEnvironment {
   readonly faustEffects = ["PANNER", "REVERB"] as const;
   // Project
   readonly projectStatus: SPrimitive<ProjectState>;
+  // UI
+  readonly openEffects: LinkedSet<DSPNode | MidiInstrument>;
 
   constructor() {
     this.firebaseApp = initFirebaseApp();
     this.firebaseAuth = getAuth(this.firebaseApp);
+    this.openEffects = LinkedSet.create();
     this.projectStatus = SPrimitive.of<ProjectState>(
       ProjectPersistance.hasSavedData()
         ? { status: "loading" }

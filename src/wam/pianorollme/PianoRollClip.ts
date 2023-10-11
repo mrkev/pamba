@@ -1,5 +1,5 @@
 import { WamTransportData } from "@webaudiomodules/api";
-import { token, MIDI, PP16, PPQN } from "./MIDIConfiguration";
+import { MIDI, PP16, PPQN, token } from "./MIDIConfiguration";
 
 export type Note = {
   tick: number;

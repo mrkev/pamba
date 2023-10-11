@@ -36,3 +36,25 @@ export function ClipInvalid({ clip, project }: { clip: MidiClip | AudioClip; pro
     ></div>
   );
 }
+
+export function ClipPlaceholder({ left, width }: { left: number; width: number }) {
+  return (
+    <div
+      style={{
+        width: width,
+        left: left,
+        boxSizing: "border-box",
+        backgroundColor: "#ffcccc",
+        imageRendering: "pixelated",
+        height: "100%",
+        userSelect: "none",
+        border: "1px solid #114411",
+        color: "black",
+        pointerEvents: "all",
+        display: "flex",
+        flexDirection: "column",
+        position: "absolute",
+      }}
+    ></div>
+  );
+}

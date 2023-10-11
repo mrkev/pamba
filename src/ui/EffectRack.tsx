@@ -1,25 +1,18 @@
 import React, { useEffect, useRef } from "react";
 import { createUseStyles } from "react-jss";
 import { EFFECT_HEIGHT } from "../constants";
-import { DSPNode } from "../dsp/DSPNode";
 import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
 import FaustEffectModule from "../dsp/ui/FaustEffectModule";
-import { AudioProject, ProjectSelection } from "../lib/project/AudioProject";
+import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioRenderer } from "../lib/AudioRenderer";
 import { AudioTrack } from "../lib/AudioTrack";
+import { AudioProject, ProjectSelection } from "../lib/project/AudioProject";
 import { useLinkedArray } from "../lib/state/LinkedArray";
-import { useNewLinkedSet } from "../lib/state/LinkedSet";
 import { useLinkedState } from "../lib/state/LinkedState";
+import { MidiTrack } from "../midi/MidiTrack";
 import { exhaustive } from "../utils/exhaustive";
 import { PambaWamNode } from "../wam/PambaWamNode";
-import { WindowPanel } from "../wam/WindowPanel";
-import { WamInstrumentContent, WamPluginContent } from "../wam/wam";
 import { Effect } from "./Effect";
-import nullthrows from "../utils/nullthrows";
-import ReactDOM from "react-dom";
-import { MidiTrack } from "../midi/MidiTrack";
-import { PianoRollModule } from "../wam/pianorollme/PianoRollNode";
-import { MidiInstrument } from "../midi/MidiInstrument";
 
 const useStyles = createUseStyles({
   effectRack: {
@@ -55,7 +48,6 @@ export const EffectRack = React.memo(function EffectRack({
   const [selected] = useLinkedState(project.selected);
   const rackRef = useRef<HTMLDivElement | null>(null);
   const [isAudioPlaying] = useLinkedState(renderer.isAudioPlaying);
-  const openEffects = useNewLinkedSet<DSPNode | MidiInstrument>();
 
   useEffect(() => {
     const div = rackRef.current;
@@ -74,17 +66,6 @@ export const EffectRack = React.memo(function EffectRack({
 
   return (
     <>
-      {/* RENDER WAM WINDOWS OUT HERE */}
-      {[...openEffects.values()].map((effect, i) => {
-        if (effect instanceof PambaWamNode) {
-          return <PambaWamNodeWindowPanel key={i} effect={effect} onClose={() => openEffects.delete(effect)} />;
-        }
-        if (effect instanceof MidiInstrument) {
-          return <PambaWamNodeWindowPanel key={i} effect={effect} onClose={() => openEffects.delete(effect)} />;
-        }
-
-        return null;
-      })}
       <div
         style={{
           height: EFFECT_HEIGHT,
@@ -108,7 +89,7 @@ export const EffectRack = React.memo(function EffectRack({
               isSelected={false}
               title={"Instrument"}
             >
-              <button onClick={() => openEffects.add(track.instrument)}>Configure</button>
+              <button onClick={() => appEnvironment.openEffects.add(track.instrument)}>Configure</button>
             </Effect>
             {"→"}
           </React.Fragment>
@@ -142,7 +123,7 @@ export const EffectRack = React.memo(function EffectRack({
                 <Effect
                   canDelete={!isAudioPlaying}
                   onClickRemove={() => {
-                    openEffects.delete(effect);
+                    appEnvironment.openEffects.delete(effect);
                     AudioTrack.removeEffect(track, effect);
                   }}
                   onHeaderClick={() => ProjectSelection.selectEffect(project, effect, track)}
@@ -150,7 +131,7 @@ export const EffectRack = React.memo(function EffectRack({
                   isSelected={selected?.status === "effects" && selected.test.has(effect)}
                   title={effect.name}
                 >
-                  <button onClick={() => openEffects.add(effect)}>Configure</button>
+                  <button onClick={() => appEnvironment.openEffects.add(effect)}>Configure</button>
                 </Effect>
                 {"→"}
               </React.Fragment>
@@ -189,13 +170,3 @@ export const EffectRack = React.memo(function EffectRack({
     </>
   );
 });
-
-function PambaWamNodeWindowPanel({ effect, onClose }: { effect: PambaWamNode | MidiInstrument; onClose: () => void }) {
-  const [position, setPosition] = useLinkedState(effect.windowPanelPosition);
-  return ReactDOM.createPortal(
-    <WindowPanel onClose={onClose} title={effect.name} position={position} onPositionChange={setPosition}>
-      {effect instanceof PambaWamNode ? <WamPluginContent wam={effect} /> : <WamInstrumentContent wam={effect} />}
-    </WindowPanel>,
-    nullthrows(document.querySelector("#wam-window-panels")),
-  );
-}
