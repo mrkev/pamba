@@ -1,4 +1,4 @@
-import AudioClip from "./lib/AudioClip";
+import { AudioClip } from "./lib/AudioClip";
 import { AudioTrack } from "./lib/AudioTrack";
 import { SPrimitive } from "./lib/state/LinkedState";
 import { MidiClip } from "./midi/MidiClip";

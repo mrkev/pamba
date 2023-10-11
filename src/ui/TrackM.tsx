@@ -1,14 +1,15 @@
 import React, { useCallback, useRef, useState } from "react";
 import { createUseStyles } from "react-jss";
 import { TRACK_SEPARATOR_HEIGHT } from "../constants";
-import AudioClip from "../lib/AudioClip";
+import { useTrackMouseEvents } from "../input/useTrackMouseEvents";
+import { AudioClip } from "../lib/AudioClip";
 import { AudioRenderer } from "../lib/AudioRenderer";
 import { AudioProject } from "../lib/project/AudioProject";
 import { useLinkedArray } from "../lib/state/LinkedArray";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { MidiTrack } from "../midi/MidiTrack";
 import { pressedState } from "../pressedState";
-import { ClipA } from "./ClipA";
+import { ClipInvalid } from "./ClipInvalid";
 import { ClipM } from "./ClipM";
 import { CursorSelection } from "./CursorSelection";
 import { EffectRack } from "./EffectRack";
@@ -39,6 +40,8 @@ export function TrackM({
     setStateCounter((x) => x + 1);
   }, []);
 
+  useTrackMouseEvents(trackRef, project, track);
+
   useEventListener(
     "mouseenter",
     trackRef,
@@ -49,8 +52,8 @@ export function TrackM({
           pressedState.setDyn((prev) => Object.assign({}, prev, { track }));
         }
       },
-      [track]
-    )
+      [track],
+    ),
   );
 
   return (
@@ -86,7 +89,6 @@ export function TrackM({
           }
           const isSelected = selected !== null && selected.status === "clips" && selected.test.has(clip);
           return (
-            // TODOOOO: CAN BE CLIPA OR CLIP M
             <ClipM key={i} clip={clip} rerender={rerender} isSelected={isSelected} track={track} project={project} />
           );
         })}
@@ -99,9 +101,9 @@ export function TrackM({
           pressed.status === "moving_clip" &&
           pressed.track === track &&
           (pressed.clip instanceof AudioClip ? (
-            <ClipA clip={pressed.clip} rerender={rerender} isSelected={true} project={project} track={null} />
+            <ClipInvalid clip={pressed.clip} project={project} />
           ) : (
-            <div>TODO MIDI CLIP</div>
+            <ClipM clip={pressed.clip} rerender={rerender} track={track} project={project} isSelected={true} />
           ))}
       </div>
 

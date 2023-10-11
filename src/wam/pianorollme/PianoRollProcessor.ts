@@ -280,18 +280,16 @@ try {
   console.warn(error);
 }
 
+// todo; can be optimized by keeping track of where we are in the array during this "playback session"
 function notesForTickNew(currMidiTick: number, simpleClips: SimpleMidiClip[]): readonly Note[] {
-  if (simpleClips.length === 0) {
-    return [];
+  let currentClip = null;
+  for (const clip of simpleClips) {
+    if (clip.startOffsetPulses <= currMidiTick && clip.endOffsetPulses >= currMidiTick) {
+      currentClip = clip;
+    }
   }
 
-  // console.log(currMidiTick, simpleClips );
-
-  // todo
-  let currentClip = simpleClips[0];
-
-  // clip already happened
-  if (currentClip.endOffsetPulses < currMidiTick) {
+  if (currentClip == null) {
     return [];
   }
 
@@ -316,18 +314,5 @@ function notesForTickNew(currMidiTick: number, simpleClips: SimpleMidiClip[]): r
     }
   }
 
-  // const notes = currentClip.notes.filter(([ntick]) => ntick === currMidiTick);
-  // console.log(notes, currMidiTick);/
-
   return notesToPlay;
-
-  // for (let i = 0; i < simpleClips.length; i++) {
-  //   const clip = simpleClips[i];
-  //   // TODO: sec to -> PPQN unit
-  //   if (clip.endOffsetTicks < currMidiTick) {
-  //     continue;
-  //   }
-
-  //   // TODO
-  // }
 }

@@ -5,6 +5,7 @@ import { ProjectPersistance } from "../lib/ProjectPersistance";
 import { AudioProject, ProjectSelection } from "../lib/project/AudioProject";
 import { MidiTrack } from "../midi/MidiTrack";
 import { ignorePromise } from "../utils/ignorePromise";
+import { doPaste } from "../lib/project/ClipboardState";
 
 export function useDocumentKeyboardEvents(
   project: AudioProject,
@@ -19,11 +20,20 @@ export function useDocumentKeyboardEvents(
         return;
       }
 
-      // console.log(e.code);
       switch (e.code) {
         case "Backspace":
-          console.log("here");
           ProjectSelection.deleteSelection(project, player);
+          e.preventDefault();
+          break;
+
+        case "KeyC":
+          ProjectSelection.copySelection(project);
+          e.preventDefault();
+          break;
+
+        case "KeyV":
+          doPaste(project);
+          e.preventDefault();
           break;
 
         case "KeyS": {

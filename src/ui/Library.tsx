@@ -2,7 +2,7 @@ import classNames from "classnames";
 import React, { useCallback, useState } from "react";
 import { createUseStyles } from "react-jss";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
-import AudioClip from "../lib/AudioClip";
+import { AudioClip } from "../lib/AudioClip";
 import { AudioRenderer } from "../lib/AudioRenderer";
 import { AudioTrack } from "../lib/AudioTrack";
 import { AudioProject } from "../lib/project/AudioProject";

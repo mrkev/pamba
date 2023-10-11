@@ -4,23 +4,24 @@ import { ulid } from "ulid";
 import { modifierState } from "../../ModifierState";
 import { FaustAudioEffect } from "../../dsp/FaustAudioEffect";
 import { getFirebaseStorage } from "../../firebase/getFirebase";
+import { MidiClip } from "../../midi/MidiClip";
+import { MidiInstrument } from "../../midi/MidiInstrument";
+import { MidiTrack } from "../../midi/MidiTrack";
 import { exhaustive } from "../../utils/exhaustive";
 import { PambaWamNode } from "../../wam/PambaWamNode";
 import { AnalizedPlayer } from "../AnalizedPlayer";
-import AudioClip from "../AudioClip";
+import { AudioClip } from "../AudioClip";
 import { AudioTrack } from "../AudioTrack";
 import { DerivedState } from "../state/DerivedState";
 import { LinkedArray } from "../state/LinkedArray";
+import { LinkedMap } from "../state/LinkedMap";
 import { LinkedSet } from "../state/LinkedSet";
 import { SPrimitive } from "../state/LinkedState";
 import { ignorePromise } from "../state/Subbable";
 import { AudioStorage } from "./AudioStorage";
+import { clipboard } from "./ClipboardState";
 import { ProjectViewportUtil } from "./ProjectViewportUtil";
 import { SelectionState } from "./SelectionState";
-import { LinkedMap } from "../state/LinkedMap";
-import { MidiTrack } from "../../midi/MidiTrack";
-import { MidiInstrument } from "../../midi/MidiInstrument";
-import { MidiClip } from "../../midi/MidiClip";
 
 /**
  * TODO:
@@ -205,9 +206,7 @@ export class AudioProject {
 
   static removeMidiClip(project: AudioProject, track: MidiTrack, clip: MidiClip): void {
     const selected = project.selected.get();
-    if (track instanceof AudioTrack) {
-      track.removeClip(clip);
-    }
+    track.removeClip(clip);
     if (selected && selected.status === "clips") {
       project.selected.set({
         ...selected,
@@ -296,8 +295,35 @@ export class ProjectSelection {
         for (const track of selected.tracks) {
           if (track instanceof AudioTrack) {
             track.deleteTime(selected.start, selected.end);
+          } else if (track instanceof MidiTrack) {
+            track.deleteTime(
+              project.viewport.secsToPulses(selected.start),
+              project.viewport.secsToPulses(selected.end),
+            );
           }
         }
+        break;
+      default:
+        exhaustive(selected);
+    }
+  }
+
+  static copySelection(project: AudioProject) {
+    const selected = project.selected.get();
+
+    if (!selected) {
+      return;
+    }
+
+    switch (selected.status) {
+      case "clips": {
+        clipboard.set({ kind: "clips", clips: selected.clips.map((selection) => selection.clip.clone()) });
+        break;
+      }
+      case "tracks":
+      case "effects":
+      case "time":
+      case "track_time":
         break;
       default:
         exhaustive(selected);

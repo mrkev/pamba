@@ -30,6 +30,7 @@ export function ClipM({
   const [notes] = useLinkedArray(clip.notes);
   // const startTrimmedWidth = project.viewport.secsToPx(clip.trimStartSec);
   const [tool] = useLinkedState(project.pointerTool);
+  const [name] = useLinkedState(clip.name);
   // const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useSubscribeToSubbableMutationHashable(clip);
@@ -115,19 +116,11 @@ export function ClipM({
   return (
     <div
       // onClick={onClipClick}
+      className={styles.clip}
       style={{
-        backgroundColor: "#ccffcc",
         width: width,
-        height: "100%",
-        userSelect: "none",
-        borderLeft: border,
-        borderRight: border,
-        color: "white",
-        pointerEvents: "all",
-        display: "flex",
-        flexDirection: "column",
-        position: "absolute",
-        left: project.viewport.pulsesToPx(clip.startOffsetPulses),
+        left: Math.floor(project.viewport.pulsesToPx(clip.startOffsetPulses)),
+        border,
         ...style,
       }}
     >
@@ -137,7 +130,7 @@ export function ClipM({
         style={{
           color: isSelected ? "white" : "black",
           background: isSelected ? "#225522" : "#bbeebb",
-          border: border,
+          borderBottom: border,
         }}
       >
         {/* TODO: not working */}
@@ -146,10 +139,9 @@ export function ClipM({
             color: isSelected ? "white" : "black",
             fontSize: 10,
           }}
-          value={clip.name}
-          setValue={console.log}
-        />{" "}
-        {/* ({Math.round(clip.durationSec * 100) / 100}) */}
+          value={name}
+          setValue={(newVal) => clip.name.set(newVal)}
+        />
       </div>
       {/* <div className={styles.resizerStart} onMouseDown={(e) => onMouseDownToResize(e, "start")}></div>
       <div className={styles.resizerEnd} onMouseDown={(e) => onMouseDownToResize(e, "end")}></div> */}
@@ -158,6 +150,17 @@ export function ClipM({
   );
 }
 const useStyles = createUseStyles({
+  clip: {
+    backgroundColor: "#ccffcc",
+    boxSizing: "border-box",
+    height: "100%",
+    userSelect: "none",
+    color: "white",
+    pointerEvents: "all",
+    display: "flex",
+    flexDirection: "column",
+    position: "absolute",
+  },
   resizerEnd: {
     width: 10,
     background: "rgba(0,0,0,0)",

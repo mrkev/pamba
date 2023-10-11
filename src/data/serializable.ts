@@ -1,5 +1,5 @@
 import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
-import AudioClip from "../lib/AudioClip";
+import { AudioClip } from "../lib/AudioClip";
 import { AudioProject } from "../lib/project/AudioProject";
 import { AudioTrack } from "../lib/AudioTrack";
 import { exhaustive } from "../utils/exhaustive";
@@ -19,12 +19,13 @@ export type SAudioClip = {
   bufferURL: string;
 };
 
-export type SMidiClip = {
+export type SMidiClip = Readonly<{
   kind: "MidiClip";
   name: string;
+  startOffsetPulses: number;
   lengthPulses: number;
   notes: readonly Note[];
-};
+}>;
 
 export type SAudioTrack = {
   kind: "AudioTrack";
@@ -71,12 +72,12 @@ export async function serializable(
 ): Promise<SAudioClip | SAudioTrack | SMidiClip | SMidiTrack | SAudioProject | SFaustAudioEffect | SPambaWamNode> {
   if (obj instanceof AudioClip) {
     const { name, bufferURL } = obj;
-    return { kind: "AudioClip", name, bufferURL };
+    return { kind: "AudioClip", name: name.get(), bufferURL };
   }
 
   if (obj instanceof MidiClip) {
-    const { name, lengthPulses: lenPulses, notes } = obj;
-    return { kind: "MidiClip", name, lengthPulses: lenPulses, notes: notes._getRaw() };
+    const { name, lengthPulses: lenPulses, startOffsetPulses, notes } = obj;
+    return { kind: "MidiClip", name: name.get(), startOffsetPulses, lengthPulses: lenPulses, notes: notes._getRaw() };
   }
 
   if (obj instanceof AudioTrack) {
@@ -139,8 +140,8 @@ export async function construct(
       return AudioClip.fromURL(bufferURL, name);
     }
     case "MidiClip": {
-      const { name, lengthPulses, notes } = rep;
-      return new MidiClip(name, lengthPulses, notes);
+      const { name, startOffsetPulses, lengthPulses, notes } = rep;
+      return new MidiClip(name, startOffsetPulses, lengthPulses, notes);
     }
     case "AudioTrack": {
       const { name, clips: sClips, effects: sEffects, height } = rep;

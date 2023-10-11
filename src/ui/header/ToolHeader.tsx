@@ -1,20 +1,19 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useRef } from "react";
 import { createUseStyles } from "react-jss";
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from "../../constants";
 import { AnalizedPlayer } from "../../lib/AnalizedPlayer";
 import { appEnvironment } from "../../lib/AppEnvironment";
+import { AudioRecorder } from "../../lib/AudioRecorder";
 import { AudioRenderer } from "../../lib/AudioRenderer";
 import { ProjectPersistance } from "../../lib/ProjectPersistance";
 import { AudioProject } from "../../lib/project/AudioProject";
+import { useLinkedMap } from "../../lib/state/LinkedMap";
 import { useLinkedState } from "../../lib/state/LinkedState";
-import { AudioRecorder } from "../../lib/AudioRecorder";
 import { UtilityNumber } from "../UtilityNumber";
 import { utility } from "../utility";
 import { BounceButton } from "./BounceButton";
 import { ToolSelector } from "./ToolSelector";
 import { PlaybackControl, TransportControl } from "./TransportControl";
-import { useLinkedArray } from "../../lib/state/LinkedArray";
-import { useLinkedMap } from "../../lib/state/LinkedMap";
 
 function NewProjectButton() {
   return (

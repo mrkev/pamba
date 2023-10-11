@@ -9,7 +9,7 @@ import { Library } from "./Library";
 import { TimelineView } from "./TimelineView";
 import { ToolHeader } from "./header/ToolHeader";
 import { AudioRecorder } from "../lib/AudioRecorder";
-import AudioClip from "../lib/AudioClip";
+import { AudioClip } from "../lib/AudioClip";
 import { AudioTrack } from "../lib/AudioTrack";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { MidiTrack } from "../midi/MidiTrack";
@@ -119,7 +119,11 @@ function BottomPanel({ project, player }: { project: AudioProject; player: Anali
   const midiClipMaybe = getOnlyOneSelectedMidiClip(selected);
 
   if (midiClipMaybe != null) {
-    return <MidiClipEditor clip={midiClipMaybe} player={player} />;
+    return (
+      <>
+        <MidiClipEditor clip={midiClipMaybe} player={player} project={project} />
+      </>
+    );
   }
 
   if (!(activeTrack instanceof MidiTrack)) {

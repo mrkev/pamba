@@ -1,28 +1,20 @@
-import { CLIP_HEIGHT, liveAudioContext } from "../constants";
+import { CLIP_HEIGHT } from "../constants";
 import { DSPNode } from "../dsp/DSPNode";
-import { EffectID } from "../dsp/FAUST_EFFECTS";
 import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
 import { MidiTrack } from "../midi/MidiTrack";
 import { mixDown } from "../mixDown";
-import nullthrows from "../utils/nullthrows";
 import { PambaWamNode } from "../wam/PambaWamNode";
-import { appEnvironment } from "./AppEnvironment";
-import AudioClip from "./AudioClip";
-import { addClip, deleteTime, pushClip, removeClip } from "./AudioTrackFn";
+import { AudioClip } from "./AudioClip";
 import { ProjectTrack } from "./ProjectTrack";
 import { TrackThread } from "./TrackThread";
+import { connectSerialNodes } from "./connectSerialNodes";
 import { AudioContextInfo } from "./initAudioContext";
-import { LinkedArray } from "./state/LinkedArray";
 
-export class AudioTrack extends ProjectTrack {
-  // A track is a collection of non-overalping clips.
-  // Invariants:
-  // - Sorted by start time.
-  // - Non-overlapping clips.
-  public readonly clips: LinkedArray<AudioClip>;
+export class AudioTrack extends ProjectTrack<AudioClip> {
+  override effectId: string = "Builtin:AudioTrack";
 
   // For background processing
-  private thread = new TrackThread();
+  private thread_UNUSED = new TrackThread();
 
   // if audo is playing, this is the soruce with the playing buffer
   private playingSource: AudioBufferSourceNode | null;
@@ -31,11 +23,8 @@ export class AudioTrack extends ProjectTrack {
     throw new Error("AudioTrack: DSPNode: can't cloneToOfflineContext.");
   }
 
-  override effectId: string = "AUDIO TRACK (TODO)";
-
   private constructor(name: string, clips: AudioClip[], effects: (FaustAudioEffect | PambaWamNode)[], height: number) {
-    super(name, effects, height);
-    this.clips = LinkedArray.create(clips);
+    super(name, effects, height, clips);
     this.playingSource = null;
   }
 
@@ -46,24 +35,6 @@ export class AudioTrack extends ProjectTrack {
     height?: number;
   }) {
     return new this(props?.name ?? "Audio", props?.clips ?? [], props?.effects ?? [], props?.height ?? CLIP_HEIGHT);
-  }
-
-  async addEffect(effectId: EffectID) {
-    const effect = await FaustAudioEffect.create(liveAudioContext, effectId);
-    if (effect == null) {
-      return;
-    }
-    this.effects.push(effect);
-  }
-
-  async addWAM(url: string) {
-    const [hostGroupId] = nullthrows(appEnvironment.wamHostGroup.get());
-    const module = await PambaWamNode.fromURL(url, hostGroupId, liveAudioContext);
-    if (module == null) {
-      console.error("Error: NO MODULE");
-      return;
-    }
-    this.effects.push(module);
   }
 
   //////////// Playback ////////////
@@ -153,29 +124,6 @@ export class AudioTrack extends ProjectTrack {
       .join("\n");
   }
 
-  //////////// CLIPS ////////////
-
-  addClip(newClip: AudioClip): void {
-    const clips = addClip(newClip, this.clips._getRaw());
-    this.clips._setRaw(clips);
-  }
-
-  // Adds a clip right after the last clip
-  pushClip(newClip: AudioClip): void {
-    const clips = pushClip(newClip, this.clips._getRaw());
-    this.clips._setRaw(clips);
-  }
-
-  removeClip(clip: AudioClip): void {
-    const clips = removeClip(clip, this.clips._getRaw());
-    this.clips._setRaw(clips);
-  }
-
-  deleteTime(startSec: number, endSec: number): void {
-    const clips = deleteTime(startSec, endSec, this.clips._getRaw());
-    this.clips._setRaw(clips);
-  }
-
   ///////////// statics
 
   static removeEffect(track: AudioTrack | MidiTrack, effect: FaustAudioEffect | PambaWamNode) {
@@ -185,35 +133,5 @@ export class AudioTrack extends ProjectTrack {
 
   static bypassEffect(track: AudioTrack | MidiTrack, effect: FaustAudioEffect | PambaWamNode) {
     console.log("todo: bypass", effect);
-  }
-}
-
-export function connectSerialNodes(chain: (AudioNode | DSPNode<AudioNode>)[]): void {
-  if (chain.length < 2) {
-    return;
-  }
-  let currentNode = chain[0];
-  for (let i = 1; chain[i] != null; i++) {
-    const nextNode = chain[i];
-    // console.groupCollapsed(`Connected: ${currentNode.constructor.name} -> ${nextNode.constructor.name}`);
-    // console.log(currentNode);
-    // console.log("-->");
-    // console.log(nextNode);
-    // console.groupEnd();
-    if (currentNode instanceof AudioNode && nextNode instanceof AudioNode) {
-      currentNode.connect(nextNode);
-      currentNode = nextNode;
-      continue;
-    }
-    if (currentNode instanceof AudioNode && nextNode instanceof DSPNode) {
-      currentNode.connect(nextNode.inputNode());
-      currentNode = nextNode;
-      continue;
-    }
-    if (currentNode instanceof DSPNode) {
-      currentNode.connect(nextNode);
-      currentNode = nextNode;
-      continue;
-    }
   }
 }

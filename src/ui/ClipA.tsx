@@ -3,7 +3,7 @@ import React from "react";
 import { createUseStyles } from "react-jss";
 import { modifierState } from "../ModifierState";
 import { CLIP_HEIGHT } from "../constants";
-import type AudioClip from "../lib/AudioClip";
+import type { AudioClip } from "../lib/AudioClip";
 import type { AudioTrack } from "../lib/AudioTrack";
 import type { AudioProject, XScale } from "../lib/project/AudioProject";
 import { useSubscribeToSubbableMutationHashable } from "../lib/state/LinkedMap";
@@ -29,6 +29,7 @@ export function ClipA({ clip, rerender, isSelected, style = {}, project, track }
   const [tool] = useLinkedState(project.pointerTool);
   const height = CLIP_HEIGHT - 3; // to clear the bottom track separator gridlines
   // const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [name] = useLinkedState(clip.name);
 
   useSubscribeToSubbableMutationHashable(clip, () => {
     rerender();
@@ -155,7 +156,7 @@ export function ClipA({ clip, rerender, isSelected, style = {}, project, track }
             color: isSelected ? "white" : "black",
             fontSize: 10,
           }}
-          value={clip.name}
+          value={name}
           setValue={console.log}
         />{" "}
         ({Math.round(clip.durationSec * 100) / 100})

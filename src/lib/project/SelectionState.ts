@@ -1,9 +1,19 @@
 import { AudioTrack } from "../AudioTrack";
-import AudioClip from "../AudioClip";
+import { AudioClip } from "../AudioClip";
 import { FaustAudioEffect } from "../../dsp/FaustAudioEffect";
 import { PambaWamNode } from "../../wam/PambaWamNode";
 import { MidiTrack } from "../../midi/MidiTrack";
 import { MidiClip } from "../../midi/MidiClip";
+
+// todo, 3 Selection states:
+// main selection state clip/track/time
+// - what displays in the bottom panel
+// - what keyboard shortcuts operate on
+// detail selection state (note)
+// - what is selected in the bottom panel
+// - clip is still selected, but user might want to operate on this note specifically d
+// browser active element, to edit
+// - what the user is typing to, etc
 
 export type SelectionState =
   | {

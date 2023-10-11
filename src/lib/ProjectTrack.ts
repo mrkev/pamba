@@ -1,13 +1,18 @@
+import { liveAudioContext } from "../constants";
 import { DSPNode } from "../dsp/DSPNode";
 import { EffectID } from "../dsp/FAUST_EFFECTS";
 import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
+import nullthrows from "../utils/nullthrows";
 import { PambaWamNode } from "../wam/PambaWamNode";
-import { connectSerialNodes } from "./AudioTrack";
+import { appEnvironment } from "./AppEnvironment";
+import { connectSerialNodes } from "./connectSerialNodes";
+import { addClip, deleteTime, moveClip, pushClip, removeClip } from "./AudioTrackFn";
+import { AbstractClip } from "./BaseClip";
 import { PBGainNode } from "./offlineNodes";
 import { LinkedArray } from "./state/LinkedArray";
 import { SPrimitive } from "./state/LinkedState";
 
-export abstract class ProjectTrack extends DSPNode<null> {
+export abstract class ProjectTrack<T extends AbstractClip> extends DSPNode<null> {
   public readonly name: SPrimitive<string>;
   public readonly height: SPrimitive<number>;
 
@@ -16,8 +21,11 @@ export abstract class ProjectTrack extends DSPNode<null> {
   abstract startPlayback(tempo: number, offset?: number): void;
   abstract stopPlayback(): void;
 
-  abstract addEffect(effectId: EffectID): Promise<void>;
-  abstract addWAM(url: string): Promise<void>;
+  // A track is a collection of non-overalping clips.
+  // Invariants:
+  // - Sorted by start time.
+  // - Non-overlapping clips.
+  public readonly clips: LinkedArray<T>;
 
   // DSP
   public readonly effects: LinkedArray<FaustAudioEffect | PambaWamNode>;
@@ -43,13 +51,14 @@ export abstract class ProjectTrack extends DSPNode<null> {
     this._hiddenGainNode.gain.value = 1;
   }
 
-  constructor(name: string, effects: (FaustAudioEffect | PambaWamNode)[], height: number) {
+  constructor(name: string, effects: (FaustAudioEffect | PambaWamNode)[], height: number, clips: ReadonlyArray<T>) {
     super();
     this.name = SPrimitive.of(name);
     this.effects = LinkedArray.create(effects);
     this.height = SPrimitive.of<number>(height);
     this.gainNode = new PBGainNode();
     this._hiddenGainNode = new PBGainNode();
+    this.clips = LinkedArray.create(clips);
   }
 
   public connectToDSPForPlayback(source: AudioNode): void {
@@ -91,6 +100,55 @@ export abstract class ProjectTrack extends DSPNode<null> {
 
   override cloneToOfflineContext(_context: OfflineAudioContext): Promise<DSPNode<AudioNode> | null> {
     throw new Error("AudioTrack: DSPNode: can't cloneToOfflineContext.");
+  }
+
+  //////////// CLIPS ////////////
+
+  addClip(newClip: T): void {
+    const clips = addClip(newClip, this.clips._getRaw());
+    this.clips._setRaw(clips);
+  }
+
+  // Adds a clip right after the last clip
+  pushClip(newClip: T): void {
+    const clips = pushClip(newClip, this.clips._getRaw());
+    this.clips._setRaw(clips);
+  }
+
+  // TODO: UNUSED
+  moveClip(clip: T): void {
+    const clips = moveClip(clip, this.clips._getRaw());
+    this.clips._setRaw(clips);
+  }
+
+  removeClip(clip: T): void {
+    const clips = removeClip(clip, this.clips._getRaw());
+    this.clips._setRaw(clips);
+  }
+
+  deleteTime(startSec: number, endSec: number): void {
+    const clips = deleteTime(startSec, endSec, this.clips._getRaw());
+    this.clips._setRaw(clips);
+  }
+
+  //////////////////// EFFECTS //////////////////////
+
+  async addEffect(effectId: EffectID) {
+    const effect = await FaustAudioEffect.create(liveAudioContext, effectId);
+    if (effect == null) {
+      return;
+    }
+    this.effects.push(effect);
+  }
+
+  async addWAM(url: string) {
+    const [hostGroupId] = nullthrows(appEnvironment.wamHostGroup.get());
+    const module = await PambaWamNode.fromURL(url, hostGroupId, liveAudioContext);
+    if (module == null) {
+      console.error("Error: NO MODULE");
+      return;
+    }
+    this.effects.push(module);
   }
 }
 

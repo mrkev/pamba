@@ -85,18 +85,18 @@ export function addClip<Clip extends AbstractClip>(newClip: Clip, clips: Readonl
 
 /**
  * deletes/trims clips as necessary to make the time from
- * startSec to endSec is blank
+ * start to end, using track units
  */
 export function deleteTime<Clip extends AbstractClip>(
-  startSec: number,
-  endSec: number,
+  start: number,
+  end: number,
   clips: ReadonlyArray<Clip>,
 ): ReadonlyArray<Clip> {
-  if (startSec === endSec) {
+  if (start === end) {
     return clips;
   }
 
-  if (startSec > endSec) {
+  if (start > end) {
     throw new Error("Invariant Violation: startSec > endSec in deleteTime");
   }
 
@@ -106,8 +106,8 @@ export function deleteTime<Clip extends AbstractClip>(
   for (let i = 0; i < clips.length; i++) {
     const current = clips[i];
 
-    const remStart = startSec < current._startOffset() && current._startOffset() < endSec;
-    const remEnd = startSec < current._endOffset() && current._endOffset() < endSec;
+    const remStart = start < current._startOffset() && current._startOffset() < end;
+    const remEnd = start < current._endOffset() && current._endOffset() < end;
 
     // remove the whole clip
     if (remStart && remEnd) {
@@ -117,13 +117,13 @@ export function deleteTime<Clip extends AbstractClip>(
 
     // Trim the start of the clip
     if (remStart) {
-      current.trimToOffset(endSec);
+      current.trimToOffset(end);
       continue;
     }
 
     // Trim the end of the clip
     if (remEnd) {
-      current._setEndOffset(startSec);
+      current._setEndOffset(start);
       continue;
     }
 
@@ -131,16 +131,16 @@ export function deleteTime<Clip extends AbstractClip>(
     // this clip, in which case we would split this clip into three parts and
     // remove the one corresponding to the time we want to delete
     if (
-      current._startOffset() < startSec &&
-      startSec < current._endOffset() &&
-      current._startOffset() < endSec &&
-      endSec < current._endOffset()
+      current._startOffset() < start &&
+      start < current._endOffset() &&
+      current._startOffset() < end &&
+      end < current._endOffset()
     ) {
       // console.log("CLIPS HERE\n", printClips(clips));
-      const [, after, out] = nullthrows(splitClip(current, startSec, clips));
+      const [, after, out] = nullthrows(splitClip(current, start, clips));
       // console.log("CLIPS HERE\n", printClips(clips));
 
-      const [before, , out2] = nullthrows(splitClip(after, endSec, out));
+      const [before, , out2] = nullthrows(splitClip(after, end, out));
       // console.log("CLIPS HERE\n", printClips(clips));
 
       // console.log("BEFORE", before.toString(), "aaaaaaaa", __.toString());
@@ -224,4 +224,45 @@ export function pushClip<Clip extends AbstractClip>(newClip: Clip, clips: Readon
   clone.push(newClip);
   assertClipInvariants(clips);
   return clone;
+}
+
+/**
+ * Moves a clip to the right spot in the array
+ */
+export function moveClip<Clip extends AbstractClip>(clip: Clip, clips: ReadonlyArray<Clip>): ReadonlyArray<Clip> {
+  if (clips.length === 0) {
+    throw new Error("moving in empty array");
+  }
+
+  const newArr = [];
+
+  let placed = false;
+  let removed = false;
+
+  for (let i = 0; i < clips.length; i++) {
+    const c = clips[i];
+
+    if (clip._startOffset() <= c._startOffset()) {
+      newArr.push(clip);
+      placed = true;
+    }
+
+    if (c === clip) {
+      removed = true;
+      continue;
+    } else {
+      newArr.push(c);
+    }
+  }
+
+  if (!removed) {
+    throw new Error("move: Clip not found in array");
+  }
+
+  if (!placed) {
+    newArr.push(clip);
+  }
+
+  assertClipInvariants(newArr);
+  return newArr;
 }

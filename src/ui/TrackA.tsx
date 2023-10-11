@@ -2,7 +2,7 @@ import React, { useCallback, useRef, useState } from "react";
 import { createUseStyles } from "react-jss";
 import { TRACK_SEPARATOR_HEIGHT } from "../constants";
 import { useTrackMouseEvents } from "../input/useTrackMouseEvents";
-import AudioClip from "../lib/AudioClip";
+import { AudioClip } from "../lib/AudioClip";
 import { AudioRenderer } from "../lib/AudioRenderer";
 import { AudioTrack } from "../lib/AudioTrack";
 import { AudioProject } from "../lib/project/AudioProject";
@@ -13,6 +13,7 @@ import { ignorePromise } from "../utils/ignorePromise";
 import { ClipA } from "./ClipA";
 import { CursorSelection } from "./CursorSelection";
 import { EffectRack } from "./EffectRack";
+import { ClipInvalid } from "./ClipInvalid";
 
 export function TrackA({
   track,
@@ -114,15 +115,15 @@ export function TrackA({
 
         {/* RENDER SELECTION */}
         <CursorSelection track={track} project={project} />
-        {/* {selected && selected.status === "track_time" && selected.test.has(track) && <div>FOOOOOOOOOOO</div>} */}
-        {/* RENDER CLIP BEING MOVED */}
+
+        {/* RENDER CLIP BEING MOVED FROM ANOTHER TRACK */}
         {pressed &&
           pressed.status === "moving_clip" &&
           pressed.track === track &&
           (pressed.clip instanceof AudioClip ? (
             <ClipA clip={pressed.clip} rerender={rerender} isSelected={true} project={project} track={null} />
           ) : (
-            <div>TODO MIDI CLIP</div>
+            <ClipInvalid clip={pressed.clip} project={project} />
           ))}
       </div>
 

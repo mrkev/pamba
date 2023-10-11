@@ -1,39 +1,29 @@
 import { MouseEvent, useCallback, useRef, useState } from "react";
+import { createUseStyles } from "react-jss";
 
 export function RenamableLabel({
   value,
   setValue,
-  style,
+  onDoubleClick: onDoubleClickMaybe,
   ...divProps
 }: {
   value: string;
   setValue: (newVal: string) => void;
 } & React.HTMLAttributes<HTMLDivElement>) {
+  const classes = useStyles();
   const renameInputRef = useRef<HTMLInputElement>(null);
   const [isRenaming, setIsRenaming] = useState(false);
-
-  const { onDoubleClick: onDoubleClickMaybe, ...passedDivProps } = divProps;
 
   const onDoubleClick = useCallback(
     (e: MouseEvent<HTMLDivElement>) => {
       setIsRenaming(true);
       onDoubleClickMaybe?.(e);
     },
-    [onDoubleClickMaybe]
+    [onDoubleClickMaybe],
   );
 
   return (
-    <span
-      // TODO: change for class
-      style={{
-        display: "inline-flex",
-        flexDirection: "row",
-        alignItems: "center",
-        ...style,
-      }}
-      {...passedDivProps}
-      onDoubleClick={onDoubleClick}
-    >
+    <span className={classes.container} {...divProps} onDoubleClick={onDoubleClick}>
       {isRenaming ? (
         <input
           autoFocus
@@ -60,3 +50,11 @@ export function RenamableLabel({
     </span>
   );
 }
+
+const useStyles = createUseStyles({
+  container: {
+    display: "inline-flex",
+    flexDirection: "row",
+    alignItems: "center",
+  },
+});

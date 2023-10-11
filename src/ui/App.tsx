@@ -24,7 +24,7 @@ export function App(): React.ReactElement {
       (window as any).project = projectStatus.project;
       return (
         <>
-          <MidiDemo />
+          {/* <MidiDemo /> */}
           <AppProject project={projectStatus.project} />
           <DebugData project={projectStatus.project} />
         </>

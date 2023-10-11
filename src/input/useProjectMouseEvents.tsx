@@ -1,15 +1,15 @@
 import { useCallback } from "react";
 import { MIN_TRACK_HEIGHT } from "../constants";
-import AudioClip, { clipMovePPQN, clipMoveSec } from "../lib/AudioClip";
+import { AudioClip } from "../lib/AudioClip";
+import { clipMovePPQN, clipMoveSec } from "../lib/clipMoveSec";
 import { AudioTrack } from "../lib/AudioTrack";
 import { AudioProject } from "../lib/project/AudioProject";
 import { snapped } from "../lib/project/ProjectViewportUtil";
+import { MidiClip } from "../midi/MidiClip";
+import { MidiTrack } from "../midi/MidiTrack";
 import { pressedState } from "../pressedState";
 import { useDocumentEventListener, useEventListener } from "../ui/useEventListener";
 import { exhaustive } from "../utils/exhaustive";
-import { stepNumber } from "../utils/math";
-import { ClipM } from "../ui/ClipM";
-import { MidiClip } from "../midi/MidiClip";
 
 export function useAxisContainerMouseEvents(
   project: AudioProject,
@@ -63,7 +63,6 @@ export function useTimelineMouseEvents(
         const { status } = pressed;
         switch (status) {
           case "moving_clip": {
-            // TODO: MIDI CLIP
             if (
               pressed.track instanceof AudioTrack &&
               pressed.originalTrack instanceof AudioTrack &&
@@ -74,11 +73,18 @@ export function useTimelineMouseEvents(
               pressed.track.addClip(pressed.clip);
             }
 
-            // const deltaX = e.clientX - pressed.clientX;
-            // const asSecs = pxToSecs(deltaX);
-            // const newOffset = pressed.clip.startOffsetSec + asSecs;
-            // // console.log(newOffset)
-            // pressed.clip.startOffsetSec = newOffset <= 0 ? 0 : newOffset;
+            if (
+              pressed.track instanceof MidiTrack &&
+              pressed.originalTrack instanceof MidiTrack &&
+              pressed.clip instanceof MidiClip
+            ) {
+              pressed.track.deleteTime(pressed.clip.startOffsetPulses, pressed.clip._endOffset());
+              pressed.originalTrack.removeClip(pressed.clip);
+              pressed.track.addClip(pressed.clip);
+            }
+
+            console.warn("mouseup: moving_clip: can't operate");
+
             pressedState.set(null);
             break;
           }
@@ -97,8 +103,10 @@ export function useTimelineMouseEvents(
 
           case "selecting_global_time": {
             const { startTime } = pressed;
+            const deltaXSecs = project.viewport.pxToSecs(e.clientX - pressed.clientX);
+
             pressedState.set(null);
-            const selWidth = project.viewport.pxToSecs(e.clientX - pressed.clientX);
+            const selWidth = snapped(project, e, deltaXSecs);
 
             if (selWidth === 0) {
               return;
@@ -131,9 +139,11 @@ export function useTimelineMouseEvents(
           }
 
           case "selecting_track_time": {
+            const deltaXSecs = project.viewport.pxToSecs(e.clientX - pressed.clientX);
+            const selWidthS = snapped(project, e, deltaXSecs);
+
             pressedState.set(null);
             const { startTime, track } = pressed;
-            const selWidthS = project.viewport.pxToSecs(e.clientX - pressed.clientX);
             if (selWidthS === 0) {
               return;
             }

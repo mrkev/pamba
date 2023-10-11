@@ -1,5 +1,6 @@
-import { pulsesToSec } from "../../midi/MidiClip";
+import { SECS_IN_MIN, pulsesToSec } from "../../midi/MidiClip";
 import { clamp, stepNumber } from "../../utils/math";
+import { PPQN } from "../../wam/pianorollme/MIDIConfiguration";
 import { SPrimitive } from "../state/LinkedState";
 import { AudioProject } from "./AudioProject";
 
@@ -57,6 +58,11 @@ export class ProjectViewportUtil {
   pulsesToPx(p: number) {
     const bpm = this.project.tempo.get();
     return this.secsToPx(pulsesToSec(p, bpm));
+  }
+
+  secsToPulses(secs: number) {
+    const bpm = this.project.tempo.get();
+    return Math.floor((secs * PPQN * bpm) / SECS_IN_MIN);
   }
 
   // snapping

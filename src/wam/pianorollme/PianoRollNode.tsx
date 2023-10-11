@@ -80,7 +80,7 @@ export class PianoRollModule extends WebAudioModule<PianoRollNode> {
     return super.initialize(state);
   }
 
-  public prepareForPlayback(seqClips: SimpleMidiClip[]) {
+  public sendClipsForPlayback(seqClips: SimpleMidiClip[]) {
     const message: PianoRollProcessorMessage = { action: "newclip", seqClips };
     this.sequencer.port.postMessage(message);
   }

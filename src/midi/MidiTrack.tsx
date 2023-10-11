@@ -2,13 +2,10 @@ import type { WebAudioModule } from "@webaudiomodules/api";
 import { CLIP_HEIGHT, PIANO_ROLL_PLUGIN_URL, SECS_IN_MINUTE, TIME_SIGNATURE, liveAudioContext } from "../constants";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { ProjectTrack } from "../lib/ProjectTrack";
-import { LinkedArray } from "../lib/state/LinkedArray";
 import nullthrows from "../utils/nullthrows";
+import { PianoRollModule, PianoRollNode } from "../wam/pianorollme/PianoRollNode";
 import { MidiClip } from "./MidiClip";
 import { MidiInstrument } from "./MidiInstrument";
-
-import { removeClip } from "../lib/AudioTrackFn";
-import { PianoRollModule, PianoRollNode } from "../wam/pianorollme/PianoRollNode";
 import type { SimpleMidiClip } from "./SharedMidiTypes";
 
 const SAMPLE_STATE = {
@@ -70,12 +67,11 @@ const SAMPLE_STATE = {
   },
 };
 
-export class MidiTrack extends ProjectTrack {
-  override effectId: string = "MIDI TRACK TODO";
+export class MidiTrack extends ProjectTrack<MidiClip> {
+  override effectId: string = "Builtin:MidiTrack";
+  // todo: instrument can be empty?
   instrument: MidiInstrument;
   pianoRoll: PianoRollModule;
-  // pianoRollDom: Element;
-  clips: LinkedArray<MidiClip>;
 
   private constructor(
     name: string,
@@ -83,39 +79,24 @@ export class MidiTrack extends ProjectTrack {
     instrument: MidiInstrument,
     clips: MidiClip[],
   ) {
-    super(name, [], CLIP_HEIGHT);
+    super(name, [], CLIP_HEIGHT, clips);
     this.pianoRoll = pianoRoll as any;
     this.instrument = instrument;
-    this.clips = LinkedArray.create(clips);
 
-    instrument.module.audioNode.connect(this._hiddenGainNode.inputNode());
+    // instrument.module.audioNode.connect(this._hiddenGainNode.inputNode());
     // gain.connect(liveAudioContext.destination);
     instrument.module.audioNode.connect(pianoRoll.audioNode);
     pianoRoll.audioNode.connectEvents(instrument.module.instanceId);
+
     if (clips.length === 0) this.createSampleMidiClip();
   }
 
-  override addEffect(effectId: "PANNER" | "REVERB"): Promise<void> {
-    throw new Error("Method not implemented.");
-  }
-  override addWAM(url: string): Promise<void> {
-    throw new Error("Method not implemented.");
-  }
-
   public createSampleMidiClip() {
-    const newClip = new MidiClip("new midi clip", 96, []);
+    const newClip = new MidiClip("new midi clip", 0, 96, []);
     for (const note of SAMPLE_STATE.clips.default.notes) {
       newClip.addNote(note.tick, note.number, note.duration, note.velocity);
     }
-
-    console.log(newClip);
-
     this.clips.push(newClip);
-  }
-
-  public removeClip(clip: MidiClip): void {
-    const clips = removeClip(clip, this.clips._getRaw());
-    this.clips._setRaw(clips);
   }
 
   static async createWithInstrument(instrument: MidiInstrument, name: string, clips?: MidiClip[]) {
@@ -130,8 +111,7 @@ export class MidiTrack extends ProjectTrack {
   }
 
   override prepareForPlayback(context: AudioContext): void {
-    // mix clips
-
+    // send clips to processor
     // should already be in ascending order of startOffsetPulses
     const simpleClips: SimpleMidiClip[] = [];
     for (const clip of this.clips) {
@@ -141,11 +121,9 @@ export class MidiTrack extends ProjectTrack {
         endOffsetPulses: clip._endOffset(),
       });
     }
-
-    this.pianoRoll.prepareForPlayback(simpleClips);
-    console.log("sending", simpleClips);
-
-    // take all clips, make a single note array
+    this.pianoRoll.sendClipsForPlayback(simpleClips);
+    // connect effect chain
+    this.connectToDSPForPlayback(this.instrument.module.audioNode);
   }
 
   override startPlayback(bpm: number, offsetSec: number): void {

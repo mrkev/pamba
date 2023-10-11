@@ -4,11 +4,12 @@ import { AudioProject } from "../lib/project/AudioProject";
 import { pressedState } from "../pressedState";
 import { useEventListener } from "../ui/useEventListener";
 import { snapped } from "../lib/project/ProjectViewportUtil";
+import { MidiTrack } from "../midi/MidiTrack";
 
 export function useTrackMouseEvents(
   trackRef: React.RefObject<HTMLDivElement>,
   project: AudioProject,
-  track: AudioTrack
+  track: AudioTrack | MidiTrack,
 ) {
   useEventListener(
     "mousedown",
@@ -48,8 +49,8 @@ export function useTrackMouseEvents(
         // e.stopPropagation();
         e.preventDefault();
       },
-      [project, track, trackRef]
-    )
+      [project, track, trackRef],
+    ),
   );
 
   useEventListener(
@@ -62,7 +63,7 @@ export function useTrackMouseEvents(
           pressedState.setDyn((prev) => Object.assign({}, prev, { track }));
         }
       },
-      [track]
-    )
+      [track],
+    ),
   );
 }

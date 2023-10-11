@@ -1,6 +1,7 @@
 import { LIVE_SAMPLE_RATE } from "../constants";
 import { AbstractClip } from "../lib/BaseClip";
 import { LinkedArray } from "../lib/state/LinkedArray";
+import { SPrimitive } from "../lib/state/LinkedState";
 import { MutationHashable } from "../lib/state/MutationHashable";
 import { Subbable, notify } from "../lib/state/Subbable";
 import nullthrows from "../utils/nullthrows";
@@ -9,7 +10,7 @@ import type { Note } from "./SharedMidiTypes";
 
 // TODO: not a constant sample rate
 
-const SECS_IN_MIN = 60;
+export const SECS_IN_MIN = 60;
 
 export function pulsesToFr(pulses: number, bpm: number) {
   const k = (LIVE_SAMPLE_RATE * SECS_IN_MIN) / PPQN;
@@ -28,22 +29,17 @@ export class MidiClip implements Subbable<MidiClip>, MutationHashable, AbstractC
   _hash: number = 0;
   _subscriptors: Set<(value: MidiClip) => void> = new Set();
   // ordered by tick (start)
-  notes: LinkedArray<Note>;
-  public name: string;
+  readonly notes: LinkedArray<Note>;
+  readonly name: SPrimitive<string>;
 
-  // TODO: use sec, fr functions, but source of truth is PPQN unit?
   public lengthPulses: number;
   public startOffsetPulses: number;
 
-  constructor(name: string, lengthPulses: number, notes: readonly Note[]) {
-    // const lenSec = pulsesToSec(lengthPulses, 75); // todo: tempo
-    // todo: sample rate doesn't really mean much for a midi clip?
-    // Maybe this applies just to audio clips?
-    // super(lenSec, LIVE_SAMPLE_RATE, 0);
-    this.name = name;
+  constructor(name: string, startOffsetPulses: number, lengthPulses: number, notes: readonly Note[]) {
+    this.name = SPrimitive.of(name);
     this.notes = LinkedArray.create(notes);
     this.lengthPulses = lengthPulses;
-    this.startOffsetPulses = 0;
+    this.startOffsetPulses = startOffsetPulses;
   }
 
   addNote(tick: number, num: number, duration: number, velocity: number) {
@@ -105,9 +101,7 @@ export class MidiClip implements Subbable<MidiClip>, MutationHashable, AbstractC
   }
 
   clone(): MidiClip {
-    // TODO: subscriptors?
-    const newClip = new MidiClip(this.name, this.lengthPulses, this.notes._getRaw());
-    newClip.startOffsetPulses = this.startOffsetPulses;
+    const newClip = new MidiClip(this.name.get(), this.startOffsetPulses, this.lengthPulses, this.notes._getRaw());
     return newClip;
   }
 }
