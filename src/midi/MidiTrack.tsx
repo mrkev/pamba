@@ -2,6 +2,7 @@ import type { WebAudioModule } from "@webaudiomodules/api";
 import { CLIP_HEIGHT, PIANO_ROLL_PLUGIN_URL, SECS_IN_MINUTE, TIME_SIGNATURE, liveAudioContext } from "../constants";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { ProjectTrack } from "../lib/ProjectTrack";
+import { connectSerialNodes } from "../lib/connectSerialNodes";
 import nullthrows from "../utils/nullthrows";
 import { PianoRollModule, PianoRollNode } from "../wam/pianorollme/PianoRollNode";
 import { MidiClip } from "./MidiClip";
@@ -73,6 +74,10 @@ export class MidiTrack extends ProjectTrack<MidiClip> {
   instrument: MidiInstrument;
   pianoRoll: PianoRollModule;
 
+  // the pianoRoll to play. same as .pianoRoll when playing live,
+  // a clone in an offline context when bouncing
+  playingSource: PianoRollModule | null;
+
   private constructor(
     name: string,
     pianoRoll: WebAudioModule<PianoRollNode>,
@@ -80,10 +85,11 @@ export class MidiTrack extends ProjectTrack<MidiClip> {
     clips: MidiClip[],
   ) {
     super(name, [], CLIP_HEIGHT, clips);
+
+    this.playingSource = null;
     this.pianoRoll = pianoRoll as any;
     this.instrument = instrument;
 
-    // instrument.module.audioNode.connect(this._hiddenGainNode.inputNode());
     // gain.connect(liveAudioContext.destination);
     instrument.module.audioNode.connect(pianoRoll.audioNode);
     pianoRoll.audioNode.connectEvents(instrument.module.instanceId);
@@ -111,6 +117,7 @@ export class MidiTrack extends ProjectTrack<MidiClip> {
   }
 
   override prepareForPlayback(context: AudioContext): void {
+    this.playingSource = this.pianoRoll;
     // send clips to processor
     // should already be in ascending order of startOffsetPulses
     const simpleClips: SimpleMidiClip[] = [];
@@ -126,34 +133,84 @@ export class MidiTrack extends ProjectTrack<MidiClip> {
     this.connectToDSPForPlayback(this.instrument.module.audioNode);
   }
 
-  override startPlayback(bpm: number, offsetSec: number): void {
+  override async prepareForBounce(
+    context: OfflineAudioContext,
+    offlineContextInfo: Readonly<{ wamHostGroup: [id: string, key: string] }>,
+  ): Promise<AudioNode> {
+    const {
+      wamHostGroup: [groupId],
+    } = offlineContextInfo;
+    const pianoRoll = await PianoRollModule.createInstance<PianoRollNode>(groupId, context);
+    const instrument = await this.instrument.actualCloneToOfflineContext(context, offlineContextInfo);
+    if (instrument == null) {
+      throw new Error("failed to clone instrument to offline audio context");
+    }
+
+    instrument.module.audioNode.connect(pianoRoll.audioNode);
+    pianoRoll.audioNode.connectEvents(instrument.module.instanceId);
+
+    this.playingSource = pianoRoll as any;
+
+    const effectNodes = await Promise.all(
+      this.effects._getRaw().map(async (effect) => {
+        const nextEffect = await effect.cloneToOfflineContext(context, offlineContextInfo);
+        if (nextEffect == null) {
+          throw new Error(`Failed to prepare ${effect.effectId} for bounce!`);
+        }
+        return nextEffect;
+      }),
+    );
+
+    const _hiddenGainNode = await this._hiddenGainNode.cloneToOfflineContext(context);
+
+    connectSerialNodes([
+      ///
+      // this.playingSource,
+      await this.gainNode.cloneToOfflineContext(context),
+      ...effectNodes,
+      _hiddenGainNode,
+    ]);
+
+    return _hiddenGainNode.outputNode();
+  }
+
+  override startPlayback(bpm: number, context: BaseAudioContext, offsetSec: number): void {
+    if (this.playingSource == null) {
+      throw new Error("Track not ready for playback!");
+    }
+
     // todo: only supports X/4 (ie, quarter note denominator in time signature) for now
     const [BEATS_PER_BAR] = TIME_SIGNATURE;
     const currentBar = (offsetSec * bpm) / (BEATS_PER_BAR * SECS_IN_MINUTE);
 
     // this.pianoRoll.sendMessageToProcessor({ action: "setPlaybackStartOffset", offsetSec });
-    this.pianoRoll.audioNode.scheduleEvents({
+    this.playingSource.audioNode.scheduleEvents({
       type: "wam-transport",
       data: {
         playing: true,
         timeSigDenominator: 4,
         timeSigNumerator: 4,
         currentBar,
-        currentBarStarted: liveAudioContext.currentTime,
+        currentBarStarted: context.currentTime,
         tempo: bpm,
       },
     });
   }
 
-  override stopPlayback(): void {
-    this.pianoRoll.audioNode.scheduleEvents({
+  override stopPlayback(context: BaseAudioContext): void {
+    if (this.playingSource == null) {
+      console.warn("Stopping but no playingSource on track", this);
+      return;
+    }
+
+    this.playingSource.audioNode.scheduleEvents({
       type: "wam-transport",
       data: {
         playing: false,
         timeSigDenominator: 4,
         timeSigNumerator: 4,
         currentBar: 0,
-        currentBarStarted: liveAudioContext.currentTime,
+        currentBarStarted: context.currentTime,
         tempo: 120, // todo: tempo
       },
     });

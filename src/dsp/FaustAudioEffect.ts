@@ -1,9 +1,8 @@
+import { LayoutTypeMap } from "@shren/faust-ui/src/types";
 import { FaustAudioProcessorNode, ProcessorLoader } from "faust-loader-vite";
 import { LinkedMap } from "../lib/state/LinkedMap";
-import { EffectID, FAUST_EFFECTS } from "./FAUST_EFFECTS";
-import { LayoutTypeMap } from "@shren/faust-ui/src/types";
 import { DSPNode } from "./DSPNode";
-import { AudioContextInfo } from "../lib/initAudioContext";
+import { EffectID, FAUST_EFFECTS } from "./FAUST_EFFECTS";
 
 type TFaustUIItem = LayoutTypeMap[keyof LayoutTypeMap];
 
@@ -34,7 +33,7 @@ export class FaustAudioEffect extends DSPNode<AudioNode> {
     faustNode: FaustAudioProcessorNode,
     nodeData: INodeData,
     effectId: EffectID,
-    params: Array<[string, number]>
+    params: Array<[string, number]>,
   ) {
     super();
     this.effectId = effectId;
@@ -90,7 +89,7 @@ export class FaustAudioEffect extends DSPNode<AudioNode> {
   static async create(
     context: BaseAudioContext,
     id: keyof typeof FAUST_EFFECTS,
-    initialParamValues?: Array<[address: string, value: number]>
+    initialParamValues?: Array<[address: string, value: number]>,
   ): Promise<FaustAudioEffect | null> {
     const mod: { default: ProcessorLoader } = await FAUST_EFFECTS[id]();
     const creator = mod.default;

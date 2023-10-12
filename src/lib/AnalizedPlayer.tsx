@@ -100,7 +100,7 @@ export class AnalizedPlayer {
       track.connect(this.mixDownNode);
     }
     for (let track of tracks) {
-      track.startPlayback(75, cursorPos);
+      track.startPlayback(75, liveAudioContext, cursorPos);
     }
     this.playingTracks = tracks;
 
@@ -120,7 +120,7 @@ export class AnalizedPlayer {
     this.playingTracks = this.playingTracks.concat(track);
     const LATENCY = 10;
     track.prepareForPlayback(liveAudioContext);
-    track.startPlayback(75, startAt + LATENCY);
+    track.startPlayback(75, liveAudioContext, startAt + LATENCY);
   }
 
   removeTrackFromPlayback(track: AudioTrack) {
@@ -142,7 +142,7 @@ export class AnalizedPlayer {
       return;
     }
     for (let track of this.playingTracks) {
-      track.stopPlayback();
+      track.stopPlayback(liveAudioContext);
       track.disconnect(this.mixDownNode);
     }
     this.isAudioPlaying = false;

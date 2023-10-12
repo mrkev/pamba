@@ -196,6 +196,7 @@ class PianoRollProcessor extends WamProcessor {
       const tickMoment = transportData.currentBarStarted + (this.ticks - this.startingTicks) * secondsPerTick;
       // console.log(this.ticks, tickMoment);
       notesForTickNew(this.ticks, theClips).forEach(([ntick, nnumber, nduration, nvelocity]: Note) => {
+        console.log("events", tickMoment);
         this.emitEvents(
           {
             type: "wam-midi",

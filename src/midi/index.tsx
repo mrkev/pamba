@@ -4,6 +4,7 @@ import { liveAudioContext } from "../constants";
 import nullthrows from "../utils/nullthrows";
 import { MidiInstrument } from "./MidiInstrument";
 import { MidiTrack } from "./MidiTrack";
+import { appEnvironment } from "../lib/AppEnvironment";
 
 let keyboardInstance: WebAudioModule<WamNode>;
 
@@ -78,7 +79,11 @@ export function MidiDemo() {
  * Self-invoking asynchronous function to initialize the host.
  */
 async function startHost() {
-  const obxd = await MidiInstrument.createFromUrl("https://mainline.i3s.unice.fr/wam2/packages/obxd/index.js");
+  const obxd = await MidiInstrument.createFromUrl(
+    nullthrows(appEnvironment.wamHostGroup.get())[0],
+    "https://mainline.i3s.unice.fr/wam2/packages/obxd/index.js",
+    liveAudioContext,
+  );
   const track = await MidiTrack.createWithInstrument(obxd, "midi track");
 
   let gain = liveAudioContext.createGain();

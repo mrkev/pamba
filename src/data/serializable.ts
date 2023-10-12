@@ -153,7 +153,12 @@ export async function construct(
     case "MidiTrack": {
       const { clips: sClips, name } = rep;
       const clips = await Promise.all(sClips.map((clip) => construct(clip)));
-      const obxd = await MidiInstrument.createFromUrl("https://mainline.i3s.unice.fr/wam2/packages/obxd/index.js");
+      const [wamHostGroupId] = nullthrows(appEnvironment.wamHostGroup.get(), "wam host not initialized yet!");
+      const obxd = await MidiInstrument.createFromUrl(
+        "https://mainline.i3s.unice.fr/wam2/packages/obxd/index.js",
+        wamHostGroupId,
+        liveAudioContext,
+      );
       return MidiTrack.createWithInstrument(obxd, name, clips);
     }
     case "AudioProject": {

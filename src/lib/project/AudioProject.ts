@@ -22,6 +22,9 @@ import { AudioStorage } from "./AudioStorage";
 import { clipboard } from "./ClipboardState";
 import { ProjectViewportUtil } from "./ProjectViewportUtil";
 import { SelectionState } from "./SelectionState";
+import { appEnvironment } from "../AppEnvironment";
+import nullthrows from "../../utils/nullthrows";
+import { SYNTH_101_URL, liveAudioContext } from "../../constants";
 
 /**
  * TODO:
@@ -146,7 +149,8 @@ export class AudioProject {
   }
 
   static async addMidiTrack(project: AudioProject, track?: MidiTrack) {
-    const obxd = await MidiInstrument.createFromUrl("https://mainline.i3s.unice.fr/wam2/packages/obxd/index.js");
+    const wamHostGroupId = nullthrows(appEnvironment.wamHostGroup.get())[0];
+    const obxd = await MidiInstrument.createFromUrl(SYNTH_101_URL, wamHostGroupId, liveAudioContext);
     const newTrack = track ?? (await MidiTrack.createWithInstrument(obxd, "midi track"));
     project.allTracks.unshift(newTrack);
     return newTrack;

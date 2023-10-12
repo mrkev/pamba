@@ -9,8 +9,9 @@ export abstract class DSPNode<I extends AudioNode | null = AudioNode> {
 
   abstract cloneToOfflineContext(
     context: OfflineAudioContext,
-    offlineContextInfo: AudioContextInfo
+    offlineContextInfo: AudioContextInfo,
   ): Promise<DSPNode | null>;
+
   abstract readonly effectId: string;
   abstract name: string | SPrimitive<string>;
 

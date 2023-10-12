@@ -3,7 +3,7 @@ import { AudioClip } from "../AudioClip";
 import { FaustAudioEffect } from "../../dsp/FaustAudioEffect";
 import { PambaWamNode } from "../../wam/PambaWamNode";
 import { MidiTrack } from "../../midi/MidiTrack";
-import { MidiClip } from "../../midi/MidiClip";
+import { MidiClip, pulsesToSec } from "../../midi/MidiClip";
 import { SPrimitive } from "../state/LinkedState";
 import { AudioProject } from "./AudioProject";
 import { exhaustive } from "../state/Subbable";
@@ -32,12 +32,17 @@ export function doPaste(project: AudioProject) {
 
   switch (copied.kind) {
     case "clips": {
+      let lastOffset = project.cursorPos.get();
       for (const track of project.cursorTracks) {
         for (const clip of copied.clips) {
           if (track instanceof MidiTrack && clip instanceof MidiClip) {
             const clone = clip.clone();
             clone.startOffsetPulses = project.viewport.secsToPulses(project.cursorPos.get());
             track.addClip(clone);
+            const endOffsetSec = pulsesToSec(clone._endOffset(), project.tempo.get());
+            if (lastOffset < endOffsetSec) {
+              lastOffset = endOffsetSec;
+            }
             continue;
           }
 
@@ -46,11 +51,19 @@ export function doPaste(project: AudioProject) {
             clone.startOffsetSec = project.cursorPos.get();
 
             track.addClip(clone);
+            if (lastOffset < clone.endOffsetSec) {
+              lastOffset = clone.endOffsetSec;
+            }
+
             continue;
           }
 
           console.warn("paste: clip/track mismatch");
         }
+      }
+
+      if (lastOffset !== project.cursorPos.get()) {
+        project.cursorPos.set(lastOffset);
       }
 
       break;

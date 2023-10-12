@@ -104,6 +104,10 @@ export class MidiClip implements Subbable<MidiClip>, MutationHashable, AbstractC
     const newClip = new MidiClip(this.name.get(), this.startOffsetPulses, this.lengthPulses, this.notes._getRaw());
     return newClip;
   }
+
+  toString() {
+    return `${this._startOffset()} [ ${this.name.get()} ] ${this._endOffset()}`;
+  }
 }
 
 function addOrderedNote(la: LinkedArray<Note>, note: Note) {

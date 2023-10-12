@@ -6,6 +6,9 @@ import { downloadURL } from "../utils/downloadURL";
 import { AudioTrack } from "./AudioTrack";
 import { initAudioContext } from "./initAudioContext";
 import { liveAudioContext } from "../constants";
+import { MidiTrack } from "../midi/MidiTrack";
+import { AudioClip } from "./AudioClip";
+import { MidiClip, pulsesToSec } from "../midi/MidiClip";
 
 function getOfflineAudioContext(lenSec: number) {
   return new OfflineAudioContext({
@@ -31,7 +34,7 @@ export class AudioRenderer {
    */
   static async bounceSelection(project: AudioProject) {
     const selectionWidth = project.selectionWidth.get();
-    const tracks = project.allAudioTracks_TODO_REMOVE();
+    const tracks = project.allTracks._getRaw();
     const cursorPos = project.cursorPos.get();
     const bounceAll = selectionWidth == null || selectionWidth === 0;
 
@@ -47,7 +50,7 @@ export class AudioRenderer {
   }
 
   static async bounceTracks(
-    tracks: ReadonlyArray<AudioTrack>,
+    tracks: ReadonlyArray<AudioTrack | MidiTrack>,
     startSec: number = 0,
     endSec?: number,
   ): Promise<AudioBuffer> {
@@ -57,8 +60,16 @@ export class AudioRenderer {
     if (endSec == null) {
       for (let track of tracks) {
         for (let clip of track.clips._getRaw()) {
-          end = end == null || clip.endOffsetSec > end ? clip.endOffsetSec : end;
-          console.log("endOffsetSec", clip.endOffsetSec, end);
+          if (clip instanceof AudioClip) {
+            end = end == null || clip.endOffsetSec > end ? clip.endOffsetSec : end;
+            console.log("endOffsetSec", clip.endOffsetSec, end);
+          } else if (clip instanceof MidiClip) {
+            const endOffsetSec = pulsesToSec(clip._endOffset(), 75);
+            end = end == null || endOffsetSec > end ? endOffsetSec : end;
+            console.log("endOffsetSec", endOffsetSec, end);
+          } else {
+            throw new Error("Unknown clip type");
+          }
         }
       }
     }
@@ -89,7 +100,7 @@ export class AudioRenderer {
     }
 
     for (let track of tracks) {
-      track.startPlayback(75, startSec);
+      track.startPlayback(75, offlineAudioContext, startSec);
     }
 
     const result = await offlineAudioContext.startRendering();

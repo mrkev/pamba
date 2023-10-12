@@ -56,7 +56,7 @@ export class AudioTrack extends ProjectTrack<AudioClip> {
   }
 
   // NOTE: needs to be called right after .prepareForPlayback
-  startPlayback(tempo: number, offset?: number) {
+  override startPlayback(tempo: number, context: BaseAudioContext, offset?: number) {
     if (!this.playingSource) {
       throw new Error("Track is not ready for playback!");
     }
@@ -115,13 +115,6 @@ export class AudioTrack extends ProjectTrack<AudioClip> {
     const track = AudioTrack.create();
     track.addClip(clip);
     return track;
-  }
-
-  override toString() {
-    return this.clips
-      ._getRaw()
-      .map((c) => c.toString())
-      .join("\n");
   }
 
   ///////////// statics

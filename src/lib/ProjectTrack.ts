@@ -5,9 +5,10 @@ import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
 import nullthrows from "../utils/nullthrows";
 import { PambaWamNode } from "../wam/PambaWamNode";
 import { appEnvironment } from "./AppEnvironment";
-import { connectSerialNodes } from "./connectSerialNodes";
 import { addClip, deleteTime, moveClip, pushClip, removeClip } from "./AudioTrackFn";
 import { AbstractClip } from "./BaseClip";
+import { connectSerialNodes } from "./connectSerialNodes";
+import { AudioContextInfo } from "./initAudioContext";
 import { PBGainNode } from "./offlineNodes";
 import { LinkedArray } from "./state/LinkedArray";
 import { SPrimitive } from "./state/LinkedState";
@@ -17,9 +18,11 @@ export abstract class ProjectTrack<T extends AbstractClip> extends DSPNode<null>
   public readonly height: SPrimitive<number>;
 
   abstract prepareForPlayback(context: AudioContext): void;
+  abstract prepareForBounce(context: OfflineAudioContext, offlineContextInfo: AudioContextInfo): Promise<AudioNode>;
+
   // NOTE: needs to be called right after .prepareForPlayback
-  abstract startPlayback(tempo: number, offset?: number): void;
-  abstract stopPlayback(): void;
+  abstract startPlayback(tempo: number, context: BaseAudioContext, offset?: number): void;
+  abstract stopPlayback(context: BaseAudioContext): void;
 
   // A track is a collection of non-overalping clips.
   // Invariants:
@@ -149,6 +152,15 @@ export abstract class ProjectTrack<T extends AbstractClip> extends DSPNode<null>
       return;
     }
     this.effects.push(module);
+  }
+
+  /////////////// DEBUGGING /////////////////
+
+  override toString() {
+    return this.clips
+      ._getRaw()
+      .map((c) => c.toString())
+      .join("\n");
   }
 }
 

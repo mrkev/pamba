@@ -72,9 +72,9 @@ export class AudioClip extends BaseClip implements Subbable<AudioClip>, Mutation
   }
 
   override toString() {
-    return `${this.startOffsetSec.toFixed(2)} [ ${this.trimStartSec.toFixed(2)} | ${
-      this.name
-    } | ${this.trimEndSec.toFixed(2)} ] ${this.endOffsetSec.toFixed(2)}`;
+    return `${this.startOffsetSec.toFixed(2)} [ ${this.trimStartSec.toFixed(
+      2,
+    )} | ${this.name.get()} | ${this.trimEndSec.toFixed(2)} ] ${this.endOffsetSec.toFixed(2)}`;
   }
 
   // Frames units
