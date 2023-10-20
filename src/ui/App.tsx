@@ -11,6 +11,7 @@ import { useLinkedSet } from "../lib/state/LinkedSet";
 import { PambaWamNodeWindowPanel } from "./PambaWamNodeWindowPanel";
 import { PambaWamNode } from "../wam/PambaWamNode";
 import { MidiInstrument } from "../midi/MidiInstrument";
+import { test } from "../data/filesystem";
 
 // var w = new TrackThread();
 // var sab = new SharedArrayBuffer(1024);
@@ -43,6 +44,7 @@ export function App(): React.ReactElement {
           {/* <MidiDemo /> */}
           <AppProject project={projectStatus.project} />
           <DebugData project={projectStatus.project} />
+          <button onClick={() => test()}>fooobar</button>
         </>
       );
     }

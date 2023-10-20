@@ -32,12 +32,12 @@ import { SYNTH_101_URL, liveAudioContext } from "../../constants";
  *   so it's easier to grab.
  * - Render with panning, gain, effects.
  * - Level Meters in DSP
- * - Drop to upload audio file
+ * [x] Drop to upload audio file
  * - DSP Bypass button get working
  * - DSP Search Box get working
  * [x] Overscroll towards the end of the project means we got to scroll extra to come back
  * - resizing with slider should resize around the cursor, not 0:00
- * - Load previous project if it exists, instead of creating a new one
+ * [x] Load previous project if it exists, instead of creating a new one
  */
 
 export type XScale = ScaleLinear<number, number>;
@@ -59,14 +59,11 @@ export class AudioProject {
   readonly primaryAxis = SPrimitive.of<AxisMeasure>("tempo"); // TODO: serialize
   readonly snapToGrid = SPrimitive.of(true); // per project setting?
 
-  allAudioTracks_TODO_REMOVE() {
-    return this.allTracks._getRaw().filter((t) => t instanceof AudioTrack) as AudioTrack[];
-  }
-
   // Tracks //
   readonly allTracks: LinkedArray<AudioTrack | MidiTrack>;
   readonly solodTracks = LinkedSet.create<AudioTrack | MidiTrack>(); // TODO: single track kind?
   readonly dspExpandedTracks = LinkedSet.create<AudioTrack | MidiTrack>();
+  readonly lockedTracks = LinkedSet.create<AudioTrack | MidiTrack>();
   // much like live, there's always an active track. Logic is a great model since
   // the active track is clearly discernable in spite of multi-track selection.
   readonly activeTrack = SPrimitive.of<AudioTrack | MidiTrack | null>(null);
@@ -193,6 +190,7 @@ export class AudioProject {
     // Update from trakc state
     project.cursorTracks.delete(track);
     project.solodTracks.delete(track);
+    project.lockedTracks.delete(track);
   }
 
   static removeAudioClip(project: AudioProject, track: AudioTrack, clip: AudioClip): void {

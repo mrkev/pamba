@@ -30,14 +30,14 @@ export const TrackHeader = React.memo(function TrackHeader({
   const [gain, setGain] = useState<number>(track.getCurrentGain().value);
   const [muted, setMuted] = useState<boolean>(false);
   const [dspExpandedTracks] = useLinkedSet(project.dspExpandedTracks);
-  const [trackEffects] = useLinkedArray(track.effects);
   const [solodTracks] = useLinkedSet(project.solodTracks);
+  const [lockedTracks] = useLinkedSet(project.lockedTracks);
+  const [trackEffects] = useLinkedArray(track.effects);
   const [trackName, setTrackName] = useLinkedState(track.name);
   const [height] = useLinkedState(track.height);
   const [selected] = useLinkedState(project.selected);
   const [activeTrack] = useLinkedState(project.activeTrack);
   const [armedTrack] = useLinkedState(project.armedTrack);
-  const [isLocked, setIsLocked] = useState(false);
 
   const isSelected = selected !== null && selected.status === "tracks" && selected.test.has(track);
   const isSolod = solodTracks.has(track);
@@ -198,15 +198,18 @@ export const TrackHeader = React.memo(function TrackHeader({
 
           <button
             className={classNames(utility.button, styles.lockButton)}
-            style={isLocked ? { background: "purple", color: "white" } : undefined}
+            style={lockedTracks.has(track) ? { background: "purple", color: "white" } : undefined}
             title="lock track"
             onClick={function (e) {
-              setIsLocked((prev) => !prev);
-              console.log("TODOOOOO LOCK TRACK");
+              if (lockedTracks.has(track)) {
+                lockedTracks.delete(track);
+              } else {
+                lockedTracks.add(track);
+              }
               e.stopPropagation();
             }}
           >
-            {isLocked ? "\u26BF" : "\u26f6" /* squared key, square four corners */}
+            {lockedTracks.has(track) ? "\u26BF" : "\u26f6" /* squared key, square four corners */}
           </button>
         </div>
 

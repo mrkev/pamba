@@ -4,9 +4,7 @@ import { AudioProject } from "../lib/project/AudioProject";
 import { MidiClip } from "../midi/MidiClip";
 import { useSubscribeToSubbableMutationHashable } from "../lib/state/LinkedMap";
 
-export function ClipInvalid({ clip, project }: { clip: MidiClip | AudioClip; project: AudioProject }) {
-  useSubscribeToSubbableMutationHashable(clip);
-
+export function getClipSizePx(clip: MidiClip | AudioClip, project: AudioProject) {
   const width =
     clip instanceof AudioClip
       ? project.viewport.secsToPx(clip.durationSec)
@@ -15,6 +13,12 @@ export function ClipInvalid({ clip, project }: { clip: MidiClip | AudioClip; pro
     clip instanceof AudioClip
       ? project.viewport.secsToPx(clip.startOffsetSec)
       : project.viewport.pulsesToPx(clip.startOffsetPulses);
+  return { left, width };
+}
+
+export function ClipInvalid({ clip, project }: { clip: MidiClip | AudioClip; project: AudioProject }) {
+  useSubscribeToSubbableMutationHashable(clip);
+  const { width, left } = getClipSizePx(clip, project);
 
   return (
     <div

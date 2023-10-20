@@ -14,6 +14,11 @@ import { ClipM } from "./ClipM";
 import { CursorSelection } from "./CursorSelection";
 import { EffectRack } from "./EffectRack";
 import { useEventListener } from "./useEventListener";
+import { useLinkedSet } from "../lib/state/LinkedSet";
+
+function preventDefault(e: React.DragEvent<HTMLDivElement>) {
+  e.preventDefault();
+}
 
 export function TrackM({
   track,
@@ -34,11 +39,14 @@ export function TrackM({
   const [clips] = useLinkedArray(track.clips);
   const [height] = useLinkedState(track.height);
   const [activeTrack] = useLinkedState(project.activeTrack);
+  const [lockedTracks] = useLinkedSet(project.lockedTracks);
   const trackRef = useRef<HTMLDivElement>(null);
   const [, setStateCounter] = useState(0);
   const rerender = useCallback(function () {
     setStateCounter((x) => x + 1);
   }, []);
+
+  const isLocked = lockedTracks.has(track);
 
   useTrackMouseEvents(trackRef, project, track);
 
@@ -60,21 +68,7 @@ export function TrackM({
     <>
       <div
         ref={trackRef}
-        onDragOver={function allowDrop(ev) {
-          ev.preventDefault();
-        }}
-        onMouseDown={(e) => {
-          // pressedState.set({
-          //   status: "selecting_track_time",
-          //   clientX: e.clientX,
-          //   clientY: e.clientY,
-          //   // TODOOOOOOOOOOOOO
-          //   startTimeFr: 0,
-          //   track,
-          // });
-          // e.stopPropagation();
-          // e.preventDefault();
-        }}
+        onDragOver={preventDefault}
         style={{
           position: "relative",
           height: height - TRACK_SEPARATOR_HEIGHT,
