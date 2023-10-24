@@ -1,14 +1,13 @@
 import { useLocalState } from "@ricardo-jrm/use-local-state";
 import { AudioProject } from "../lib/project/AudioProject";
-import { SelectionState } from "../lib/project/SelectionState";
+import { PrimarySelectionState } from "../lib/project/SelectionState";
 import { useLinkedArray } from "../lib/state/LinkedArray";
-import { useLinkedMap } from "../lib/state/LinkedMap";
+import { useLinkedSet } from "../lib/state/LinkedSet";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { pressedState } from "../pressedState";
 import { exhaustive } from "../utils/exhaustive";
-import { useLinkedSet } from "../lib/state/LinkedSet";
 
-export function stringOfSelected(sel: SelectionState | null): string {
+export function stringOfSelected(sel: PrimarySelectionState | null): string {
   if (!sel) {
     return "";
   }
@@ -36,7 +35,7 @@ export function stringOfSelected(sel: SelectionState | null): string {
       return "time";
 
     case "track_time":
-      return "track_time";
+      return JSON.stringify(sel, ["status", "startS", "endS"], 2);
 
     default:
       exhaustive(status);
@@ -56,6 +55,10 @@ export function DebugData({ project }: { project: AudioProject }) {
   const [open, setOpen] = useLocalState<boolean>("debugDataOpen", false);
   const [viewportStartPx] = useLinkedState(project.viewportStartPx);
   const [projectDivWidth] = useLinkedState(project.viewport.projectDivWidth);
+
+  if (window.location.host.indexOf("localhost") === -1) {
+    return null;
+  }
 
   const allState = tracks
     .map((track, i) => {

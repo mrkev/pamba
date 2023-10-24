@@ -56,6 +56,12 @@ export class MidiInstrument extends DSPNode<null> {
     throw new Error("Method not implemented.");
   }
 
+  // TODO
+  private async setTest() {
+    const msg = { 2: { id: 2, value: 1.0 } } as any; // for some reason, the id is typed as string but only works if its a number
+    await this.module.audioNode.setParameterValues(msg);
+  }
+
   async getState(): Promise<WamParameterDataMap> {
     // for some reason this.module.audioNode.getState() returns undefined, so
     // using .getParameterValues() instead

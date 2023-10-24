@@ -3,15 +3,14 @@ import { useLinkedState } from "../lib/state/LinkedState";
 // import { TrackThread } from "../lib/TrackThread";
 // import { MidiDemo } from "../midi";
 import { appEnvironment } from "../lib/AppEnvironment";
+import { useLinkedSet } from "../lib/state/LinkedSet";
+import { MidiInstrument } from "../midi/MidiInstrument";
 import { exhaustive } from "../utils/exhaustive";
+import { PambaWamNode } from "../wam/PambaWamNode";
 import { AppProject } from "./AppProject";
 import { DebugData } from "./DebugData";
-import { MidiDemo } from "../midi";
-import { useLinkedSet } from "../lib/state/LinkedSet";
 import { PambaWamNodeWindowPanel } from "./PambaWamNodeWindowPanel";
-import { PambaWamNode } from "../wam/PambaWamNode";
-import { MidiInstrument } from "../midi/MidiInstrument";
-import { test } from "../data/filesystem";
+import "remixicon/fonts/remixicon.css";
 
 // var w = new TrackThread();
 // var sab = new SharedArrayBuffer(1024);
@@ -44,7 +43,7 @@ export function App(): React.ReactElement {
           {/* <MidiDemo /> */}
           <AppProject project={projectStatus.project} />
           <DebugData project={projectStatus.project} />
-          <button onClick={() => test()}>fooobar</button>
+          {/* <button onClick={() => test()}>fooobar</button> */}
         </>
       );
     }

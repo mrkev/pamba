@@ -1,8 +1,8 @@
 import { useCallback } from "react";
 import { MIN_TRACK_HEIGHT } from "../constants";
 import { AudioClip } from "../lib/AudioClip";
-import { clipMovePPQN, clipMoveSec } from "../lib/clipMoveSec";
 import { AudioTrack } from "../lib/AudioTrack";
+import { clipMovePPQN, clipMoveSec } from "../lib/clipMoveSec";
 import { AudioProject } from "../lib/project/AudioProject";
 import { snapped } from "../lib/project/ProjectViewportUtil";
 import { MidiClip } from "../midi/MidiClip";
@@ -84,7 +84,6 @@ export function useTimelineMouseEvents(
             }
 
             console.warn("mouseup: moving_clip: can't operate");
-
             pressedState.set(null);
             break;
           }
@@ -150,16 +149,16 @@ export function useTimelineMouseEvents(
             if (selWidthS > 0) {
               project.selected.set({
                 status: "track_time",
-                start: startTime,
-                end: startTime + selWidthS,
+                startS: startTime,
+                endS: startTime + selWidthS,
                 tracks: [track],
                 test: new Set([track]),
               });
             } else {
               project.selected.set({
                 status: "track_time",
-                start: startTime + selWidthS,
-                end: startTime,
+                startS: startTime + selWidthS,
+                endS: startTime,
                 tracks: [track],
                 test: new Set([track]),
               });
@@ -179,7 +178,7 @@ export function useTimelineMouseEvents(
             exhaustive(status);
         }
       },
-      [project.cursorPos, project.selected, project.selectionWidth, project.viewport],
+      [project],
     ),
   );
 
@@ -263,7 +262,7 @@ export function useTimelineMouseEvents(
             const deltaXSecs = project.viewport.pxToSecs(e.clientX - pressed.clientX);
             const newWidth = snapped(project, e, deltaXSecs);
             project.selectionWidth.set(newWidth);
-            project.selected.set(null);
+            // project.selected.set(null);
             break;
           default:
             exhaustive(pressed);

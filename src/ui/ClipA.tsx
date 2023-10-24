@@ -130,8 +130,8 @@ export function ClipA({ clip, rerender, isSelected, style = {}, project, track }
         width: width,
         height: "100%",
         userSelect: "none",
-        borderLeft: border,
-        borderRight: border,
+        border: border,
+        boxSizing: "border-box",
         color: "white",
         pointerEvents: "all",
         display: "flex",
@@ -147,7 +147,8 @@ export function ClipA({ clip, rerender, isSelected, style = {}, project, track }
         style={{
           color: isSelected ? "white" : "black",
           background: isSelected ? "#225522" : "#bbeebb",
-          border: border,
+          borderBottom: border,
+          paddingLeft: 2,
         }}
       >
         {/* TODO: not working */}
@@ -161,8 +162,8 @@ export function ClipA({ clip, rerender, isSelected, style = {}, project, track }
         />{" "}
         ({Math.round(clip.durationSec * 100) / 100})
       </div>
-      <div className={styles.resizerStart} onMouseDown={(e) => onMouseDownToResize(e, "start")}></div>
-      <div className={styles.resizerEnd} onMouseDown={(e) => onMouseDownToResize(e, "end")}></div>
+      <div className={styles.resizerStart} onMouseDownCapture={(e) => onMouseDownToResize(e, "start")}></div>
+      <div className={styles.resizerEnd} onMouseDownCapture={(e) => onMouseDownToResize(e, "end")}></div>
 
       {/* <button
         onClick={() => {

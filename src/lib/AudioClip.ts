@@ -7,6 +7,11 @@ import { SPrimitive } from "./state/LinkedState";
 import { MutationHashable } from "./state/MutationHashable";
 import { Subbable, notify } from "./state/Subbable";
 
+class AudioViewport {
+  readonly pxPerSec = SPrimitive.of(10);
+  readonly scrollLeft = SPrimitive.of(0);
+}
+
 // A clip of audio
 export class AudioClip extends BaseClip implements Subbable<AudioClip>, MutationHashable, AbstractClip {
   _hash: number = 0;
@@ -20,14 +25,12 @@ export class AudioClip extends BaseClip implements Subbable<AudioClip>, Mutation
   readonly bufferURL: string;
   readonly sampleRate: number; // how many frames per second
 
+  readonly detailedViewport = new AudioViewport();
+
   gainAutomation: Array<{ time: number; value: number }> = [{ time: 0, value: 1 }];
   // Let's not pre-compute this since we don't know the acutal dimensions
   // but lets memoize the last size used for perf. shouldn't change.
-  private memodWaveformDataURL: { width: number; height: number; data: string } = {
-    width: 0,
-    height: 0,
-    data: "",
-  };
+  private memodWaveformDataURL: Map<string, { width: number; height: number; data: string }> = new Map();
 
   private constructor(buffer: AudioBuffer, name: string, bufferURL: string) {
     // todo, should convert buffer.length to seconds myself? Are buffer.duration
@@ -61,12 +64,14 @@ export class AudioClip extends BaseClip implements Subbable<AudioClip>, Mutation
   }
 
   getWaveformDataURL(width: number, height: number) {
-    const { width: w, height: h, data } = this.memodWaveformDataURL;
-    if (width === w && height === h) {
-      return data;
+    const key = `${width}x${height}`;
+    const val = this.memodWaveformDataURL.get(key);
+    if (val != null) {
+      return val.data;
     }
+
     const waveform = dataURLForWaveform(width, height, this.buffer);
-    this.memodWaveformDataURL = { width, height, data: waveform };
+    this.memodWaveformDataURL.set(key, { width, height, data: waveform });
     // console.log("generated waveform for", this.name);
     return waveform;
   }

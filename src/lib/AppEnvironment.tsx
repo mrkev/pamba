@@ -12,6 +12,7 @@ import { SPrimitive } from "./state/LinkedState";
 import { LinkedSet } from "./state/LinkedSet";
 import type { DSPNode } from "../dsp/DSPNode";
 import type { MidiInstrument } from "../midi/MidiInstrument";
+import { LocalFilesystem } from "../data/localFilesystem";
 
 export type WAMAvailablePlugin = {
   // midi out, audio out, midi to audio, audio to audio
@@ -34,6 +35,7 @@ export class AppEnvironment {
   readonly faustEffects = ["PANNER", "REVERB"] as const;
   // Project
   readonly projectStatus: SPrimitive<ProjectState>;
+  readonly localFiles: LocalFilesystem = new LocalFilesystem();
   // UI
   readonly openEffects: LinkedSet<DSPNode | MidiInstrument>;
 
@@ -72,12 +74,20 @@ export class AppEnvironment {
       const maybeProject = await ProjectPersistance.openSaved();
       if (maybeProject == null) {
         alert("Could not open project. Clearing");
-        ProjectPersistance.clearSaved();
+        // ProjectPersistance.clearSaved();
         this.projectStatus.set({ status: "loaded", project: ProjectPersistance.defaultProject() });
       } else {
         this.projectStatus.set({ status: "loaded", project: maybeProject });
       }
     }
+  }
+
+  public loadProject(project: AudioProject) {
+    if (this.projectStatus.get().status === "loading") {
+      console.warn("Aleady loading a project");
+      return;
+    }
+    this.projectStatus.set({ status: "loaded", project: project });
   }
 
   // project(): AudioProject {

@@ -12,12 +12,27 @@ export function switchMap<R, T extends string>(opt: T, map: OptionObj<T, () => R
   return map[opt]();
 }
 
+function hasFileItem(dataTransfer: DataTransfer | null): dataTransfer is DataTransfer {
+  if (!dataTransfer || dataTransfer.items.length < 1) {
+    return false;
+  }
+
+  for (let i = 0; i < dataTransfer.items.length; i++) {
+    const item = dataTransfer.items[i];
+    if (item.kind === "file") {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 export function AudioFileUploadDropzone({
   children,
   project,
   className,
   ...props
-}: React.ComponentPropsWithoutRef<"div"> & { project: AudioProject }) {
+}: React.ComponentPropsWithoutRef<"div"> & { project: AudioProject; className?: string }) {
   const [status, setStatus] = useState<"idle" | "dragover" | "loading">("idle");
   const divRef = useRef<HTMLDivElement>(null);
   const [audioStorage] = useLinkedState(project.audioStorage);
@@ -27,9 +42,10 @@ export function AudioFileUploadDropzone({
       return;
     }
     const { dataTransfer } = e;
-    if (!dataTransfer || dataTransfer.files.length < 1) {
+    if (!hasFileItem(dataTransfer)) {
       return;
     }
+
     dataTransfer.effectAllowed = "move";
     setStatus("dragover");
   });

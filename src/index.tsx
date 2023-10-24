@@ -1,6 +1,7 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { liveAudioContext } from "./constants";
+// import "./font.scss";
 import "./index.css";
 import { appEnvironment } from "./lib/AppEnvironment";
 import { ignorePromise } from "./utils/ignorePromise";

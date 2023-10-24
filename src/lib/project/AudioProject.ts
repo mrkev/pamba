@@ -21,7 +21,7 @@ import { ignorePromise } from "../state/Subbable";
 import { AudioStorage } from "./AudioStorage";
 import { clipboard } from "./ClipboardState";
 import { ProjectViewportUtil } from "./ProjectViewportUtil";
-import { SelectionState } from "./SelectionState";
+import { PrimarySelectionState } from "./SelectionState";
 import { appEnvironment } from "../AppEnvironment";
 import nullthrows from "../../utils/nullthrows";
 import { SYNTH_101_URL, liveAudioContext } from "../../constants";
@@ -49,6 +49,7 @@ export type AxisMeasure = "tempo" | "time";
 
 export class AudioProject {
   readonly projectId: string;
+  readonly projectName: SPrimitive<string>;
 
   readonly viewport: ProjectViewportUtil;
   readonly audioStorage = SPrimitive.of<AudioStorage | null>(null);
@@ -81,7 +82,7 @@ export class AudioProject {
   // Selection //
 
   // the selected clip(s), track(s), etc
-  readonly selected = SPrimitive.of<SelectionState | null>(null);
+  readonly selected = SPrimitive.of<PrimarySelectionState | null>(null);
 
   // the zoom level. min scale is 0.64, max is 1000
   readonly scaleFactor = SPrimitive.of(10);
@@ -107,10 +108,11 @@ export class AudioProject {
         .range([0 + startPx, 1 * factor + startPx]) as XScale,
   );
 
-  constructor(tracks: (AudioTrack | MidiTrack)[], projectId: string) {
+  constructor(tracks: (AudioTrack | MidiTrack)[], projectId: string, projectName: string) {
     this.projectId = projectId;
     this.allTracks = LinkedArray.create(tracks);
     this.viewport = new ProjectViewportUtil(this);
+    this.projectName = SPrimitive.of(projectName);
     // so it initializes after app environment is initialized
     setTimeout(() => ignorePromise(this.asyncInits()), 0);
   }
@@ -129,7 +131,7 @@ export class AudioProject {
 
   static create() {
     const id = ulid();
-    return new this([], id);
+    return new this([], id, "untitled");
   }
 
   //////// Methods on Projects ////////
@@ -296,11 +298,11 @@ export class ProjectSelection {
       case "track_time":
         for (const track of selected.tracks) {
           if (track instanceof AudioTrack) {
-            track.deleteTime(selected.start, selected.end);
+            track.deleteTime(selected.startS, selected.endS);
           } else if (track instanceof MidiTrack) {
             track.deleteTime(
-              project.viewport.secsToPulses(selected.start),
-              project.viewport.secsToPulses(selected.end),
+              project.viewport.secsToPulses(selected.startS),
+              project.viewport.secsToPulses(selected.endS),
             );
           }
         }

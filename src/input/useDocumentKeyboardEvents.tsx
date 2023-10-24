@@ -6,6 +6,7 @@ import { AudioProject, ProjectSelection } from "../lib/project/AudioProject";
 import { MidiTrack } from "../midi/MidiTrack";
 import { ignorePromise } from "../utils/ignorePromise";
 import { doPaste } from "../lib/project/ClipboardState";
+import { appEnvironment } from "../lib/AppEnvironment";
 
 export function useDocumentKeyboardEvents(
   project: AudioProject,
@@ -39,6 +40,7 @@ export function useDocumentKeyboardEvents(
         case "KeyS": {
           if (e.metaKey) {
             ignorePromise(ProjectPersistance.doSave(project));
+            ignorePromise(appEnvironment.localFiles.saveProject(project));
             e.preventDefault();
             e.stopPropagation();
           }

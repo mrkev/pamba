@@ -30,7 +30,8 @@ export function TransportControl({
     if (ctx == null || canvas == null) return;
     ctx.font = "bold 22px monospace";
     ctx.textAlign = "start";
-    ctx.fillStyle = "#D3D3D3";
+    // ctx.fillStyle = "#D3D3D3";
+    ctx.fillStyle = "white";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     const start = cursorPos.toFixed(2);
@@ -43,18 +44,6 @@ export function TransportControl({
 
   return (
     <div style={{ display: "flex", flexDirection: "row", alignItems: "center" }}>
-      <button
-        className={utility.button}
-        disabled={isAudioPlaying || isRecording || (cursorPos === 0 && selectionWidth === 0)}
-        style={isRecording ? { color: "red" } : undefined}
-        onClick={() => {
-          project.cursorPos.set(0);
-          project.selectionWidth.set(0);
-        }}
-      >
-        {"\u23ee" /* rewind */}
-      </button>
-
       {/* Cursor canvas */}
       <canvas
         style={{
@@ -91,9 +80,22 @@ export function PlaybackControl({
   const [recorderStatus] = useLinkedState(recorder.status);
   const isRecording = recorderStatus === "recording";
   const isTrackArmed = armedTrack != null;
+  const [selectionWidth] = useLinkedState(project.selectionWidth);
+  const [cursorPos] = useLinkedState(project.cursorPos);
 
   return (
     <div style={{ display: "flex", flexDirection: "row", ...style }}>
+      <button
+        className={utility.button}
+        disabled={isAudioPlaying || isRecording || (cursorPos === 0 && selectionWidth === 0)}
+        style={isRecording ? { color: "red" } : undefined}
+        onClick={() => {
+          project.cursorPos.set(0);
+          project.selectionWidth.set(0);
+        }}
+      >
+        {"\u23ee" /* rewind */}
+      </button>
       {!isAudioPlaying && (
         <button
           className={utility.button}

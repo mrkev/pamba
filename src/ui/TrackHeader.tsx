@@ -310,7 +310,7 @@ const useStyles = createUseStyles({
   actionButton: {
     cursor: "pointer",
     border: "none",
-    background: "#d3d3d3",
+    background: "var(--control-bg-color)",
     fontSize: 11,
   },
   trackNumber: {

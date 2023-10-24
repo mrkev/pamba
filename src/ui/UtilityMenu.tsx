@@ -51,7 +51,7 @@ export function UtilityMenu({
             position: "absolute",
             left: 0,
             top: "100%",
-            background: "#D3D3D3",
+            background: "var(--control-bg-color)",
             width: 100,
             fontSize: 12,
             borderBottom: "1px solid #bababa",

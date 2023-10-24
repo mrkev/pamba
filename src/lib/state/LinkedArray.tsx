@@ -225,7 +225,7 @@ export class LinkedArray<S> implements ArrayWithoutIndexer<S>, Subbable<Readonly
     return this._array.find(predicate, thisArg);
   }
   findIndex(predicate: (value: S, index: number, obj: S[]) => unknown, thisArg?: any): number {
-    throw new Error("Method not implemented.");
+    return this._array.findIndex(predicate as any, thisArg);
   }
 
   findLast<S>(predicate: (value: S, index: number, array: S[]) => value is S, thisArg?: any): S | undefined;

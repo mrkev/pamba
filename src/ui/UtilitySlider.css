@@ -5,7 +5,7 @@ input:focus {
 
 .utilitySlider {
   appearance: none;
-  background: #d3d3d3;
+  background: var(--control-bg-color);
 }
 .utilitySlider::-webkit-slider-thumb {
   width: 1px;

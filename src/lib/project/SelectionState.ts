@@ -4,6 +4,7 @@ import { FaustAudioEffect } from "../../dsp/FaustAudioEffect";
 import { PambaWamNode } from "../../wam/PambaWamNode";
 import { MidiTrack } from "../../midi/MidiTrack";
 import { MidiClip } from "../../midi/MidiClip";
+import { Note } from "../../midi/SharedMidiTypes";
 
 // todo, 3 Selection states:
 // main selection state clip/track/time
@@ -12,10 +13,11 @@ import { MidiClip } from "../../midi/MidiClip";
 // detail selection state (note)
 // - what is selected in the bottom panel
 // - clip is still selected, but user might want to operate on this note specifically d
-// browser active element, to edit
-// - what the user is typing to, etc
+// cursor
+// - so we can click around without changing the primary selection state,
+//   and deselect the clip we're editing for exmaple
 
-export type SelectionState =
+export type PrimarySelectionState =
   | {
       status: "clips";
       clips: Array<{ clip: AudioClip; track: AudioTrack } | { clip: MidiClip; track: MidiTrack }>;
@@ -37,14 +39,20 @@ export type SelectionState =
   // do you know what the cursor operates on anyway (time or track). Maybe it is
   // a good idea to have a simple model.
   | {
+      // ie, global time
       status: "time";
       start: number;
       end: number;
     }
   | {
       status: "track_time";
-      start: number;
-      end: number;
+      startS: number;
+      endS: number;
       tracks: Array<AudioTrack | MidiTrack>;
       test: Set<AudioTrack | MidiTrack>;
     };
+
+export type PanelSelectionState = {
+  status: "note";
+  note: Note;
+};

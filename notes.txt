@@ -17,3 +17,10 @@ webdaw.pro
 
 notepad
 - really good midi editing
+
+
+check out:
+https://www.npmjs.com/package/audio-buffer-utils
+https://www.npmjs.com/package/pitch-shift
+https://www.npmjs.com/package/audio-buffer-sink
+https://www.npmjs.com/package/bpm-detective

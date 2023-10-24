@@ -1,11 +1,13 @@
 import { LIVE_SAMPLE_RATE } from "../constants";
 import { AbstractClip } from "../lib/BaseClip";
+import { AudioProject } from "../lib/project/AudioProject";
 import { LinkedArray } from "../lib/state/LinkedArray";
 import { SPrimitive } from "../lib/state/LinkedState";
 import { MutationHashable } from "../lib/state/MutationHashable";
 import { Subbable, notify } from "../lib/state/Subbable";
 import nullthrows from "../utils/nullthrows";
 import { PPQN } from "../wam/pianorollme/MIDIConfiguration";
+import { MidiTrack } from "./MidiTrack";
 import type { Note } from "./SharedMidiTypes";
 
 // TODO: not a constant sample rate
@@ -119,4 +121,11 @@ function addOrderedNote(la: LinkedArray<Note>, note: Note) {
     }
   }
   la.push(note);
+}
+
+export function createEmptyMidiClipInTrack(project: AudioProject, track: MidiTrack, startS: number, endS: number) {
+  const startPulses = project.viewport.secsToPulses(startS);
+  const length = project.viewport.secsToPulses(endS - startS);
+  const clip = new MidiClip("new clip", startPulses, length, []);
+  track.addClip(clip);
 }

@@ -1,18 +1,22 @@
-import classNames from "classnames";
-import React, { useCallback, useState } from "react";
+import React, { SetStateAction, useCallback, useEffect, useMemo, useState } from "react";
 import { createUseStyles } from "react-jss";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
+import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioRenderer } from "../lib/AudioRenderer";
 import { AudioTrack } from "../lib/AudioTrack";
 import { AudioProject } from "../lib/project/AudioProject";
 import { useLinkedArrayMaybe } from "../lib/state/LinkedArray";
+import { useLinkedMap } from "../lib/state/LinkedMap";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { pressedState } from "../pressedState";
+import { exhaustive } from "../utils/exhaustive";
 import { ignorePromise } from "../utils/ignorePromise";
 import { AudioFileUploadDropzone } from "./AudioFileUploadDropzone";
 import { UploadAudioButton } from "./UploadAudioButton";
+import { ListEntry, UtilityDataList } from "./UtilityList";
 import { UserAuthControl } from "./header/UserAuthControl";
+import { TabbedPanel } from "./TabbedPanel";
 
 const STATIC_AUDIO_FILES = ["drums.mp3", "clav.mp3", "bassguitar.mp3", "horns.mp3", "leadguitar.mp3"];
 
@@ -25,6 +29,8 @@ function useAudioLibrary(project: AudioProject, filter: string): string[] {
     return url.includes(filter);
   });
 }
+
+type LibraryItem = { kind: "project"; id: string } | { kind: "audio"; url: string };
 
 export function Library({
   project,
@@ -39,6 +45,7 @@ export function Library({
   const [isAudioPlaying] = useLinkedState(renderer.isAudioPlaying);
   const [libraryFilter, setLibraryFilter] = useState("");
   const audioLibrary = useAudioLibrary(project, libraryFilter);
+  const [localProjects] = useLinkedMap(appEnvironment.localFiles._projects);
 
   const loadClip = useCallback(
     async function loadClip(url: string, name?: string) {
@@ -63,6 +70,31 @@ export function Library({
     [player, project],
   );
 
+  useEffect(() => {
+    ignorePromise(appEnvironment.localFiles.updateProjects());
+  }, []);
+
+  const items: ListEntry<LibraryItem>[] = useMemo(() => {
+    return [
+      ...localProjects.map((project) => {
+        return {
+          title: project.name,
+          icon: <i className="ri-file-music-line" />,
+          data: { kind: "project", id: project.id },
+          disableDrag: true,
+        } as const;
+      }),
+      "separator",
+      ...audioLibrary.map((url) => {
+        return {
+          title: url,
+          icon: <i className="ri-volume-up-fill"></i>,
+          data: { kind: "audio", url },
+        } as const;
+      }),
+    ];
+  }, [audioLibrary, localProjects]);
+
   return (
     <>
       <input
@@ -73,47 +105,54 @@ export function Library({
           setLibraryFilter(e.target.value);
         }}
       />
-      <AudioFileUploadDropzone className={classes.list} project={project}>
-        {audioLibrary.map(function (url, i) {
-          return (
-            <div
-              tabIndex={0}
-              className={classNames(classes.listItem, isAudioPlaying && classes.listItemDisabled)}
-              key={i}
-              draggable={!isAudioPlaying}
-              onDragStart={function (ev: React.DragEvent<HTMLDivElement>) {
-                if (isAudioPlaying) {
-                  return;
-                }
-                ev.dataTransfer.setData("text/uri-list", url);
-                ev.dataTransfer.setData("text/plain", url);
-                pressedState.set({
-                  status: "dragging_new_audio",
-                  clientX: ev.clientX,
-                  clientY: ev.clientY,
-                });
-              }}
-              onDragEnd={() => {
-                pressedState.set(null);
-              }}
-              onClick={(e: React.MouseEvent<HTMLDivElement>) => {
-                if (isAudioPlaying) {
-                  return;
-                }
 
-                if (e.target instanceof HTMLDivElement) {
-                  e.target.focus();
+      <AudioFileUploadDropzone className={classes.list} project={project}>
+        {/* Library */}
+        <UtilityDataList<LibraryItem>
+          // data is url
+          filter={libraryFilter}
+          draggable={!isAudioPlaying}
+          onDragStart={function (item, ev: React.DragEvent<HTMLDivElement>) {
+            if (item.data.kind !== "audio") {
+              return;
+            }
+
+            ev.dataTransfer.setData("text/uri-list", item.data.url);
+            ev.dataTransfer.setData("text/plain", item.data.url);
+            pressedState.set({
+              status: "dragging_new_audio",
+              clientX: ev.clientX,
+              clientY: ev.clientY,
+            });
+          }}
+          onDragEnd={() => {
+            pressedState.set(null);
+          }}
+          onItemSelect={async (item) => {
+            switch (item.data.kind) {
+              case "audio":
+                ignorePromise(loadClip(item.data.url));
+                break;
+              case "project": {
+                if (!confirm("Open project? Unsaved changes will be lost!")) {
+                  return;
                 }
-              }}
-              onDoubleClick={() => {
-                ignorePromise(loadClip(url));
-              }}
-            >
-              {url}
-            </div>
-          );
-        })}
+                const project = await appEnvironment.localFiles.openProject(item.data.id);
+                if (!(project instanceof AudioProject)) {
+                  alert(`issue opening project: ${project.status}`);
+                  return;
+                }
+                appEnvironment.loadProject(project);
+                break;
+              }
+              default:
+                exhaustive(item.data);
+            }
+          }}
+          items={items}
+        />
       </AudioFileUploadDropzone>
+
       <hr style={{ width: "100%" }} />
       {/* TODO: library won't be updated when new audio gets uploaded, unless it's constantly executed when I think it might be */}
       <UploadAudioButton project={project} loadClip={loadClip} />
@@ -126,21 +165,19 @@ const useStyles = createUseStyles({
   list: {
     display: "flex",
     flexDirection: "column",
-    border: "1px solid #999",
+    // border: "1px solid #999",
     borderRadius: "3px",
     flexGrow: 1,
     fontSize: 12,
   },
-  listItem: {
-    textOverflow: "ellipsis",
-    whiteSpace: "nowrap",
-    padding: "0px 2px",
-    "&:focus": {
-      outline: "5px auto -webkit-focus-ring-color",
-      background: "white",
-    },
-  },
-  listItemDisabled: {
-    color: "gray",
-  },
 });
+
+export function ProjectSettings({ project }: { project: AudioProject }) {
+  const [name] = useLinkedState(project.projectName);
+
+  return (
+    <>
+      <input type="text" value={name} onChange={(e) => project.projectName.set(e.target.value)} />
+    </>
+  );
+}

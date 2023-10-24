@@ -1,50 +1,106 @@
 import classNames from "classnames";
+import { useMemo } from "react";
 import { createUseStyles } from "react-jss";
 
 export type DraggableData = string;
 
-type ListItem<T> = {
+export type ListItem<T> = {
   title: string;
   disabled?: boolean;
-  data?: T;
+  disableDrag?: boolean;
+  data: T;
+  icon?: React.ReactElement;
 };
 
-export function UtilityList<T>({
+export type ListSeparator = "separator";
+
+export type ListEntry<T> = ListItem<T> | ListSeparator;
+
+export function UtilityDataList<T>({
   items,
-  onItemClick,
+  filter,
+  onItemFocus,
+  onItemSelect,
   draggable,
+  onDragStart: dragStart,
+  onDragEnd: dragEnd,
 }: {
-  items: ListItem<T>[];
-  onItemClick?: (item: ListItem<T>) => void;
+  items: ListEntry<T>[];
+  onItemFocus?: (item: ListItem<T>) => void;
+  onItemSelect?: (item: ListItem<T>) => void;
+  onDragStart?: (item: ListItem<T>, e: React.DragEvent<HTMLDivElement>) => void;
+  onDragEnd?: (item: ListItem<T>, e: React.DragEvent<HTMLDivElement>) => void;
   draggable?: boolean;
+  filter?: string;
 }) {
   const classes = useStyles();
 
-  const onDragEnd = draggable ? () => {} : undefined;
-  const onDragStart = draggable
-    ? function (ev: React.DragEvent<HTMLDivElement>) {
-        // ev.dataTransfer.setData("text/uri-list", url);
-        // ev.dataTransfer.setData("text/plain", url);
-        // pressedState.set({
-        //   status: "dragging_new_audio",
-        //   clientX: ev.clientX,
-        //   clientY: ev.clientY,
-        // });
-      }
-    : undefined;
+  const filtered = useMemo(() => {
+    return filter == null || filter === ""
+      ? items
+      : items.filter((item) => {
+          if (item === "separator") {
+            return false;
+          }
+          return item.title.toLowerCase().includes(filter.toLowerCase());
+        });
+  }, [filter, items]);
 
   return (
     <div className={classes.list}>
-      {items.map(function (item, i) {
+      {filtered.map(function (item, i) {
+        if (item === "separator") {
+          return <hr key={i} style={{ margin: "2px 4px 0px 4px" }} />;
+        }
+
         const disabled = Boolean(item.disabled);
+        const disableDrag = Boolean(item.disableDrag);
+
         return (
           <div
+            title={item.title}
             tabIndex={0}
-            className={classNames(classes.listItem, disabled && classes.listItemDisabled)}
+            className={classNames(
+              classes.listItem,
+              disabled && classes.listItemDisabled,
+              item.icon && classes.listItemWithIcon,
+            )}
             key={i}
-            draggable={draggable && !disabled}
-            onDragStart={onDragStart}
-            onDragEnd={onDragEnd}
+            draggable={!disableDrag && draggable && !disabled}
+            onDragStart={(e) => {
+              if (disableDrag || !draggable || disabled) {
+                return;
+              }
+              dragStart?.(item, e);
+            }}
+            onKeyDown={(e: React.KeyboardEvent<HTMLDivElement>) => {
+              if (
+                e.key === "ArrowUp" &&
+                e.target instanceof HTMLDivElement &&
+                e.target.previousElementSibling instanceof HTMLDivElement
+              ) {
+                e.target.previousElementSibling.focus();
+                return;
+              }
+
+              if (
+                e.key === "ArrowDown" &&
+                e.target instanceof HTMLDivElement &&
+                e.target.nextElementSibling instanceof HTMLDivElement
+              ) {
+                e.target.nextElementSibling.focus();
+                return;
+              }
+
+              if (e.key === "Enter") {
+                console.log("HERE");
+                onItemSelect?.(item);
+                return;
+              }
+            }}
+            onDragEnd={(e) => {
+              dragEnd?.(item, e);
+            }}
             onClick={(e: React.MouseEvent<HTMLDivElement>) => {
               if (disabled) {
                 return;
@@ -53,11 +109,17 @@ export function UtilityList<T>({
               if (e.target instanceof HTMLDivElement) {
                 e.target.focus();
               }
+
+              onItemFocus?.(item);
             }}
             onDoubleClick={() => {
-              // ignorePromise(loadClip(url));
+              if (disabled) {
+                return;
+              }
+              onItemSelect?.(item);
             }}
           >
+            {item.icon}
             {item.title}
           </div>
         );
@@ -73,15 +135,24 @@ const useStyles = createUseStyles({
     border: "1px solid #999",
     borderRadius: "3px",
     flexGrow: 1,
+    fontSize: 12,
+    padding: "2px 0px",
   },
   listItem: {
     textOverflow: "ellipsis",
+    overflow: "hidden",
     whiteSpace: "nowrap",
     padding: "0px 2px",
     "&:focus": {
       outline: "5px auto -webkit-focus-ring-color",
       background: "white",
     },
+  },
+  listItemWithIcon: {
+    display: "flex",
+    flexDirection: "row",
+    gap: 2,
+    alignItems: "center",
   },
   listItemDisabled: {
     color: "gray",

@@ -2,6 +2,11 @@ import { useEffect, useState } from "react";
 import nullthrows from "../utils/nullthrows";
 import { LinkedMap } from "./state/LinkedMap";
 import { SPrimitive } from "./state/LinkedState";
+import { AudioClip } from "./AudioClip";
+import { AudioTrack } from "./AudioTrack";
+import { AudioProject } from "./project/AudioProject";
+import { AudioRenderer } from "./AudioRenderer";
+import { ignorePromise } from "./state/Subbable";
 
 function useMediaRecorder(loadClip: (url: string, name?: string) => void) {
   const [mediaRecorder, setMediaRecorder] = useState<null | MediaRecorder>(null);
@@ -42,14 +47,39 @@ export class AudioRecorder {
   readonly audioInputDevices: LinkedMap<string, MediaDeviceInfo>;
   readonly currentInput = SPrimitive.of<string | null>(null);
 
-  constructor(loadClip: (url: string, name?: string) => void) {
+  readonly renderer: AudioRenderer;
+  readonly project: AudioProject;
+
+  private async loadClip(url: string, name?: string) {
+    try {
+      console.log("LOAD CLIP", this.project.cursorPos.get());
+      // load clip
+      const clip = await AudioClip.fromURL(url, name);
+      clip.startOffsetSec = this.project.cursorPos.get();
+
+      const armedTrack = this.project.armedTrack.get();
+      if (armedTrack == null) {
+        const newTrack = AudioTrack.fromClip(clip);
+        AudioProject.addAudioTrack(this.project, this.renderer.analizedPlayer, newTrack);
+      } else if (armedTrack instanceof AudioTrack) {
+        armedTrack.addClip(clip);
+      }
+    } catch (e) {
+      console.trace(e);
+      return;
+    }
+  }
+
+  constructor(project: AudioProject, renderer: AudioRenderer) {
     this.mediaRecorder = null;
     this.chunks = [];
     this.audioInputDevices = LinkedMap.create();
-    this.init(loadClip).catch(() => this.status.set("error"));
+    this.project = project;
+    this.renderer = renderer;
+    this.init().catch(() => this.status.set("error"));
   }
 
-  private async init(loadClip: (url: string, name?: string) => void) {
+  private async init() {
     const mediaStream = await navigator.mediaDevices.getUserMedia({
       // TODO: can I get stereo input? higher quality?
       audio: true,
@@ -74,7 +104,7 @@ export class AudioRecorder {
       this.chunks = [];
       const audioURL = window.URL.createObjectURL(blob);
       // audio.src = audioURL;
-      loadClip(audioURL, "recording");
+      ignorePromise(this.loadClip(audioURL, "recording"));
       console.log("recorder stopped");
     }.bind(this);
   }

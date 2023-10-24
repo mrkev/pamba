@@ -14,7 +14,6 @@ export function useDrawOnCanvas(
     ctx.save();
     cb(ctx, elem);
     return () => {
-      console.log("clearing");
       ctx.clearRect(0, 0, elem.width, elem.height);
       ctx.restore();
     };

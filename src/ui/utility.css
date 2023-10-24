@@ -4,7 +4,7 @@
   padding: 1px 6px;
   height: 18px;
   border: none;
-  background: #d3d3d3;
+  background: var(--control-bg-color);
   cursor: pointer;
   white-space: nowrap;
   display: flex;
@@ -14,9 +14,14 @@
   min-width: 22px;
 }
 
+.utilityButtonActive {
+  background: black;
+  color: var(--control-bg-color);
+}
+
 .utilitySlider {
   appearance: none;
-  background: #d3d3d3;
+  background: var(--control-bg-color);
 
   &::-webkit-slider-thumb {
     width: 1px;
