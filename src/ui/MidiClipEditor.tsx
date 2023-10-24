@@ -1,16 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createUseStyles } from "react-jss";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
+import { AudioProject } from "../lib/project/AudioProject";
 import { useLinkedArray } from "../lib/state/LinkedArray";
 import { useSubscribeToSubbableMutationHashable } from "../lib/state/LinkedMap";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { MidiClip, secsToPulses } from "../midi/MidiClip";
 import { PPQN } from "../wam/pianorollme/MIDIConfiguration";
 import { RenamableLabel } from "./RenamableLabel";
+import { UtilityNumber } from "./UtilityNumber";
 import { useDrawOnCanvas } from "./useDrawOnCanvas";
 import { useEventListener } from "./useEventListener";
-import { UtilityNumber } from "./UtilityNumber";
-import { AudioProject } from "../lib/project/AudioProject";
 
 const TOTAL_NOTES = 128;
 
@@ -19,8 +19,6 @@ const NOTE_DURATION = 6;
 const NOTE_WDITH = PULSE_WIDTH * NOTE_DURATION;
 
 const CLIP_TOTAL_BARS = 4; //
-
-const TEMPO = 75;
 
 const CANVAS_SCALE = Math.floor(window.devicePixelRatio);
 
@@ -31,14 +29,15 @@ function keyboardColorOfNote(noteStr: NoteStr): "black" | "white" {
   return noteStr.length === 2 ? "black" : "white";
 }
 
-function secsToTicks(secs: number) {
-  const oneBeatLen = 60 / TEMPO;
+function secsToTicks(secs: number, tempo: number) {
+  const oneBeatLen = 60 / tempo;
   const oneTickLen = oneBeatLen / PPQN;
   return (secs / oneTickLen) % (CLIP_TOTAL_BARS * PPQN);
 }
 
-function secsToPx(secs: number): number {
-  const ticks = secsToTicks(secs);
+// TODO: we shouldn't need tempo for this if we do the math another way
+function secsToPx(secs: number, tempo: number): number {
+  const ticks = secsToTicks(secs, tempo);
   return ticks * PULSE_WIDTH;
 }
 
@@ -111,7 +110,7 @@ export function MidiClipEditor({
         return;
       }
 
-      cursorElem.style.left = String(secsToPx(playbackTimeSecs)) + "px";
+      cursorElem.style.left = String(secsToPx(playbackTimeSecs, bpm)) + "px";
       cursorElem.style.display = "block";
     };
   }, [bpm, clip, clip.startOffsetPulses, player, player.isAudioPlaying]);

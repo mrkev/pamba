@@ -18,6 +18,7 @@ export const CANVAS_WIDTH = TRACK_HEADER_WIDTH; //512 / 3;
 
 export const TIME_SIGNATURE = [4, 4] as const;
 export const SECS_IN_MINUTE = 60;
+export const DEFAULT_TEMPO = 75;
 
 import PIANO_ROLL_PLUGIN_URL from "./midi/pianoroll/index?url";
 

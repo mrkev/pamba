@@ -1,14 +1,14 @@
-import { SPrimitive } from "./state/LinkedState";
-import { AnalizedPlayer } from "./AnalizedPlayer";
 import bufferToWav from "audiobuffer-to-wav";
-import { AudioProject } from "./project/AudioProject";
+import { liveAudioContext } from "../constants";
+import { MidiClip, pulsesToSec } from "../midi/MidiClip";
+import { MidiTrack } from "../midi/MidiTrack";
 import { downloadURL } from "../utils/downloadURL";
+import { AnalizedPlayer } from "./AnalizedPlayer";
+import { AudioClip } from "./AudioClip";
 import { AudioTrack } from "./AudioTrack";
 import { initAudioContext } from "./initAudioContext";
-import { liveAudioContext } from "../constants";
-import { MidiTrack } from "../midi/MidiTrack";
-import { AudioClip } from "./AudioClip";
-import { MidiClip, pulsesToSec } from "../midi/MidiClip";
+import { AudioProject } from "./project/AudioProject";
+import { SPrimitive } from "./state/LinkedState";
 
 function getOfflineAudioContext(lenSec: number) {
   return new OfflineAudioContext({
@@ -39,8 +39,8 @@ export class AudioRenderer {
     const bounceAll = selectionWidth == null || selectionWidth === 0;
 
     const result = await (bounceAll
-      ? AudioRenderer.bounceTracks(tracks)
-      : AudioRenderer.bounceTracks(tracks, cursorPos, cursorPos + selectionWidth));
+      ? AudioRenderer.bounceTracks(tracks, project.tempo.get())
+      : AudioRenderer.bounceTracks(tracks, project.tempo.get(), cursorPos, cursorPos + selectionWidth));
     const wav = bufferToWav(result);
     const blob = new Blob([new DataView(wav)], {
       type: "audio/wav",
@@ -51,6 +51,7 @@ export class AudioRenderer {
 
   static async bounceTracks(
     tracks: ReadonlyArray<AudioTrack | MidiTrack>,
+    tempo: number,
     startSec: number = 0,
     endSec?: number,
   ): Promise<AudioBuffer> {
@@ -64,7 +65,7 @@ export class AudioRenderer {
             end = end == null || clip.endOffsetSec > end ? clip.endOffsetSec : end;
             console.log("endOffsetSec", clip.endOffsetSec, end);
           } else if (clip instanceof MidiClip) {
-            const endOffsetSec = pulsesToSec(clip._endOffset(), 75);
+            const endOffsetSec = pulsesToSec(clip._endOffset(), tempo);
             end = end == null || endOffsetSec > end ? endOffsetSec : end;
             console.log("endOffsetSec", endOffsetSec, end);
           } else {
@@ -100,7 +101,7 @@ export class AudioRenderer {
     }
 
     for (let track of tracks) {
-      track.startPlayback(75, offlineAudioContext, startSec);
+      track.startPlayback(tempo, offlineAudioContext, startSec);
     }
 
     const result = await offlineAudioContext.startRendering();
@@ -115,7 +116,7 @@ export class AudioRenderer {
       player.stopSound();
       renderer.isAudioPlaying.set(false);
     } else {
-      player.playTracks(project.allTracks._getRaw(), project.cursorPos.get());
+      player.playTracks(project.allTracks._getRaw(), project.cursorPos.get(), project.tempo.get());
       renderer.isAudioPlaying.set(true);
     }
   }
@@ -124,7 +125,7 @@ export class AudioRenderer {
     if (renderer.isAudioPlaying.get()) {
       return;
     } else {
-      player.playTracks(project.allTracks._getRaw(), project.cursorPos.get());
+      player.playTracks(project.allTracks._getRaw(), project.cursorPos.get(), project.tempo.get());
       renderer.isAudioPlaying.set(true);
     }
   }

@@ -1,9 +1,9 @@
-import { createUseStyles } from "react-jss";
-import { Clip } from "../wam/pianorollme/PianoRollClip";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useEventListener } from "./useEventListener";
+import { createUseStyles } from "react-jss";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import { PPQN } from "../wam/pianorollme/MIDIConfiguration";
+import { Clip } from "../wam/pianorollme/PianoRollClip";
+import { useEventListener } from "./useEventListener";
 
 const NOTE_HEIGHT = 10;
 const TOTAL_NOTES = 128;

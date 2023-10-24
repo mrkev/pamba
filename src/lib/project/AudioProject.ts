@@ -2,14 +2,17 @@ import type { ScaleLinear } from "d3-scale";
 import { scaleLinear } from "d3-scale";
 import { ulid } from "ulid";
 import { modifierState } from "../../ModifierState";
+import { DEFAULT_TEMPO, SYNTH_101_URL, liveAudioContext } from "../../constants";
 import { FaustAudioEffect } from "../../dsp/FaustAudioEffect";
 import { getFirebaseStorage } from "../../firebase/getFirebase";
 import { MidiClip } from "../../midi/MidiClip";
 import { MidiInstrument } from "../../midi/MidiInstrument";
 import { MidiTrack } from "../../midi/MidiTrack";
 import { exhaustive } from "../../utils/exhaustive";
+import nullthrows from "../../utils/nullthrows";
 import { PambaWamNode } from "../../wam/PambaWamNode";
 import { AnalizedPlayer } from "../AnalizedPlayer";
+import { appEnvironment } from "../AppEnvironment";
 import { AudioClip } from "../AudioClip";
 import { AudioTrack } from "../AudioTrack";
 import { DerivedState } from "../state/DerivedState";
@@ -22,9 +25,6 @@ import { AudioStorage } from "./AudioStorage";
 import { clipboard } from "./ClipboardState";
 import { ProjectViewportUtil } from "./ProjectViewportUtil";
 import { PrimarySelectionState } from "./SelectionState";
-import { appEnvironment } from "../AppEnvironment";
-import nullthrows from "../../utils/nullthrows";
-import { SYNTH_101_URL, liveAudioContext } from "../../constants";
 
 /**
  * TODO:
@@ -55,7 +55,7 @@ export class AudioProject {
   readonly audioStorage = SPrimitive.of<AudioStorage | null>(null);
 
   readonly isRecording = SPrimitive.of(false); // environment?
-  readonly tempo = SPrimitive.of(75); // TODO: serialize
+  readonly tempo: SPrimitive<number>;
   readonly timeSignature = SPrimitive.of([4, 4] as const); // TODO: serialize
   readonly primaryAxis = SPrimitive.of<AxisMeasure>("tempo"); // TODO: serialize
   readonly snapToGrid = SPrimitive.of(true); // per project setting?
@@ -108,11 +108,12 @@ export class AudioProject {
         .range([0 + startPx, 1 * factor + startPx]) as XScale,
   );
 
-  constructor(tracks: (AudioTrack | MidiTrack)[], projectId: string, projectName: string) {
+  constructor(tracks: (AudioTrack | MidiTrack)[], projectId: string, projectName: string, tempo: number) {
     this.projectId = projectId;
     this.allTracks = LinkedArray.create(tracks);
     this.viewport = new ProjectViewportUtil(this);
     this.projectName = SPrimitive.of(projectName);
+    this.tempo = SPrimitive.of(tempo);
     // so it initializes after app environment is initialized
     setTimeout(() => ignorePromise(this.asyncInits()), 0);
   }
@@ -131,7 +132,7 @@ export class AudioProject {
 
   static create() {
     const id = ulid();
-    return new this([], id, "untitled");
+    return new this([], id, "untitled", DEFAULT_TEMPO);
   }
 
   //////// Methods on Projects ////////
@@ -151,7 +152,7 @@ export class AudioProject {
     }
     if (player != null && player.isAudioPlaying) {
       console.log("ADDED TO PLAYBACK");
-      player.addTrackToPlayback(newTrack, project.cursorPos.get());
+      player.addTrackToPlayback(newTrack, project.cursorPos.get(), project.tempo.get());
     }
     return newTrack;
   }

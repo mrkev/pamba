@@ -22,6 +22,7 @@ import { TimelineView } from "./TimelineView";
 import { UtilityPanel } from "./UtilityPanel";
 import { ToolHeader } from "./header/ToolHeader";
 import { useMousePressMove } from "./useEventListener";
+import { History } from "./history";
 
 function useStopPlaybackOnUnmount(renderer: AudioRenderer) {
   useEffect(() => {
@@ -65,8 +66,8 @@ export function AppProject({ project }: { project: AudioProject }) {
               },
               settings: {
                 icon: <i className="ri-settings-3-line" style={{ paddingRight: 2 }}></i>,
-                title: "Settings",
-                render: () => <div></div>,
+                title: "History",
+                render: () => <History project={project} />,
               },
             }}
           />

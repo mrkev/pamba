@@ -45,6 +45,7 @@ export type SAudioProject = {
   kind: "AudioProject";
   projectId: string;
   projectName: string;
+  tempo: number;
   tracks: Array<SAudioTrack | SMidiTrack>;
 };
 
@@ -104,6 +105,7 @@ export async function serializable(
       kind: "AudioProject",
       projectId: obj.projectId,
       projectName: obj.projectName.get(),
+      tempo: obj.tempo.get(),
       tracks: await Promise.all(obj.allTracks._getRaw().map((track) => serializable(track))),
     };
   }
@@ -165,8 +167,8 @@ export async function construct(
     }
     case "AudioProject": {
       const tracks = await Promise.all(rep.tracks.map((clip) => construct(clip)));
-      const { projectId, projectName } = rep;
-      return new AudioProject(tracks, projectId, projectName);
+      const { projectId, projectName, tempo } = rep;
+      return new AudioProject(tracks, projectId, projectName, tempo);
     }
     case "FaustAudioEffect": {
       const effect = await FaustAudioEffect.create(liveAudioContext, rep.effectId, rep.params);

@@ -87,7 +87,7 @@ export const TrackHeader = React.memo(function TrackHeader({
             flexDirection: "row",
             justifyContent: "space-between",
             alignItems: "stretch",
-            fontSize: "0.8em",
+            fontSize: "10px",
           }}
         >
           <span

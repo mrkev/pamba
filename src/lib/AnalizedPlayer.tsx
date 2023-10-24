@@ -85,7 +85,7 @@ export class AnalizedPlayer {
 
   playingTracks: ReadonlyArray<AudioTrack | MidiTrack> | null = null;
   // Position of the cursor; where the playback is going to start
-  playTracks(tracks: ReadonlyArray<AudioTrack | MidiTrack>, cursorPos: number) {
+  playTracks(tracks: ReadonlyArray<AudioTrack | MidiTrack>, cursorPos: number, tempo: number) {
     // Need to connect to dest, otherwrise audio just doesn't flow through. This adds nothing, just silence though
     this.oscilloscope.connect(liveAudioContext.destination);
     this.playbackTimeNode.connect(liveAudioContext.destination);
@@ -100,7 +100,7 @@ export class AnalizedPlayer {
       track.connect(this.mixDownNode);
     }
     for (let track of tracks) {
-      track.startPlayback(75, liveAudioContext, cursorPos);
+      track.startPlayback(tempo, liveAudioContext, cursorPos);
     }
     this.playingTracks = tracks;
 
@@ -111,7 +111,7 @@ export class AnalizedPlayer {
   /**
    * Adds a track to playback if we're already playing all tracks.
    */
-  addTrackToPlayback(track: AudioTrack, startAt: number) {
+  addTrackToPlayback(track: AudioTrack, startAt: number, tempo: number) {
     if (!this.playingTracks) {
       // TODO: mke playing tracks and isAudioPlaying the same state
       throw new Error("No tracks playing");
@@ -120,7 +120,7 @@ export class AnalizedPlayer {
     this.playingTracks = this.playingTracks.concat(track);
     const LATENCY = 10;
     track.prepareForPlayback(liveAudioContext);
-    track.startPlayback(75, liveAudioContext, startAt + LATENCY);
+    track.startPlayback(tempo, liveAudioContext, startAt + LATENCY);
   }
 
   removeTrackFromPlayback(track: AudioTrack) {
