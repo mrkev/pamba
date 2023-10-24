@@ -4,9 +4,8 @@ import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioProject } from "../lib/project/AudioProject";
 import { useSubscribeToSubbableMutationHashable } from "../lib/state/LinkedMap";
-import { SPrimitive, useLinkedState } from "../lib/state/LinkedState";
+import { useLinkedState } from "../lib/state/LinkedState";
 import { RenamableLabel } from "./RenamableLabel";
-import { useEventListener } from "./useEventListener";
 
 type AudioViewportT = {
   pxPerSec: number;
@@ -54,6 +53,7 @@ export function AudioClipEditor({
     <>
       {/* File Settings */}
       File
+      {clip.bufferURL}
       {/* Clip settings */}
       <div
         style={{

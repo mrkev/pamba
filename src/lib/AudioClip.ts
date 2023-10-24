@@ -12,6 +12,8 @@ class AudioViewport {
   readonly scrollLeft = SPrimitive.of(0);
 }
 
+// todo: missing clip
+
 // A clip of audio
 export class AudioClip extends BaseClip implements Subbable<AudioClip>, MutationHashable, AbstractClip {
   _hash: number = 0;

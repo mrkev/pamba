@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createUseStyles } from "react-jss";
 import useResizeObserver from "use-resize-observer";
 import { TRACK_HEADER_WIDTH } from "../constants";
 import { useAxisContainerMouseEvents, useTimelineMouseEvents } from "../input/useProjectMouseEvents";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
+import { AudioClip } from "../lib/AudioClip";
 import { AudioRenderer } from "../lib/AudioRenderer";
 import { AudioTrack } from "../lib/AudioTrack";
 import { AudioProject } from "../lib/project/AudioProject";
@@ -13,15 +14,15 @@ import { useLinkedSet } from "../lib/state/LinkedSet";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { MidiTrack } from "../midi/MidiTrack";
 import { exhaustive } from "../utils/exhaustive";
+import nullthrows from "../utils/nullthrows";
 import { Axis } from "./Axis";
+import { CursorSelection } from "./CursorSelection";
 import { TimelineCursor } from "./TimelineCursor";
-import { TrackA } from "./TrackA";
+import { TrackA, getDroppedAudioURL } from "./TrackA";
 import { TrackHeader } from "./TrackHeader";
 import { TrackM } from "./TrackM";
-import { useEventListener } from "./useEventListener";
-import nullthrows from "../utils/nullthrows";
-import { CursorSelection } from "./CursorSelection";
 import { UtilityMenu } from "./UtilityMenu";
+import { useEventListener } from "./useEventListener";
 
 export function TimelineView({
   project,
@@ -40,6 +41,8 @@ export function TimelineView({
   const [dspExpandedTracks] = useLinkedSet(project.dspExpandedTracks);
   const secsToPx = useDerivedState(project.secsToPx);
   const [viewportStartPx] = useLinkedState(project.viewportStartPx);
+  const [audioStorage] = useLinkedState(project.audioStorage);
+  const [draggingOver, setDraggingOver] = useState<boolean>(false);
 
   useResizeObserver<HTMLDivElement>({
     ref: projectDivRef,
@@ -134,6 +137,23 @@ export function TimelineView({
   useAxisContainerMouseEvents(project, axisContainerRef);
   useTimelineMouseEvents(project, projectDivRef);
 
+  const onDrop = useCallback(
+    async (ev: React.DragEvent<HTMLDivElement>) => {
+      ev.preventDefault();
+      const url = await getDroppedAudioURL(audioStorage, ev.dataTransfer);
+
+      if (url && url.length > 0) {
+        console.log("dropped", url, "to timeline");
+        const clip = await AudioClip.fromURL(url);
+
+        const track = AudioTrack.fromClip(clip);
+        AudioProject.addAudioTrack(project, undefined, track, "bottom");
+      }
+      setDraggingOver(false);
+    },
+    [audioStorage, project],
+  );
+
   return (
     <div id="container" className={classes.container}>
       <div ref={axisContainerRef} className={classes.axisContainer}>
@@ -164,7 +184,23 @@ export function TimelineView({
       </div>
 
       {/* 2. Project, including track headers */}
-      <div id="projectDiv" className={classes.projectDiv} ref={projectDivRef}>
+      <div
+        id="projectDiv"
+        className={classes.projectDiv}
+        ref={projectDivRef}
+        onDrop={onDrop}
+        // For some reason, need to .preventDefault() so onDrop gets called
+        onDragOver={function allowDrop(ev) {
+          const newVal = ev.target instanceof HTMLDivElement && ev.target === projectDivRef.current;
+          if (newVal != draggingOver) {
+            setDraggingOver(newVal);
+          }
+          ev.preventDefault();
+        }}
+        onDragLeave={() => {
+          setDraggingOver(false);
+        }}
+      >
         <Axis project={project}></Axis>
         {/* <div id="bgs" style={{ position: "absolute", width: "100%", left: viewportStartPx, background: "green" }}>
           {tracks.map(function (track, i) {
@@ -211,6 +247,7 @@ export function TimelineView({
           }
           exhaustive(track);
         })}
+        {draggingOver && <div style={{ padding: "16px", pointerEvents: "none" }}>Create a new track from clip</div>}
         <TimelineCursor project={project} />
         <div ref={playbackPosDiv} className={classes.playbackPosDiv}></div>
       </div>

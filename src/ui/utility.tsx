@@ -176,10 +176,11 @@ export function UtilitySlider({
           // verticalAlign: "middle",
           // position: "absolute",
           left: 0,
+          top: 1,
           pointerEvents: "none",
           width: "100%",
           paddingTop: 2,
-          fontSize: "0.7em",
+          fontSize: "10px",
           display: "inline-block",
           lineHeight: "normal",
         }}

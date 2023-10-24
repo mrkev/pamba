@@ -76,12 +76,13 @@ export function Library({
 
   const items: ListEntry<LibraryItem>[] = useMemo(() => {
     return [
-      ...localProjects.map((project) => {
+      ...localProjects.map((p) => {
         return {
-          title: project.name,
+          title: p.name,
           icon: <i className="ri-file-music-line" />,
-          data: { kind: "project", id: project.id },
+          data: { kind: "project", id: p.id },
           disableDrag: true,
+          secondary: p.id === project.projectId ? <i style={{ color: "gray" }}>open</i> : undefined,
         } as const;
       }),
       "separator",
@@ -93,7 +94,7 @@ export function Library({
         } as const;
       }),
     ];
-  }, [audioLibrary, localProjects]);
+  }, [audioLibrary, localProjects, project.projectId]);
 
   return (
     <>
@@ -171,13 +172,3 @@ const useStyles = createUseStyles({
     fontSize: 12,
   },
 });
-
-export function ProjectSettings({ project }: { project: AudioProject }) {
-  const [name] = useLinkedState(project.projectName);
-
-  return (
-    <>
-      <input type="text" value={name} onChange={(e) => project.projectName.set(e.target.value)} />
-    </>
-  );
-}

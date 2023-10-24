@@ -14,7 +14,6 @@ import { utility } from "../utility";
 import { BounceButton } from "./BounceButton";
 import { ToolSelector } from "./ToolSelector";
 import { PlaybackControl, TransportControl } from "./TransportControl";
-import { UtilityMenu } from "../UtilityMenu";
 
 function NewProjectButton() {
   return (

@@ -13,14 +13,15 @@ import { MidiClip } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
 import { exhaustive } from "../utils/exhaustive";
 import { AudioClipEditor } from "./AudioClipEditor";
-import { Library, ProjectSettings } from "./Library";
+import { Library } from "./Library";
+import { ProjectSettings } from "./ProjectSettings";
 import { MidiClipEditor } from "./MidiClipEditor";
 import { OldMidiClipEditor } from "./OldMidiClipEditor";
+import { TabbedPanel } from "./TabbedPanel";
 import { TimelineView } from "./TimelineView";
 import { UtilityPanel } from "./UtilityPanel";
 import { ToolHeader } from "./header/ToolHeader";
 import { useMousePressMove } from "./useEventListener";
-import { TabbedPanel } from "./TabbedPanel";
 
 function useStopPlaybackOnUnmount(renderer: AudioRenderer) {
   useEffect(() => {

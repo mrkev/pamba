@@ -220,7 +220,6 @@ export const TrackHeader = React.memo(function TrackHeader({
           style={{
             background: isDspExpanded ? "#444" : undefined,
             color: isDspExpanded ? "white" : undefined,
-            fontSize: "0.8em",
             margin: "2px",
           }}
           onClick={function (e) {
@@ -334,10 +333,10 @@ const useStyles = createUseStyles({
     padding: "2px 2px 0px 2px",
   },
   headerButton: {
-    fontSize: 10,
+    fontSize: "10px",
   },
   lockButton: {
-    fontSize: 19,
-    padding: "1.5px 3px 0px 3px",
+    fontSize: "19px",
+    padding: "4px 3px 0px 3px",
   },
 });

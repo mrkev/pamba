@@ -10,6 +10,7 @@ export type ListItem<T> = {
   disableDrag?: boolean;
   data: T;
   icon?: React.ReactElement;
+  secondary?: React.ReactNode;
 };
 
 export type ListSeparator = "separator";
@@ -121,6 +122,8 @@ export function UtilityDataList<T>({
           >
             {item.icon}
             {item.title}
+            <div style={{ flexGrow: 1 }} />
+            {item.secondary}
           </div>
         );
       })}

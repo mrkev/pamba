@@ -6,12 +6,13 @@ import { AudioClip } from "../lib/AudioClip";
 import { AudioRenderer } from "../lib/AudioRenderer";
 import { AudioTrack } from "../lib/AudioTrack";
 import { AudioProject } from "../lib/project/AudioProject";
+import { AudioStorage } from "../lib/project/AudioStorage";
 import { useLinkedArray } from "../lib/state/LinkedArray";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { pressedState } from "../pressedState";
 import { ignorePromise } from "../utils/ignorePromise";
 import { ClipA } from "./ClipA";
-import { ClipInvalid, ClipPlaceholder } from "./ClipInvalid";
+import { ClipInvalid } from "./ClipInvalid";
 import { CursorSelection } from "./CursorSelection";
 import { EffectRack } from "./EffectRack";
 
@@ -21,6 +22,50 @@ function clientXToTrackX(trackElem: HTMLDivElement | null, clientX: number) {
   }
   return clientX + trackElem.scrollLeft - trackElem.getBoundingClientRect().x;
 }
+
+export async function getDroppedAudioURL(audioStorage: AudioStorage | null, dataTransfer: DataTransfer) {
+  if (audioStorage == null) {
+    return null;
+  }
+
+  // We can drop audio files from outside the app
+  let url: string | null = null;
+
+  for (let i = 0; i < dataTransfer.files.length; i++) {
+    const file = dataTransfer.files[i];
+    console.log("TODO: VERIFY FILE TYPE. Parallel uploads", file);
+
+    const result = await audioStorage.uploadAudioFile(file);
+    if (result instanceof Error) {
+      throw result;
+    }
+    url = result;
+  }
+
+  // We can drop urls to audio from other parts of the UI
+  if (url == null) {
+    url = dataTransfer.getData("text");
+  }
+
+  return url;
+}
+
+const loadAudioClipIntoTrack = async (
+  url: string,
+  track: AudioTrack,
+  startOffsetSec: number,
+  name?: string,
+): Promise<void> => {
+  try {
+    // load clip
+    const clip = await AudioClip.fromURL(url, name);
+    clip.startOffsetSec = startOffsetSec;
+    track.addClip(clip);
+  } catch (e) {
+    console.trace(e);
+    return;
+  }
+};
 
 export function TrackA({
   track,
@@ -51,53 +96,17 @@ export function TrackA({
 
   useTrackMouseEvents(trackRef, project, track);
 
-  const loadClipIntoTrack = useCallback(
-    async (url: string, track: AudioTrack, startOffsetSec: number, name?: string): Promise<void> => {
-      try {
-        // load clip
-        const clip = await AudioClip.fromURL(url, name);
-        clip.startOffsetSec = startOffsetSec;
-        track.addClip(clip);
-      } catch (e) {
-        console.trace(e);
-        return;
-      }
-    },
-    [],
-  );
-
   const onDrop = useCallback(
     async (ev: React.DragEvent<HTMLDivElement>) => {
       ev.preventDefault();
-      console.log(ev.dataTransfer);
-      if (audioStorage == null) {
-        return;
-      }
-      // We can drop audio files from outside the app
-      let url: string | null = null;
+      const url = await getDroppedAudioURL(audioStorage, ev.dataTransfer);
 
-      for (let i = 0; i < ev.dataTransfer.files.length; i++) {
-        const file = ev.dataTransfer.files[i];
-        console.log("TODO: VERIFY FILE TYPE. Parallel uploads", file);
-
-        const result = await audioStorage.uploadAudioFile(file);
-        if (result instanceof Error) {
-          throw result;
-        }
-        url = result;
-      }
-
-      // We can drop urls to audio from other parts of the UI
-      if (url == null) {
-        url = ev.dataTransfer.getData("text");
-      }
-
-      if (url.length > 0) {
-        ignorePromise(loadClipIntoTrack(url, track, project.viewport.pxToSecs(draggingOver ?? 0)));
+      if (url && url.length > 0) {
+        ignorePromise(loadAudioClipIntoTrack(url, track, project.viewport.pxToSecs(draggingOver ?? 0)));
       }
       setDraggingOver(null);
     },
-    [audioStorage, draggingOver, loadClipIntoTrack, project.viewport, track],
+    [audioStorage, draggingOver, project.viewport, track],
   );
 
   return (
@@ -105,6 +114,7 @@ export function TrackA({
       <div
         ref={trackRef}
         onDrop={onDrop}
+        // For some reason, need to .preventDefault() so onDrop gets called
         onDragOver={function allowDrop(ev) {
           const draggedOffsetPx = clientXToTrackX(trackRef.current, ev.clientX);
           setDraggingOver(draggedOffsetPx);
