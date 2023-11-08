@@ -12,16 +12,21 @@ import { pressedState } from "../pressedState";
 import { RenamableLabel } from "./RenamableLabel";
 // import { dataWaveformToCanvas } from "../lib/waveformAsync";
 
-type Props = {
+export function ClipA({
+  clip,
+  isSelected,
+  style = {},
+  project,
+  track,
+  editable = true,
+}: {
   clip: AudioClip;
-  rerender: () => void;
   isSelected: boolean;
   style?: React.CSSProperties;
   project: AudioProject;
   track: AudioTrack | null; // null if clip is being rendered for move
-};
-
-export function ClipA({ clip, rerender, isSelected, style = {}, project, track }: Props) {
+  editable?: boolean;
+}) {
   const styles = useStyles();
   const width = project.viewport.secsToPx(clip.durationSec);
   const totalBufferWidth = project.viewport.secsToPx(clip.lengthSec);
@@ -31,9 +36,7 @@ export function ClipA({ clip, rerender, isSelected, style = {}, project, track }
   // const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [name] = useLinkedState(clip.name);
 
-  useSubscribeToSubbableMutationHashable(clip, () => {
-    rerender();
-  });
+  useSubscribeToSubbableMutationHashable(clip);
 
   function onMouseDownToResize(e: React.MouseEvent<HTMLDivElement>, from: "start" | "end") {
     e.stopPropagation();
@@ -56,6 +59,10 @@ export function ClipA({ clip, rerender, isSelected, style = {}, project, track }
 
   function onMouseDownToMove(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
     if (tool !== "move" || track == null) {
+      return;
+    }
+
+    if (!editable) {
       return;
     }
 
@@ -94,6 +101,10 @@ export function ClipA({ clip, rerender, isSelected, style = {}, project, track }
     if (!(div instanceof HTMLDivElement)) {
       return;
     }
+    if (!editable) {
+      return;
+    }
+
     if (tool === "trimStart") {
       const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
       const asSec = project.viewport.pxToSecs(pxFromStartOfClip);
@@ -133,7 +144,7 @@ export function ClipA({ clip, rerender, isSelected, style = {}, project, track }
         border: border,
         boxSizing: "border-box",
         color: "white",
-        pointerEvents: "all",
+        pointerEvents: editable ? "all" : "none",
         display: "flex",
         flexDirection: "column",
         position: "absolute",
@@ -162,8 +173,8 @@ export function ClipA({ clip, rerender, isSelected, style = {}, project, track }
         />{" "}
         ({Math.round(clip.durationSec * 100) / 100})
       </div>
-      <div className={styles.resizerStart} onMouseDownCapture={(e) => onMouseDownToResize(e, "start")}></div>
-      <div className={styles.resizerEnd} onMouseDownCapture={(e) => onMouseDownToResize(e, "end")}></div>
+      {editable && <div className={styles.resizerStart} onMouseDownCapture={(e) => onMouseDownToResize(e, "start")} />}
+      {editable && <div className={styles.resizerEnd} onMouseDownCapture={(e) => onMouseDownToResize(e, "end")} />}
 
       {/* <button
         onClick={() => {

@@ -15,6 +15,7 @@ import { ClipA } from "./ClipA";
 import { ClipInvalid } from "./ClipInvalid";
 import { CursorSelection } from "./CursorSelection";
 import { EffectRack } from "./EffectRack";
+import { useLinkedSet } from "../lib/state/LinkedSet";
 
 function clientXToTrackX(trackElem: HTMLDivElement | null, clientX: number) {
   if (trackElem == null) {
@@ -86,9 +87,13 @@ export function TrackA({
   const [clips] = useLinkedArray(track.clips);
   const [height] = useLinkedState(track.height);
   const [activeTrack] = useLinkedState(project.activeTrack);
+  const [lockedTracks] = useLinkedSet(project.lockedTracks);
   const [audioStorage] = useLinkedState(project.audioStorage);
   const trackRef = useRef<HTMLDivElement>(null);
   const [draggingOver, setDraggingOver] = useState<number | null>(null);
+
+  const locked = lockedTracks.has(track);
+
   const [, setStateCounter] = useState(0);
   const rerender = useCallback(function () {
     setStateCounter((x) => x + 1);
@@ -137,7 +142,7 @@ export function TrackA({
           }
           const isSelected = selected !== null && selected.status === "clips" && selected.test.has(clip);
           return (
-            <ClipA key={i} clip={clip} rerender={rerender} isSelected={isSelected} track={track} project={project} />
+            <ClipA editable={!locked} key={i} clip={clip} isSelected={isSelected} track={track} project={project} />
           );
         })}
 
@@ -164,7 +169,7 @@ export function TrackA({
           pressed.status === "moving_clip" &&
           pressed.track === track &&
           (pressed.clip instanceof AudioClip ? (
-            <ClipA clip={pressed.clip} rerender={rerender} isSelected={true} project={project} track={null} />
+            <ClipA clip={pressed.clip} isSelected={true} project={project} track={null} />
           ) : (
             <ClipInvalid clip={pressed.clip} project={project} />
           ))}

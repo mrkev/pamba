@@ -1,4 +1,3 @@
-import React from "react";
 import { AudioProject } from "../../lib/project/AudioProject";
 import { useLinkedState } from "../../lib/state/LinkedState";
 import { utility } from "../utility";
@@ -6,7 +5,17 @@ import { utility } from "../utility";
 export function ToolSelector({ project }: { project: AudioProject }) {
   const [tool, setTool] = useLinkedState(project.pointerTool);
   return (
-    <div style={{ width: 140, display: "flex", flexDirection: "row" }}>
+    <div style={{ width: 150, display: "flex", flexDirection: "row" }}>
+      <button
+        title="move"
+        className={utility.button}
+        style={tool === "move" ? { background: "#BABABA", color: "black" } : undefined}
+        onClick={() => {
+          setTool("move");
+        }}
+      >
+        <i className="ri-cursor-fill"></i>
+      </button>
       <button
         className={utility.button}
         style={tool === "trimStart" ? { background: "teal", color: "white" } : undefined}
