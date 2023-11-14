@@ -82,12 +82,12 @@ export function AudioClipEditor({
             value={name}
             setValue={console.log}
           />{" "}
-          ({Math.round(clip.durationSec * 100) / 100})
+          ({Math.round(clip.getDuration() * 100) / 100})
         </div>
         Length{" "}
         <input
           type="number"
-          value={clip.durationSec}
+          value={clip.getDuration()}
           onChange={(v) => {
             console.log("CHANGE");
           }}
@@ -137,7 +137,7 @@ export function AudioClipEditor({
                 position: "absolute",
                 left: pxOfSec(clip.trimStartSec), //todo viewport
                 height: "100%",
-                width: pxOfSec(clip.durationSec),
+                width: pxOfSec(clip.getDuration()),
                 border,
                 boxSizing: "border-box",
               }}

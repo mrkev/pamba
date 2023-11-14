@@ -11,6 +11,7 @@ import { RenamableLabel } from "./RenamableLabel";
 import { UtilityNumber } from "./UtilityNumber";
 import { useDrawOnCanvas } from "./useDrawOnCanvas";
 import { useEventListener } from "./useEventListener";
+import { pushHistory, useContainer, usePrimitive } from "structured-state";
 
 const TOTAL_NOTES = 128;
 
@@ -58,8 +59,8 @@ export function MidiClipEditor({
   const containerRef = useRef<HTMLDivElement>(null);
   const cursorDiv = useRef<HTMLDivElement>(null);
   const backgroundRef = useRef<HTMLCanvasElement>(null);
-  const [notes] = useLinkedArray(clip.notes);
-  const [name] = useLinkedState(clip.name);
+  const notes = useContainer(clip.notes);
+  const [name] = usePrimitive(clip.name);
   const [noteHeight, setNoteHeight] = useState(10 /* px per note */);
   const [pulseWidth, setPulseWidth] = useState(5 /* width of a midi pulse */);
   const [bpm] = useLinkedState(project.tempo);
@@ -105,7 +106,7 @@ export function MidiClipEditor({
       }
 
       // after
-      if (playbackTimePulses > clip._endOffset()) {
+      if (playbackTimePulses > clip._endOffsetU) {
         cursorElem.style.display = "none";
         return;
       }
@@ -127,11 +128,13 @@ export function MidiClipEditor({
         const tick = noteX * NOTE_DURATION;
 
         const prevNote = clip.findNote(tick, noteNum);
-        if (prevNote != null) {
-          clip.removeNote(prevNote);
-        } else {
-          clip.addNote(tick, noteNum, NOTE_DURATION, 100);
-        }
+        void pushHistory(() => {
+          if (prevNote != null) {
+            clip.removeNote(prevNote);
+          } else {
+            clip.addNote(tick, noteNum, NOTE_DURATION, 100);
+          }
+        });
       },
       [clip, noteHeight],
     ),

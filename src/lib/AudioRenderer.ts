@@ -65,7 +65,7 @@ export class AudioRenderer {
             end = end == null || clip.endOffsetSec > end ? clip.endOffsetSec : end;
             console.log("endOffsetSec", clip.endOffsetSec, end);
           } else if (clip instanceof MidiClip) {
-            const endOffsetSec = pulsesToSec(clip._endOffset(), tempo);
+            const endOffsetSec = pulsesToSec(clip._endOffsetU, tempo);
             end = end == null || endOffsetSec > end ? endOffsetSec : end;
             console.log("endOffsetSec", endOffsetSec, end);
           } else {

@@ -1,4 +1,4 @@
-import { addClip, assertClipInvariants, deleteTime, pushClip, removeClip, splitClip } from "../AudioTrackFn";
+import { addClip, assertClipInvariants, deleteTime, pushClip, removeClip, splitClip } from "../BaseClipFn";
 import { BaseClip } from "../BaseClip";
 
 function clip(startOffset, endOffset) {

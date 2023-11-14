@@ -1,6 +1,6 @@
 import { staticAudioContext } from "../constants";
 import { dataURLForWaveform } from "../utils/waveform";
-import { AbstractClip, BaseClip } from "./BaseClip";
+import { AbstractClip, BaseClip, Seconds } from "./BaseClip";
 import { SharedAudioBuffer } from "./SharedAudioBuffer";
 import { loadSound } from "./loadSound";
 import { SPrimitive } from "./state/LinkedState";
@@ -12,10 +12,8 @@ class AudioViewport {
   readonly scrollLeft = SPrimitive.of(0);
 }
 
-// todo: missing clip
-
 // A clip of audio
-export class AudioClip extends BaseClip implements Subbable<AudioClip>, MutationHashable, AbstractClip {
+export class AudioClip extends BaseClip implements Subbable<AudioClip>, MutationHashable, AbstractClip<Seconds> {
   _hash: number = 0;
   _subscriptors: Set<(value: BaseClip) => void> = new Set();
 
@@ -23,6 +21,7 @@ export class AudioClip extends BaseClip implements Subbable<AudioClip>, Mutation
   readonly unit = "sec";
   readonly name: SPrimitive<string>;
   readonly buffer: SharedAudioBuffer;
+
   readonly numberOfChannels: number;
   readonly bufferURL: string;
   readonly sampleRate: number; // how many frames per second
@@ -90,8 +89,8 @@ export class AudioClip extends BaseClip implements Subbable<AudioClip>, Mutation
     return Math.floor(sec * this.sampleRate);
   }
 
-  private frToSec(fr: number): number {
-    return fr / this.sampleRate;
+  private frToSec(fr: number): Seconds {
+    return (fr / this.sampleRate) as Seconds;
   }
 
   get lengthFr(): number {
@@ -122,7 +121,7 @@ export class AudioClip extends BaseClip implements Subbable<AudioClip>, Mutation
   }
 
   get durationFr() {
-    return this.secToFr(this.durationSec);
+    return this.secToFr(this.getDuration());
   }
 
   get trimStartFr() {
@@ -135,23 +134,40 @@ export class AudioClip extends BaseClip implements Subbable<AudioClip>, Mutation
 
   // interface AbstractClip
 
-  _startOffset(): number {
+  get _startOffsetU(): Seconds {
     return this._startOffsetSec;
   }
 
-  _setStartOffset(num: number): void {
+  _setStartOffsetU(num: Seconds): void {
     this._startOffsetSec = num;
   }
 
-  _endOffset(): number {
-    return this.endOffsetSec;
+  get _endOffsetU(): Seconds {
+    return this.endOffsetSec as Seconds;
   }
 
-  _setEndOffset(num: number): void {
+  _setEndOffsetU(num: number): void {
     this.endOffsetSec = num;
   }
 
-  trimToOffset(offset: number): void {
-    return this.trimToOffsetSec(offset);
+  trimToOffset(timeSec: number): void {
+    return this.trimToOffsetSec(timeSec);
+  }
+
+  // Trim start to time.
+  trimToOffsetSec(timeSec: number): void {
+    if (timeSec < this.startOffsetSec) {
+      // can't grow back past beggining of clip audio
+      return;
+    }
+
+    if (timeSec > this.endOffsetSec) {
+      throw new Error("trimming past end time");
+    }
+
+    const delta = timeSec - this.startOffsetSec;
+
+    this.startOffsetSec = timeSec;
+    this.trimStartSec = this.trimStartSec + delta;
   }
 }

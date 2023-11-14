@@ -1,5 +1,6 @@
 import type { ScaleLinear } from "d3-scale";
 import { scaleLinear } from "d3-scale";
+import { SArray } from "structured-state";
 import { ulid } from "ulid";
 import { modifierState } from "../../ModifierState";
 import { DEFAULT_TEMPO, SYNTH_101_URL, liveAudioContext } from "../../constants";
@@ -16,7 +17,6 @@ import { appEnvironment } from "../AppEnvironment";
 import { AudioClip } from "../AudioClip";
 import { AudioTrack } from "../AudioTrack";
 import { DerivedState } from "../state/DerivedState";
-import { LinkedArray } from "../state/LinkedArray";
 import { LinkedMap } from "../state/LinkedMap";
 import { LinkedSet } from "../state/LinkedSet";
 import { SPrimitive } from "../state/LinkedState";
@@ -61,7 +61,7 @@ export class AudioProject {
   readonly snapToGrid = SPrimitive.of(true); // per project setting?
 
   // Tracks //
-  readonly allTracks: LinkedArray<AudioTrack | MidiTrack>;
+  readonly allTracks: SArray<AudioTrack | MidiTrack>;
   readonly solodTracks = LinkedSet.create<AudioTrack | MidiTrack>(); // TODO: single track kind?
   readonly dspExpandedTracks = LinkedSet.create<AudioTrack | MidiTrack>();
   readonly lockedTracks = LinkedSet.create<AudioTrack | MidiTrack>();
@@ -110,7 +110,7 @@ export class AudioProject {
 
   constructor(tracks: (AudioTrack | MidiTrack)[], projectId: string, projectName: string, tempo: number) {
     this.projectId = projectId;
-    this.allTracks = LinkedArray.create(tracks);
+    this.allTracks = SArray.create(tracks);
     this.viewport = new ProjectViewportUtil(this);
     this.projectName = SPrimitive.of(projectName);
     this.tempo = SPrimitive.of(tempo);

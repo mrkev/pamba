@@ -28,7 +28,7 @@ export function ClipA({
   editable?: boolean;
 }) {
   const styles = useStyles();
-  const width = project.viewport.secsToPx(clip.durationSec);
+  const width = project.viewport.secsToPx(clip.getDuration());
   const totalBufferWidth = project.viewport.secsToPx(clip.lengthSec);
   const startTrimmedWidth = project.viewport.secsToPx(clip.trimStartSec);
   const [tool] = useLinkedState(project.pointerTool);
@@ -171,7 +171,7 @@ export function ClipA({
           value={name}
           setValue={console.log}
         />{" "}
-        ({Math.round(clip.durationSec * 100) / 100})
+        ({Math.round(clip.getDuration() * 100) / 100})
       </div>
       {editable && <div className={styles.resizerStart} onMouseDownCapture={(e) => onMouseDownToResize(e, "start")} />}
       {editable && <div className={styles.resizerEnd} onMouseDownCapture={(e) => onMouseDownToResize(e, "end")} />}

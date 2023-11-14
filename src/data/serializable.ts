@@ -11,6 +11,7 @@ import { MidiTrack } from "../midi/MidiTrack";
 import { Note } from "../midi/SharedMidiTypes";
 import { exhaustive } from "../utils/exhaustive";
 import nullthrows from "../utils/nullthrows";
+import { mutable } from "../utils/types";
 import { PambaWamNode } from "../wam/PambaWamNode";
 
 export type SAudioClip = {
@@ -145,7 +146,7 @@ export async function construct(
     }
     case "MidiClip": {
       const { name, startOffsetPulses, lengthPulses, notes } = rep;
-      return new MidiClip(name, startOffsetPulses, lengthPulses, notes);
+      return new MidiClip(name, startOffsetPulses, lengthPulses, mutable(notes));
     }
     case "AudioTrack": {
       const { name, clips: sClips, effects: sEffects, height } = rep;

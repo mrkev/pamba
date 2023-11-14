@@ -1,4 +1,4 @@
-import React, { SetStateAction, useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { createUseStyles } from "react-jss";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import { appEnvironment } from "../lib/AppEnvironment";
@@ -16,7 +16,6 @@ import { AudioFileUploadDropzone } from "./AudioFileUploadDropzone";
 import { UploadAudioButton } from "./UploadAudioButton";
 import { ListEntry, UtilityDataList } from "./UtilityList";
 import { UserAuthControl } from "./header/UserAuthControl";
-import { TabbedPanel } from "./TabbedPanel";
 
 const STATIC_AUDIO_FILES = ["drums.mp3", "clav.mp3", "bassguitar.mp3", "horns.mp3", "leadguitar.mp3"];
 

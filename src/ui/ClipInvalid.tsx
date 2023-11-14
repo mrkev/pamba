@@ -7,7 +7,7 @@ import { useSubscribeToSubbableMutationHashable } from "../lib/state/LinkedMap";
 export function getClipSizePx(clip: MidiClip | AudioClip, project: AudioProject) {
   const width =
     clip instanceof AudioClip
-      ? project.viewport.secsToPx(clip.durationSec)
+      ? project.viewport.secsToPx(clip.getDuration())
       : project.viewport.pulsesToPx(clip.lengthPulses);
   const left =
     clip instanceof AudioClip

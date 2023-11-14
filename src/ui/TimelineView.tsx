@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createUseStyles } from "react-jss";
+import { useContainer } from "structured-state";
 import useResizeObserver from "use-resize-observer";
 import { TRACK_HEADER_WIDTH } from "../constants";
 import { useAxisContainerMouseEvents, useTimelineMouseEvents } from "../input/useProjectMouseEvents";
@@ -9,7 +10,6 @@ import { AudioRenderer } from "../lib/AudioRenderer";
 import { AudioTrack } from "../lib/AudioTrack";
 import { AudioProject } from "../lib/project/AudioProject";
 import { useDerivedState } from "../lib/state/DerivedState";
-import { useLinkedArray } from "../lib/state/LinkedArray";
 import { useLinkedSet } from "../lib/state/LinkedSet";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { MidiTrack } from "../midi/MidiTrack";
@@ -37,7 +37,7 @@ export function TimelineView({
   const playbackPosDiv = useRef<null | HTMLDivElement>(null);
   const projectDivRef = useRef<HTMLDivElement | null>(null);
   const axisContainerRef = useRef<HTMLDivElement | null>(null);
-  const [tracks] = useLinkedArray(project.allTracks);
+  const tracks = useContainer(project.allTracks);
   const [dspExpandedTracks] = useLinkedSet(project.dspExpandedTracks);
   const secsToPx = useDerivedState(project.secsToPx);
   const [viewportStartPx] = useLinkedState(project.viewportStartPx);

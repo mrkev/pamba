@@ -1,7 +1,7 @@
 import { useLocalState } from "@ricardo-jrm/use-local-state";
+import { useContainer } from "structured-state";
 import { AudioProject } from "../lib/project/AudioProject";
 import { PrimarySelectionState } from "../lib/project/SelectionState";
-import { useLinkedArray } from "../lib/state/LinkedArray";
 import { useLinkedSet } from "../lib/state/LinkedSet";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { pressedState } from "../pressedState";
@@ -48,7 +48,7 @@ export function DebugData({ project }: { project: AudioProject }) {
   const [selected] = useLinkedState(project.selected);
   const [cursorPos] = useLinkedState(project.cursorPos);
   const [selectionWidth] = useLinkedState(project.selectionWidth);
-  const [tracks] = useLinkedArray(project.allTracks);
+  const tracks = useContainer(project.allTracks);
   const [pressed] = useLinkedState(pressedState);
   const [activeTrack] = useLinkedState(project.activeTrack);
   const [cursorTracks] = useLinkedSet(project.cursorTracks);

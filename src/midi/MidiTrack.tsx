@@ -125,7 +125,7 @@ export class MidiTrack extends ProjectTrack<MidiClip> {
       simpleClips.push({
         notes: clip.notes._getRaw(),
         startOffsetPulses: clip.startOffsetPulses,
-        endOffsetPulses: clip._endOffset(),
+        endOffsetPulses: clip._endOffsetU,
       });
     }
     this.pianoRoll.sendClipsForPlayback(simpleClips);

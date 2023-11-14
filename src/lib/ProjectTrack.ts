@@ -5,15 +5,15 @@ import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
 import nullthrows from "../utils/nullthrows";
 import { PambaWamNode } from "../wam/PambaWamNode";
 import { appEnvironment } from "./AppEnvironment";
-import { addClip, deleteTime, moveClip, pushClip, removeClip } from "./AudioTrackFn";
 import { AbstractClip } from "./BaseClip";
+import { addClip, deleteTime, moveClip, pushClip, removeClip } from "./BaseClipFn";
 import { connectSerialNodes } from "./connectSerialNodes";
 import { AudioContextInfo } from "./initAudioContext";
 import { PBGainNode } from "./offlineNodes";
 import { LinkedArray } from "./state/LinkedArray";
 import { SPrimitive } from "./state/LinkedState";
 
-export abstract class ProjectTrack<T extends AbstractClip> extends DSPNode<null> {
+export abstract class ProjectTrack<T extends AbstractClip<any>> extends DSPNode<null> {
   public readonly name: SPrimitive<string>;
   public readonly height: SPrimitive<number>;
 

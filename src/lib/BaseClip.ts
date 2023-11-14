@@ -13,23 +13,29 @@
 // +--startOffsetSec------+
 // +--endOffsetSec---------------------------------+
 
+declare const UNIT_SECOND: unique symbol;
+export type Seconds = number & { [UNIT_SECOND]: never };
+
+declare const UNIT_PULSE: unique symbol;
+export type Pulses = number & { [UNIT_PULSE]: never };
+
 // rn mostly used for invariants
-export interface AbstractClip {
-  _startOffset(): number;
-  _setStartOffset(num: number): void;
+export interface AbstractClip<U extends Seconds | Pulses> {
+  get _startOffsetU(): U;
+  _setStartOffsetU(num: U): void;
 
-  _endOffset(): number;
-  _setEndOffset(num: number): void;
+  get _endOffsetU(): U;
+  _setEndOffsetU(num: U): void;
 
-  trimToOffset(offset: number): void;
-  clone(): AbstractClip;
+  trimToOffset(offset: U): void;
+  clone(): AbstractClip<U>;
 }
 
 export class BaseClip {
   // A BaseClip represents media that has a certain length (in frames), but has
   // been trimmed to be of another length.
   readonly lengthSec: number; // seconds, whole buffer
-  protected _startOffsetSec: number; // on the timeline, the x position
+  protected _startOffsetSec: Seconds; // on the timeline, the x position
   protected _trimEndSec: number; // within the clip, time considered the end.
   protected _trimStartSec: number = 0; // within the clip, where to start.
 
@@ -49,18 +55,19 @@ export class BaseClip {
     // By default, there is no trim and the clip has offset 0
     this.lengthSec = lengthSec;
     this._trimEndSec = lengthSec;
-    this._startOffsetSec = startOffsetSec;
+    this._startOffsetSec = startOffsetSec as Seconds;
   }
 
   get startOffsetSec() {
     return this._startOffsetSec;
   }
+
   set startOffsetSec(secs: number) {
-    this._startOffsetSec = secs;
+    this._startOffsetSec = secs as Seconds;
   }
 
   get endOffsetSec() {
-    return this.startOffsetSec + this.durationSec;
+    return this.startOffsetSec + this.getDuration();
   }
   set endOffsetSec(newEnd: number) {
     if (newEnd < this.startOffsetSec) {
@@ -86,7 +93,7 @@ export class BaseClip {
   }
 
   set trimEndSec(s: number) {
-    if (s > this.durationSec) {
+    if (s > this.getDuration()) {
       // todo
     }
 
@@ -97,7 +104,7 @@ export class BaseClip {
     this._trimEndSec = s;
   }
 
-  get durationSec() {
+  getDuration() {
     return this._trimEndSec - this._trimStartSec;
   }
 
@@ -114,22 +121,5 @@ export class BaseClip {
     }
 
     this._trimStartSec = s;
-  }
-
-  // Trim start to time.
-  trimToOffsetSec(timeSec: number) {
-    if (timeSec < this.startOffsetSec) {
-      // can't grow back past beggining of clip audio
-      return;
-    }
-
-    if (timeSec > this.endOffsetSec) {
-      throw new Error("trimming past end time");
-    }
-
-    const delta = timeSec - this.startOffsetSec;
-
-    this.startOffsetSec = timeSec;
-    this.trimStartSec = this.trimStartSec + delta;
   }
 }

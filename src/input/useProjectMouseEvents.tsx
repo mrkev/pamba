@@ -78,7 +78,7 @@ export function useTimelineMouseEvents(
               pressed.originalTrack instanceof MidiTrack &&
               pressed.clip instanceof MidiClip
             ) {
-              pressed.track.deleteTime(pressed.clip.startOffsetPulses, pressed.clip._endOffset());
+              pressed.track.deleteTime(pressed.clip.startOffsetPulses, pressed.clip._endOffsetU);
               pressed.originalTrack.removeClip(pressed.clip);
               pressed.track.addClip(pressed.clip);
             }

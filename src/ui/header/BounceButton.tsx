@@ -6,13 +6,15 @@ import { utility } from "../utility";
 export function BounceButton({ project }: { project: AudioProject; renderer: AudioRenderer }) {
   const [selectionWidth] = useLinkedState(project.selectionWidth);
   return (
-    <button
-      className={utility.button}
-      onClick={async () => {
-        await AudioRenderer.bounceSelection(project);
-      }}
-    >
-      {selectionWidth && Math.abs(selectionWidth) > 0 ? "bounce selected" : "bounce all"}
-    </button>
+    <div style={{ width: 95, display: "flex", flexDirection: "row-reverse" }}>
+      <button
+        className={utility.button}
+        onClick={async () => {
+          await AudioRenderer.bounceSelection(project);
+        }}
+      >
+        {selectionWidth && Math.abs(selectionWidth) > 0 ? "bounce selected" : "bounce all"}
+      </button>
+    </div>
   );
 }

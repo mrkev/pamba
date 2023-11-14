@@ -1,8 +1,8 @@
 import React from "react";
 import { createUseStyles } from "react-jss";
+import { useContainer, usePrimitive } from "structured-state";
 import { modifierState } from "../ModifierState";
 import type { AudioProject } from "../lib/project/AudioProject";
-import { useLinkedArray } from "../lib/state/LinkedArray";
 import { useSubscribeToSubbableMutationHashable } from "../lib/state/LinkedMap";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { MidiClip, pulsesToSec } from "../midi/MidiClip";
@@ -27,10 +27,10 @@ export function ClipM({
   const styles = useStyles();
   const width = project.viewport.pulsesToPx(clip.lengthPulses);
   const [bpm] = useLinkedState(project.tempo);
-  const [notes] = useLinkedArray(clip.notes);
+  const notes = useContainer(clip.notes);
   // const startTrimmedWidth = project.viewport.secsToPx(clip.trimStartSec);
   const [tool] = useLinkedState(project.pointerTool);
-  const [name] = useLinkedState(clip.name);
+  const [name] = usePrimitive(clip.name);
   // const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useSubscribeToSubbableMutationHashable(clip);

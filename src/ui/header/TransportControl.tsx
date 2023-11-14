@@ -1,11 +1,11 @@
 import React, { useEffect, useRef } from "react";
+import { useContainer } from "structured-state";
 import { AnalizedPlayer } from "../../lib/AnalizedPlayer";
+import { AudioRecorder } from "../../lib/AudioRecorder";
 import { AudioRenderer } from "../../lib/AudioRenderer";
 import { AudioProject } from "../../lib/project/AudioProject";
-import { useLinkedArray } from "../../lib/state/LinkedArray";
 import { useLinkedState } from "../../lib/state/LinkedState";
 import { exhaustive } from "../../utils/exhaustive";
-import { AudioRecorder } from "../../lib/AudioRecorder";
 import { utility } from "../utility";
 
 export function TransportControl({
@@ -74,7 +74,7 @@ export function PlaybackControl({
   style: React.CSSProperties;
   recorder: AudioRecorder;
 }) {
-  const [tracks] = useLinkedArray(project.allTracks);
+  const tracks = useContainer(project.allTracks);
   const [armedTrack] = useLinkedState(project.armedTrack);
   const [isAudioPlaying] = useLinkedState(renderer.isAudioPlaying);
   const [recorderStatus] = useLinkedState(recorder.status);
