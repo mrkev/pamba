@@ -1,30 +1,55 @@
+import { getGlobalState, useContainer } from "structured-state";
+import { documentCommands } from "../../input/useDocumentKeyboardEvents";
 import { AudioProject } from "../../lib/project/AudioProject";
 import { useLinkedState } from "../../lib/state/LinkedState";
 import { utility } from "../utility";
 
 export function ToolSelector({ project }: { project: AudioProject }) {
-  const [tool, setTool] = useLinkedState(project.pointerTool);
+  const [tool] = useLinkedState(project.pointerTool);
+  const history = useContainer(getGlobalState().history);
+
   return (
     <div style={{ width: 150, display: "flex", flexDirection: "row" }}>
+      <button
+        disabled={history.length < 1}
+        title="undo"
+        className={utility.button}
+        style={{ marginRight: "2px" }}
+        onClick={() => {
+          documentCommands.execById("undo", project);
+        }}
+      >
+        {"\u21E0"}
+      </button>
+      {/* <button
+        title="move"
+        className={utility.button}
+        onClick={() => {
+          documentCommands.execById("moveTool", project);
+        }}
+      >
+        {"\u21E2"}
+      </button> */}
       <button
         title="move"
         className={utility.button}
         style={tool === "move" ? { background: "#BABABA", color: "black" } : undefined}
         onClick={() => {
-          setTool("move");
+          documentCommands.execById("moveTool", project);
         }}
       >
         <i className="ri-cursor-fill"></i>
       </button>
       <button
+        disabled
         title="slice"
         className={utility.button}
         style={tool === "slice" ? { background: "teal", color: "white" } : undefined}
         onClick={() => {
           if (tool === "slice") {
-            setTool("move");
+            documentCommands.execById("moveTool", project);
           } else {
-            setTool("slice");
+            documentCommands.execById("sliceTool", project);
           }
         }}
       >
@@ -36,9 +61,9 @@ export function ToolSelector({ project }: { project: AudioProject }) {
         style={tool === "trimStart" ? { background: "teal", color: "white" } : undefined}
         onClick={() => {
           if (tool === "trimStart") {
-            setTool("move");
+            documentCommands.execById("moveTool", project);
           } else {
-            setTool("trimStart");
+            documentCommands.execById("trimStartTool", project);
           }
         }}
       >
@@ -50,9 +75,9 @@ export function ToolSelector({ project }: { project: AudioProject }) {
         style={tool === "trimEnd" ? { background: "teal", color: "white" } : undefined}
         onClick={() => {
           if (tool === "trimEnd") {
-            setTool("move");
+            documentCommands.execById("moveTool", project);
           } else {
-            setTool("trimEnd");
+            documentCommands.execById("trimEndTool", project);
           }
         }}
       >

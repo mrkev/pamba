@@ -14,15 +14,16 @@ import { MidiTrack } from "../midi/MidiTrack";
 import { exhaustive } from "../utils/exhaustive";
 import { AudioClipEditor } from "./AudioClipEditor";
 import { Library } from "./Library";
-import { ProjectSettings } from "./ProjectSettings";
 import { MidiClipEditor } from "./MidiClipEditor";
 import { OldMidiClipEditor } from "./OldMidiClipEditor";
+import { ProjectSettings } from "./ProjectSettings";
 import { TabbedPanel } from "./TabbedPanel";
 import { TimelineView } from "./TimelineView";
 import { UtilityPanel } from "./UtilityPanel";
 import { ToolHeader } from "./header/ToolHeader";
-import { useMousePressMove } from "./useEventListener";
 import { History } from "./history";
+import { useMousePressMove } from "./useEventListener";
+import { useLocalStorage } from "./useLocalStorage";
 
 function useStopPlaybackOnUnmount(renderer: AudioRenderer) {
   useEffect(() => {
@@ -42,7 +43,7 @@ export function AppProject({ project }: { project: AudioProject }) {
   useSingletonKeyboardModifierState(modifierState);
   useDocumentKeyboardEvents(project, renderer.analizedPlayer, renderer);
   useStopPlaybackOnUnmount(renderer);
-  const [activePanel, setActivePanel] = useState<string | null>(null);
+  const [activePanel, setActivePanel] = useLocalStorage<string | null>("side-panel-active", null);
 
   return (
     <>

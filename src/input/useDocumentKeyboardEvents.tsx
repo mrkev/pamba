@@ -1,13 +1,70 @@
 import { useEffect } from "react";
+import { history } from "structured-state";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
+import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioRenderer } from "../lib/AudioRenderer";
 import { ProjectPersistance } from "../lib/ProjectPersistance";
 import { AudioProject, ProjectSelection } from "../lib/project/AudioProject";
+import { doPaste } from "../lib/project/ClipboardState";
 import { MidiTrack } from "../midi/MidiTrack";
 import { ignorePromise } from "../utils/ignorePromise";
-import { doPaste } from "../lib/project/ClipboardState";
-import { appEnvironment } from "../lib/AppEnvironment";
-import { history } from "structured-state";
+import { CommandBlock } from "./Command";
+
+export const documentCommands = CommandBlock.create((command) => {
+  return {
+    // Document
+
+    save: command(["KeyS", "meta"], (e, project) => {
+      ignorePromise(ProjectPersistance.doSave(project));
+      ignorePromise(appEnvironment.localFiles.saveProject(project));
+      e?.preventDefault();
+      e?.stopPropagation();
+    }),
+
+    undo: command(["KeyZ", "meta"], (e) => {
+      performance.mark("undo-start");
+      history.pop();
+      performance.mark("undo-end");
+      performance.measure("undo", "undo-start", "undo-end");
+      e?.preventDefault();
+    }),
+
+    // Clipboard
+
+    copySelection: command(["KeyC", "meta"], (e, project) => {
+      ProjectSelection.copySelection(project);
+      e?.preventDefault();
+    }).helptext("Copy", "Currently works only with clips"),
+
+    pasteClipboard: command(["KeyV", "meta"], (e, project) => {
+      doPaste(project);
+      e?.preventDefault();
+    }).helptext("Paste", "Currently works only with clips"),
+
+    // Tool selection
+
+    // todo: alias KeyM?
+    moveTool: command(["KeyV"], (e, project) => {
+      project.pointerTool.set("move");
+      document.body.style.cursor = "auto";
+    }),
+
+    trimStartTool: command(["KeyS", "shift"], (e, project) => {
+      project.pointerTool.set("trimStart");
+      document.body.style.cursor = "e-resize";
+    }),
+
+    trimEndTool: command(["KeyE", "shift"], (e, project) => {
+      project.pointerTool.set("trimEnd");
+      document.body.style.cursor = "w-resize";
+    }),
+
+    sliceTool: command(["KeyS"], (e, project) => {
+      project.pointerTool.set("slice");
+      document.body.style.cursor = "crosshair";
+    }),
+  };
+});
 
 export function useDocumentKeyboardEvents(
   project: AudioProject,
@@ -22,40 +79,17 @@ export function useDocumentKeyboardEvents(
         return;
       }
 
+      const executed = documentCommands.execByKeyboardEvent(e, project);
+      if (executed) {
+        // console.log("Executed command!");
+        return;
+      }
+
       switch (e.code) {
         case "Backspace":
           ProjectSelection.deleteSelection(project, player);
           e.preventDefault();
           break;
-
-        case "KeyC":
-          ProjectSelection.copySelection(project);
-          e.preventDefault();
-          break;
-
-        case "KeyV":
-          doPaste(project);
-          e.preventDefault();
-          break;
-
-        case "KeyZ":
-          if (e.metaKey) {
-            performance.mark("undo-start");
-            history.pop();
-            performance.mark("undo-end");
-            performance.measure("undo", "undo-start", "undo-end");
-            e.preventDefault();
-          }
-          break;
-        case "KeyS": {
-          if (e.metaKey) {
-            ignorePromise(ProjectPersistance.doSave(project));
-            ignorePromise(appEnvironment.localFiles.saveProject(project));
-            e.preventDefault();
-            e.stopPropagation();
-          }
-          break;
-        }
 
         case "KeyM": {
           const activeTrack = project.activeTrack.get();
@@ -87,21 +121,6 @@ export function useDocumentKeyboardEvents(
       }
 
       switch (e.code) {
-        case "KeyM":
-        case "KeyV":
-          project.pointerTool.set("move");
-          document.body.style.cursor = "auto";
-          break;
-        case "KeyS": {
-          project.pointerTool.set("trimStart");
-          document.body.style.cursor = "e-resize";
-          break;
-        }
-        case "KeyE":
-          project.pointerTool.set("trimEnd");
-          document.body.style.cursor = "w-resize";
-          break;
-
         case "Enter": {
           const selected = project.selected.get();
           if (selected?.status !== "tracks") {
@@ -115,7 +134,7 @@ export function useDocumentKeyboardEvents(
           break;
         }
         default:
-          console.log(e.code);
+        // console.log(e.code);
       }
       if (e.code === "Space") {
         // todo: is there better way to prevent space from toggling the last

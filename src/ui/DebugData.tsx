@@ -1,4 +1,3 @@
-import { useLocalState } from "@ricardo-jrm/use-local-state";
 import { useContainer } from "structured-state";
 import { AudioProject } from "../lib/project/AudioProject";
 import { PrimarySelectionState } from "../lib/project/SelectionState";
@@ -6,6 +5,7 @@ import { useLinkedSet } from "../lib/state/LinkedSet";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { pressedState } from "../pressedState";
 import { exhaustive } from "../utils/exhaustive";
+import { useLocalStorage } from "./useLocalStorage";
 
 export function stringOfSelected(sel: PrimarySelectionState | null): string {
   if (!sel) {
@@ -52,7 +52,7 @@ export function DebugData({ project }: { project: AudioProject }) {
   const [pressed] = useLinkedState(pressedState);
   const [activeTrack] = useLinkedState(project.activeTrack);
   const [cursorTracks] = useLinkedSet(project.cursorTracks);
-  const [open, setOpen] = useLocalState<boolean>("debugDataOpen", false);
+  const [open, setOpen] = useLocalStorage<boolean>("debugDataOpen", false);
   const [viewportStartPx] = useLinkedState(project.viewportStartPx);
   const [projectDivWidth] = useLinkedState(project.viewport.projectDivWidth);
 

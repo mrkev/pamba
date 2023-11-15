@@ -1,7 +1,7 @@
 import classNames from "classnames";
 import React from "react";
-import { SetState } from "../utils/types";
 import { createUseStyles } from "react-jss";
+import { SetState } from "../utils/types";
 
 type Panel = {
   icon: React.ReactElement;
