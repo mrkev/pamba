@@ -7,7 +7,7 @@ import { MidiTrack } from "../midi/MidiTrack";
 import { ignorePromise } from "../utils/ignorePromise";
 import { doPaste } from "../lib/project/ClipboardState";
 import { appEnvironment } from "../lib/AppEnvironment";
-import { undo } from "structured-state";
+import { history } from "structured-state";
 
 export function useDocumentKeyboardEvents(
   project: AudioProject,
@@ -41,7 +41,7 @@ export function useDocumentKeyboardEvents(
         case "KeyZ":
           if (e.metaKey) {
             performance.mark("undo-start");
-            undo();
+            history.pop();
             performance.mark("undo-end");
             performance.measure("undo", "undo-start", "undo-end");
             e.preventDefault();

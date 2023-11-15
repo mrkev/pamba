@@ -10,6 +10,7 @@ import { MidiTrack } from "../midi/MidiTrack";
 import { pressedState } from "../pressedState";
 import { useDocumentEventListener, useEventListener } from "../ui/useEventListener";
 import { exhaustive } from "../utils/exhaustive";
+import { history } from "structured-state";
 
 export function useAxisContainerMouseEvents(
   project: AudioProject,
@@ -205,6 +206,10 @@ export function useTimelineMouseEvents(
 
         switch (pressed.status) {
           case "moving_clip": {
+            if (!pressed.inHistory && pressed.clip instanceof AudioClip) {
+              history.push([pressed.clip]);
+            }
+
             // metaKey flips it
             const snap = e.metaKey ? !project.snapToGrid.get() : project.snapToGrid.get();
             const deltaX = e.clientX - pressed.clientX;
@@ -215,6 +220,9 @@ export function useTimelineMouseEvents(
             } else {
               clipMovePPQN(pressed.clip, newOffset, project, snap);
             }
+
+            // Hacking around the readonly
+            (pressed as any).inHistory = true;
 
             break;
           }
@@ -236,12 +244,15 @@ export function useTimelineMouseEvents(
               throw new Error("MidiClip unimplemented");
             }
 
+            if (!pressed.inHistory) {
+              history.push([pressed.clip]);
+            }
+
             if (pressed.from === "end") {
               // We can't trim a clip to end before it's beggining
               let newEndPosSec = Math.max(0, pressed.originalClipEndPosSec + deltaXSecs);
               // and also prevent it from extending beyond its original length
               newEndPosSec = Math.min(newEndPosSec, pressed.clip.lengthSec);
-
               pressed.clip.trimEndSec = newEndPosSec;
             } else if (pressed.from === "start") {
               // Can't trim past the length of the clip, so
@@ -257,6 +268,9 @@ export function useTimelineMouseEvents(
               pressed.clip.trimStartSec = newTrimStartSec;
               pressed.clip.startOffsetSec = newOffset;
             }
+
+            // NOTE: hacking away the readonly
+            (pressed as any).inHistory = true;
 
             pressed.clip._notifyChange();
             break;

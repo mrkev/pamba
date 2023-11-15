@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createUseStyles } from "react-jss";
+import { history, useContainer, usePrimitive } from "structured-state";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import { AudioProject } from "../lib/project/AudioProject";
-import { useLinkedArray } from "../lib/state/LinkedArray";
 import { useSubscribeToSubbableMutationHashable } from "../lib/state/LinkedMap";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { MidiClip, secsToPulses } from "../midi/MidiClip";
@@ -11,7 +11,6 @@ import { RenamableLabel } from "./RenamableLabel";
 import { UtilityNumber } from "./UtilityNumber";
 import { useDrawOnCanvas } from "./useDrawOnCanvas";
 import { useEventListener } from "./useEventListener";
-import { pushHistory, useContainer, usePrimitive } from "structured-state";
 
 const TOTAL_NOTES = 128;
 
@@ -128,7 +127,7 @@ export function MidiClipEditor({
         const tick = noteX * NOTE_DURATION;
 
         const prevNote = clip.findNote(tick, noteNum);
-        void pushHistory(() => {
+        void history.record(() => {
           if (prevNote != null) {
             clip.removeNote(prevNote);
           } else {

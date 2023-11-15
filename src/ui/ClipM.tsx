@@ -68,6 +68,7 @@ export function ClipM({
       track,
       originalTrack: track,
       originalClipOffsetSec: pulsesToSec(clip.startOffsetPulses, bpm),
+      inHistory: false,
     });
 
     project.selected.setDyn((prev) => {

@@ -10,7 +10,7 @@ import { useSubscribeToSubbableMutationHashable } from "../lib/state/LinkedMap";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { pressedState } from "../pressedState";
 import { RenamableLabel } from "./RenamableLabel";
-import { pushHistory } from "structured-state";
+import { history } from "structured-state";
 import { exhaustive } from "../utils/exhaustive";
 // import { dataWaveformToCanvas } from "../lib/waveformAsync";
 
@@ -57,6 +57,7 @@ export function ClipA({
       from,
       clientX: e.clientX,
       clientY: e.clientY,
+      inHistory: false,
     });
   }
 
@@ -77,6 +78,7 @@ export function ClipA({
       track,
       originalTrack: track,
       originalClipOffsetSec: clip.startOffsetSec,
+      inHistory: false,
     });
 
     project.selected.setDyn((prev) => {
@@ -117,7 +119,7 @@ export function ClipA({
         const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
         const asSec = project.viewport.pxToSecs(pxFromStartOfClip);
         project.cursorPos.set(clip.startOffsetSec + asSec);
-        void pushHistory(() => {
+        void history.record(() => {
           clip.trimStartAddingTime(asSec);
         });
         break;

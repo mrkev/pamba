@@ -14,6 +14,7 @@ export type CursorState =
       track: AudioTrack | MidiTrack;
       originalTrack: AudioTrack | MidiTrack;
       originalClipOffsetSec: number;
+      inHistory: boolean;
     }>
   | Readonly<{
       status: "dragging_new_audio";
@@ -47,6 +48,7 @@ export type CursorState =
       clip: AudioClip | MidiClip;
       clientX: number;
       clientY: number;
+      inHistory: boolean;
     }>
   | Readonly<{
       status: "resizing_track";
