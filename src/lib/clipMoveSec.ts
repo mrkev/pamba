@@ -6,13 +6,13 @@ import { AudioClip } from "./AudioClip";
 export function clipMoveSec(clip: AudioClip, newOffsetSec: number, project: AudioProject, snap: boolean) {
   if (!snap) {
     clip.startOffsetSec = newOffsetSec;
-    clip.notifyUpdate();
+    clip._notifyChange();
   } else {
     const tempo = project.tempo.get();
     const oneBeatLen = 60 / tempo;
     const actualNewOffsetSec = stepNumber(newOffsetSec, oneBeatLen);
     clip.startOffsetSec = actualNewOffsetSec;
-    clip.notifyUpdate();
+    clip._notifyChange();
   }
 }
 

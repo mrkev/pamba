@@ -24,6 +24,11 @@ export function useAxisContainerMouseEvents(
         if (div == null) {
           return;
         }
+
+        if (project.pointerTool.get() != "move") {
+          return;
+        }
+
         const viewportStartPx = project.viewportStartPx.get();
         const position = {
           x: e.clientX + div.scrollLeft - div.getBoundingClientRect().x,
@@ -57,6 +62,10 @@ export function useTimelineMouseEvents(
       (e: MouseEvent) => {
         const pressed = pressedState.get();
         if (!pressed) {
+          return;
+        }
+
+        if (project.pointerTool.get() != "move") {
           return;
         }
 
@@ -190,6 +199,10 @@ export function useTimelineMouseEvents(
         if (!pressed) {
           return;
         }
+        if (project.pointerTool.get() != "move") {
+          return;
+        }
+
         switch (pressed.status) {
           case "moving_clip": {
             // metaKey flips it
@@ -245,7 +258,7 @@ export function useTimelineMouseEvents(
               pressed.clip.startOffsetSec = newOffset;
             }
 
-            pressed.clip.notifyUpdate();
+            pressed.clip._notifyChange();
             break;
           }
 

@@ -94,10 +94,10 @@ export function TrackA({
 
   const locked = lockedTracks.has(track);
 
-  const [, setStateCounter] = useState(0);
-  const rerender = useCallback(function () {
-    setStateCounter((x) => x + 1);
-  }, []);
+  // const [, setStateCounter] = useState(0);
+  // const rerender = useCallback(function () {
+  //   setStateCounter((x) => x + 1);
+  // }, []);
 
   useTrackMouseEvents(trackRef, project, track);
 

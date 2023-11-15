@@ -42,7 +42,7 @@ import { PrimarySelectionState } from "./SelectionState";
 
 export type XScale = ScaleLinear<number, number>;
 
-export type Tool = "move" | "trimStart" | "trimEnd";
+export type Tool = "move" | "trimStart" | "trimEnd" | "slice";
 
 export type TimeSignature = readonly [numerator: number, denominator: number];
 export type AxisMeasure = "tempo" | "time";

@@ -18,6 +18,10 @@ export type SAudioClip = {
   kind: "AudioClip";
   name: string;
   bufferURL: string;
+  lengthSec: number;
+  startOffsetSec: number;
+  trimStartSec: number;
+  trimEndSec: number;
 };
 
 export type SMidiClip = Readonly<{
@@ -74,8 +78,8 @@ export async function serializable(
   obj: AudioClip | AudioTrack | MidiClip | MidiTrack | AudioProject | FaustAudioEffect | PambaWamNode,
 ): Promise<SAudioClip | SAudioTrack | SMidiClip | SMidiTrack | SAudioProject | SFaustAudioEffect | SPambaWamNode> {
   if (obj instanceof AudioClip) {
-    const { name, bufferURL } = obj;
-    return { kind: "AudioClip", name: name.get(), bufferURL };
+    const { name, bufferURL, startOffsetSec, lengthSec, trimStartSec, trimEndSec } = obj;
+    return { kind: "AudioClip", name: name.get(), bufferURL, startOffsetSec, lengthSec, trimStartSec, trimEndSec };
   }
 
   if (obj instanceof MidiClip) {

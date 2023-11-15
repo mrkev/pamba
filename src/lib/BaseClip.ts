@@ -13,6 +13,8 @@
 // +--startOffsetSec------+
 // +--endOffsetSec---------------------------------+
 
+import { Struct, StructProps, create } from "structured-state";
+
 declare const UNIT_SECOND: unique symbol;
 export type Seconds = number & { [UNIT_SECOND]: never };
 
@@ -31,31 +33,36 @@ export interface AbstractClip<U extends Seconds | Pulses> {
   clone(): AbstractClip<U>;
 }
 
-export class BaseClip {
+export class BaseClip extends Struct<BaseClip> {
   // A BaseClip represents media that has a certain length (in frames), but has
   // been trimmed to be of another length.
   readonly lengthSec: number; // seconds, whole buffer
   protected _startOffsetSec: Seconds; // on the timeline, the x position
   protected _trimEndSec: number; // within the clip, time considered the end.
-  protected _trimStartSec: number = 0; // within the clip, where to start.
+  protected _trimStartSec: number; // within the clip, where to start.
 
-  clone(): BaseClip {
-    const copy = new BaseClip(this.lengthSec, this._startOffsetSec);
-    copy._startOffsetSec = this._startOffsetSec;
-    copy.trimEndSec = this._trimEndSec;
-    copy._trimStartSec = this._trimStartSec;
-    return copy;
-  }
-
-  toString() {
+  override toString() {
     return `${this.startOffsetSec} [ ${this.trimStartSec} | -- | ${this.trimEndSec} ] ${this.endOffsetSec}`;
   }
 
-  constructor(lengthSec: number, startOffsetSec: number) {
+  static of(lengthSec: number, startOffsetSec: number, trimStartSec: number, trimEndSec: number) {
+    return create(BaseClip, { lengthSec, startOffsetSec, trimStartSec, trimEndSec });
+  }
+
+  constructor(
+    props: StructProps<
+      BaseClip,
+      { lengthSec: number; startOffsetSec: number; trimStartSec: number; trimEndSec: number }
+    >,
+  ) {
+    super(null); // TODO: if no SState on class expects null props. I guess this is fine though
     // By default, there is no trim and the clip has offset 0
-    this.lengthSec = lengthSec;
-    this._trimEndSec = lengthSec;
-    this._startOffsetSec = startOffsetSec as Seconds;
+    this.lengthSec = props.lengthSec;
+    this._trimEndSec = props.trimEndSec;
+    this._trimStartSec = props.trimStartSec;
+    this._startOffsetSec = props.startOffsetSec as Seconds;
+    // todo
+    this._init(props);
   }
 
   get startOffsetSec() {
@@ -119,7 +126,13 @@ export class BaseClip {
     if (s > this.lengthSec) {
       throw new Error("Can't set trimStartSec to be more than duration");
     }
-
     this._trimStartSec = s;
+  }
+
+  trimStartAddingTime(addedTime: number) {
+    this.featuredMutation(() => {
+      this.trimStartSec += addedTime;
+      this.startOffsetSec += addedTime;
+    });
   }
 }

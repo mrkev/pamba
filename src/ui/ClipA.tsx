@@ -10,6 +10,8 @@ import { useSubscribeToSubbableMutationHashable } from "../lib/state/LinkedMap";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { pressedState } from "../pressedState";
 import { RenamableLabel } from "./RenamableLabel";
+import { pushHistory } from "structured-state";
+import { exhaustive } from "../utils/exhaustive";
 // import { dataWaveformToCanvas } from "../lib/waveformAsync";
 
 export function ClipA({
@@ -28,6 +30,7 @@ export function ClipA({
   editable?: boolean;
 }) {
   const styles = useStyles();
+
   const width = project.viewport.secsToPx(clip.getDuration());
   const totalBufferWidth = project.viewport.secsToPx(clip.lengthSec);
   const startTrimmedWidth = project.viewport.secsToPx(clip.trimStartSec);
@@ -105,19 +108,30 @@ export function ClipA({
       return;
     }
 
-    if (tool === "trimStart") {
-      const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
-      const asSec = project.viewport.pxToSecs(pxFromStartOfClip);
-      clip.trimStartSec += asSec;
-      clip.startOffsetSec += asSec;
-      clip.notifyUpdate();
-    }
-    if (tool === "trimEnd") {
-      const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
-      const secsFromStartPos = project.viewport.pxToSecs(pxFromStartOfClip);
-      const secsFromZero = clip.trimStartSec + secsFromStartPos;
-      clip.trimEndSec = secsFromZero;
-      clip.notifyUpdate();
+    switch (tool) {
+      case "move":
+      case "slice":
+        console.log("TODO");
+        break;
+      case "trimStart": {
+        const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
+        const asSec = project.viewport.pxToSecs(pxFromStartOfClip);
+        project.cursorPos.set(clip.startOffsetSec + asSec);
+        void pushHistory(() => {
+          clip.trimStartAddingTime(asSec);
+        });
+        break;
+      }
+      case "trimEnd": {
+        const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
+        const secsFromStartPos = project.viewport.pxToSecs(pxFromStartOfClip);
+        const secsFromZero = clip.trimStartSec + secsFromStartPos;
+        clip.trimEndSec = secsFromZero;
+        clip._notifyChange();
+        break;
+      }
+      default:
+        exhaustive(tool);
     }
   }
 

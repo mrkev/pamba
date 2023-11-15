@@ -17,6 +17,21 @@ export function ToolSelector({ project }: { project: AudioProject }) {
         <i className="ri-cursor-fill"></i>
       </button>
       <button
+        title="slice"
+        className={utility.button}
+        style={tool === "slice" ? { background: "teal", color: "white" } : undefined}
+        onClick={() => {
+          if (tool === "slice") {
+            setTool("move");
+          } else {
+            setTool("slice");
+          }
+        }}
+      >
+        <i className="ri-slice-fill"></i>
+      </button>
+      <button
+        title="trim clips from start"
         className={utility.button}
         style={tool === "trimStart" ? { background: "teal", color: "white" } : undefined}
         onClick={() => {
@@ -30,6 +45,7 @@ export function ToolSelector({ project }: { project: AudioProject }) {
         ⇥
       </button>
       <button
+        title="trim clips from end"
         className={utility.button}
         style={tool === "trimEnd" ? { background: "teal", color: "white" } : undefined}
         onClick={() => {
@@ -42,14 +58,18 @@ export function ToolSelector({ project }: { project: AudioProject }) {
       >
         ⇤
       </button>
-      <span style={{ color: "white", fontSize: 12, background: "black", padding: "2px 4px", width: 68 }}>
-        {tool === "move"
-          ? "move \u00b7"
-          : tool === "trimStart"
-          ? "trimStart ⇥"
-          : tool === "trimEnd"
-          ? "trimEnd ⇤"
-          : tool}
+      <span
+        style={{
+          color: "white",
+          fontSize: 12,
+          background: "black",
+          padding: "2px 4px",
+          width: 50,
+          flexShrink: 0,
+          whiteSpace: "nowrap",
+        }}
+      >
+        {tool}
       </span>
     </div>
   );

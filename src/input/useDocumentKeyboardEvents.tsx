@@ -40,7 +40,10 @@ export function useDocumentKeyboardEvents(
 
         case "KeyZ":
           if (e.metaKey) {
+            performance.mark("undo-start");
             undo();
+            performance.mark("undo-end");
+            performance.measure("undo", "undo-start", "undo-end");
             e.preventDefault();
           }
           break;
@@ -85,6 +88,7 @@ export function useDocumentKeyboardEvents(
 
       switch (e.code) {
         case "KeyM":
+        case "KeyV":
           project.pointerTool.set("move");
           document.body.style.cursor = "auto";
           break;
