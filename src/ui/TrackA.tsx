@@ -1,5 +1,6 @@
 import React, { useCallback, useRef, useState } from "react";
 import { createUseStyles } from "react-jss";
+import { useContainer } from "structured-state";
 import { TRACK_SEPARATOR_HEIGHT } from "../constants";
 import { useTrackMouseEvents } from "../input/useTrackMouseEvents";
 import { AudioClip } from "../lib/AudioClip";
@@ -7,7 +8,7 @@ import { AudioRenderer } from "../lib/AudioRenderer";
 import { AudioTrack } from "../lib/AudioTrack";
 import { AudioProject } from "../lib/project/AudioProject";
 import { AudioStorage } from "../lib/project/AudioStorage";
-import { useLinkedArray } from "../lib/state/LinkedArray";
+import { useLinkedSet } from "../lib/state/LinkedSet";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { pressedState } from "../pressedState";
 import { ignorePromise } from "../utils/ignorePromise";
@@ -15,7 +16,6 @@ import { ClipA } from "./ClipA";
 import { ClipInvalid } from "./ClipInvalid";
 import { CursorSelection } from "./CursorSelection";
 import { EffectRack } from "./EffectRack";
-import { useLinkedSet } from "../lib/state/LinkedSet";
 
 function clientXToTrackX(trackElem: HTMLDivElement | null, clientX: number) {
   if (trackElem == null) {
@@ -84,7 +84,7 @@ export function TrackA({
   const styles = useStyles();
   const [pressed] = useLinkedState(pressedState);
   const [selected] = useLinkedState(project.selected);
-  const [clips] = useLinkedArray(track.clips);
+  const clips = useContainer(track.clips);
   const [height] = useLinkedState(track.height);
   const [activeTrack] = useLinkedState(project.activeTrack);
   const [lockedTracks] = useLinkedSet(project.lockedTracks);

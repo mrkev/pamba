@@ -1,15 +1,16 @@
+import { SArray } from "structured-state";
 import nullthrows from "../utils/nullthrows";
 import { AbstractClip, Pulses, Seconds } from "./BaseClip";
 
-export function printClips(clips: ReadonlyArray<AbstractClip<any>>) {
+export function printClips(clips: SArray<AbstractClip<any>>) {
   return clips.map((c) => c.toString()).join("\n");
 }
 
-export function assertClipInvariants<U extends Pulses | Seconds>(clips: ReadonlyArray<AbstractClip<U>>) {
+export function assertClipInvariants<U extends Pulses | Seconds>(clips: SArray<AbstractClip<U>>) {
   let cStart = 0;
   let cEnd = 0;
   for (let i = 0; i < clips.length; i++) {
-    const clip = clips[i];
+    const clip = nullthrows(clips.at(i));
     if (clip._startOffsetU < cStart) {
       // console.log(`Out of place clip at position ${i}!`, clip, clips);
       throw new Error("Failed invariant: clips are not sorted.\n" + "They look like this:\n" + printClips(clips));
@@ -32,16 +33,16 @@ export function assertClipInvariants<U extends Pulses | Seconds>(clips: Readonly
 
 export function addClip<Clip extends AbstractClip<U>, U extends Pulses | Seconds>(
   newClip: Clip,
-  clips: ReadonlyArray<Clip>,
-): ReadonlyArray<Clip> {
+  clips: SArray<Clip>,
+): SArray<Clip> {
   // Essentially, we want to insert in order, sorted
   // by the startOffsetSec of each clip.
   let i = 0;
   let prev: Clip | undefined;
   let next: Clip | undefined;
   for (; i < clips.length; i++) {
-    prev = clips[i - 1];
-    next = clips[i];
+    prev = i == 0 ? undefined : clips.at(i - 1);
+    next = clips.at(i);
 
     // We want to iterate until i
     // we find a spot where if we were to keep going we'd be
@@ -68,8 +69,8 @@ export function addClip<Clip extends AbstractClip<U>, U extends Pulses | Seconds
   const res = deleteTime(newClip._startOffsetU, newClip._endOffsetU, clips);
 
   // Insert the clip
-  const clone = [...res];
-  clone.splice(i, 0, newClip);
+
+  clips.splice(i, 0, newClip);
 
   // if (prev && prev.endOffsetSec > newClip.startOffsetSec) {
   //   // TODO: delete time range within current clip and insert it.
@@ -82,8 +83,9 @@ export function addClip<Clip extends AbstractClip<U>, U extends Pulses | Seconds
   // if (next && next.startOffsetSec < newClip.endOffsetSec) {
   //   next.startOffsetSec = newClip.endOffsetSec;
   // }
-  assertClipInvariants(clone);
-  return clone;
+
+  assertClipInvariants(clips);
+  return clips;
 }
 
 /**
@@ -93,8 +95,8 @@ export function addClip<Clip extends AbstractClip<U>, U extends Pulses | Seconds
 export function deleteTime<Clip extends AbstractClip<U>, U extends Pulses | Seconds>(
   start: number,
   end: number,
-  clips: ReadonlyArray<Clip>,
-): ReadonlyArray<Clip> {
+  clips: SArray<Clip>,
+): SArray<Clip> {
   if (start === end) {
     return clips;
   }
@@ -107,7 +109,7 @@ export function deleteTime<Clip extends AbstractClip<U>, U extends Pulses | Seco
 
   let res = clips;
   for (let i = 0; i < clips.length; i++) {
-    const current = clips[i];
+    const current = nullthrows(clips.at(i));
 
     const remStart = start < current._startOffsetU && current._startOffsetU < end;
     const remEnd = start < current._endOffsetU && current._endOffsetU < end;
@@ -147,7 +149,7 @@ export function deleteTime<Clip extends AbstractClip<U>, U extends Pulses | Seco
       // console.log("CLIPS HERE\n", printClips(clips));
 
       // console.log("BEFORE", before.toString(), "aaaaaaaa", __.toString());
-      res = removeClip(before, out2) as Clip[];
+      res = removeClip(before, out2);
 
       // End the loop, this is the only case and we just messed up
       // the indexes so we very much don't want to keep going
@@ -160,7 +162,7 @@ export function deleteTime<Clip extends AbstractClip<U>, U extends Pulses | Seco
   }
 
   assertClipInvariants(res);
-  return [...res];
+  return res;
 }
 
 // TODO: idea, LinkedArray and LinkedMap, for collection linked state?
@@ -170,16 +172,17 @@ export function deleteTime<Clip extends AbstractClip<U>, U extends Pulses | Seco
  */
 export function removeClip<Clip extends AbstractClip<U>, U extends Pulses | Seconds>(
   clip: Clip,
-  clips: ReadonlyArray<Clip>,
-): ReadonlyArray<Clip> {
+  clips: SArray<Clip>,
+): SArray<Clip> {
   const i = clips.indexOf(clip);
   if (i === -1) {
     return clips;
   }
-  const clone = [...clips];
-  clone.splice(i, 1);
+
+  clips.splice(i, 1);
+
   assertClipInvariants(clips);
-  return clone;
+  return clips;
 }
 
 /**
@@ -188,8 +191,8 @@ export function removeClip<Clip extends AbstractClip<U>, U extends Pulses | Seco
 export function splitClip<Clip extends AbstractClip<U>, U extends Pulses | Seconds>(
   clip: Clip,
   time: number,
-  clips: ReadonlyArray<Clip>,
-): [before: Clip, after: Clip, clips: ReadonlyArray<Clip>] | null {
+  clips: SArray<Clip>,
+): [before: Clip, after: Clip, clips: SArray<Clip>] | null {
   if (time > clip._endOffsetU || time < clip._startOffsetU) {
     return null;
   }
@@ -206,12 +209,10 @@ export function splitClip<Clip extends AbstractClip<U>, U extends Pulses | Secon
 
   clipAfter.trimToOffset(time as U);
   clip._setEndOffsetU(time as U);
-
-  const clone = [...clips];
-  clone.splice(i + 1, 0, clipAfter);
+  clips.splice(i + 1, 0, clipAfter);
 
   assertClipInvariants(clips);
-  return [clip, clipAfter, clone];
+  return [clip, clipAfter, clips];
 }
 
 /**
@@ -219,9 +220,9 @@ export function splitClip<Clip extends AbstractClip<U>, U extends Pulses | Secon
  */
 export function pushClip<Clip extends AbstractClip<U>, U extends Pulses | Seconds>(
   newClip: Clip,
-  clips: ReadonlyArray<Clip>,
-): ReadonlyArray<Clip> {
-  const lastClip = clips.length > 0 ? clips[clips.length - 1] : null;
+  clips: SArray<Clip>,
+): SArray<Clip> {
+  const lastClip = clips.length > 0 ? clips.at(-1) : null;
 
   if (!lastClip) {
     newClip._setStartOffsetU(0 as U);
@@ -229,10 +230,9 @@ export function pushClip<Clip extends AbstractClip<U>, U extends Pulses | Second
     newClip._setStartOffsetU(lastClip._endOffsetU);
   }
 
-  const clone = [...clips];
-  clone.push(newClip);
+  clips.push(newClip);
   assertClipInvariants(clips);
-  return clone;
+  return clips;
 }
 
 /**
@@ -240,8 +240,8 @@ export function pushClip<Clip extends AbstractClip<U>, U extends Pulses | Second
  */
 export function moveClip<Clip extends AbstractClip<U>, U extends Pulses | Seconds>(
   clip: Clip,
-  clips: ReadonlyArray<Clip>,
-): ReadonlyArray<Clip> {
+  clips: SArray<Clip>,
+): SArray<Clip> {
   if (clips.length === 0) {
     throw new Error("moving in empty array");
   }
@@ -252,7 +252,7 @@ export function moveClip<Clip extends AbstractClip<U>, U extends Pulses | Second
   let removed = false;
 
   for (let i = 0; i < clips.length; i++) {
-    const c = clips[i];
+    const c = nullthrows(clips.at(i));
 
     if (clip._startOffsetU <= c._startOffsetU) {
       newArr.push(clip);
@@ -275,6 +275,8 @@ export function moveClip<Clip extends AbstractClip<U>, U extends Pulses | Second
     newArr.push(clip);
   }
 
-  assertClipInvariants(newArr);
-  return newArr;
+  clips._replace(newArr);
+
+  assertClipInvariants(clips);
+  return clips;
 }

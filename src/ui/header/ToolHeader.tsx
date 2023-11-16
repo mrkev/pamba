@@ -1,6 +1,7 @@
 import { useCallback, useRef } from "react";
 import { createUseStyles } from "react-jss";
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from "../../constants";
+import { documentCommands } from "../../input/useDocumentKeyboardEvents";
 import { AnalizedPlayer } from "../../lib/AnalizedPlayer";
 import { appEnvironment } from "../../lib/AppEnvironment";
 import { AudioRecorder } from "../../lib/AudioRecorder";
@@ -9,13 +10,12 @@ import { ProjectPersistance } from "../../lib/ProjectPersistance";
 import { AudioProject } from "../../lib/project/AudioProject";
 import { useLinkedMap } from "../../lib/state/LinkedMap";
 import { useLinkedState } from "../../lib/state/LinkedState";
+import { doConfirm } from "../ConfirmDialog";
 import { UtilityNumber } from "../UtilityNumber";
 import { utility } from "../utility";
 import { BounceButton } from "./BounceButton";
 import { ToolSelector } from "./ToolSelector";
 import { PlaybackControl, TransportControl } from "./TransportControl";
-import { doConfirm } from "../ConfirmDialog";
-import { documentCommands } from "../../input/useDocumentKeyboardEvents";
 
 export async function closeProject(project: AudioProject) {
   const selection = await doConfirm(`Save changes to "${project.projectName.get()}"?`, "yes", "no", "cancel");

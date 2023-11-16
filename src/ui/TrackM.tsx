@@ -16,6 +16,7 @@ import { EffectRack } from "./EffectRack";
 import { useEventListener } from "./useEventListener";
 import { useLinkedSet } from "../lib/state/LinkedSet";
 import { createEmptyMidiClipInTrack } from "../midi/MidiClip";
+import { useContainer } from "structured-state";
 
 function preventDefault(e: React.DragEvent<HTMLDivElement>) {
   e.preventDefault();
@@ -37,7 +38,7 @@ export function TrackM({
   const styles = useStyles();
   const [pressed] = useLinkedState(pressedState);
   const [selected] = useLinkedState(project.selected);
-  const [clips] = useLinkedArray(track.clips);
+  const clips = useContainer(track.clips);
   const [height] = useLinkedState(track.height);
   const [activeTrack] = useLinkedState(project.activeTrack);
   const [lockedTracks] = useLinkedSet(project.lockedTracks);

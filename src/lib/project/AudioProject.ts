@@ -1,6 +1,6 @@
 import type { ScaleLinear } from "d3-scale";
 import { scaleLinear } from "d3-scale";
-import { SArray } from "structured-state";
+import { SArray, history } from "structured-state";
 import { ulid } from "ulid";
 import { modifierState } from "../../ModifierState";
 import { DEFAULT_TEMPO, SYNTH_101_URL, liveAudioContext } from "../../constants";
@@ -308,7 +308,10 @@ export class ProjectSelection {
       case "track_time":
         for (const track of selected.tracks) {
           if (track instanceof AudioTrack) {
-            track.deleteTime(selected.startS, selected.endS);
+            // TODO: move history.record(...) up to the command level as possible
+            history.record(() => {
+              track.deleteTime(selected.startS, selected.endS);
+            });
           } else if (track instanceof MidiTrack) {
             track.deleteTime(
               project.viewport.secsToPulses(selected.startS),

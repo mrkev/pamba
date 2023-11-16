@@ -1,3 +1,4 @@
+import { SArray } from "structured-state";
 import { liveAudioContext } from "../constants";
 import { DSPNode } from "../dsp/DSPNode";
 import { EffectID } from "../dsp/FAUST_EFFECTS";
@@ -28,7 +29,7 @@ export abstract class ProjectTrack<T extends AbstractClip<any>> extends DSPNode<
   // Invariants:
   // - Sorted by start time.
   // - Non-overlapping clips.
-  public readonly clips: LinkedArray<T>;
+  public readonly clips: SArray<T>;
 
   // DSP
   public readonly effects: LinkedArray<FaustAudioEffect | PambaWamNode>;
@@ -54,14 +55,14 @@ export abstract class ProjectTrack<T extends AbstractClip<any>> extends DSPNode<
     this._hiddenGainNode.gain.value = 1;
   }
 
-  constructor(name: string, effects: (FaustAudioEffect | PambaWamNode)[], height: number, clips: ReadonlyArray<T>) {
+  constructor(name: string, effects: (FaustAudioEffect | PambaWamNode)[], height: number, clips: T[]) {
     super();
     this.name = SPrimitive.of(name);
     this.effects = LinkedArray.create(effects);
     this.height = SPrimitive.of<number>(height);
     this.gainNode = new PBGainNode();
     this._hiddenGainNode = new PBGainNode();
-    this.clips = LinkedArray.create(clips);
+    this.clips = SArray.create(clips);
   }
 
   public connectToDSPForPlayback(source: AudioNode): void {
@@ -108,41 +109,41 @@ export abstract class ProjectTrack<T extends AbstractClip<any>> extends DSPNode<
   //////////// CLIPS ////////////
 
   addClip(newClip: T): void {
-    const clips = addClip(newClip, this.clips._getRaw());
-    this.clips._setRaw(clips);
+    const clips = addClip(newClip, this.clips);
+    // this.clips._setRaw(clips);
   }
 
   // Adds a clip right after the last clip
   pushClip(newClip: T): void {
-    const clips = pushClip(newClip, this.clips._getRaw());
-    this.clips._setRaw(clips);
+    const clips = pushClip(newClip, this.clips);
+    // this.clips._setRaw(clips as any);
   }
 
   // TODO: UNUSED
   moveClip(clip: T): void {
-    const clips = moveClip(clip, this.clips._getRaw());
-    this.clips._setRaw(clips);
+    const clips = moveClip(clip, this.clips);
+    // this.clips._setRaw(clips as any);
   }
 
   removeClip(clip: T): void {
-    const clips = removeClip(clip, this.clips._getRaw());
-    this.clips._setRaw(clips);
+    const clips = removeClip(clip, this.clips);
+    // this.clips._setRaw(clips);
   }
 
   deleteTime(startSec: number, endSec: number): void {
-    const clips = deleteTime(startSec, endSec, this.clips._getRaw());
-    this.clips._setRaw(clips);
+    const clips = deleteTime(startSec, endSec, this.clips);
+    // this.clips._setRaw(clips);
   }
 
   // TODO: UNUSED
   splitClip(clip: T, offsetFromStartOffset: number): void {
-    const result = splitClip(clip, offsetFromStartOffset, this.clips._getRaw());
+    const result = splitClip(clip, offsetFromStartOffset, this.clips);
     if (result === null) {
       console.warn("null result when splitting clips");
       return;
     }
     const [, , clips] = result;
-    this.clips._setRaw(clips);
+    this.clips._setRaw(clips as any); // TODO: READONLY
   }
 
   //////////////////// EFFECTS //////////////////////

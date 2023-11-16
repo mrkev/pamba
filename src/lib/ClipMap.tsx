@@ -32,24 +32,24 @@ export class ClipMap<U extends Pulses | Seconds, T extends AbstractClip<U>>
     notify(this, null);
   }
 
-  addClip(newClip: T): void {
-    const clips = addClip(newClip, this.clipsArray());
-    this.setFromClipsArray(clips as any);
-  }
+  // addClip(newClip: T): void {
+  //   const clips = addClip(newClip, this.clipsArray());
+  //   this.setFromClipsArray(clips as any);
+  // }
 
-  // Adds a clip right after the last clip
-  pushClip(newClip: T): void {
-    const clips = pushClip(newClip, this.clipsArray());
-    this.setFromClipsArray(clips as any);
-  }
+  // // Adds a clip right after the last clip
+  // pushClip(newClip: T): void {
+  //   const clips = pushClip(newClip, this.clipsArray());
+  //   this.setFromClipsArray(clips as any);
+  // }
 
-  removeClip(clip: T): void {
-    const clips = removeClip(clip, this.clipsArray());
-    this.setFromClipsArray(clips as any);
-  }
+  // removeClip(clip: T): void {
+  //   const clips = removeClip(clip, this.clipsArray());
+  //   this.setFromClipsArray(clips as any);
+  // }
 
-  deleteTime(startSec: number, endSec: number): void {
-    const clips = deleteTime(startSec, endSec, this.clipsArray());
-    this.setFromClipsArray(clips as any);
-  }
+  // deleteTime(startSec: number, endSec: number): void {
+  //   const clips = deleteTime(startSec, endSec, this.clipsArray());
+  //   this.setFromClipsArray(clips as any);
+  // }
 }
