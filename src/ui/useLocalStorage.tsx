@@ -7,7 +7,13 @@ function loadOrSetDefault<T>(id: string, initialValue: T): T {
     localStorage.setItem(id, JSON.stringify(initialValue));
     return initialValue;
   } else {
-    return JSON.parse(value);
+    try {
+      return JSON.parse(value);
+    } catch (e) {
+      console.error(e);
+      localStorage.setItem(id, JSON.stringify(initialValue));
+      return initialValue;
+    }
   }
 }
 export function useLocalStorage<T>(id: string, initialValue: T): [T, SetState<T>] {

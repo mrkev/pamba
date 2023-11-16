@@ -94,8 +94,12 @@ export function UtilityDataList<T>({
               }
 
               if (e.key === "Enter") {
-                console.log("HERE");
-                onItemSelect?.(item);
+                // For some reason, the Enter keypress here seems to be "still in effect"
+                // while onItemSelect executes. More specifically, if I show a doConfirm dialog in
+                // onItemSelect it auto-selects the enter option. This doesn't happen if I chante
+                // this clause to another key, say ArrowLeft or ArrowRight.
+                // So we just put it in a new task. *shrug*.
+                setTimeout(() => onItemSelect?.(item), 0);
                 return;
               }
             }}

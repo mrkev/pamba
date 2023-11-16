@@ -14,11 +14,14 @@ export const documentCommands = CommandBlock.create((command) => {
   return {
     // Document
 
-    save: command(["KeyS", "meta"], (e, project) => {
-      ignorePromise(ProjectPersistance.doSave(project));
-      ignorePromise(appEnvironment.localFiles.saveProject(project));
+    // need async
+    // new:
+    // open:
+
+    save: command(["KeyS", "meta"], async (e, project) => {
       e?.preventDefault();
       e?.stopPropagation();
+      return Promise.all([ProjectPersistance.doSave(project), appEnvironment.localFiles.saveProject(project)]);
     }),
 
     undo: command(["KeyZ", "meta"], (e) => {
@@ -26,6 +29,24 @@ export const documentCommands = CommandBlock.create((command) => {
       history.pop();
       performance.mark("undo-end");
       performance.measure("undo", "undo-start", "undo-end");
+      e?.preventDefault();
+    }),
+
+    createAudioTrack: command(["KeyT", "ctrl"], (e, project) => {
+      // TODO: history
+      AudioProject.addAudioTrack(project, appEnvironment.renderer.analizedPlayer);
+      e?.preventDefault();
+    }),
+
+    createMidiTrack: command(["KeyT", "ctrl", "shift"], (e, project) => {
+      // TODO: history
+      ignorePromise(AudioProject.addMidiTrack(project));
+      e?.preventDefault();
+    }),
+
+    deleteSelection: command(["Backspace"], (e, project) => {
+      // TODO: history
+      ProjectSelection.deleteSelection(project);
       e?.preventDefault();
     }),
 
@@ -37,6 +58,7 @@ export const documentCommands = CommandBlock.create((command) => {
     }).helptext("Copy", "Currently works only with clips"),
 
     pasteClipboard: command(["KeyV", "meta"], (e, project) => {
+      // TODO: history. how?
       doPaste(project);
       e?.preventDefault();
     }).helptext("Paste", "Currently works only with clips"),
@@ -86,27 +108,12 @@ export function useDocumentKeyboardEvents(
       }
 
       switch (e.code) {
-        case "Backspace":
-          ProjectSelection.deleteSelection(project, player);
-          e.preventDefault();
-          break;
-
         case "KeyM": {
           const activeTrack = project.activeTrack.get();
           if (e.ctrlKey && e.shiftKey && activeTrack instanceof MidiTrack) {
             activeTrack.createSampleMidiClip();
           }
           break;
-        }
-
-        case "KeyT": {
-          if (e.ctrlKey && e.shiftKey) {
-            ignorePromise(AudioProject.addMidiTrack(project));
-            e.preventDefault();
-          } else if (e.ctrlKey) {
-            AudioProject.addAudioTrack(project, player);
-            e.preventDefault();
-          }
         }
       }
     }

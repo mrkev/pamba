@@ -23,6 +23,7 @@ import { TrackHeader } from "./TrackHeader";
 import { TrackM } from "./TrackM";
 import { UtilityMenu } from "./UtilityMenu";
 import { useEventListener } from "./useEventListener";
+import { documentCommands } from "../input/useDocumentKeyboardEvents";
 
 export function TimelineView({
   project,
@@ -176,8 +177,8 @@ export function TimelineView({
           style={{ position: "absolute", left: "4px" }}
           label={"+"}
           items={{
-            "audio track": () => AudioProject.addAudioTrack(project, player),
-            "midi track": () => AudioProject.addMidiTrack(project),
+            "audio track": () => documentCommands.execById("createAudioTrack", project),
+            "midi track": () => documentCommands.execById("createMidiTrack", project),
           }}
         />
         {"↑"}

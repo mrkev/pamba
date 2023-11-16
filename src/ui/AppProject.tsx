@@ -24,6 +24,7 @@ import { ToolHeader } from "./header/ToolHeader";
 import { History } from "./history";
 import { useMousePressMove } from "./useEventListener";
 import { useLocalStorage } from "./useLocalStorage";
+import { appEnvironment } from "../lib/AppEnvironment";
 
 function useStopPlaybackOnUnmount(renderer: AudioRenderer) {
   useEffect(() => {
@@ -36,8 +37,7 @@ function useStopPlaybackOnUnmount(renderer: AudioRenderer) {
 }
 
 export function AppProject({ project }: { project: AudioProject }) {
-  // IDEA: Maybe merge player and renderer?
-  const [renderer] = useState(() => new AudioRenderer(new AnalizedPlayer()));
+  const renderer = appEnvironment.renderer;
   const [recorder] = useState(() => new AudioRecorder(project, renderer));
 
   useSingletonKeyboardModifierState(modifierState);

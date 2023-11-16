@@ -41,7 +41,6 @@ export function ToolSelector({ project }: { project: AudioProject }) {
         <i className="ri-cursor-fill"></i>
       </button>
       <button
-        disabled
         title="slice"
         className={utility.button}
         style={tool === "slice" ? { background: "teal", color: "white" } : undefined}

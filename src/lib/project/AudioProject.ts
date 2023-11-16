@@ -263,7 +263,7 @@ export class ProjectSelection {
   /**
    * Deletes whatever is selected
    */
-  static deleteSelection(project: AudioProject, player: AnalizedPlayer) {
+  static deleteSelection(project: AudioProject) {
     const selected = project.selected.get();
 
     if (!selected) {
@@ -288,7 +288,7 @@ export class ProjectSelection {
       case "tracks": {
         for (let track of selected.tracks) {
           console.log("remove", selected);
-          AudioProject.removeTrack(project, player, track);
+          AudioProject.removeTrack(project, appEnvironment.renderer.analizedPlayer, track);
           project.selected.set(null);
         }
         break;

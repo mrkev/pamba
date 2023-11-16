@@ -185,11 +185,11 @@ export function removeClip<Clip extends AbstractClip<U>, U extends Pulses | Seco
 /**
  * Splits a clip into two at the specified time
  */
-export function splitClip<U extends Pulses | Seconds>(
-  clip: AbstractClip<U>,
+export function splitClip<Clip extends AbstractClip<U>, U extends Pulses | Seconds>(
+  clip: Clip,
   time: number,
-  clips: ReadonlyArray<AbstractClip<U>>,
-): [before: AbstractClip<U>, after: AbstractClip<U>, clips: ReadonlyArray<AbstractClip<U>>] | null {
+  clips: ReadonlyArray<Clip>,
+): [before: Clip, after: Clip, clips: ReadonlyArray<Clip>] | null {
   if (time > clip._endOffsetU || time < clip._startOffsetU) {
     return null;
   }
@@ -202,7 +202,7 @@ export function splitClip<U extends Pulses | Seconds>(
   //         [         clip         |     clipAfter    ]
   // ^0:00   ^clip.startOffsetSec   ^timeSec
 
-  const clipAfter = clip.clone();
+  const clipAfter = clip.clone() as Clip;
 
   clipAfter.trimToOffset(time as U);
   clip._setEndOffsetU(time as U);

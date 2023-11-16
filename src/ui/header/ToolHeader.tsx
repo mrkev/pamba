@@ -14,19 +14,40 @@ import { utility } from "../utility";
 import { BounceButton } from "./BounceButton";
 import { ToolSelector } from "./ToolSelector";
 import { PlaybackControl, TransportControl } from "./TransportControl";
+import { doConfirm } from "../ConfirmDialog";
+import { documentCommands } from "../../input/useDocumentKeyboardEvents";
 
-function NewProjectButton() {
+export async function closeProject(project: AudioProject) {
+  const selection = await doConfirm(`Save changes to "${project.projectName.get()}"?`, "yes", "no", "cancel");
+
+  if (selection === "cancel") {
+    return false;
+  }
+
+  if (selection === "yes") {
+    const savePromise = documentCommands.execById("save", project);
+    if (!(savePromise instanceof Promise)) {
+      throw new Error("didn't get a save promise");
+    }
+    await savePromise;
+  }
+  return true;
+}
+
+function NewProjectButton({ project }: { project: AudioProject }) {
   return (
     <button
       className={utility.button}
-      onClick={() => {
-        // eslint-disable-next-line no-restricted-globals
-        if (confirm("TODO: only one project is supported, so this deletes all data. Continue?")) {
-          appEnvironment.projectStatus.set({
-            status: "loaded",
-            project: ProjectPersistance.defaultProject(),
-          });
+      onClick={async () => {
+        const didClose = await closeProject(project);
+        if (!didClose) {
+          return;
         }
+
+        appEnvironment.projectStatus.set({
+          status: "loaded",
+          project: ProjectPersistance.defaultProject(),
+        });
       }}
     >
       new project
@@ -82,7 +103,7 @@ export function ToolHeader({
     <div className={classes.headerContainer}>
       <div className={classes.tools}>
         <div className={classes.topRow}>
-          <NewProjectButton />
+          <NewProjectButton project={project} />
           <select
             style={{ width: 100, fontSize: 12 }}
             value={selectedDevice ?? undefined}

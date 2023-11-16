@@ -129,7 +129,7 @@ export class BaseClip extends Struct<BaseClip> {
     this._trimStartSec = s;
   }
 
-  trimStartAddingTime(addedTime: number) {
+  public trimStartAddingTime(addedTime: number) {
     this.featuredMutation(() => {
       this.trimStartSec += addedTime;
       this.startOffsetSec += addedTime;

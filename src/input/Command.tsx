@@ -47,9 +47,8 @@ export class CommandBlock<T extends Record<string, Command>> {
     return false;
   }
 
-  execById(label: keyof T, project: AudioProject): boolean {
-    this.byId[label].cb(null, project);
-    return true;
+  execById(label: keyof T, project: AudioProject): unknown {
+    return this.byId[label].cb(null, project);
   }
 
   static keyboardChordId(code: string, meta: boolean, alt: boolean, ctrl: boolean, shift: boolean) {

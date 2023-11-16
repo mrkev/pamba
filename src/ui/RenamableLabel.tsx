@@ -16,6 +16,7 @@ export function RenamableLabel({
 
   const onDoubleClick = useCallback(
     (e: MouseEvent<HTMLDivElement>) => {
+      console.log("HEREEEEEEEEEEEEE");
       setIsRenaming(true);
       onDoubleClickMaybe?.(e);
     },
@@ -23,7 +24,12 @@ export function RenamableLabel({
   );
 
   return (
-    <span className={classes.container} {...divProps} onDoubleClick={onDoubleClick}>
+    <span
+      className={classes.container}
+      {...divProps}
+      onDoubleClick={onDoubleClick}
+      onMouseDown={() => console.log("HERE MOUSE DOWN")}
+    >
       {isRenaming ? (
         <input
           autoFocus

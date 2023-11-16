@@ -98,7 +98,8 @@ export function ClipA({
     });
 
     project.selectionWidth.set(null);
-    e.stopPropagation();
+    // e.stopPropagation();
+    console.log("FOBAR");
   }
 
   function onClipClick(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
@@ -106,14 +107,18 @@ export function ClipA({
     if (!(div instanceof HTMLDivElement)) {
       return;
     }
-    if (!editable) {
+    if (!editable || track == null) {
       return;
     }
 
     switch (tool) {
       case "move":
+        break;
       case "slice":
         console.log("TODO");
+        const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
+        const asSec = project.viewport.pxToSecs(pxFromStartOfClip);
+        track.splitClip(clip, asSec);
         break;
       case "trimStart": {
         const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;

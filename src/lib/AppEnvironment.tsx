@@ -13,6 +13,8 @@ import { LinkedSet } from "./state/LinkedSet";
 import type { DSPNode } from "../dsp/DSPNode";
 import type { MidiInstrument } from "../midi/MidiInstrument";
 import { LocalFilesystem } from "../data/localFilesystem";
+import { AudioRenderer } from "./AudioRenderer";
+import { AnalizedPlayer } from "./AnalizedPlayer";
 
 export type WAMAvailablePlugin = {
   // midi out, audio out, midi to audio, audio to audio
@@ -38,6 +40,8 @@ export class AppEnvironment {
   readonly localFiles: LocalFilesystem = new LocalFilesystem();
   // UI
   readonly openEffects: LinkedSet<DSPNode | MidiInstrument>;
+  // System
+  renderer: AudioRenderer = null as any; // TODO: do this in a way that avoids the null?
 
   constructor() {
     this.firebaseApp = initFirebaseApp();
@@ -65,6 +69,9 @@ export class AppEnvironment {
       }),
     );
     this.wamStatus.set("ready");
+
+    // IDEA: Maybe merge player and renderer?
+    this.renderer = new AudioRenderer(new AnalizedPlayer());
     // once plugins have been loaded, so they're available to the project
     await this.initialLoadProject();
   }

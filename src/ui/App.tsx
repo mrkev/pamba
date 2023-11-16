@@ -11,6 +11,7 @@ import { PambaWamNode } from "../wam/PambaWamNode";
 import { AppProject } from "./AppProject";
 import { DebugData } from "./DebugData";
 import { PambaWamNodeWindowPanel } from "./PambaWamNodeWindowPanel";
+import { ConfirmDialog } from "./ConfirmDialog";
 
 // var w = new TrackThread();
 // var sab = new SharedArrayBuffer(1024);
@@ -41,6 +42,7 @@ export function App(): React.ReactElement {
             return null;
           })}
           {/* <MidiDemo /> */}
+          <ConfirmDialog />
           <AppProject project={projectStatus.project} />
           <DebugData project={projectStatus.project} />
           {/* <button onClick={() => test()}>fooobar</button> */}

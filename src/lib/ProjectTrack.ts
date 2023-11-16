@@ -6,7 +6,7 @@ import nullthrows from "../utils/nullthrows";
 import { PambaWamNode } from "../wam/PambaWamNode";
 import { appEnvironment } from "./AppEnvironment";
 import { AbstractClip } from "./BaseClip";
-import { addClip, deleteTime, moveClip, pushClip, removeClip } from "./BaseClipFn";
+import { addClip, deleteTime, moveClip, pushClip, removeClip, splitClip } from "./BaseClipFn";
 import { connectSerialNodes } from "./connectSerialNodes";
 import { AudioContextInfo } from "./initAudioContext";
 import { PBGainNode } from "./offlineNodes";
@@ -131,6 +131,17 @@ export abstract class ProjectTrack<T extends AbstractClip<any>> extends DSPNode<
 
   deleteTime(startSec: number, endSec: number): void {
     const clips = deleteTime(startSec, endSec, this.clips._getRaw());
+    this.clips._setRaw(clips);
+  }
+
+  // TODO: UNUSED
+  splitClip(clip: T, offsetFromStartOffset: number): void {
+    const result = splitClip(clip, offsetFromStartOffset, this.clips._getRaw());
+    if (result === null) {
+      console.warn("null result when splitting clips");
+      return;
+    }
+    const [, , clips] = result;
     this.clips._setRaw(clips);
   }
 

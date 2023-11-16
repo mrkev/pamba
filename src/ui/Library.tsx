@@ -16,6 +16,8 @@ import { AudioFileUploadDropzone } from "./AudioFileUploadDropzone";
 import { UploadAudioButton } from "./UploadAudioButton";
 import { ListEntry, UtilityDataList } from "./UtilityList";
 import { UserAuthControl } from "./header/UserAuthControl";
+import { utility } from "./utility";
+import { closeProject } from "./header/ToolHeader";
 
 const STATIC_AUDIO_FILES = ["drums.mp3", "clav.mp3", "bassguitar.mp3", "horns.mp3", "leadguitar.mp3"];
 
@@ -81,7 +83,16 @@ export function Library({
           icon: <i className="ri-file-music-line" />,
           data: { kind: "project", id: p.id },
           disableDrag: true,
-          secondary: p.id === project.projectId ? <i style={{ color: "gray" }}>open</i> : undefined,
+          secondary:
+            p.id === project.projectId ? (
+              <i style={{ color: "gray" }}>open</i>
+            ) : (
+              <button
+                style={{ border: "none", padding: "0px 2px", fontSize: "10px", fontWeight: 800, background: "none" }}
+              >
+                ...
+              </button>
+            ),
         } as const;
       }),
       "separator",
@@ -134,15 +145,17 @@ export function Library({
                 ignorePromise(loadClip(item.data.url));
                 break;
               case "project": {
-                if (!confirm("Open project? Unsaved changes will be lost!")) {
+                const didClose = await closeProject(project);
+                if (!didClose) {
                   return;
                 }
-                const project = await appEnvironment.localFiles.openProject(item.data.id);
-                if (!(project instanceof AudioProject)) {
-                  alert(`issue opening project: ${project.status}`);
+
+                const openedProject = await appEnvironment.localFiles.openProject(item.data.id);
+                if (!(openedProject instanceof AudioProject)) {
+                  alert(`issue opening project: ${openedProject.status}`);
                   return;
                 }
-                appEnvironment.loadProject(project);
+                appEnvironment.loadProject(openedProject);
                 break;
               }
               default:
