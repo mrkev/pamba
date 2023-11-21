@@ -1,9 +1,10 @@
 import { staticAudioContext } from "../constants";
 import { SAudioClip } from "../data/serializable";
+import nullthrows from "../utils/nullthrows";
 import { dataURLForWaveform } from "../utils/waveform";
 import { AbstractClip, BaseClip, Seconds } from "./BaseClip";
 import { SharedAudioBuffer } from "./SharedAudioBuffer";
-import { loadSound } from "./loadSound";
+import { SOUND_LIB_FOR_HISTORY, loadSound } from "./loadSound";
 import { SPrimitive } from "./state/LinkedState";
 import { MutationHashable } from "./state/MutationHashable";
 import { Subbable } from "./state/Subbable";
@@ -52,8 +53,9 @@ export class AudioClip extends BaseClip implements Subbable<AudioClip>, Mutation
   }
 
   // NOTE: override construction
-  _construct(json: SAudioClip) {
-    throw new Error("CONSTRUCTION NOT IMPLEMENTED");
+  static _construct(json: SAudioClip) {
+    const buffer = nullthrows(SOUND_LIB_FOR_HISTORY.get(json.bufferURL));
+    return new AudioClip(buffer, json.name, json.bufferURL, json.startOffsetSec, json.trimStartSec, json.trimEndSec);
   }
 
   gainAutomation: Array<{ time: number; value: number }> = [{ time: 0, value: 1 }];

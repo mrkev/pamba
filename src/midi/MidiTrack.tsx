@@ -1,4 +1,5 @@
 import type { WebAudioModule } from "@webaudiomodules/api";
+import { SSchemaArray, arrayOf } from "structured-state";
 import { CLIP_HEIGHT, PIANO_ROLL_PLUGIN_URL, SECS_IN_MINUTE, TIME_SIGNATURE, liveAudioContext } from "../constants";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { ProjectTrack } from "../lib/ProjectTrack";
@@ -69,6 +70,7 @@ const SAMPLE_STATE = {
 };
 
 export class MidiTrack extends ProjectTrack<MidiClip> {
+  public override clips: SSchemaArray<MidiClip>;
   override effectId: string = "Builtin:MidiTrack";
   // todo: instrument can be empty?
   instrument: MidiInstrument;
@@ -84,8 +86,8 @@ export class MidiTrack extends ProjectTrack<MidiClip> {
     instrument: MidiInstrument,
     clips: MidiClip[],
   ) {
-    super(name, [], CLIP_HEIGHT, clips);
-
+    super(name, [], CLIP_HEIGHT);
+    this.clips = arrayOf([MidiClip], clips);
     this.playingSource = null;
     this.pianoRoll = pianoRoll as any;
     this.instrument = instrument;
@@ -98,7 +100,7 @@ export class MidiTrack extends ProjectTrack<MidiClip> {
   }
 
   public createSampleMidiClip() {
-    const newClip = new MidiClip("new midi clip", 0, 96, []);
+    const newClip = MidiClip.create("new midi clip", 0, 96, []);
     for (const note of SAMPLE_STATE.clips.default.notes) {
       newClip.addNote(note.tick, note.number, note.duration, note.velocity);
     }

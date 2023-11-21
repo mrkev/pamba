@@ -206,7 +206,7 @@ export function useTimelineMouseEvents(
 
         switch (pressed.status) {
           case "moving_clip": {
-            if (!pressed.inHistory && pressed.clip instanceof AudioClip) {
+            if (!pressed.inHistory) {
               history.push([pressed.clip]);
             }
 

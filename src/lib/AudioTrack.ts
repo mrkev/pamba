@@ -1,3 +1,5 @@
+import { SSchemaArray } from "structured-state";
+import * as s from "structured-state";
 import { CLIP_HEIGHT } from "../constants";
 import { DSPNode } from "../dsp/DSPNode";
 import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
@@ -11,6 +13,7 @@ import { connectSerialNodes } from "./connectSerialNodes";
 import { AudioContextInfo } from "./initAudioContext";
 
 export class AudioTrack extends ProjectTrack<AudioClip> {
+  public override clips: SSchemaArray<AudioClip>;
   override effectId: string = "Builtin:AudioTrack";
 
   // For background processing
@@ -24,7 +27,8 @@ export class AudioTrack extends ProjectTrack<AudioClip> {
   }
 
   private constructor(name: string, clips: AudioClip[], effects: (FaustAudioEffect | PambaWamNode)[], height: number) {
-    super(name, effects, height, clips);
+    super(name, effects, height);
+    this.clips = s.arrayOf([AudioClip as any], clips);
     this.playingSource = null;
   }
 

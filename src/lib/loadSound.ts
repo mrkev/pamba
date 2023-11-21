@@ -2,6 +2,9 @@
 
 import { ignorePromise } from "../utils/ignorePromise";
 
+// TODO: is this the best solution?
+export const SOUND_LIB_FOR_HISTORY = new Map<string, AudioBuffer>();
+
 // Note that the audio load is asynchronous
 export async function loadSound(audioContext: AudioContext, url: string): Promise<AudioBuffer> {
   return new Promise(function (res, onError) {
@@ -18,11 +21,12 @@ export async function loadSound(audioContext: AudioContext, url: string): Promis
           function (buffer) {
             // document.getElementById("msg").textContent =
             //   "Audio sample download finished";
+            SOUND_LIB_FOR_HISTORY.set(url, buffer);
             res(buffer);
             // playSound(audioData);
           },
-          onError
-        )
+          onError,
+        ),
       );
     };
     request.send();

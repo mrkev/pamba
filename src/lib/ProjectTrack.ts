@@ -1,4 +1,4 @@
-import { SArray } from "structured-state";
+import { SSchemaArray } from "structured-state";
 import { liveAudioContext } from "../constants";
 import { DSPNode } from "../dsp/DSPNode";
 import { EffectID } from "../dsp/FAUST_EFFECTS";
@@ -29,7 +29,7 @@ export abstract class ProjectTrack<T extends AbstractClip<any>> extends DSPNode<
   // Invariants:
   // - Sorted by start time.
   // - Non-overlapping clips.
-  public readonly clips: SArray<T>;
+  public abstract readonly clips: SSchemaArray<any>; // TODO: <T>, not there cause midi clip isn't ready
 
   // DSP
   public readonly effects: LinkedArray<FaustAudioEffect | PambaWamNode>;
@@ -55,14 +55,13 @@ export abstract class ProjectTrack<T extends AbstractClip<any>> extends DSPNode<
     this._hiddenGainNode.gain.value = 1;
   }
 
-  constructor(name: string, effects: (FaustAudioEffect | PambaWamNode)[], height: number, clips: T[]) {
+  constructor(name: string, effects: (FaustAudioEffect | PambaWamNode)[], height: number) {
     super();
     this.name = SPrimitive.of(name);
     this.effects = LinkedArray.create(effects);
     this.height = SPrimitive.of<number>(height);
     this.gainNode = new PBGainNode();
     this._hiddenGainNode = new PBGainNode();
-    this.clips = SArray.create(clips);
   }
 
   public connectToDSPForPlayback(source: AudioNode): void {
@@ -109,29 +108,29 @@ export abstract class ProjectTrack<T extends AbstractClip<any>> extends DSPNode<
   //////////// CLIPS ////////////
 
   addClip(newClip: T): void {
-    const clips = addClip(newClip, this.clips);
+    addClip(newClip, this.clips);
     // this.clips._setRaw(clips);
   }
 
   // Adds a clip right after the last clip
   pushClip(newClip: T): void {
-    const clips = pushClip(newClip, this.clips);
+    pushClip(newClip, this.clips);
     // this.clips._setRaw(clips as any);
   }
 
-  // TODO: UNUSED
-  moveClip(clip: T): void {
-    const clips = moveClip(clip, this.clips);
-    // this.clips._setRaw(clips as any);
-  }
+  // // TODO: UNUSED
+  // moveClip(clip: T): void {
+  //   moveClip(clip, this.clips);
+  //   // this.clips._setRaw(clips as any);
+  // }
 
   removeClip(clip: T): void {
-    const clips = removeClip(clip, this.clips);
+    removeClip(clip, this.clips);
     // this.clips._setRaw(clips);
   }
 
   deleteTime(startSec: number, endSec: number): void {
-    const clips = deleteTime(startSec, endSec, this.clips);
+    deleteTime(startSec, endSec, this.clips);
     // this.clips._setRaw(clips);
   }
 

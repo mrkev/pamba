@@ -1,3 +1,4 @@
+import * as s from "structured-state";
 import { liveAudioContext } from "../constants";
 import { EffectID } from "../dsp/FAUST_EFFECTS";
 import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
@@ -101,7 +102,7 @@ export async function serializable(
     return {
       kind: "MidiTrack",
       name: obj.name.get(),
-      clips: await Promise.all(obj.clips.map((clip) => serializable(clip))),
+      clips: await Promise.all(obj.clips.map((clip) => serializable(clip) as any)), // TODO: as any?
     };
   }
 
@@ -150,7 +151,8 @@ export async function construct(
     }
     case "MidiClip": {
       const { name, startOffsetPulses, lengthPulses, notes } = rep;
-      return new MidiClip(name, startOffsetPulses, lengthPulses, mutable(notes));
+      // TODO: `create` creates a new ID for this clip. think about implications
+      return s.create(MidiClip, { name: name, startOffsetPulses, lengthPulses, notes: mutable(notes) });
     }
     case "AudioTrack": {
       const { name, clips: sClips, effects: sEffects, height } = rep;

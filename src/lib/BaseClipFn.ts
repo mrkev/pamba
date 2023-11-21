@@ -34,7 +34,7 @@ export function assertClipInvariants<U extends Pulses | Seconds>(clips: SArray<A
 export function addClip<Clip extends AbstractClip<U>, U extends Pulses | Seconds>(
   newClip: Clip,
   clips: SArray<Clip>,
-): SArray<Clip> {
+): void {
   // Essentially, we want to insert in order, sorted
   // by the startOffsetSec of each clip.
   let i = 0;
@@ -66,7 +66,7 @@ export function addClip<Clip extends AbstractClip<U>, U extends Pulses | Seconds
     }
   }
 
-  const res = deleteTime(newClip._startOffsetU, newClip._endOffsetU, clips);
+  deleteTime(newClip._startOffsetU, newClip._endOffsetU, clips);
 
   // Insert the clip
 
@@ -85,7 +85,6 @@ export function addClip<Clip extends AbstractClip<U>, U extends Pulses | Seconds
   // }
 
   assertClipInvariants(clips);
-  return clips;
 }
 
 /**
@@ -96,9 +95,9 @@ export function deleteTime<Clip extends AbstractClip<U>, U extends Pulses | Seco
   start: number,
   end: number,
   clips: SArray<Clip>,
-): SArray<Clip> {
+): void {
   if (start === end) {
-    return clips;
+    return;
   }
 
   if (start > end) {
@@ -149,7 +148,7 @@ export function deleteTime<Clip extends AbstractClip<U>, U extends Pulses | Seco
       // console.log("CLIPS HERE\n", printClips(clips));
 
       // console.log("BEFORE", before.toString(), "aaaaaaaa", __.toString());
-      res = removeClip(before, out2);
+      removeClip(before, out2);
 
       // End the loop, this is the only case and we just messed up
       // the indexes so we very much don't want to keep going
@@ -158,14 +157,12 @@ export function deleteTime<Clip extends AbstractClip<U>, U extends Pulses | Seco
 
   for (let clip of toRemove) {
     // todo: optimize
-    res = removeClip(clip, clips);
+    removeClip(clip, clips);
   }
 
   assertClipInvariants(res);
-  return res;
 }
 
-// TODO: idea, LinkedArray and LinkedMap, for collection linked state?
 /**
  * Deletes a clip.
  * Returns new array if modified, same if unchaged.
@@ -173,16 +170,15 @@ export function deleteTime<Clip extends AbstractClip<U>, U extends Pulses | Seco
 export function removeClip<Clip extends AbstractClip<U>, U extends Pulses | Seconds>(
   clip: Clip,
   clips: SArray<Clip>,
-): SArray<Clip> {
+): void {
   const i = clips.indexOf(clip);
   if (i === -1) {
-    return clips;
+    return;
   }
 
   clips.splice(i, 1);
 
   assertClipInvariants(clips);
-  return clips;
 }
 
 /**

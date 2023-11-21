@@ -16,7 +16,7 @@ import { EffectRack } from "./EffectRack";
 import { useEventListener } from "./useEventListener";
 import { useLinkedSet } from "../lib/state/LinkedSet";
 import { createEmptyMidiClipInTrack } from "../midi/MidiClip";
-import { useContainer } from "structured-state";
+import { history, useContainer } from "structured-state";
 
 function preventDefault(e: React.DragEvent<HTMLDivElement>) {
   e.preventDefault();
@@ -93,10 +93,12 @@ export function TrackM({
         <CursorSelection track={track} project={project} />
         {selected?.status === "track_time" && (
           <button
-            title="Create Clip"
+            title="Create clip"
             onMouseDownCapture={(e) => {
               e.stopPropagation();
-              createEmptyMidiClipInTrack(project, track, selected.startS, selected.endS);
+              history.record(() => {
+                createEmptyMidiClipInTrack(project, track, selected.startS, selected.endS);
+              });
             }}
             style={{
               position: "absolute",
