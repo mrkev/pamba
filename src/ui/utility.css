@@ -5,6 +5,7 @@
   height: 18px;
   border: none;
   background: var(--control-bg-color);
+
   cursor: pointer;
   white-space: nowrap;
   display: flex;
@@ -12,6 +13,10 @@
   align-items: center;
   justify-content: center;
   min-width: 22px;
+}
+
+.utilityButton::not(disabled) {
+  color: var(--control-text-color);
 }
 
 .utilityButtonActive {

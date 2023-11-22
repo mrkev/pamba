@@ -142,7 +142,7 @@ export function ClipA({
     }
   }
 
-  const border = isSelected ? "1px solid #114411" : "1px solid #aaddaa";
+  const border = isSelected ? "1px solid var(--clip-border-selected)" : "1px solid var(--clip-border)";
   const backgroundImageData = clip.getWaveformDataURL(
     // totalBufferWidth,
     1000,
@@ -153,7 +153,7 @@ export function ClipA({
     <div
       onClick={onClipClick}
       style={{
-        backgroundColor: "#ccffcc",
+        backgroundColor: "var(--clip-color)",
         backgroundSize: `${totalBufferWidth}px ${height - 10}px`,
         backgroundImage: "url('" + backgroundImageData + "')",
         backgroundPosition: `${startTrimmedWidth * -1}px center`,
@@ -178,7 +178,7 @@ export function ClipA({
         onMouseDown={onMouseDownToMove}
         style={{
           color: isSelected ? "white" : "black",
-          background: isSelected ? "#225522" : "#bbeebb",
+          background: isSelected ? "var(--clip-header-selected)" : "var(--clip-header)",
           borderBottom: border,
           paddingLeft: 2,
         }}

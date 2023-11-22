@@ -146,7 +146,7 @@ export function TrackM({
 const useStyles = createUseStyles({
   trackSeparator: {
     width: "100%",
-    background: "#BABABA",
+    background: "var(--track-separator)",
     // to keep the selection div from showing above this effect track
     // So it "sticks" when we scroll the timeline
     position: "sticky",

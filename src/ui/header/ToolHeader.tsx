@@ -154,7 +154,15 @@ export function ToolHeader({
         <div className={classes.bottomRow}>
           <TransportControl project={project} renderer={renderer} recorder={recorder} />
           <div style={{ flexGrow: 1 }}></div>
-          <span style={{ fontSize: 12, display: "flex", flexDirection: "row", alignItems: "center" }}>
+          <span
+            style={{
+              fontSize: 12,
+              display: "flex",
+              flexDirection: "row",
+              alignItems: "center",
+              color: "var(--text-on-background)",
+            }}
+          >
             snap to grid
             <input
               type="checkbox"

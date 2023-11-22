@@ -17,7 +17,7 @@ import { Library } from "./Library";
 import { MidiClipEditor } from "./MidiClipEditor";
 import { OldMidiClipEditor } from "./OldMidiClipEditor";
 import { ProjectSettings } from "./ProjectSettings";
-import { TabbedPanel } from "./TabbedPanel";
+import { UtilityTabbedPanel } from "./UtilityTabbedPanel";
 import { TimelineView } from "./TimelineView";
 import { UtilityPanel } from "./UtilityPanel";
 import { ToolHeader } from "./header/ToolHeader";
@@ -51,7 +51,7 @@ export function AppProject({ project }: { project: AudioProject }) {
       <PanelGroup direction={"vertical"} autoSaveId="foobar2">
         <Panel style={{ display: "flex", flexDirection: "row", alignItems: "stretch" }}>
           {/* <div style={{ display: "flex", flexDirection: "row", alignItems: "stretch" }}> */}
-          <TabbedPanel
+          <UtilityTabbedPanel
             activeTab={activePanel}
             onSelectTab={setActivePanel}
             panels={{

@@ -76,6 +76,7 @@ export function DebugData({ project }: { project: AudioProject }) {
         bottom: 0,
         background: "rgba(233,233,233,0.7)",
         border: "1px solid black",
+        color: "black",
       }}
     >
       <summary style={{ cursor: "pointer" }}>Debug</summary>

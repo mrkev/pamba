@@ -144,6 +144,8 @@ const useStyles = createUseStyles({
     flexGrow: 1,
     fontSize: 12,
     padding: "2px 0px",
+    background: "var(--utility-list-bg)",
+    color: "var(--control-text-color)",
   },
   listItem: {
     textOverflow: "ellipsis",

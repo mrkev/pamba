@@ -8,7 +8,7 @@ type Panel = {
   title: string;
   render: () => React.ReactElement;
 };
-export function TabbedPanel({
+export function UtilityTabbedPanel({
   activeTab,
   onSelectTab,
   panels,
@@ -57,7 +57,7 @@ const useStyles = createUseStyles({
     display: "flex",
     flexDirection: "row",
     gap: 4,
-    borderBottom: "2px solid #d3d3d3",
+    borderBottom: "2px solid var(--control-bg-color)",
   },
   collapsedTabs: {
     flexDirection: "column",
@@ -68,7 +68,7 @@ const useStyles = createUseStyles({
     // border: "1px solid black",
     flexGrow: 1,
     gap: 4,
-    padding: "0px 4px 4px 4px",
+    padding: "0px 4px 0px 4px",
     alignItems: "stretch",
     // paddingBottom: "128px",
   },

@@ -187,7 +187,7 @@ export function MidiClipEditor({
             top: 0,
             left: 0,
             height: noteHeight * TOTAL_NOTES,
-            background: "#DDD",
+            background: "var(--timeline-bg)",
             width: 512,
             // imageRendering: "pixelated",
           }}

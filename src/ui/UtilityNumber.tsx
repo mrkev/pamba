@@ -102,7 +102,13 @@ export function UtilityNumber({
           }
           onChange?.(val);
         }}
-        style={{ justifyContent: "center", width: 20, paddingTop: 0, paddingBottom: 0 }}
+        style={{
+          justifyContent: "center",
+          width: 20,
+          paddingTop: 0,
+          paddingBottom: 0,
+          color: "var(--control-text-color)",
+        }}
         className="utilityButton"
       ></RenamableLabel>
       {/* </div> */}

@@ -166,7 +166,7 @@ export function Library({
         />
       </AudioFileUploadDropzone>
 
-      <hr style={{ width: "100%" }} />
+      <hr style={{ width: "100%", borderColor: "var(--border-against-bg)", borderStyle: "dotted" }} />
       {/* TODO: library won't be updated when new audio gets uploaded, unless it's constantly executed when I think it might be */}
       <UploadAudioButton project={project} loadClip={loadClip} />
       <UserAuthControl />

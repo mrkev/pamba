@@ -288,11 +288,10 @@ const useStyles = createUseStyles({
     alignItems: "center",
     flexDirection: "row",
     justifyContent: "space-evenly",
-    borderBottom: "1px solid #eee",
+    borderBottom: "1px solid var(--axis-spacer-headers-separator)",
     position: "sticky",
     top: 0,
     zIndex: 2,
-    background: "white",
   },
   trackHeaders: {
     position: "sticky",
@@ -305,12 +304,12 @@ const useStyles = createUseStyles({
   },
   projectDiv: {
     position: "relative",
-    background: "#ddd",
+    background: "var(--timeline-bg)",
     overflowX: "scroll",
     overflowY: "hidden",
   },
   playbackPosDiv: {
-    background: "red",
+    background: "var(--cursor-playback)",
     width: "1px",
     height: "100%",
     position: "absolute",
@@ -322,7 +321,7 @@ const useStyles = createUseStyles({
     top: 0,
     left: 0,
     zIndex: 2,
-    borderBottom: "1px solid #aaa",
-    background: "#ddd",
+    borderBottom: "1px solid var(--axis-timeline-separator)",
+    background: "var(--timeline-bg)",
   },
 });

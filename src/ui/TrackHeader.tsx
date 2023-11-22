@@ -13,6 +13,7 @@ import { MidiTrack } from "../midi/MidiTrack";
 import { pressedState } from "../pressedState";
 import { RenamableLabel } from "./RenamableLabel";
 import { UtilitySlider, utility } from "./utility";
+import { UtilityToggle } from "./UtilityToggle";
 
 export const TrackHeader = React.memo(function TrackHeader({
   track,
@@ -62,7 +63,7 @@ export const TrackHeader = React.memo(function TrackHeader({
     <div
       style={{
         position: "relative",
-        borderBottom: `${TRACK_SEPARATOR_HEIGHT}px solid #BABABA`,
+        borderBottom: `${TRACK_SEPARATOR_HEIGHT}px solid var(--track-separator)`,
         cursor: "pointer",
       }}
       onClick={() => ProjectSelection.selectTrack(project, track)}
@@ -79,9 +80,10 @@ export const TrackHeader = React.memo(function TrackHeader({
         }}
       >
         <div
+          className="header"
           style={{
-            background: isSelected ? "#333" : "white",
-            color: isSelected ? "white" : "black",
+            background: isSelected ? "var(--selected-track-header-bg)" : "none",
+            color: isSelected ? "white" : "var(--text-on-background)",
             userSelect: "none",
             display: "flex",
             flexDirection: "row",
@@ -126,6 +128,7 @@ export const TrackHeader = React.memo(function TrackHeader({
           >
             S
           </button>
+
           <button
             className={classNames(utility.button, styles.headerButton)}
             style={muted ? { background: "#5566EE" } : undefined}
@@ -215,26 +218,22 @@ export const TrackHeader = React.memo(function TrackHeader({
 
         <div style={{ flexGrow: 1 }}></div>
         {/* TODO: allow rezising track by dragging either line below dsp, or line between dsp and clips */}
-        <button
-          className={styles.actionButton}
-          style={{
-            background: isDspExpanded ? "#444" : undefined,
-            color: isDspExpanded ? "white" : undefined,
-            margin: "2px",
-          }}
-          onClick={function (e) {
+
+        <UtilityToggle
+          style={{ margin: "2px", fontWeight: 200, fontSize: 10, height: 14 }}
+          toggled={isDspExpanded}
+          onToggle={function (): void {
             if (dspExpandedTracks.has(track)) {
               dspExpandedTracks.delete(track);
             } else {
               dspExpandedTracks.add(track);
             }
-            e.stopPropagation();
           }}
+          toggleStyle={{ background: "black", color: "white" }}
         >
           DSP ({trackEffects.length})
-        </button>
+        </UtilityToggle>
       </div>
-      {/* TODO: Allow DSP on MIDITrack */}
       {isDspExpanded ? (
         <div
           style={{
@@ -317,12 +316,12 @@ const useStyles = createUseStyles({
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    background: "white",
-    color: "black",
+    background: "none",
+    color: "var(--text-on-background)",
   },
   trackNumberActive: {
     color: "white",
-    background: "#333",
+    background: "var(--selected-track-header-background)",
     borderRight: "1px solid #eee",
   },
   buttonRow: {

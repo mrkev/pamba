@@ -54,8 +54,7 @@ export function UtilityMenu({
             background: "var(--control-bg-color)",
             width: 100,
             fontSize: 12,
-            borderBottom: "1px solid #bababa",
-            // borderLeft: "1px solid #bababa",
+            borderBottom: "1px solid var(--control-subtle-highlight)",
           }}
         >
           {Object.entries(items).map(([label, cb]) => (
@@ -74,6 +73,7 @@ const useStyles = createUseStyles({
     cursor: "pointer",
     fontWeight: "bold",
     padding: "1px 6px",
+    color: "var(--control-text-color)",
     "&:hover": {
       background: "#23272D",
       color: "white",

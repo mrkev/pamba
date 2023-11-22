@@ -3,6 +3,7 @@ import { documentCommands } from "../../input/useDocumentKeyboardEvents";
 import { AudioProject } from "../../lib/project/AudioProject";
 import { useLinkedState } from "../../lib/state/LinkedState";
 import { utility } from "../utility";
+import { UtilityToggle } from "../UtilityToggle";
 
 export function ToolSelector({ project }: { project: AudioProject }) {
   const [tool] = useLinkedState(project.pointerTool);
@@ -30,16 +31,15 @@ export function ToolSelector({ project }: { project: AudioProject }) {
       >
         {"\u21E2"}
       </button> */}
-      <button
-        title="move"
-        className={utility.button}
-        style={tool === "move" ? { background: "#BABABA", color: "black" } : undefined}
-        onClick={() => {
+
+      <UtilityToggle
+        toggled={tool === "move"}
+        onToggle={() => {
           documentCommands.execById("moveTool", project);
         }}
       >
         <i className="ri-cursor-fill"></i>
-      </button>
+      </UtilityToggle>
       <button
         title="slice"
         className={utility.button}

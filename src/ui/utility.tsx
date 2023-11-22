@@ -175,6 +175,7 @@ export function UtilitySlider({
           // textAlign: "center",
           // verticalAlign: "middle",
           // position: "absolute",
+          color: "var(--control-text-color)",
           left: 0,
           top: 1,
           pointerEvents: "none",

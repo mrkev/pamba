@@ -37,7 +37,7 @@ export function CursorSelection({
   return (
     <div
       style={{
-        backdropFilter: "invert(100%)",
+        backdropFilter: "grayscale(40%) invert(100%)",
         left:
           (selectionWidth == null || selectionWidth >= 0
             ? project.viewport.secsToPx(cursorPos)

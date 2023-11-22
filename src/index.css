@@ -9,12 +9,63 @@ body {
 }
 
 :root {
-  --control-bg-color: #d3d3d3;
+  --backgroud: #454648;
+  --text-on-background: white;
+  --track-separator: #4b4b4b;
+  --border-against-bg: #eee;
+  --timeline-bg: #656565;
+  --timeline-text: #141414;
+  --timeline-tick: #555;
+  --axis-timeline-separator: #414040;
+  --axis-spacer-headers-separator: #373535; /* interestingly has to be darker than --axis-timeline-separator to look of a similar color due to the different background grays*/
+
+  --selected-track-header-bg: black;
+  --control-bg-color: #b9b9b9;
+  --control-text-color: black;
+  --control-subtle-highlight: #959595;
+  --utility-list-bg: #fff;
+  --cursor: white;
+  --cursor-playback: red;
+  --clip-color: #69c33a;
+  --clip-header: #5cab32;
+  --clip-header-selected: #4d8f2a;
+  --clip-border: #69c33a;
+  --clip-border-selected: #114411;
+
+  /* ////// TODO: call light vvv */
 }
+
+/* LIGHT */
+/* :root {
+  --backgroud: white;
+  --text-on-background: #black;
+  --track-separator: #bababa;
+  --timeline-bg: #ddd;
+  --border-against-bg: #eee;
+  --timeline-text: #454545;
+  --axis-timeline-separator: #aaa;
+  --axis-spacer-headers-separator: #eee;
+  --selected-track-header-bg: #333;
+
+  --control-bg-color: #d3d3d3;
+  --control-text-color: black;
+  --control-subtle-highlight: #bababa;
+  --utility-list-bg: #fff;
+  --timeline-tick: #cbcbcb;
+  --cursor: green;
+  --cursor-playback: red;
+  --clip-color: #ccffcc;
+  --clip-header: #bbeebb;
+  --clip-header-selected: #225522;
+  --clip-border: #aaddaa;
+  --clip-border-selected: #114411;
+} */
 
 html,
 body {
   overscroll-behavior-x: none;
+  background-color: var(--backgroud);
+  color: var(--text-on-background);
 }
 
 html,

@@ -32,13 +32,14 @@ export function TransportControl({
     ctx.textAlign = "start";
     // ctx.fillStyle = "#D3D3D3";
     ctx.fillStyle = "white";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     const start = cursorPos.toFixed(2);
     const end = selectionWidth !== null ? (cursorPos + selectionWidth).toFixed(2) : "--.--";
     const duration = selectionWidth !== null ? selectionWidth.toFixed(2) : "0.00";
 
-    ctx.fillStyle = "#777";
+    // ctx.fillStyle = "#777"; // light mode
+    ctx.fillStyle = "#aaa"; // dark mode
     ctx.fillText(`Time Selection:  Start: ${start}s  End: ${end}s  (Duration: ${duration}s)`, 6, 24);
   }, [cursorPos, selectionWidth]);
 
@@ -47,7 +48,6 @@ export function TransportControl({
       {/* Cursor canvas */}
       <canvas
         style={{
-          background: "black",
           width: 2 * 220,
           height: 18,
           alignSelf: "center",

@@ -1,9 +1,7 @@
 import classNames from "classnames";
-import { useCallback, useRef, useState } from "react";
+import { useState } from "react";
 import { createUseStyles } from "react-jss";
 import { Position } from "../wam/WindowPanel";
-import { useDocumentEventListener, useEventListener } from "./useEventListener";
-import { exhaustive } from "../utils/exhaustive";
 
 export function UtilityPanelGroup({ children }: { children: React.ReactNode }) {
   const styles = useStyles();

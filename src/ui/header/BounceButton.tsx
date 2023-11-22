@@ -6,7 +6,7 @@ import { utility } from "../utility";
 export function BounceButton({ project }: { project: AudioProject; renderer: AudioRenderer }) {
   const [selectionWidth] = useLinkedState(project.selectionWidth);
   return (
-    <div style={{ width: 95, display: "flex", flexDirection: "row-reverse" }}>
+    <div style={{ width: 105, display: "flex", flexDirection: "row-reverse" }}>
       <button
         className={utility.button}
         onClick={async () => {

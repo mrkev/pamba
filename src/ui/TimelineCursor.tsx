@@ -43,7 +43,7 @@ export function TimelineCursor({ project, isHeader }: { project: AudioProject; i
   return (
     <div
       style={{
-        borderLeft: "1px solid green",
+        borderLeft: "1px solid var(--cursor)",
         borderRight: selectionWidth === 0 ? undefined : "1px solid green",
         height: "100%",
         position: "absolute",

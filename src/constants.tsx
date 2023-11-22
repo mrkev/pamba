@@ -5,7 +5,7 @@ export const LIVE_SAMPLE_RATE = liveAudioContext.sampleRate;
 export const CLIP_HEIGHT = 88;
 export const TRACK_SEPARATOR_HEIGHT = 3;
 export const EFFECT_HEIGHT = CLIP_HEIGHT + 46;
-export const MIN_TRACK_HEIGHT = 64;
+export const MIN_TRACK_HEIGHT = 76;
 export const TRACK_HEADER_WIDTH = 150;
 
 export const PX_PER_SEC = 10;

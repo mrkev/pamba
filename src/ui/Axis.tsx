@@ -90,7 +90,7 @@ function getBeatTickData(
   project: AudioProject,
   viewportStartPx: number,
   projectDivWidth: number,
-  tempo: number
+  tempo: number,
 ): (readonly [beatNum: number, time: number])[] {
   const viewportStartSecs = project.viewport.pxToSecs(viewportStartPx);
   const viewportEndSecs = project.viewport.timeForPx(projectDivWidth);
@@ -147,14 +147,20 @@ export function Axis({ project, isHeader = false }: { project: AudioProject; isH
             const [fontSize, textY] = textDims("tempo");
             return (
               <g className="tick" key={secs}>
-                <line x1={px} x2={px} y1={primaryAxis === "time" ? "70%" : "0"} y2="100%" stroke="#CBCBCB"></line>
+                <line
+                  x1={px}
+                  x2={px}
+                  y1={primaryAxis === "time" ? "70%" : "0"}
+                  y2="100%"
+                  stroke="var(--timeline-tick)"
+                ></line>
                 {isHeader && (
                   <text
                     x={px}
                     y={textY}
                     dx="2px"
                     fontSize={fontSize}
-                    fill="#454545"
+                    fill="var(--timeline-text)"
                     textAnchor="start"
                     alignmentBaseline="hanging"
                   >
@@ -170,14 +176,20 @@ export function Axis({ project, isHeader = false }: { project: AudioProject; isH
             const [fontSize, textY] = textDims("time");
             return (
               <g className="tick" key={secs}>
-                <line x1={px} x2={px} y1={primaryAxis === "time" ? "0" : "70%"} y2="100%" stroke="#CBCBCB"></line>
+                <line
+                  x1={px}
+                  x2={px}
+                  y1={primaryAxis === "time" ? "0" : "70%"}
+                  y2="100%"
+                  stroke="var(--timeline-tick)"
+                ></line>
                 {isHeader && (
                   <text
                     x={px}
                     y={textY}
                     dx="2px"
                     fontSize={fontSize}
-                    fill="#454545"
+                    fill="var(--timeline-text)"
                     textAnchor="start"
                     alignmentBaseline="hanging"
                   >

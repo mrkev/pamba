@@ -7,7 +7,7 @@ import nullthrows from "../utils/nullthrows";
 import { PambaWamNode } from "../wam/PambaWamNode";
 import { appEnvironment } from "./AppEnvironment";
 import { AbstractClip } from "./BaseClip";
-import { addClip, deleteTime, moveClip, pushClip, removeClip, splitClip } from "./BaseClipFn";
+import { addClip, deleteTime, pushClip, removeClip, splitClip } from "./BaseClipFn";
 import { connectSerialNodes } from "./connectSerialNodes";
 import { AudioContextInfo } from "./initAudioContext";
 import { PBGainNode } from "./offlineNodes";
