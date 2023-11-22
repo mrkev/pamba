@@ -15,9 +15,8 @@ import { ignorePromise } from "../utils/ignorePromise";
 import { AudioFileUploadDropzone } from "./AudioFileUploadDropzone";
 import { UploadAudioButton } from "./UploadAudioButton";
 import { ListEntry, UtilityDataList } from "./UtilityList";
-import { UserAuthControl } from "./header/UserAuthControl";
-import { utility } from "./utility";
 import { closeProject } from "./header/ToolHeader";
+import { UserAuthControl } from "./header/UserAuthControl";
 
 const STATIC_AUDIO_FILES = ["drums.mp3", "clav.mp3", "bassguitar.mp3", "horns.mp3", "leadguitar.mp3"];
 

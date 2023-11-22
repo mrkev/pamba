@@ -11,12 +11,12 @@ body {
 :root {
   --backgroud: #454648;
   --text-on-background: white;
-  --track-separator: #4b4b4b;
+  --track-separator: #4e4e4e;
   --border-against-bg: #eee;
-  --timeline-bg: #656565;
+  --timeline-bg: #696969;
   --timeline-text: #141414;
-  --timeline-tick: #555;
-  --axis-timeline-separator: #414040;
+  --timeline-tick: #595959;
+  --axis-timeline-separator: #444343;
   --axis-spacer-headers-separator: #373535; /* interestingly has to be darker than --axis-timeline-separator to look of a similar color due to the different background grays*/
 
   --selected-track-header-bg: black;

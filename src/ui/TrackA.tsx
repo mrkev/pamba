@@ -104,6 +104,7 @@ export function TrackA({
   const onDrop = useCallback(
     async (ev: React.DragEvent<HTMLDivElement>) => {
       ev.preventDefault();
+      ev.stopPropagation();
       const url = await getDroppedAudioURL(audioStorage, ev.dataTransfer);
 
       if (url && url.length > 0) {

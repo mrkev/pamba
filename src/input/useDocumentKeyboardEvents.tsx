@@ -22,7 +22,10 @@ export const documentCommands = CommandBlock.create((command) => {
       e?.preventDefault();
       e?.stopPropagation();
       return Promise.all([ProjectPersistance.doSave(project), appEnvironment.localFiles.saveProject(project)]);
-    }),
+    }).helptext("Save"),
+
+    // TODO: save as/save copy
+    // TODO: split at cursor
 
     undo: command(["KeyZ", "meta"], (e) => {
       performance.mark("undo-start");

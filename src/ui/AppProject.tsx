@@ -1,30 +1,19 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { modifierState, useSingletonKeyboardModifierState } from "../ModifierState";
 import { useDocumentKeyboardEvents } from "../input/useDocumentKeyboardEvents";
-import { AnalizedPlayer } from "../lib/AnalizedPlayer";
-import { AudioClip } from "../lib/AudioClip";
 import { AudioRecorder } from "../lib/AudioRecorder";
 import { AudioRenderer } from "../lib/AudioRenderer";
 import { AudioProject } from "../lib/project/AudioProject";
-import { PrimarySelectionState } from "../lib/project/SelectionState";
-import { useLinkedState } from "../lib/state/LinkedState";
-import { MidiClip } from "../midi/MidiClip";
-import { MidiTrack } from "../midi/MidiTrack";
-import { exhaustive } from "../utils/exhaustive";
-import { AudioClipEditor } from "./AudioClipEditor";
 import { Library } from "./Library";
-import { MidiClipEditor } from "./MidiClipEditor";
-import { OldMidiClipEditor } from "./OldMidiClipEditor";
 import { ProjectSettings } from "./ProjectSettings";
 import { UtilityTabbedPanel } from "./UtilityTabbedPanel";
 import { TimelineView } from "./TimelineView";
-import { UtilityPanel } from "./UtilityPanel";
 import { ToolHeader } from "./header/ToolHeader";
 import { History } from "./history";
-import { useMousePressMove } from "./useEventListener";
 import { useLocalStorage } from "./useLocalStorage";
 import { appEnvironment } from "../lib/AppEnvironment";
+import { BottomPanel } from "./BottomPanel";
 
 function useStopPlaybackOnUnmount(renderer: AudioRenderer) {
   useEffect(() => {
@@ -96,63 +85,4 @@ export function AppProject({ project }: { project: AudioProject }) {
       </PanelGroup>
     </>
   );
-}
-
-function BottomPanel({ project, player }: { project: AudioProject; player: AnalizedPlayer }) {
-  const [activeTrack] = useLinkedState(project.activeTrack);
-  const [selected] = useLinkedState(project.selected);
-  const clipMaybe = getOnlyOneSelectedClip(selected);
-
-  const testref = useRef<HTMLDivElement>(null);
-  useMousePressMove(
-    testref,
-    useCallback((kind) => {
-      console.log(kind);
-    }, []),
-  );
-
-  if (clipMaybe instanceof AudioClip) {
-    return <AudioClipEditor clip={clipMaybe} player={player} project={project} />;
-  }
-
-  if (clipMaybe instanceof MidiClip) {
-    return (
-      <>
-        <MidiClipEditor clip={clipMaybe} player={player} project={project} />
-      </>
-    );
-  }
-
-  if (!(activeTrack instanceof MidiTrack)) {
-    return (
-      <div>
-        <div ref={testref}>TEST</div>
-        <UtilityPanel layout={"horizontal"}>nothing to show</UtilityPanel>
-        <UtilityPanel layout={"horizontal"}>nothing to show</UtilityPanel>
-      </div>
-    );
-  }
-
-  const clip = activeTrack.pianoRoll.sequencer.pianoRoll.clips["default"];
-  return <OldMidiClipEditor clip={clip} player={player} />;
-}
-
-function getOnlyOneSelectedClip(selected: PrimarySelectionState | null) {
-  if (selected == null) {
-    return null;
-  }
-
-  if (!(selected.status === "clips" && selected.clips.length === 1)) {
-    return null;
-  }
-
-  const clip = selected.clips[0];
-
-  if (clip.clip instanceof MidiClip) {
-    return clip.clip;
-  } else if (clip.clip instanceof AudioClip) {
-    return clip.clip;
-  } else {
-    exhaustive(clip.clip);
-  }
 }

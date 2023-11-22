@@ -6,6 +6,7 @@ import { AudioProject } from "../lib/project/AudioProject";
 import { useSubscribeToSubbableMutationHashable } from "../lib/state/LinkedMap";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { RenamableLabel } from "./RenamableLabel";
+import { GPUWaveform } from "./GPUWaveform";
 
 type AudioViewportT = {
   pxPerSec: number;
@@ -51,10 +52,6 @@ export function AudioClipEditor({
 
   return (
     <>
-      {/* File Settings */}
-      File
-      {clip.bufferURL}
-      {/* Clip settings */}
       <div
         style={{
           border: border,
@@ -64,6 +61,7 @@ export function AudioClipEditor({
           fontSize: 12,
         }}
       >
+        <GPUWaveform audioBuffer={clip.buffer} />
         <div
           className={styles.clipHeader}
           style={{
@@ -77,21 +75,24 @@ export function AudioClipEditor({
           <RenamableLabel
             style={{
               color: "white",
-              fontSize: 10,
+              fontSize: 12,
+              cursor: "text",
             }}
             value={name}
-            setValue={console.log}
-          />{" "}
-          ({Math.round(clip.getDuration() * 100) / 100})
+            setValue={(value) => {
+              clip.name.set(value);
+            }}
+          />
+          G
         </div>
-        Length{" "}
-        <input
-          type="number"
-          value={clip.getDuration()}
-          onChange={(v) => {
-            console.log("CHANGE");
-          }}
-        />
+        Length <input type="number" value={clip.getDuration()} disabled />
+        Filename:
+        <input type="text" value={clip.bufferURL} disabled />
+        Sample Rate:
+        <input type="number" value={clip.sampleRate} disabled />
+        sid:
+        <input type="text" value={clip._id} disabled />
+        <small>note: sid is for debugging</small>
       </div>
       {/* Waveform view */}
       <div

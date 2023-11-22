@@ -73,6 +73,7 @@ export function ToolHeader({
   const [snapToGrid] = useLinkedState(project.snapToGrid);
   const [inputDevices] = useLinkedMap(recorder.audioInputDevices);
   const [selectedDevice] = useLinkedState(recorder.currentInput);
+  const [projectName] = useLinkedState(project.projectName);
 
   const drawPlaybeatTime = useCallback(
     (time: number) => {
@@ -153,6 +154,10 @@ export function ToolHeader({
         </div>
         <div className={classes.bottomRow}>
           <TransportControl project={project} renderer={renderer} recorder={recorder} />
+          <div style={{ flexGrow: 1 }}></div>
+          <span title="current open project">
+            <i className="ri-file-music-line" /> {projectName}
+          </span>
           <div style={{ flexGrow: 1 }}></div>
           <span
             style={{

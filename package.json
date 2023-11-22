@@ -28,6 +28,7 @@
     "@typescript-eslint/parser": "^6.11.0",
     "@webaudiomodules/api": "^2.0.0-alpha.6",
     "@webaudiomodules/sdk": "^0.0.11",
+    "@webgpu/types": "^0.1.39",
     "audiobuffer-to-wav": "1.0.0",
     "babel-jest": "^29.5.0",
     "babel-loader": "^9.1.2",

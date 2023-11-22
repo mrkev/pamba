@@ -10,20 +10,31 @@ export class ProjectViewportUtil {
 
   constructor(project: AudioProject) {
     this.project = project;
+    (window as any).vp = this;
   }
 
   // Scale
 
+  // scaleFactor: how many pixels are in one second
+
   setScale(expectedNewScale: number, centerOnTimeS: number = 0) {
     // min scale is 0.64, max is 1000
     const newScale = clamp(0.64, expectedNewScale, 1000);
+    const currentScaleFactor = this.project.scaleFactor.get();
+    const scaleFactorFactor = expectedNewScale / currentScaleFactor;
     this.project.scaleFactor.set(newScale);
     // const realSDelta = newScale / this.project.scaleFactor.get();
 
-    const xs = 1;
+    // const xs = 1;
 
-    const v = -centerOnTimeS * xs + centerOnTimeS;
-    this.project.viewportStartPx.set(v);
+    // const v = -centerOnTimeS * xs + centerOnTimeS;
+    // console.log("v", v);
+
+    this.project.viewportStartPx.setDyn((prev) => {
+      const newStartPx = prev * scaleFactorFactor;
+      console.log("newStartPx", newStartPx);
+      return newStartPx;
+    });
 
     // const widthUpToMouse = e.clientX + viewportStartPx;
     // const deltaX = widthUpToMouse - widthUpToMouse * realSDelta;
@@ -49,9 +60,9 @@ export class ProjectViewportUtil {
     return this.secsToPx(s) - viewportStartPx;
   }
 
-  timeForPx(s: number): number {
+  timeForPx(px: number): number {
     const viewportStartPx = this.project.viewportStartPx.get();
-    return this.pxToSecs(s + viewportStartPx);
+    return this.pxToSecs(px + viewportStartPx);
   }
 
   // TODO: more direct method?
