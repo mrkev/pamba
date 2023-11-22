@@ -65,9 +65,9 @@ export function AppProject({ project }: { project: AudioProject }) {
                 title: "Project",
                 render: () => <ProjectSettings project={project} />,
               },
-              history: {
+              tools: {
                 icon: <i className="ri-settings-3-line" style={{ paddingRight: 2 }}></i>,
-                title: "History",
+                title: "Tools",
                 render: () => <History project={project} />,
               },
             }}

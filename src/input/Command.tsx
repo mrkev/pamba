@@ -11,15 +11,26 @@ type CommandCallback = (
 
 class Command {
   readonly cb: CommandCallback;
-  private label: string | null = null;
-  private description: string | null = null;
-  constructor(cb: CommandCallback) {
+  private _label: string | null = null;
+  private _description: string | null = null;
+  readonly shortcut: KeyboardShortcut;
+
+  constructor(cb: CommandCallback, shortcut: KeyboardShortcut) {
     this.cb = cb;
+    this.shortcut = shortcut;
   }
 
-  helptext(label: string, description: string) {
-    this.label = label;
-    this.description = description;
+  get label() {
+    return this._label;
+  }
+
+  get description() {
+    return this._description;
+  }
+
+  helptext(label: string, description?: string) {
+    this._label = label;
+    this._description = description ?? null;
     return this;
   }
 }
@@ -51,6 +62,10 @@ export class CommandBlock<T extends Record<string, Command>> {
     return this.byId[label].cb(null, project);
   }
 
+  getAllCommands(): Command[] {
+    return [...this.byKeyCode.values()];
+  }
+
   static keyboardChordId(code: string, meta: boolean, alt: boolean, ctrl: boolean, shift: boolean) {
     return `${code}-${meta}-${alt}-${ctrl}-${shift}`;
   }
@@ -69,7 +84,7 @@ export class CommandBlock<T extends Record<string, Command>> {
         set.has("ctrl"),
         set.has("shift"),
       );
-      const command = new Command(cb);
+      const command = new Command(cb, shortcut);
       if (byKeyCode.has(chordId)) {
         throw new Error("Duplicate keyboard shortcuts for command:" + chordId);
       }

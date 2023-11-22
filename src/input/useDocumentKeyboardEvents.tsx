@@ -30,13 +30,13 @@ export const documentCommands = CommandBlock.create((command) => {
       performance.mark("undo-end");
       performance.measure("undo", "undo-start", "undo-end");
       e?.preventDefault();
-    }),
+    }).helptext("Undo", "Note: EXPERIMENTAL!"),
 
     createAudioTrack: command(["KeyT", "ctrl"], (e, project) => {
       // TODO: history
       AudioProject.addAudioTrack(project, appEnvironment.renderer.analizedPlayer);
       e?.preventDefault();
-    }),
+    }).helptext("New Audio Track"),
 
     createMidiTrack: command(["KeyT", "ctrl", "shift"], (e, project) => {
       // TODO: history
@@ -49,6 +49,12 @@ export const documentCommands = CommandBlock.create((command) => {
       ProjectSelection.deleteSelection(project);
       e?.preventDefault();
     }),
+
+    jumpToTimelineStart: command(["ArrowLeft", "alt"], (e, project) => {
+      project.cursorPos.set(0);
+      project.selectionWidth.set(0);
+      e?.preventDefault();
+    }).helptext("Jump to start", "Rewinds the cursor to the beggining of the track"),
 
     // Clipboard
 
@@ -69,22 +75,22 @@ export const documentCommands = CommandBlock.create((command) => {
     moveTool: command(["KeyV"], (e, project) => {
       project.pointerTool.set("move");
       document.body.style.cursor = "auto";
-    }),
+    }).helptext("Select Move Tool"),
 
     trimStartTool: command(["KeyS", "shift"], (e, project) => {
       project.pointerTool.set("trimStart");
       document.body.style.cursor = "e-resize";
-    }),
+    }).helptext("Select Trim-from-Start tool"),
 
     trimEndTool: command(["KeyE", "shift"], (e, project) => {
       project.pointerTool.set("trimEnd");
       document.body.style.cursor = "w-resize";
-    }),
+    }).helptext("Select Trim-from-End tool"),
 
     sliceTool: command(["KeyS"], (e, project) => {
       project.pointerTool.set("slice");
       document.body.style.cursor = "crosshair";
-    }),
+    }).helptext("Select Slice tool", "Allos you to split clips in two with a single click"),
   };
 });
 

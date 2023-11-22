@@ -165,6 +165,10 @@ export class AudioProject {
     return newTrack;
   }
 
+  static canEditTrack(project: AudioProject, track: MidiTrack | AudioTrack) {
+    return !project.lockedTracks.has(track); // todo: also check if audio is playing
+  }
+
   static removeTrack(project: AudioProject, player: AnalizedPlayer, track: AudioTrack | MidiTrack) {
     const selected = project.selected.get();
     const pos = project.allTracks.indexOf(track);

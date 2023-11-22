@@ -7,6 +7,7 @@ import { AudioProject } from "../../lib/project/AudioProject";
 import { useLinkedState } from "../../lib/state/LinkedState";
 import { exhaustive } from "../../utils/exhaustive";
 import { utility } from "../utility";
+import { documentCommands } from "../../input/useDocumentKeyboardEvents";
 
 export function TransportControl({
   project,
@@ -90,8 +91,7 @@ export function PlaybackControl({
         disabled={isAudioPlaying || isRecording || (cursorPos === 0 && selectionWidth === 0)}
         style={isRecording ? { color: "red" } : undefined}
         onClick={() => {
-          project.cursorPos.set(0);
-          project.selectionWidth.set(0);
+          documentCommands.execById("jumpToTimelineStart", project);
         }}
       >
         {"\u23ee" /* rewind */}
