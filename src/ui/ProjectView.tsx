@@ -121,6 +121,13 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
   });
 
   useLayoutEffect(() => {
+    const width = projectDivRef.current?.getBoundingClientRect().width;
+    if (width) {
+      project.viewport.projectDivWidth.set(width);
+    }
+  }, [project.viewport.projectDivWidth]);
+
+  useLayoutEffect(() => {
     if (!projectDivRef) {
       return;
     }

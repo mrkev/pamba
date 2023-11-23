@@ -36,3 +36,7 @@
     background: black;
   }
 }
+
+.utilityInput {
+  border: 2px solid var(--control-bg-color);
+}

@@ -6,6 +6,14 @@ export function ignorePromise<T>(promise: Promise<T>) {
   });
 }
 
+export function ignoreMaybePromise<T>(maybePromise: Promise<T> | T) {
+  if (maybePromise instanceof Promise) {
+    ignorePromise(maybePromise);
+  } else {
+    return;
+  }
+}
+
 export function pAll<T extends readonly unknown[] | []>(
   ...values: T
 ): Promise<{ -readonly [P in keyof T]: Awaited<T[P]> }> {

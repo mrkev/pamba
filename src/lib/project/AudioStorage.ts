@@ -40,8 +40,10 @@ export class AudioStorage {
       case "audio/vnd.rn-realaudio":
       case "audio/vorbis":
       case "audio/vnd.wav":
+      case "audio/wav":
         break;
       default: {
+        // TODO: upload fails but ui has no feedback for users
         return new Error("Unsupported format: " + file.type);
       }
     }

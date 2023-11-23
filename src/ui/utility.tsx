@@ -6,6 +6,7 @@ import { useEventListener } from "./useEventListener";
 export const utility = {
   button: "utilityButton",
   slider: "utilitySlider",
+  input: "utilityInput",
 };
 
 // TODO: exponential for better decibel granularity (ableton is from -70db = Inf, to 6db)
