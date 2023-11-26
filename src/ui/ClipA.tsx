@@ -1,6 +1,7 @@
 import { scaleLinear } from "d3-scale";
-import React from "react";
+import React, { useCallback, useRef } from "react";
 import { createUseStyles } from "react-jss";
+import { history } from "structured-state";
 import { modifierState } from "../ModifierState";
 import { CLIP_HEIGHT } from "../constants";
 import type { AudioClip } from "../lib/AudioClip";
@@ -9,9 +10,9 @@ import type { AudioProject, XScale } from "../lib/project/AudioProject";
 import { useSubscribeToSubbableMutationHashable } from "../lib/state/LinkedMap";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { pressedState } from "../pressedState";
-import { RenamableLabel } from "./RenamableLabel";
-import { history } from "structured-state";
 import { exhaustive } from "../utils/exhaustive";
+import { RenamableLabel } from "./RenamableLabel";
+import { useEventListener } from "./useEventListener";
 // import { dataWaveformToCanvas } from "../lib/waveformAsync";
 
 export function ClipA({
@@ -30,7 +31,7 @@ export function ClipA({
   editable?: boolean;
 }) {
   const styles = useStyles();
-
+  const headerRef = useRef<HTMLDivElement>(null);
   const width = project.viewport.secsToPx(clip.getDuration());
   const totalBufferWidth = project.viewport.secsToPx(clip.lengthSec);
   const startTrimmedWidth = project.viewport.secsToPx(clip.trimStartSec);
@@ -61,46 +62,54 @@ export function ClipA({
     });
   }
 
-  function onMouseDownToMove(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
-    if (tool !== "move" || track == null) {
-      return;
-    }
+  useEventListener(
+    "mousedown",
+    headerRef,
+    useCallback(
+      function onMouseDownToMove(e: MouseEvent) {
+        if (tool !== "move" || track == null) {
+          return;
+        }
 
-    if (!editable) {
-      return;
-    }
+        if (!editable) {
+          return;
+        }
 
-    pressedState.set({
-      status: "moving_clip",
-      clientX: e.clientX,
-      clientY: e.clientY,
-      clip,
-      track,
-      originalTrack: track,
-      originalClipOffsetSec: clip.startOffsetSec,
-      inHistory: false,
-    });
+        pressedState.set({
+          status: "moving_clip",
+          clientX: e.clientX,
+          clientY: e.clientY,
+          clip,
+          track,
+          originalTrack: track,
+          originalClipStartOffsetSec: clip.startOffsetSec,
+          originalClipEndOffsetSec: clip.endOffsetSec,
+          inHistory: false,
+        });
 
-    project.selected.setDyn((prev) => {
-      const selectAdd = modifierState.meta || modifierState.shift;
-      if (selectAdd && prev !== null && prev.status === "clips") {
-        prev.clips.push({ clip, track });
-        prev.test.add(clip);
-        prev.test.add(track);
-        return { ...prev };
-      } else {
-        return {
-          status: "clips",
-          clips: [{ clip, track }],
-          test: new Set([clip, track]),
-        };
-      }
-    });
+        project.selected.setDyn((prev) => {
+          const selectAdd = modifierState.meta || modifierState.shift;
+          if (selectAdd && prev !== null && prev.status === "clips") {
+            prev.clips.push({ clip, track });
+            prev.test.add(clip);
+            prev.test.add(track);
+            return { ...prev };
+          } else {
+            return {
+              status: "clips",
+              clips: [{ clip, track }],
+              test: new Set([clip, track]),
+            };
+          }
+        });
 
-    project.selectionWidth.set(null);
-    // e.stopPropagation();
-    console.log("FOBAR");
-  }
+        project.selectionWidth.set(null);
+        e.stopPropagation();
+        console.log("AA");
+      },
+      [clip, editable, project.selected, project.selectionWidth, tool, track],
+    ),
+  );
 
   function onClipClick(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
     const div = e.currentTarget;
@@ -115,10 +124,10 @@ export function ClipA({
       case "move":
         break;
       case "slice":
-        console.log("TODO");
         const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
-        const asSec = project.viewport.pxToSecs(pxFromStartOfClip);
-        track.splitClip(clip, asSec);
+        const secFromStartOfClip = project.viewport.pxToSecs(pxFromStartOfClip);
+        const secFromTimelineStart = clip.startOffsetSec + secFromStartOfClip;
+        track.splitClip(project, clip, secFromTimelineStart);
         break;
       case "trimStart": {
         const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
@@ -175,7 +184,7 @@ export function ClipA({
     >
       <div
         className={styles.clipHeader}
-        onMouseDown={onMouseDownToMove}
+        ref={headerRef}
         style={{
           color: isSelected ? "white" : "black",
           background: isSelected ? "var(--clip-header-selected)" : "var(--clip-header)",
@@ -196,7 +205,7 @@ export function ClipA({
       </div>
       {editable && <div className={styles.resizerStart} onMouseDownCapture={(e) => onMouseDownToResize(e, "start")} />}
       {editable && <div className={styles.resizerEnd} onMouseDownCapture={(e) => onMouseDownToResize(e, "end")} />}
-
+      {/* <GPUWaveform audioBuffer={clip.buffer} width={width} height={30} /> */}
       {/* <button
         onClick={() => {
           if (canvasRef.current) {

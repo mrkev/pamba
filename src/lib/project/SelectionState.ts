@@ -41,8 +41,8 @@ export type PrimarySelectionState =
   | {
       // ie, global time
       status: "time";
-      start: number;
-      end: number;
+      startS: number;
+      endS: number;
     }
   | {
       status: "track_time";

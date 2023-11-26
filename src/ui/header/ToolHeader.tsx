@@ -16,6 +16,8 @@ import { utility } from "../utility";
 import { BounceButton } from "./BounceButton";
 import { ToolSelector } from "./ToolSelector";
 import { PlaybackControl, TransportControl } from "./TransportControl";
+import { RenamableLabel } from "../RenamableLabel";
+import { UtilityToggle } from "../UtilityToggle";
 
 export async function closeProject(project: AudioProject) {
   const selection = await doConfirm(`Save changes to "${project.projectName.get()}"?`, "yes", "no", "cancel");
@@ -156,7 +158,13 @@ export function ToolHeader({
           <TransportControl project={project} renderer={renderer} recorder={recorder} />
           <div style={{ flexGrow: 1 }}></div>
           <span title="current open project">
-            <i className="ri-file-music-line" /> {projectName}
+            <i className="ri-file-music-line" />{" "}
+            <RenamableLabel
+              style={{ padding: "0px 2px" }}
+              value={projectName}
+              setValue={(v) => project.projectName.set(v)}
+              highlightFocus
+            />
           </span>
           <div style={{ flexGrow: 1 }}></div>
           <span
@@ -177,6 +185,16 @@ export function ToolHeader({
               }}
             ></input>
           </span>
+
+          {/* <UtilityToggle
+            toggled={snapToGrid}
+            toggleStyle={{ background: "orange" }}
+            onToggle={function (toggled: boolean): void {
+              project.snapToGrid.set(toggled);
+            }}
+          >
+            snap to grid
+          </UtilityToggle> */}
 
           <input
             type="range"

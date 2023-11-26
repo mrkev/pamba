@@ -11,6 +11,7 @@ import { addClip, deleteTime, pushClip, removeClip, splitClip } from "./BaseClip
 import { connectSerialNodes } from "./connectSerialNodes";
 import { AudioContextInfo } from "./initAudioContext";
 import { PBGainNode } from "./offlineNodes";
+import type { AudioProject } from "./project/AudioProject";
 import { LinkedArray } from "./state/LinkedArray";
 import { SPrimitive } from "./state/LinkedState";
 
@@ -107,13 +108,21 @@ export abstract class ProjectTrack<T extends AbstractClip<any>> extends DSPNode<
 
   //////////// CLIPS ////////////
 
-  addClip(newClip: T): void {
+  addClip(project: AudioProject, newClip: T): void {
+    if (!project.canEditTrack(project, this)) {
+      return;
+    }
+
     addClip(newClip, this.clips);
     // this.clips._setRaw(clips);
   }
 
   // Adds a clip right after the last clip
-  pushClip(newClip: T): void {
+  pushClip(project: AudioProject, newClip: T): void {
+    if (!project.canEditTrack(project, this)) {
+      return;
+    }
+
     pushClip(newClip, this.clips);
     // this.clips._setRaw(clips as any);
   }
@@ -124,25 +133,30 @@ export abstract class ProjectTrack<T extends AbstractClip<any>> extends DSPNode<
   //   // this.clips._setRaw(clips as any);
   // }
 
-  removeClip(clip: T): void {
+  removeClip(project: AudioProject, clip: T): void {
+    if (!project.canEditTrack(project, this)) {
+      return;
+    }
+
     removeClip(clip, this.clips);
     // this.clips._setRaw(clips);
   }
 
-  deleteTime(startSec: number, endSec: number): void {
-    deleteTime(startSec, endSec, this.clips);
+  deleteTime(project: AudioProject, start: number, end: number): void {
+    if (!project.canEditTrack(project, this)) {
+      return;
+    }
+
+    deleteTime(start, end, this.clips);
     // this.clips._setRaw(clips);
   }
 
-  // TODO: UNUSED
-  splitClip(clip: T, offsetFromStartOffset: number): void {
-    const result = splitClip(clip, offsetFromStartOffset, this.clips);
-    if (result === null) {
-      console.warn("null result when splitting clips");
+  splitClip(project: AudioProject, clip: T, offset: number): void {
+    if (!project.canEditTrack(project, this)) {
       return;
     }
-    const [, , clips] = result;
-    this.clips._setRaw(clips as any); // TODO: READONLY
+
+    splitClip(clip, offset, this.clips);
   }
 
   //////////////////// EFFECTS //////////////////////

@@ -17,6 +17,7 @@ export function useTrackMouseEvents(
     trackRef,
     useCallback(
       (e: MouseEvent) => {
+        console.log("foobar");
         const div = trackRef.current;
         if (div == null) {
           return;

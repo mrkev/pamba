@@ -11,6 +11,7 @@ import { ProjectTrack } from "./ProjectTrack";
 import { TrackThread } from "./TrackThread";
 import { connectSerialNodes } from "./connectSerialNodes";
 import { AudioContextInfo } from "./initAudioContext";
+import { AudioProject } from "./project/AudioProject";
 
 export class AudioTrack extends ProjectTrack<AudioClip> {
   public override clips: SSchemaArray<AudioClip>;
@@ -115,9 +116,9 @@ export class AudioTrack extends ProjectTrack<AudioClip> {
   //////////// UTILITY ////////////
 
   // New track with a single clip
-  static fromClip(clip: AudioClip) {
+  static fromClip(project: AudioProject, clip: AudioClip) {
     const track = AudioTrack.create();
-    track.addClip(clip);
+    track.addClip(project, clip);
     return track;
   }
 

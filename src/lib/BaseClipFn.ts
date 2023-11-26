@@ -51,17 +51,8 @@ export function addClip<Clip extends AbstractClip<U>, U extends Pulses | Seconds
       continue;
     }
 
-    if (next && next._startOffsetU === newClip._startOffsetU) {
-      // Overlap
-    }
-
-    if (
-      (prev && prev._startOffsetU === newClip._startOffsetU) ||
-      (next && next._startOffsetU === newClip._startOffsetU)
-    ) {
-      // perfect overlap, TODO
-      throw new Error("OOPS");
-    } else {
+    if (next && next._startOffsetU >= newClip._startOffsetU) {
+      // we insert here
       break;
     }
   }
@@ -105,6 +96,7 @@ export function deleteTime<Clip extends AbstractClip<U>, U extends Pulses | Seco
   }
 
   const toRemove = [];
+  const toResort = [];
 
   let res = clips;
   for (let i = 0; i < clips.length; i++) {
@@ -121,7 +113,10 @@ export function deleteTime<Clip extends AbstractClip<U>, U extends Pulses | Seco
 
     // Trim the start of the clip
     if (remStart) {
+      // need to remove and re-sort clip
       current.trimToOffset(end as U);
+      toRemove.push(current);
+      toResort.push(current);
       continue;
     }
 
@@ -140,26 +135,28 @@ export function deleteTime<Clip extends AbstractClip<U>, U extends Pulses | Seco
       current._startOffsetU < end &&
       end < current._endOffsetU
     ) {
-      // console.log("CLIPS HERE\n", printClips(clips));
-      const [, after, out] = nullthrows(splitClip(current, start, clips));
-      // console.log("CLIPS HERE\n", printClips(clips));
+      const first = current;
+      const second = current.clone();
 
-      const [before, , out2] = nullthrows(splitClip(after, end, out));
-      // console.log("CLIPS HERE\n", printClips(clips));
+      toResort.push(second);
 
-      // console.log("BEFORE", before.toString(), "aaaaaaaa", __.toString());
-      removeClip(before, out2);
-
-      // End the loop, this is the only case and we just messed up
-      // the indexes so we very much don't want to keep going
+      first._setEndOffsetU(start as U);
+      second.trimToOffset(end as U);
     }
   }
+
+  console.log("clips", clips, toRemove, toResort);
 
   for (let clip of toRemove) {
     // todo: optimize
     removeClip(clip, clips);
   }
 
+  for (let clip of toResort) {
+    addClip(clip, clips);
+  }
+
+  console.log(clips);
   assertClipInvariants(res);
 }
 
@@ -188,7 +185,7 @@ export function splitClip<Clip extends AbstractClip<U>, U extends Pulses | Secon
   clip: Clip,
   time: number,
   clips: SArray<Clip>,
-): [before: Clip, after: Clip, clips: SArray<Clip>] | null {
+): [before: Clip, after: Clip] | null {
   if (time > clip._endOffsetU || time < clip._startOffsetU) {
     return null;
   }
@@ -208,7 +205,7 @@ export function splitClip<Clip extends AbstractClip<U>, U extends Pulses | Secon
   clips.splice(i + 1, 0, clipAfter);
 
   assertClipInvariants(clips);
-  return [clip, clipAfter, clips];
+  return [clip, clipAfter];
 }
 
 /**

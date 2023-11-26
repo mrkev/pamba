@@ -18,6 +18,7 @@ import { TrackA, getDroppedAudioURL } from "./TrackA";
 import { TrackM } from "./TrackM";
 import { useEventListener } from "./useEventListener";
 import { useStyles } from "./TimelineView";
+import { flushSync } from "react-dom";
 
 export function ProjectView({ project, renderer }: { project: AudioProject; renderer: AudioRenderer }) {
   const projectDivRef = useRef<HTMLDivElement | null>(null);
@@ -46,6 +47,14 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
     };
   }, [player, project.viewport, secsToPx]);
 
+  // useEventListener(
+  //   "scroll",
+  //   projectDivRef,
+  //   useCallback((e) => console.log(e), [
+  // TODO: scrolling with scrollbar
+  //   ]),
+  // );
+
   useEventListener(
     "wheel",
     projectDivRef,
@@ -59,54 +68,25 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
         // one from the other.
         // pinch
         if (e.ctrlKey) {
-          // console.log("THIS");
           const sDelta = Math.exp(-e.deltaY / 100);
           const expectedNewScale = project.scaleFactor.get() * sDelta;
-          const mousePosX = project.viewportStartPx.get() + mouseX;
-          const mousePosS = project.viewport.timeForPx(mousePosX);
-
-          console.log(project.viewportStartPx.get(), mousePosS);
-          project.viewport.setScale(expectedNewScale, mousePosS);
-          // // min scale is 0.64, max is 1000
-          // const newScale = clamp(0.64, expectedNewScale, 1000);
-          // project.scaleFactor.set(newScale);
-          // const realSDelta = expectedNewScale / project.scaleFactor.get();
-          // const widthUpToMouse = mouseX + viewportStartPx;
-          // const deltaX = widthUpToMouse - widthUpToMouse * realSDelta;
-          // const newStart = viewportStartPx - deltaX;
-          // project.viewportStartPx.set(newStart);
+          project.viewport.setScale(expectedNewScale, mouseX);
           e.preventDefault();
           e.stopPropagation();
-
-          // translate so mouse is at zero
-          // zoom in
-          // translate so mouse is at right position again
         }
 
         // pan
         else {
           const start = Math.max(project.viewportStartPx.get() + e.deltaX, 0);
-          project.viewportStartPx.set(start);
+          flushSync(() => {
+            project.viewportStartPx.set(start);
+          });
         }
       },
       [project.scaleFactor, project.viewport, project.viewportStartPx],
     ),
     { capture: false },
   );
-
-  // useEventListener(
-  //   "scroll",
-  //   projectDivRef,
-  //   useCallback(
-  //     (e: Event) => {
-  //       console.log("Scroollll");
-  //       project.viewportStartPx.set((e.target as any).scrollLeft);
-  //       e.preventDefault();
-  //       e.stopPropagation();
-  //     },
-  //     [project.viewportStartPx],
-  //   ),
-  // );
 
   useTimelineMouseEvents(project, projectDivRef);
 
@@ -122,6 +102,7 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
 
   useLayoutEffect(() => {
     const width = projectDivRef.current?.getBoundingClientRect().width;
+    console.log("HERE", width);
     if (width) {
       project.viewport.projectDivWidth.set(width);
     }
@@ -132,7 +113,7 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
       return;
     }
 
-    projectDivRef.current?.scrollTo({ left: viewportStartPx });
+    projectDivRef.current?.scrollTo({ left: viewportStartPx, behavior: "instant" });
   }, [viewportStartPx]);
 
   const onDrop = useCallback(
@@ -144,7 +125,7 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
         console.log("dropped", url, "to timeline");
         const clip = await AudioClip.fromURL(url);
 
-        const track = AudioTrack.fromClip(clip);
+        const track = AudioTrack.fromClip(project, clip);
         AudioProject.addAudioTrack(project, undefined, track, "bottom");
       }
       setDraggingOver(false);

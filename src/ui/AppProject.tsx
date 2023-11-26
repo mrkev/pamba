@@ -2,18 +2,18 @@ import { useEffect, useState } from "react";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { modifierState, useSingletonKeyboardModifierState } from "../ModifierState";
 import { useDocumentKeyboardEvents } from "../input/useDocumentKeyboardEvents";
+import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioRecorder } from "../lib/AudioRecorder";
 import { AudioRenderer } from "../lib/AudioRenderer";
 import { AudioProject } from "../lib/project/AudioProject";
+import { BottomPanel } from "./BottomPanel";
+import { Help, History, Settings } from "./History";
 import { Library } from "./Library";
 import { ProjectSettings } from "./ProjectSettings";
-import { UtilityTabbedPanel } from "./UtilityTabbedPanel";
 import { TimelineView } from "./TimelineView";
+import { UtilityTabbedPanel } from "./UtilityTabbedPanel";
 import { ToolHeader } from "./header/ToolHeader";
-import { History } from "./history";
 import { useLocalStorage } from "./useLocalStorage";
-import { appEnvironment } from "../lib/AppEnvironment";
-import { BottomPanel } from "./BottomPanel";
 
 function useStopPlaybackOnUnmount(renderer: AudioRenderer) {
   useEffect(() => {
@@ -54,10 +54,25 @@ export function AppProject({ project }: { project: AudioProject }) {
                 title: "Project",
                 render: () => <ProjectSettings project={project} />,
               },
-              tools: {
-                icon: <i className="ri-settings-3-line" style={{ paddingRight: 2 }}></i>,
-                title: "Tools",
+              history: {
+                icon: <i className="ri-history-line" style={{ paddingRight: 2 }}></i>,
+                title: "History",
                 render: () => <History project={project} />,
+              },
+              // shortcuts: {
+              //   icon: <i className="ri-keyboard-box-line" style={{ paddingRight: 2 }}></i>,
+              //   title: "Shortcuts",
+              //   render: () => <Shortcuts project={project} />,
+              // },
+              settings: {
+                icon: <i className="ri-settings-3-line" style={{ paddingRight: 2 }}></i>,
+                title: "Settings",
+                render: () => <Settings project={project} />,
+              },
+              help: {
+                icon: <i className="ri-information-line" style={{ paddingRight: 2 }}></i>,
+                title: "Help",
+                render: () => <Help project={project} />,
               },
             }}
           />

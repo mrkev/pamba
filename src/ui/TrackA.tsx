@@ -16,6 +16,7 @@ import { ClipA } from "./ClipA";
 import { ClipInvalid } from "./ClipInvalid";
 import { CursorSelection } from "./CursorSelection";
 import { EffectRack } from "./EffectRack";
+import classNames from "classnames";
 
 function clientXToTrackX(trackElem: HTMLDivElement | null, clientX: number) {
   if (trackElem == null) {
@@ -52,16 +53,21 @@ export async function getDroppedAudioURL(audioStorage: AudioStorage | null, data
 }
 
 const loadAudioClipIntoTrack = async (
+  project: AudioProject,
   url: string,
   track: AudioTrack,
   startOffsetSec: number,
   name?: string,
 ): Promise<void> => {
   try {
+    if (!project.canEditTrack(project, track)) {
+      return;
+    }
+
     // load clip
     const clip = await AudioClip.fromURL(url, name);
     clip.startOffsetSec = startOffsetSec;
-    track.addClip(clip);
+    track.addClip(project, clip);
   } catch (e) {
     console.trace(e);
     return;
@@ -108,17 +114,18 @@ export function TrackA({
       const url = await getDroppedAudioURL(audioStorage, ev.dataTransfer);
 
       if (url && url.length > 0) {
-        ignorePromise(loadAudioClipIntoTrack(url, track, project.viewport.pxToSecs(draggingOver ?? 0)));
+        ignorePromise(loadAudioClipIntoTrack(project, url, track, project.viewport.pxToSecs(draggingOver ?? 0)));
       }
       setDraggingOver(null);
     },
-    [audioStorage, draggingOver, project.viewport, track],
+    [audioStorage, draggingOver, project, track],
   );
 
   return (
     <>
       <div
         ref={trackRef}
+        className={classNames(locked && styles.locked)}
         onDrop={onDrop}
         // For some reason, need to .preventDefault() so onDrop gets called
         onDragOver={function allowDrop(ev) {
@@ -209,5 +216,8 @@ const useStyles = createUseStyles({
     left: "0",
     // pointerEvents: "none",
     cursor: "ns-resize",
+  },
+  locked: {
+    filter: "brightness(0.8)",
   },
 });

@@ -1,17 +1,26 @@
 import { MidiClip, secsToPulses } from "../midi/MidiClip";
-import { stepNumber } from "../utils/math";
-import { AudioProject } from "./project/AudioProject";
+import { getOneTickLen } from "../ui/Axis";
+import { returnClosest, stepNumber } from "../utils/math";
 import { AudioClip } from "./AudioClip";
+import { AudioProject } from "./project/AudioProject";
 
-export function clipMoveSec(clip: AudioClip, newOffsetSec: number, project: AudioProject, snap: boolean) {
+export function clipMoveSec(
+  clip: AudioClip,
+  newOffsetSec: number,
+  originalStartOffsetSec: number,
+  project: AudioProject,
+  snap: boolean,
+) {
   if (!snap) {
     clip.startOffsetSec = newOffsetSec;
     clip._notifyChange();
   } else {
     const tempo = project.tempo.get();
-    const oneBeatLen = 60 / tempo;
-    const actualNewOffsetSec = stepNumber(newOffsetSec, oneBeatLen);
-    clip.startOffsetSec = actualNewOffsetSec;
+    const tickBeatLength = getOneTickLen(project, tempo);
+    const steppedToTick = stepNumber(newOffsetSec, tickBeatLength);
+    const steppedToOriginalStart = stepNumber(newOffsetSec, tickBeatLength, originalStartOffsetSec);
+    const result = returnClosest(newOffsetSec, steppedToTick, steppedToOriginalStart);
+    clip.startOffsetSec = result;
     clip._notifyChange();
   }
 }

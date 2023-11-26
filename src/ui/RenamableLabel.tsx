@@ -1,14 +1,20 @@
-import { MouseEvent, useCallback, useRef, useState } from "react";
+import classNames from "classnames";
+import { MouseEvent, useCallback, useEffect, useRef, useState } from "react";
 import { createUseStyles } from "react-jss";
 
 export function RenamableLabel({
   value,
   setValue,
   onDoubleClick: onDoubleClickMaybe,
+  highlightFocus,
+  disabled,
+  className,
   ...divProps
 }: {
   value: string;
   setValue: (newVal: string) => void;
+  highlightFocus?: boolean;
+  disabled?: boolean;
 } & React.HTMLAttributes<HTMLDivElement>) {
   const classes = useStyles();
   const renameInputRef = useRef<HTMLInputElement>(null);
@@ -16,19 +22,37 @@ export function RenamableLabel({
 
   const onDoubleClick = useCallback(
     (e: MouseEvent<HTMLDivElement>) => {
-      console.log("HEREEEEEEEEEEEEE");
+      if (disabled) {
+        return;
+      }
       setIsRenaming(true);
       onDoubleClickMaybe?.(e);
     },
-    [onDoubleClickMaybe],
+    [disabled, onDoubleClickMaybe],
   );
 
   return (
     <span
-      className={classes.container}
+      tabIndex={highlightFocus ? 0 : undefined}
+      className={classNames(
+        className,
+        classes.container,
+        highlightFocus && classes.focusHighlight,
+        disabled && classes.disabled,
+      )}
       {...divProps}
       onDoubleClick={onDoubleClick}
-      onMouseDown={() => console.log("HERE MOUSE DOWN")}
+      onMouseDown={(e) => {
+        if (disabled) {
+          return;
+        }
+        if (document.activeElement === e.target) {
+          setIsRenaming(true);
+        }
+        if (e.target instanceof HTMLSpanElement) {
+          e.target.focus();
+        }
+      }}
     >
       {isRenaming ? (
         <input
@@ -62,5 +86,13 @@ const useStyles = createUseStyles({
     display: "inline-flex",
     flexDirection: "row",
     alignItems: "center",
+  },
+  focusHighlight: {
+    "&:focus": {
+      background: "rgba(0,0,0,0.3)",
+    },
+  },
+  disabled: {
+    fontStyle: "italic",
   },
 });

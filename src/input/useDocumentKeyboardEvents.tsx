@@ -78,22 +78,22 @@ export const documentCommands = CommandBlock.create((command) => {
     moveTool: command(["KeyV"], (e, project) => {
       project.pointerTool.set("move");
       document.body.style.cursor = "auto";
-    }).helptext("Select Move Tool"),
+    }).helptext("Select Move Tool", "Base tool. Selects, moves, etc"),
 
     trimStartTool: command(["KeyS", "shift"], (e, project) => {
       project.pointerTool.set("trimStart");
       document.body.style.cursor = "e-resize";
-    }).helptext("Select Trim-from-Start tool"),
+    }).helptext("Select Trim-Start tool", "On click trims click to start at selected time"),
 
     trimEndTool: command(["KeyE", "shift"], (e, project) => {
       project.pointerTool.set("trimEnd");
       document.body.style.cursor = "w-resize";
-    }).helptext("Select Trim-from-End tool"),
+    }).helptext("Select Trim-End tool", "On click trims click to end at selected time"),
 
     sliceTool: command(["KeyS"], (e, project) => {
       project.pointerTool.set("slice");
       document.body.style.cursor = "crosshair";
-    }).helptext("Select Slice tool", "Allos you to split clips in two with a single click"),
+    }).helptext("Select Slice tool", "On click splits clips at selected time"),
   };
 });
 

@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { createUseStyles } from "react-jss";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import { AudioClip } from "../lib/AudioClip";
@@ -33,6 +33,7 @@ export function AudioClipEditor({
   const [bpm] = useLinkedState(project.tempo);
   const [scrollLeft] = useLinkedState(clip.detailedViewport.scrollLeft);
   const [pxPerSec] = useLinkedState(clip.detailedViewport.pxPerSec);
+  const [scale, setScale] = useState(2);
 
   function pxOfSec(sec: number) {
     return Math.floor(pxPerSec * sec);
@@ -49,19 +50,11 @@ export function AudioClipEditor({
   const border = "1px solid #114411";
 
   // useEventListener('wheel')
+  const realScale = Math.round(Math.exp((Math.log(1000) / 100) * scale));
 
   return (
     <>
-      <div
-        style={{
-          border: border,
-          borderRadius: "3px",
-          display: "flex",
-          flexDirection: "column",
-          fontSize: 12,
-        }}
-      >
-        <GPUWaveform audioBuffer={clip.buffer} />
+      <div>
         <div
           className={styles.clipHeader}
           style={{
@@ -69,6 +62,9 @@ export function AudioClipEditor({
             background: "#225522",
             border: "1px solid #114411",
             boxSizing: "border-box",
+            borderTopRightRadius: "3px",
+            borderTopLeftRadius: "3px",
+            padding: "0px 4px",
           }}
         >
           {/* TODO: not working */}
@@ -83,16 +79,45 @@ export function AudioClipEditor({
               clip.name.set(value);
             }}
           />
-          G
         </div>
-        Length <input type="number" value={clip.getDuration()} disabled />
-        Filename:
-        <input type="text" value={clip.bufferURL} disabled />
-        Sample Rate:
-        <input type="number" value={clip.sampleRate} disabled />
-        sid:
-        <input type="text" value={clip._id} disabled />
-        <small>note: sid is for debugging</small>
+        <div
+          style={{
+            borderLeft: border,
+            borderRight: border,
+            borderBottom: border,
+            display: "flex",
+            flexDirection: "column",
+            fontSize: 12,
+            alignSelf: "flex-start",
+            padding: "2px 4px",
+            background: "#4e4e4e",
+          }}
+        >
+          {/* <input
+          type="range"
+          // TODO: why does 1 not work?
+          // min={2}
+          // max={100}
+          min={1}
+          max={120}
+          step={0.01}
+          onChange={(e) => {
+            const newVal = parseFloat(e.target.value);
+            setScale(newVal);
+            // render(Math.round(Math.exp((Math.log(1000) / 100) * newVal)));
+            // console.log("a", newVal, Math.round(Math.exp((Math.log(1000) / 100) * newVal)));
+          }}
+        /> */}
+          {/* <GPUWaveform audioBuffer={clip.buffer} scale={realScale} width={300} height={20} /> */}
+          Length <input type="number" value={clip.getDuration()} disabled />
+          Filename:
+          <input type="text" value={clip.bufferURL} disabled />
+          Sample Rate:
+          <input type="number" value={clip.sampleRate} disabled />
+          sid:
+          <input type="text" value={clip._id} disabled />
+          <small>note: sid is for debugging</small>
+        </div>
       </div>
       {/* Waveform view */}
       <div

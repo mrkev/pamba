@@ -17,29 +17,21 @@ export class ProjectViewportUtil {
 
   // scaleFactor: how many pixels are in one second
 
-  setScale(expectedNewScale: number, centerOnTimeS: number = 0) {
+  setScale(expectedNewScale: number, mouseX: number = 0) {
     // min scale is 0.64, max is 1000
     const newScale = clamp(0.64, expectedNewScale, 1000);
     const currentScaleFactor = this.project.scaleFactor.get();
     const scaleFactorFactor = expectedNewScale / currentScaleFactor;
+
     this.project.scaleFactor.set(newScale);
-    // const realSDelta = newScale / this.project.scaleFactor.get();
-
-    // const xs = 1;
-
-    // const v = -centerOnTimeS * xs + centerOnTimeS;
-    // console.log("v", v);
 
     this.project.viewportStartPx.setDyn((prev) => {
-      const newStartPx = prev * scaleFactorFactor;
-      console.log("newStartPx", newStartPx);
+      const newStartPx = (prev + mouseX) * scaleFactorFactor - mouseX;
+      if (newStartPx < 0) {
+        return 0;
+      }
       return newStartPx;
     });
-
-    // const widthUpToMouse = e.clientX + viewportStartPx;
-    // const deltaX = widthUpToMouse - widthUpToMouse * realSDelta;
-    // const newStart = viewportStartPx - deltaX;
-    // project.viewportStartPx.set(newStart);
   }
 
   // Conversions

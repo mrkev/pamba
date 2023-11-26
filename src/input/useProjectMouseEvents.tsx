@@ -78,9 +78,9 @@ export function useTimelineMouseEvents(
               pressed.originalTrack instanceof AudioTrack &&
               pressed.clip instanceof AudioClip
             ) {
-              pressed.track.deleteTime(pressed.clip.startOffsetSec, pressed.clip.endOffsetSec);
-              pressed.originalTrack.removeClip(pressed.clip);
-              pressed.track.addClip(pressed.clip);
+              pressed.track.deleteTime(project, pressed.clip.startOffsetSec, pressed.clip.endOffsetSec);
+              pressed.originalTrack.removeClip(project, pressed.clip);
+              pressed.track.addClip(project, pressed.clip);
             }
 
             if (
@@ -88,9 +88,9 @@ export function useTimelineMouseEvents(
               pressed.originalTrack instanceof MidiTrack &&
               pressed.clip instanceof MidiClip
             ) {
-              pressed.track.deleteTime(pressed.clip.startOffsetPulses, pressed.clip._endOffsetU);
-              pressed.originalTrack.removeClip(pressed.clip);
-              pressed.track.addClip(pressed.clip);
+              pressed.track.deleteTime(project, pressed.clip.startOffsetPulses, pressed.clip._endOffsetU);
+              pressed.originalTrack.removeClip(project, pressed.clip);
+              pressed.track.addClip(project, pressed.clip);
             }
 
             console.warn("mouseup: moving_clip: can't operate");
@@ -124,16 +124,16 @@ export function useTimelineMouseEvents(
             if (selWidth > 0) {
               project.selected.set({
                 status: "time",
-                start: startTime,
-                end: startTime + selWidth,
+                startS: startTime,
+                endS: startTime + selWidth,
               });
               return;
             }
 
             project.selected.set({
               status: "time",
-              start: startTime + selWidth,
-              end: startTime,
+              startS: startTime + selWidth,
+              endS: startTime,
             });
 
             // Move the cursor to the beggining of the selection
@@ -214,9 +214,9 @@ export function useTimelineMouseEvents(
             const snap = e.metaKey ? !project.snapToGrid.get() : project.snapToGrid.get();
             const deltaX = e.clientX - pressed.clientX;
             const deltaXSecs = project.viewport.pxToSecs(deltaX);
-            const newOffset = Math.max(0, pressed.originalClipOffsetSec + deltaXSecs);
+            const newOffset = Math.max(0, pressed.originalClipStartOffsetSec + deltaXSecs);
             if (pressed.clip instanceof AudioClip) {
-              clipMoveSec(pressed.clip, newOffset, project, snap);
+              clipMoveSec(pressed.clip, newOffset, pressed.originalClipStartOffsetSec, project, snap);
             } else {
               clipMovePPQN(pressed.clip, newOffset, project, snap);
             }

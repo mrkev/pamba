@@ -12,8 +12,8 @@ import { useLinkedState } from "../lib/state/LinkedState";
 import { MidiTrack } from "../midi/MidiTrack";
 import { pressedState } from "../pressedState";
 import { RenamableLabel } from "./RenamableLabel";
-import { UtilitySlider, utility } from "./utility";
 import { UtilityToggle } from "./UtilityToggle";
+import { UtilitySlider, utility } from "./utility";
 
 export const TrackHeader = React.memo(function TrackHeader({
   track,
@@ -46,6 +46,7 @@ export const TrackHeader = React.memo(function TrackHeader({
   const isArmed = armedTrack === track;
 
   const isDspExpanded = dspExpandedTracks.has(track);
+  const isLocked = lockedTracks.has(track);
 
   function onMouseDownToResize(e: React.MouseEvent<HTMLDivElement>) {
     e.stopPropagation();
@@ -184,6 +185,7 @@ export const TrackHeader = React.memo(function TrackHeader({
         </div>
         <div className={styles.buttonRow}>
           <button
+            disabled={isLocked}
             className={classNames(utility.button)}
             style={isArmed ? { background: "red" } : undefined}
             title="arm track (record to this track)"
@@ -198,22 +200,25 @@ export const TrackHeader = React.memo(function TrackHeader({
           >
             {"\u23fa" /* record */}
           </button>
-
           <button
             className={classNames(utility.button, styles.lockButton)}
-            style={lockedTracks.has(track) ? { background: "purple", color: "white" } : undefined}
+            style={isLocked ? { background: "purple", color: "white" } : undefined}
             title="lock track"
             onClick={function (e) {
-              if (lockedTracks.has(track)) {
+              if (isLocked) {
                 lockedTracks.delete(track);
               } else {
                 lockedTracks.add(track);
+                if (isArmed) {
+                  project.armedTrack.set(null);
+                }
               }
               e.stopPropagation();
             }}
           >
-            {lockedTracks.has(track) ? "\u26BF" : "\u26f6" /* squared key, square four corners */}
+            {isLocked ? "\u26BF" : "\u26f6" /* squared key, square four corners */}
           </button>
+          {isLocked ? <i style={{ paddingLeft: 2 }}>Locked</i> : null}
         </div>
 
         <div style={{ flexGrow: 1 }}></div>

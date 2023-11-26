@@ -55,11 +55,11 @@ export function Library({
 
         const activeTrack = project.activeTrack.get();
         if (activeTrack !== null && activeTrack instanceof AudioTrack) {
-          activeTrack.pushClip(clip);
+          activeTrack.pushClip(project, clip);
           return;
         }
 
-        const newTrack = AudioTrack.fromClip(clip);
+        const newTrack = AudioTrack.fromClip(project, clip);
         AudioProject.addAudioTrack(project, player, newTrack);
         console.log("loaded");
       } catch (e) {

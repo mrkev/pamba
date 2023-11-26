@@ -182,7 +182,7 @@ export class MidiTrack extends ProjectTrack<MidiClip> {
     }
 
     // todo: only supports X/4 (ie, quarter note denominator in time signature) for now
-    const [BEATS_PER_BAR] = TIME_SIGNATURE;
+    const [BEATS_PER_BAR, DENOM] = TIME_SIGNATURE;
     const currentBar = (offsetSec * bpm) / (BEATS_PER_BAR * SECS_IN_MINUTE);
 
     // this.pianoRoll.sendMessageToProcessor({ action: "setPlaybackStartOffset", offsetSec });
@@ -190,8 +190,8 @@ export class MidiTrack extends ProjectTrack<MidiClip> {
       type: "wam-transport",
       data: {
         playing: true,
-        timeSigDenominator: 4,
-        timeSigNumerator: 4,
+        timeSigDenominator: DENOM,
+        timeSigNumerator: BEATS_PER_BAR,
         currentBar,
         currentBarStarted: context.currentTime,
         tempo: bpm,
@@ -205,12 +205,14 @@ export class MidiTrack extends ProjectTrack<MidiClip> {
       return;
     }
 
+    const [BEATS_PER_BAR, DENOM] = TIME_SIGNATURE;
+
     this.playingSource.audioNode.scheduleEvents({
       type: "wam-transport",
       data: {
         playing: false,
-        timeSigDenominator: 4,
-        timeSigNumerator: 4,
+        timeSigDenominator: DENOM,
+        timeSigNumerator: BEATS_PER_BAR,
         currentBar: 0,
         currentBarStarted: context.currentTime,
         tempo: 120, // todo: tempo

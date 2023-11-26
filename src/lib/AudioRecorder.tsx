@@ -59,10 +59,10 @@ export class AudioRecorder {
 
       const armedTrack = this.project.armedTrack.get();
       if (armedTrack == null) {
-        const newTrack = AudioTrack.fromClip(clip);
+        const newTrack = AudioTrack.fromClip(this.project, clip);
         AudioProject.addAudioTrack(this.project, this.renderer.analizedPlayer, newTrack);
       } else if (armedTrack instanceof AudioTrack) {
-        armedTrack.addClip(clip);
+        armedTrack.addClip(this.project, clip);
       }
     } catch (e) {
       console.trace(e);
@@ -92,8 +92,20 @@ export class AudioRecorder {
     this.currentInput.set(mediaStream.getTracks()[0].getSettings().deviceId ?? null);
     this.audioInputDevices.replace(deviceEntries);
 
-    navigator.mediaDevices.addEventListener("devicechange", () => console.log("TODO"));
+    navigator.mediaDevices.addEventListener("devicechange", async () => {
+      // const deviceEntries = (await navigator.mediaDevices.enumerateDevices())
+      //   .filter((device) => device.kind === "audioinput")
+      //   .map((device) => [device.deviceId, device] as const);
+      // this.audioInputDevices.replace(deviceEntries);
+      // TODO: check if current device still exists, if not find anohter default
+    });
 
+    // mediaStream =navigator.mediaDevices.getUserMedia({
+    //   audio: {
+    //     // sampleRate:
+    //     deviceId: "todo",
+    //   },
+    // });
     this.mediaRecorder = new MediaRecorder(mediaStream);
     this.mediaRecorder.ondataavailable = function (this: AudioRecorder, e: BlobEvent) {
       this.chunks.push(e.data);

@@ -68,7 +68,7 @@ export class AnalizedPlayer {
           this.playbackTime = currentTimeInBuffer;
         });
       } else {
-        console.log("NOTHING");
+        // console.log("NOTHING");
       }
     };
   }

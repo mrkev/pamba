@@ -13,7 +13,8 @@ export type CursorState =
       clip: AudioClip | MidiClip;
       track: AudioTrack | MidiTrack;
       originalTrack: AudioTrack | MidiTrack;
-      originalClipOffsetSec: number;
+      originalClipStartOffsetSec: number;
+      originalClipEndOffsetSec: number;
       inHistory: boolean;
     }>
   | Readonly<{

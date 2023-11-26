@@ -149,5 +149,5 @@ export function createEmptyMidiClipInTrack(project: AudioProject, track: MidiTra
   const startPulses = project.viewport.secsToPulses(startS);
   const length = project.viewport.secsToPulses(endS - startS);
   const clip = MidiClip.create("new clip", startPulses, length, []);
-  track.addClip(clip);
+  track.addClip(project, clip);
 }

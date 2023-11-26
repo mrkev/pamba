@@ -2,6 +2,7 @@ import React from "react";
 import { createUseStyles } from "react-jss";
 import { AudioProject, AxisMeasure } from "../lib/project/AudioProject";
 import { useLinkedState } from "../lib/state/LinkedState";
+import { SECS_IN_MIN } from "../midi/MidiClip";
 
 const formatter = new Intl.NumberFormat("en-US", {
   useGrouping: false,
@@ -64,6 +65,14 @@ function getBeatScaleFactorForOneBeatSize(dist: number): number {
   }
 }
 
+export function getOneTickLen(project: AudioProject, tempo: number) {
+  const oneBeatLen = SECS_IN_MIN / tempo;
+  const oneBeatSizePx = project.viewport.secsToPx(oneBeatLen);
+  const tickBeatFactor = getBeatScaleFactorForOneBeatSize(oneBeatSizePx);
+  const tickBeatLength = tickBeatFactor * oneBeatLen;
+  return tickBeatLength;
+}
+
 // returns an array of seconds at which to show a tick
 // = for a viewport that starts at viewportStartPx px, and is projectDivWidth px wide
 function getTimeTickData(project: AudioProject, viewportStartPx: number, projectDivWidth: number) {
@@ -95,7 +104,7 @@ function getBeatTickData(
   const viewportStartSecs = project.viewport.pxToSecs(viewportStartPx);
   const viewportEndSecs = project.viewport.timeForPx(projectDivWidth);
 
-  const oneBeatLen = 60 / tempo;
+  const oneBeatLen = SECS_IN_MIN / tempo;
   const oneBeatSizePx = project.viewport.secsToPx(oneBeatLen);
   const tickBeatFactor = getBeatScaleFactorForOneBeatSize(oneBeatSizePx);
   const tickBeatLength = tickBeatFactor * oneBeatLen;
@@ -123,6 +132,7 @@ export function Axis({ project, isHeader = false }: { project: AudioProject; isH
   const [tempo] = useLinkedState(project.tempo);
   const [timeSignature] = useLinkedState(project.timeSignature);
   const [primaryAxis] = useLinkedState(project.primaryAxis);
+  const [_] = useLinkedState(project.scaleFactor); // for updating when changing scale
 
   const timeTicksS = getTimeTickData(project, viewportStartPx, projectDivWidth);
   const tempoTicks = getBeatTickData(project, viewportStartPx, projectDivWidth, tempo);

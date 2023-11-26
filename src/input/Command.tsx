@@ -9,11 +9,26 @@ type CommandCallback = (
   // renderer: AudioRenderer,
 ) => void;
 
-class Command {
+export class Command {
   readonly cb: CommandCallback;
   private _label: string | null = null;
   private _description: string | null = null;
   readonly shortcut: KeyboardShortcut;
+
+  readonly onTrigger = new Set<() => void>();
+
+  addTriggerListener(cb: () => void) {
+    this.onTrigger.add(cb);
+    return () => this.onTrigger.delete(cb);
+  }
+
+  execute(e: KeyboardEvent | null, project: AudioProject) {
+    const result = this.cb(e, project);
+    this.onTrigger.forEach((cb) => {
+      cb();
+    });
+    return result;
+  }
 
   constructor(cb: CommandCallback, shortcut: KeyboardShortcut) {
     this.cb = cb;
@@ -52,14 +67,14 @@ export class CommandBlock<T extends Record<string, Command>> {
     const chordId = CommandBlock.keyboardChordId(e.code, e.metaKey, e.altKey, e.ctrlKey, e.shiftKey);
     const command = this.byKeyCode.get(chordId);
     if (command) {
-      command.cb(e, project);
+      command.execute(e, project);
       return true;
     }
     return false;
   }
 
   execById(label: keyof T, project: AudioProject): unknown {
-    return this.byId[label].cb(null, project);
+    return this.byId[label].execute(null, project);
   }
 
   getAllCommands(): Command[] {

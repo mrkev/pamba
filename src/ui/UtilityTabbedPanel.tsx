@@ -56,11 +56,14 @@ const useStyles = createUseStyles({
   tabs: {
     display: "flex",
     flexDirection: "row",
+    flexWrap: "wrap",
     gap: 4,
+    padding: "0px 0px 4px 0px",
     borderBottom: "2px solid var(--control-bg-color)",
   },
   collapsedTabs: {
     flexDirection: "column",
+    flexWrap: "nowrap",
   },
   panel: {
     display: "flex",

@@ -25,6 +25,7 @@ import { AudioStorage } from "./AudioStorage";
 import { clipboard } from "./ClipboardState";
 import { ProjectViewportUtil } from "./ProjectViewportUtil";
 import { PrimarySelectionState } from "./SelectionState";
+import { ProjectTrack } from "../ProjectTrack";
 
 /**
  * TODO:
@@ -64,7 +65,7 @@ export class AudioProject {
   readonly allTracks: SArray<AudioTrack | MidiTrack>;
   readonly solodTracks = LinkedSet.create<AudioTrack | MidiTrack>(); // TODO: single track kind?
   readonly dspExpandedTracks = LinkedSet.create<AudioTrack | MidiTrack>();
-  readonly lockedTracks = LinkedSet.create<AudioTrack | MidiTrack>();
+  readonly lockedTracks = LinkedSet.create<AudioTrack | MidiTrack | ProjectTrack<any>>();
   // much like live, there's always an active track. Logic is a great model since
   // the active track is clearly discernable in spite of multi-track selection.
   readonly activeTrack = SPrimitive.of<AudioTrack | MidiTrack | null>(null);
@@ -135,6 +136,10 @@ export class AudioProject {
     return new this([], id, "untitled", DEFAULT_TEMPO);
   }
 
+  public canEditTrack(project: AudioProject, track: MidiTrack | AudioTrack | ProjectTrack<any>) {
+    return !project.lockedTracks.has(track); // todo: also check if audio is playing
+  }
+
   //////// Methods on Projects ////////
 
   // TODO: maybe let's not try to add this track to playback
@@ -163,10 +168,6 @@ export class AudioProject {
     const newTrack = track ?? (await MidiTrack.createWithInstrument(obxd, "midi track"));
     project.allTracks.unshift(newTrack);
     return newTrack;
-  }
-
-  static canEditTrack(project: AudioProject, track: MidiTrack | AudioTrack) {
-    return !project.lockedTracks.has(track); // todo: also check if audio is playing
   }
 
   static removeTrack(project: AudioProject, player: AnalizedPlayer, track: AudioTrack | MidiTrack) {
@@ -212,7 +213,7 @@ export class AudioProject {
   static removeAudioClip(project: AudioProject, track: AudioTrack, clip: AudioClip): void {
     const selected = project.selected.get();
     if (track instanceof AudioTrack) {
-      track.removeClip(clip);
+      track.removeClip(project, clip);
     }
     if (selected && selected.status === "clips") {
       project.selected.set({
@@ -224,7 +225,7 @@ export class AudioProject {
 
   static removeMidiClip(project: AudioProject, track: MidiTrack, clip: MidiClip): void {
     const selected = project.selected.get();
-    track.removeClip(clip);
+    track.removeClip(project, clip);
     if (selected && selected.status === "clips") {
       project.selected.set({
         ...selected,
@@ -306,7 +307,11 @@ export class ProjectSelection {
         break;
       }
       case "time": {
-        // todo
+        history.record(() => {
+          for (const track of project.allTracks) {
+            deleteTime(project, track, selected.startS, selected.endS);
+          }
+        });
         break;
       }
       case "track_time":
@@ -314,10 +319,11 @@ export class ProjectSelection {
           if (track instanceof AudioTrack) {
             // TODO: move history.record(...) up to the command level as possible
             history.record(() => {
-              track.deleteTime(selected.startS, selected.endS);
+              track.deleteTime(project, selected.startS, selected.endS);
             });
           } else if (track instanceof MidiTrack) {
             track.deleteTime(
+              project,
               project.viewport.secsToPulses(selected.startS),
               project.viewport.secsToPulses(selected.endS),
             );
@@ -372,5 +378,18 @@ export class ProjectMarkers {
     } else {
       // TODO: new selection state, marker
     }
+  }
+}
+
+function deleteTime(project: AudioProject, track: MidiTrack | AudioTrack, startS: number, endS: number): void {
+  if (!project.canEditTrack(project, track)) {
+    return;
+  }
+
+  if (track instanceof MidiTrack) {
+    track.deleteTime(project, project.viewport.secsToPulses(startS), project.viewport.secsToPulses(endS));
+  }
+  if (track instanceof AudioTrack) {
+    track.deleteTime(project, startS, endS);
   }
 }

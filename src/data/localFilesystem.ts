@@ -1,12 +1,24 @@
 import { AudioProject } from "../lib/project/AudioProject";
 import { isRecord } from "../lib/schema/schema";
-import { LinkedArray } from "../lib/state/LinkedArray";
 import { LinkedMap } from "../lib/state/LinkedMap";
 import { bucketizeId } from "../utils/data";
 import { pAll, pTry, runAll } from "../utils/ignorePromise";
 import { construct, serializable } from "./serializable";
 
 type ProjectFileIssue = { status: "not_found" } | { status: "invalid" };
+
+// From: https://stackoverflow.com/a/39906526
+export function niceBytes(n: number) {
+  const units = ["bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
+
+  let l = 0;
+
+  while (n >= 1024 && ++l) {
+    n = n / 1024;
+  }
+
+  return n.toFixed(n < 10 && l > 0 ? 1 : 0) + " " + units[l];
+}
 
 /**
  * root
@@ -47,7 +59,7 @@ export class LocalFilesystem {
     const projects = await this.projectsDir();
     const project = await pTry(projects.getDirectoryHandle(`${projectId}`), "not_found" as const);
     if (project === "not_found") {
-      return { status: "not_found" };
+      return { status: "not_found" } as const;
     }
 
     // dont need metadata atm but open for good measure?
@@ -56,7 +68,7 @@ export class LocalFilesystem {
       pTry(project.getFileHandle("metadata"), "invalid" as const),
     );
     if (projectHandle === "invalid" || metadataHandle === "invalid") {
-      return { status: "invalid" };
+      return { status: "invalid" } as const;
     }
 
     const file = await projectHandle.getFile();
@@ -75,6 +87,28 @@ export class LocalFilesystem {
       console.error(e);
       return { status: "invalid" };
     }
+  }
+
+  async getSize(projectId: string) {
+    const projects = await this.projectsDir();
+    const project = await pTry(projects.getDirectoryHandle(`${projectId}`), "not_found" as const);
+    if (project === "not_found") {
+      return { status: "not_found" } as const;
+    }
+
+    // dont need metadata atm but open for good measure?
+    const [projectHandle, metadataHandle] = await pAll(
+      pTry(project.getFileHandle("AudioProject"), "invalid" as const),
+      pTry(project.getFileHandle("metadata"), "invalid" as const),
+    );
+    if (projectHandle === "invalid" || metadataHandle === "invalid") {
+      return { status: "invalid" } as const;
+    }
+
+    let size = (await projectHandle.getFile()).size;
+    size += (await metadataHandle.getFile()).size;
+
+    return size;
   }
 
   async saveProject(project: AudioProject) {
@@ -125,7 +159,6 @@ export class LocalFilesystem {
   private async getAllProjects(): Promise<{ name: string; id: string }[]> {
     const opfsRoot = await navigator.storage.getDirectory();
     const projects = await opfsRoot.getDirectoryHandle("projects", { create: true });
-    console.log(projects);
     // https://github.com/microsoft/TypeScript-DOM-lib-generator/issues/1639\
 
     const result = [];
