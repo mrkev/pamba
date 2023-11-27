@@ -5,7 +5,7 @@ import { AudioProject } from "../lib/project/AudioProject";
 import { SArray } from "structured-state";
 import { MutationHashable } from "../lib/state/MutationHashable";
 import { Subbable, notify } from "../lib/state/Subbable";
-import nullthrows from "../utils/nullthrows";
+import { nullthrows } from "../utils/nullthrows";
 import { PPQN } from "../wam/pianorollme/MIDIConfiguration";
 import { MidiTrack } from "./MidiTrack";
 import type { Note } from "./SharedMidiTypes";

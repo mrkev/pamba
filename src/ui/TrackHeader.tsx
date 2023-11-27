@@ -334,7 +334,7 @@ const useStyles = createUseStyles({
     flexDirection: "row",
     alignItems: "center",
     gap: "2px",
-    padding: "2px 2px 0px 2px",
+    padding: "2px 0px 0px 2px",
   },
   headerButton: {
     fontSize: "10px",

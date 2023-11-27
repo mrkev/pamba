@@ -1,6 +1,6 @@
 // import { MIDI } from "../../shared/midi";
 import type { AudioWorkletGlobalScope, WamMidiData, WamTransportData } from "@webaudiomodules/api";
-import nullthrows from "../../utils/nullthrows";
+import { nullthrows } from "../../utils/nullthrows";
 import { Clip, MIDINoteRecorder } from "./PianoRollClip";
 import { MIDIConfiguration, MIDI, PPQN } from "./MIDIConfiguration";
 import type { PianoRollProcessorMessage, SimpleMidiClip, Note } from "../../midi/SharedMidiTypes";

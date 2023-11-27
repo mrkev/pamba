@@ -1,7 +1,7 @@
 import { WamNode, WebAudioModule } from "@webaudiomodules/api";
 import { useState } from "react";
 import { liveAudioContext } from "../constants";
-import nullthrows from "../utils/nullthrows";
+import { nullthrows } from "../utils/nullthrows";
 import { MidiInstrument } from "./MidiInstrument";
 import { MidiTrack } from "./MidiTrack";
 import { appEnvironment } from "../lib/AppEnvironment";

@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import { createUseStyles } from "react-jss";
 import { useContainer } from "structured-state";
-import { TRACK_HEADER_WIDTH } from "../constants";
+import { MIN_TRACK_HEIGHT, TRACK_HEADER_WIDTH } from "../constants";
 import { useAxisContainerMouseEvents } from "../input/useProjectMouseEvents";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import { AudioRenderer } from "../lib/AudioRenderer";
@@ -13,6 +13,7 @@ import { TrackHeader } from "./TrackHeader";
 import { UtilityMenu } from "./UtilityMenu";
 import { documentCommands } from "../input/useDocumentKeyboardEvents";
 import { ProjectView } from "./ProjectView";
+import { utility } from "./utility";
 
 export function TimelineView({
   project,
@@ -68,6 +69,25 @@ export function TimelineView({
             <TrackHeader key={i} track={track} project={project} player={player} trackNumber={tracks.length - i} />
           );
         })}
+        {/* extra space */}
+        <div
+          style={{
+            height: MIN_TRACK_HEIGHT * 2,
+            position: "relative",
+            padding: "8px 8px",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          <button
+            className={utility.button}
+            onClick={async () => {
+              documentCommands.execById("createAudioTrack", project);
+            }}
+          >
+            new track
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -75,7 +95,7 @@ export function TimelineView({
 
 // Grid example, can I replicate this?
 // https://codepen.io/neoky/pen/mGpaKN
-export const useStyles = createUseStyles({
+const useStyles = createUseStyles({
   container: {
     display: "grid",
     gridTemplateRows: "30px 1fr",
@@ -89,6 +109,20 @@ export const useStyles = createUseStyles({
     width: "100%",
     flexGrow: 1,
     borderTopLeftRadius: "3px",
+    paddingRight: "4px",
+    msOverflowY: "scroll",
+    "&::-webkit-scrollbar": {
+      "-webkit-appearance": "none",
+      width: "6px",
+    },
+
+    "&::-webkit-scrollbar-track": {
+      // background: "#ddd",
+    },
+    "&::-webkit-scrollbar-thumb": {
+      backgroundColor: "rgba(0, 0, 0, .5)",
+      borderRadius: "4px",
+    },
   },
   axisSpacer: {
     backgroundColor: "var(--backgroud)",
@@ -110,20 +144,6 @@ export const useStyles = createUseStyles({
     flexDirection: "column",
     width: TRACK_HEADER_WIDTH,
     flexShrink: 0,
-  },
-  projectDiv: {
-    position: "relative",
-    background: "var(--timeline-bg)",
-    overflowX: "scroll",
-    overflowY: "hidden",
-  },
-  playbackPosDiv: {
-    background: "var(--cursor-playback)",
-    width: "1px",
-    height: "100%",
-    position: "absolute",
-    left: 0,
-    top: 0,
   },
   axisContainer: {
     position: "sticky",

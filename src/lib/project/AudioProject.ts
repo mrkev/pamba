@@ -10,7 +10,7 @@ import { MidiClip } from "../../midi/MidiClip";
 import { MidiInstrument } from "../../midi/MidiInstrument";
 import { MidiTrack } from "../../midi/MidiTrack";
 import { exhaustive } from "../../utils/exhaustive";
-import nullthrows from "../../utils/nullthrows";
+import { nullthrows } from "../../utils/nullthrows";
 import { PambaWamNode } from "../../wam/PambaWamNode";
 import { AnalizedPlayer } from "../AnalizedPlayer";
 import { appEnvironment } from "../AppEnvironment";

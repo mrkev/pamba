@@ -1,4 +1,4 @@
-import nullthrows from "../utils/nullthrows";
+import { nullthrows } from "../utils/nullthrows";
 import { WebGPUStatus } from "./useWebGPU";
 
 export class GPUWaveformRenderer {
@@ -80,10 +80,10 @@ export class GPUWaveformRenderer {
           
           struct VertexOutput {
             @builtin(position) pos: vec4f,
-            @location(0) cell: vec2f, // New line!
+            @location(0) cell: vec2f,
           };
   
-          @group(0) @binding(0) var<uniform> uniforms: vec3f;
+          @group(0) @binding(0) var<uniform> uniforms: vec4f;
           @group(0) @binding(1) var<storage> channelData: array<f32>;
           
           @vertex
@@ -92,13 +92,14 @@ export class GPUWaveformRenderer {
             @builtin(instance_index) instance: u32
           ) -> VertexOutput {
   
-            let i = f32(instance);
+            // let i = f32(instance);
+
             // Compute the cell coordinate from the instance_index
-            let cell = vec2f(i % uniforms[0], floor(i / uniforms[0]));
+            // let cell = vec2f(i % uniforms[0], floor(i / uniforms[0]));
           
             var output: VertexOutput;
             output.pos = vec4f(pos, 0, 1);
-            output.cell = cell; // New line!
+            output.cell = vec2f(0, 0); // unused
             return output;
           }
   
@@ -109,12 +110,12 @@ export class GPUWaveformRenderer {
           // 4s = 192,000 samples
           
           @fragment
-          fn fragmentMain(input: VertexOutput) -> @location(0) vec4f {
-            // todo, eventually make dynamic size
-            let OFFSET = 0; // for debugging
+          fn fragmentMain(input: VertexOutput) -> @location(0) vec4f {            
             let SCALE_FACTOR = uniforms[0];
             let WIDTH = uniforms[1];
             let HEIGHT = uniforms[2];
+            let OFFSET = i32(uniforms[3]);
+
             let index = i32(floor(input.pos.x * f32(SCALE_FACTOR)));
             let sample = channelData[OFFSET + index];
   
@@ -131,48 +132,50 @@ export class GPUWaveformRenderer {
             }
   
             // sample = 0.4;
-
-  
             // let c = input.cell / scale;
             // return vec4f(c, 1-c.y, 1);
-            let red = vec4f(1, 0, 0, 1);
-            let cyan = vec4f(0, 1, 1, 1);
-     
+            // let red = vec4f(1, 0, 0, 1);
+            // let cyan = vec4f(0, 1, 1, 1);
             // to make red/cyan checkered scale
             // let scale = vec2u(input.pos.xy) / 8;
             // let checker = (scale.x + scale.y) % 2 == 1;
             // return select(red, cyan, checker);
   
             // PCM is -1 to 1 btw
-  
-  
             // normalized -1 to 1, where -1 is down and 1 is up
             let yPosNorm = -1 * (2 * (floor(input.pos.y) / HEIGHT) - 1);
+
+            // return select(
+            //   vec4f(0, 0, 0, 0),
+            //   vec4f(0, 1, 0, 1),
+            //   input.pos.y <= HEIGHT
+            // );
+            // return vec4f(0, floor(input.pos.y) / HEIGHT, 0, 1);
+            
             // let checker = 
             //   // same sign
             //   (yPosNorm * sample) > 0 && 
             //   // closer to 0
             //   abs(yPosNorm) <= abs(sample);
-          
             // let yval = select(f32(0), f32(1), checker);
-  
             // let debugVal = select(f32(0), f32(1), 1 > 0);
-  
             // let yToSampleDist = 1 - (abs(sample - yPosNorm));
-  
             // let ytmax = 1 - (abs(max_sample - yPosNorm));
             // let ytmin = 1 - (abs(min_sample - yPosNorm));
-  
             // let s = select(f32(0), f32(1), yToSampleDist > 0.99);
-  
             // let sup = select(f32(0), f32(1), ytmax > 0.99);
             // let sdown = select(f32(0), f32(1), ytmin > 0.99);
   
+
             // 0.02 just so the lines look connected
-            let sfinal = select(f32(0), f32(1), yPosNorm <= max_sample + 0.02 && yPosNorm + 0.02 >= min_sample);
-            return vec4f(0, sfinal, 0, 1);
-     
+            let sfinal = select(
+              vec4f(0, 0, 0, 0),
+              vec4f(0, 1, 0, 1),
+              yPosNorm <= max_sample + 0.02 && yPosNorm + 0.02 >= min_sample
+            );
             
+            
+            return sfinal;
           }
         `,
     });
@@ -212,9 +215,9 @@ export class GPUWaveformRenderer {
     // VERTICES
     this.vertices = new Float32Array([
       //   X,    Y,
-      // Triangle 1 (Blue)
+      // Triangle 1
       -1, -1, 1, -1, 1, 1,
-      // Triangle 2 (Red)
+      // Triangle 2
       -1, -1, 1, 1, -1, 1,
     ]);
     this.vertexBuffer = gpu.device.createBuffer({
@@ -225,7 +228,7 @@ export class GPUWaveformRenderer {
     this.vertexCount = this.vertices.length / 2; // 6 vertices
 
     // UNIFORMS
-    this.uniformArray = new Float32Array([1, this.canvas.width, this.canvas.height]); // scale, width, height
+    this.uniformArray = new Float32Array([1, this.canvas.width, this.canvas.height, 0]); // scale, width, height
     this.uniformBuffer = gpu.device.createBuffer({
       label: "Grid Uniforms",
       size: this.uniformArray.byteLength,
@@ -257,13 +260,16 @@ export class GPUWaveformRenderer {
     });
   }
 
-  render(scale: number) {
+  render(scale: number, offset: number, width: number, height: number) {
     const { context, device } = this.gpu;
+    this.canvas.width = width;
+    this.canvas.height = height;
 
     this.uniformArray[0] = scale;
-    this.uniformArray[1] = this.canvas.width;
-    this.uniformArray[2] = this.canvas.height;
-    console.log("UNIFORM", this.uniformArray);
+    this.uniformArray[1] = width;
+    this.uniformArray[2] = height;
+    this.uniformArray[3] = offset;
+    // console.log("UNIFORM", this.uniformArray);
 
     device.queue.writeBuffer(this.vertexBuffer, 0, this.vertices);
     device.queue.writeBuffer(this.uniformBuffer, 0, this.uniformArray);
@@ -275,7 +281,7 @@ export class GPUWaveformRenderer {
           view: context.getCurrentTexture().createView(),
           loadOp: "clear",
           // other clear value?
-          clearValue: { r: 0, g: 0, b: 0, a: 1 },
+          clearValue: { r: 0, g: 0, b: 0, a: 0 },
           storeOp: "store",
         },
       ],

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import nullthrows from "../utils/nullthrows";
+import { nullthrows } from "../utils/nullthrows";
 import { LinkedMap } from "./state/LinkedMap";
 import { SPrimitive } from "./state/LinkedState";
 import { AudioClip } from "./AudioClip";

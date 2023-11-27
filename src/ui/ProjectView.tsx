@@ -11,14 +11,14 @@ import { useLinkedSet } from "../lib/state/LinkedSet";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { MidiTrack } from "../midi/MidiTrack";
 import { exhaustive } from "../utils/exhaustive";
-import nullthrows from "../utils/nullthrows";
+import { nullthrows } from "../utils/nullthrows";
 import { Axis } from "./Axis";
 import { TimelineCursor } from "./TimelineCursor";
 import { TrackA, getDroppedAudioURL } from "./TrackA";
 import { TrackM } from "./TrackM";
 import { useEventListener } from "./useEventListener";
-import { useStyles } from "./TimelineView";
 import { flushSync } from "react-dom";
+import { createUseStyles } from "react-jss";
 
 export function ProjectView({ project, renderer }: { project: AudioProject; renderer: AudioRenderer }) {
   const projectDivRef = useRef<HTMLDivElement | null>(null);
@@ -204,3 +204,20 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
     </div>
   );
 }
+
+export const useStyles = createUseStyles({
+  projectDiv: {
+    position: "relative",
+    background: "var(--timeline-bg)",
+    overflowX: "scroll",
+    overflowY: "hidden",
+  },
+  playbackPosDiv: {
+    background: "var(--cursor-playback)",
+    width: "1px",
+    height: "100%",
+    position: "absolute",
+    left: 0,
+    top: 0,
+  },
+});

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import nullthrows from "../utils/nullthrows";
+import { nullthrows } from "../utils/nullthrows";
 
 // look at: https://gist.github.com/bellbind/c686d4a01306642646ec5ae476741b42
 // for animation (interactivity)

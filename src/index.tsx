@@ -5,7 +5,7 @@ import { liveAudioContext } from "./constants";
 import "./index.css";
 import { appEnvironment } from "./lib/AppEnvironment";
 import { ignorePromise } from "./utils/ignorePromise";
-import nullthrows from "./utils/nullthrows";
+import { nullthrows } from "./utils/nullthrows";
 
 async function init() {
   try {

@@ -3,7 +3,7 @@ import ReactDOM from "react-dom";
 import { createUseStyles } from "react-jss";
 import { SPrimitive, useLinkedState } from "../lib/state/LinkedState";
 import { subscribe } from "../lib/state/Subbable";
-import nullthrows from "../utils/nullthrows";
+import { nullthrows } from "../utils/nullthrows";
 
 const confirmationModal = SPrimitive.of<
   | { status: "open"; message: string; okString?: string; noString?: string; cancelString?: string }

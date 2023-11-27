@@ -1,6 +1,6 @@
 import { staticAudioContext } from "../constants";
 import { SAudioClip } from "../data/serializable";
-import nullthrows from "../utils/nullthrows";
+import { nullthrows } from "../utils/nullthrows";
 import { dataURLForWaveform } from "../utils/waveform";
 import { AbstractClip, BaseClip, Seconds } from "./BaseClip";
 import { SharedAudioBuffer } from "./SharedAudioBuffer";

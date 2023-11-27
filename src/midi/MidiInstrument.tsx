@@ -2,7 +2,7 @@ import type { WamNode, WamParameterDataMap, WebAudioModule } from "@webaudiomodu
 import { DSPNode } from "../dsp/DSPNode";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { SPrimitive } from "../lib/state/LinkedState";
-import nullthrows, { assert } from "../utils/nullthrows";
+import { nullthrows, assert } from "../utils/nullthrows";
 import { Position } from "../wam/WindowPanel";
 
 export class MidiInstrument extends DSPNode<null> {

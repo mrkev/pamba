@@ -12,20 +12,69 @@ export function UtilityTabbedPanel({
   activeTab,
   onSelectTab,
   panels,
+  dividerPosition,
+  expandedSize = 220,
+  style,
 }: {
   activeTab: string | null;
   onSelectTab: SetState<string | null>;
   panels: Record<string, Panel>;
+  dividerPosition: "right" | "left" | "top" | "bottom";
+  expandedSize?: number;
+  style?: React.CSSProperties;
 }) {
   const styles = useStyles();
   const activePanel = activeTab != null ? panels[activeTab] : null;
   const isCollapsed = activePanel == null;
 
+  const layout: "horizontal" | "vertical" =
+    dividerPosition === "left" || dividerPosition === "right" ? "horizontal" : "vertical";
+
   return (
     <div
-      className={classNames(styles.panel, isCollapsed && styles.panelCollapsed, !isCollapsed && styles.panelExpanded)}
+      className={classNames(
+        styles.panel,
+        layout === "vertical" && styles.panelVertical,
+        isCollapsed && layout === "horizontal" && styles.panelCollapsedHorizontal,
+        isCollapsed && layout === "vertical" && styles.panelCollapsedVertical,
+        !isCollapsed && styles.panelExpanded,
+      )}
+      style={
+        !isCollapsed
+          ? layout === "horizontal"
+            ? {
+                maxWidth: `${expandedSize}px`,
+                minWidth: `${expandedSize}px`,
+                ...style,
+              }
+            : {
+                maxHeight: `${expandedSize}px`,
+                minHeight: `${expandedSize}px`,
+                ...style,
+              }
+          : style
+      }
     >
-      <div className={classNames(styles.tabs, isCollapsed && styles.collapsedTabs)}>
+      <div
+        className={classNames(
+          styles.tabs,
+          isCollapsed && layout === "horizontal" && styles.collapsedTabsVertical,
+          isCollapsed && layout === "vertical" && styles.collapsedTabsHorizontal,
+          dividerPosition === "top" && styles.bottomPanelTabs,
+        )}
+        style={
+          layout === "horizontal"
+            ? {
+                padding: "0px 0px 4px 0px",
+                borderBottom: "2px solid var(--control-bg-color)",
+              }
+            : {
+                // borderRight: "2px solid var(--control-bg-color)",
+                alignSelf: "flex-start",
+                padding: "0px 4px 0px 0px",
+              }
+        }
+      >
         {Object.entries(panels).map(([id, panel]) => {
           return (
             <button
@@ -47,7 +96,13 @@ export function UtilityTabbedPanel({
           );
         })}
       </div>
-      {activePanel?.render()}
+      {layout === "horizontal" ? (
+        activePanel?.render()
+      ) : (
+        <div className={styles.vertical} style={{ flexShrink: 1, minHeight: 0, paddingBottom: 4 }}>
+          {activePanel?.render()}
+        </div>
+      )}
     </div>
   );
 }
@@ -58,11 +113,13 @@ const useStyles = createUseStyles({
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 4,
-    padding: "0px 0px 4px 0px",
-    borderBottom: "2px solid var(--control-bg-color)",
   },
-  collapsedTabs: {
+  collapsedTabsVertical: {
     flexDirection: "column",
+    flexWrap: "nowrap",
+  },
+  collapsedTabsHorizontal: {
+    flexDirection: "row",
     flexWrap: "nowrap",
   },
   panel: {
@@ -75,11 +132,28 @@ const useStyles = createUseStyles({
     alignItems: "stretch",
     // paddingBottom: "128px",
   },
-  panelCollapsed: {
+  panelVertical: {
+    paddingTop: "4px",
+  },
+  panelCollapsedHorizontal: {
     width: "22px",
   },
+  panelCollapsedVertical: {
+    height: "16px",
+  },
   panelExpanded: {
-    maxWidth: "220px",
-    minWidth: "220px",
+    // maxWidth: "220px",
+    // minWidth: "220px",
+  },
+  horizontal: {
+    // flexDirection: "column",
+  },
+  vertical: {
+    flexDirection: "row",
+    display: "flex",
+    flexGrow: 1,
+  },
+  bottomPanelTabs: {
+    paddingTop: "4px",
   },
 });

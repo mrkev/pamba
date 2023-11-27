@@ -44,7 +44,7 @@ export function App(): React.ReactElement {
           {/* <MidiDemo /> */}
           <ConfirmDialog />
           <AppProject project={projectStatus.project} />
-          <DebugData project={projectStatus.project} />
+          {/* <DebugData project={projectStatus.project} /> */}
           {/* <button onClick={() => test()}>fooobar</button> */}
         </>
       );

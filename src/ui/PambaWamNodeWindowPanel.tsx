@@ -1,7 +1,7 @@
 import ReactDOM from "react-dom";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { MidiInstrument } from "../midi/MidiInstrument";
-import nullthrows from "../utils/nullthrows";
+import { nullthrows } from "../utils/nullthrows";
 import { PambaWamNode } from "../wam/PambaWamNode";
 import { WindowPanel } from "../wam/WindowPanel";
 import { WamInstrumentContent, WamPluginContent } from "../wam/wam";

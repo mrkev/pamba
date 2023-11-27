@@ -50,7 +50,7 @@ export function useTrackMouseEvents(
         project.cursorPos.set(newPos);
         project.selectionWidth.set(null);
         // selection state
-        project.selected.set(null);
+        // project.selected.set(null);
 
         // e.stopPropagation();
         e.preventDefault();

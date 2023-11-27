@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createUseStyles } from "react-jss";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import { AudioClip } from "../lib/AudioClip";
@@ -7,6 +7,10 @@ import { useSubscribeToSubbableMutationHashable } from "../lib/state/LinkedMap";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { RenamableLabel } from "./RenamableLabel";
 import { GPUWaveform } from "./GPUWaveform";
+import { useEventListener } from "./useEventListener";
+import { nullthrows } from "../utils/nullthrows";
+import { clamp } from "../utils/math";
+import { usePrimitive } from "structured-state";
 
 type AudioViewportT = {
   pxPerSec: number;
@@ -15,6 +19,11 @@ type AudioViewportT = {
 
 const HEIGHT = 200;
 const PX_PER_SEC = 10;
+
+function getRealScale(num: number) {
+  // how many samples per pixel
+  return Math.round(Math.exp((Math.log(1000) / 100) * num));
+}
 
 export function AudioClipEditor({
   clip,
@@ -27,13 +36,19 @@ export function AudioClipEditor({
 }) {
   const styles = useStyles();
   const containerRef = useRef<HTMLDivElement>(null);
-  const cursorDiv = useRef<HTMLDivElement>(null);
+  const playbackDiv = useRef<HTMLDivElement>(null);
   const backgroundRef = useRef<HTMLCanvasElement>(null);
   const [name] = useLinkedState(clip.name);
   const [bpm] = useLinkedState(project.tempo);
   const [scrollLeft] = useLinkedState(clip.detailedViewport.scrollLeft);
   const [pxPerSec] = useLinkedState(clip.detailedViewport.pxPerSec);
-  const [scale, setScale] = useState(2);
+  const waveformRef = useRef<HTMLCanvasElement>(null);
+  const [waveformStartFr, setWaveformStartFr] = useState(0);
+  const [scale, setScale] = useState(80);
+  const [playbackPos] = usePrimitive(player.playbackPos);
+  const [cursorPos] = useLinkedState(project.cursorPos);
+  const [selectionWidthRaw] = useLinkedState(project.selectionWidth);
+  const selectionWidth = selectionWidthRaw == null ? 0 : selectionWidthRaw;
 
   function pxOfSec(sec: number) {
     return Math.floor(pxPerSec * sec);
@@ -49,8 +64,95 @@ export function AudioClipEditor({
 
   const border = "1px solid #114411";
 
-  // useEventListener('wheel')
-  const realScale = Math.round(Math.exp((Math.log(1000) / 100) * scale));
+  // how many samples per pixel
+  const realScale = getRealScale(scale);
+
+  useEventListener(
+    "wheel",
+    waveformRef,
+    useCallback(
+      function (e: WheelEvent) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const canvas = nullthrows(waveformRef.current);
+        const mouseX = e.clientX - canvas.getBoundingClientRect().left;
+
+        // both pinches and two-finger pans trigger the wheel event trackpads.
+        // ctrlKey is true for pinches though, so we can use it to differentiate
+        // one from the other.
+        // pinch
+        if (e.ctrlKey) {
+          const sDelta = Math.exp(e.deltaY / 100);
+          const expectedNewScale = clamp(1, scale * sDelta, 120);
+
+          const scaleFactorFactor = getRealScale(scale) / getRealScale(expectedNewScale);
+
+          // todo fr to px?
+          let newStartPx = (waveformStartFr + mouseX) * scaleFactorFactor - mouseX;
+
+          if (newStartPx < 0) {
+            newStartPx = 0;
+          }
+
+          console.log(mouseX, newStartPx);
+          setScale(expectedNewScale);
+          setWaveformStartFr(newStartPx);
+
+          // project.viewport.setScale(expectedNewScale, mouseX);
+        }
+
+        // pan
+        else {
+          setWaveformStartFr((prev) => Math.max(prev + e.deltaX * realScale, 0));
+        }
+      },
+      [realScale, scale, waveformStartFr],
+    ),
+  );
+
+  useEventListener(
+    "click",
+    waveformRef,
+    useCallback(
+      (e) => {
+        const canvas = nullthrows(waveformRef.current);
+        const mouseX = e.clientX - canvas.getBoundingClientRect().left;
+        const positionSamples = (mouseX + waveformStartFr) * realScale;
+        const positionSecs = positionSamples / clip.sampleRate;
+        const positionTimeline = positionSecs + clip.startOffsetSec;
+
+        project.cursorPos.set(positionTimeline);
+
+        console.log(mouseX, (mouseX + waveformStartFr) * realScale);
+      },
+      [clip.sampleRate, clip.startOffsetSec, project.cursorPos, realScale, waveformStartFr],
+    ),
+  );
+
+  // console.log("SCSL", scale);
+  const timelineSecsToClipPx = useCallback(
+    (timelineSecs: number) => {
+      const clipSecs = timelineSecs - clip.startOffsetSec;
+      const clipFr = clipSecs * clip.sampleRate;
+      const clipPx = clipFr / realScale;
+
+      return clipPx - waveformStartFr / realScale;
+    },
+    [clip.sampleRate, clip.startOffsetSec, realScale, waveformStartFr],
+  );
+
+  // useEffect(() => {
+  //   player.onFrame2 = function (playbackPos) {
+  //     const pbdiv = playbackDiv.current;
+  //     if (pbdiv) {
+  //       pbdiv.style.left = String(timelineSecsToClipPx(playbackPos)) + "px";
+  //     }
+  //   };
+  // }, [player, player.isAudioPlaying, timelineSecsToClipPx]);
+
+  const cursorPosInClipPx = timelineSecsToClipPx(cursorPos);
+  const playbackDivLeft = timelineSecsToClipPx(playbackPos);
 
   return (
     <>
@@ -93,22 +195,6 @@ export function AudioClipEditor({
             background: "#4e4e4e",
           }}
         >
-          {/* <input
-          type="range"
-          // TODO: why does 1 not work?
-          // min={2}
-          // max={100}
-          min={1}
-          max={120}
-          step={0.01}
-          onChange={(e) => {
-            const newVal = parseFloat(e.target.value);
-            setScale(newVal);
-            // render(Math.round(Math.exp((Math.log(1000) / 100) * newVal)));
-            // console.log("a", newVal, Math.round(Math.exp((Math.log(1000) / 100) * newVal)));
-          }}
-        /> */}
-          {/* <GPUWaveform audioBuffer={clip.buffer} scale={realScale} width={300} height={20} /> */}
           Length <input type="number" value={clip.getDuration()} disabled />
           Filename:
           <input type="text" value={clip.bufferURL} disabled />
@@ -128,6 +214,64 @@ export function AudioClipEditor({
           overflow: "hidden",
         }}
       >
+        <input
+          type="range"
+          // TODO: why does 1 not work?
+          // min={2}
+          // max={100}
+          value={scale}
+          min={1}
+          max={120}
+          step={0.01}
+          onChange={(e) => {
+            const newVal = parseFloat(e.target.value);
+            setScale(newVal);
+            // render(Math.round(Math.exp((Math.log(1000) / 100) * newVal)));
+            // console.log("a", newVal, Math.round(Math.exp((Math.log(1000) / 100) * newVal)));
+          }}
+        />
+        <div style={{ position: "relative", display: "flex", flexDirection: "column", justifyContent: "stretch" }}>
+          <GPUWaveform
+            ref={waveformRef}
+            audioBuffer={clip.buffer}
+            scale={realScale}
+            offset={waveformStartFr}
+            // width={300}
+            height={50}
+          />
+          {/* cursor div */}
+          {cursorPosInClipPx > 0 &&
+            cursorPosInClipPx < 1000 && ( // TODO
+              <div
+                style={{
+                  borderLeft: "1px solid var(--cursor)",
+                  borderRight: selectionWidth === 0 ? undefined : "1px solid green",
+                  height: "100%",
+                  position: "absolute",
+                  userSelect: "none",
+                  pointerEvents: "none",
+                  left: selectionWidth >= 0 ? cursorPosInClipPx : timelineSecsToClipPx(cursorPos + selectionWidth),
+                  width: selectionWidth === 0 ? 0 : Math.floor(timelineSecsToClipPx(Math.abs(selectionWidth)) - 1),
+                  top: 0,
+                }}
+              />
+            )}
+          {/* playback div */}
+          <div
+            ref={playbackDiv}
+            style={{
+              borderLeft: "1px solid red",
+              height: "100%",
+              position: "absolute",
+              userSelect: "none",
+              pointerEvents: "none",
+              left: playbackDivLeft,
+              width: 1,
+              top: 0,
+            }}
+          />
+        </div>
+        s
         <div className={styles.waveformViewContainer}>
           <div
             style={{
@@ -178,6 +322,7 @@ export function AudioClipEditor({
               }}
             ></div>
           </div>
+          d
         </div>
         <input
           type="range"

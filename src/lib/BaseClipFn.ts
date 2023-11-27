@@ -1,5 +1,5 @@
 import { SArray } from "structured-state";
-import nullthrows from "../utils/nullthrows";
+import { nullthrows } from "../utils/nullthrows";
 import { AbstractClip, Pulses, Seconds } from "./BaseClip";
 
 export function printClips(clips: SArray<AbstractClip<any>>) {

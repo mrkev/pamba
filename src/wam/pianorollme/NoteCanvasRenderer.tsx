@@ -1,6 +1,6 @@
 import { WamTransportData } from "@webaudiomodules/api";
 import { NoteDefinition } from "wam-extensions";
-import nullthrows from "../../utils/nullthrows";
+import { nullthrows } from "../../utils/nullthrows";
 import { Clip, Note } from "./PianoRollClip";
 
 const logger = (...any: any) => {};

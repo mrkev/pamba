@@ -1,6 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { GPUWaveformRenderer } from "./GPUWaveformRenderer";
 import { useWebGPU } from "./useWebGPU";
+import React from "react";
+import { mergeRefs } from "react-merge-refs";
+import useResizeObserver from "use-resize-observer";
 
 function useWaveformRenderer(canvasRef: React.RefObject<HTMLCanvasElement>, audioBuffer: AudioBuffer) {
   const gpu = useWebGPU(canvasRef);
@@ -21,26 +24,61 @@ function useWaveformRenderer(canvasRef: React.RefObject<HTMLCanvasElement>, audi
   return renderer;
 }
 
-export function GPUWaveform({
-  audioBuffer,
-  scale,
-  width,
-
-  height,
-}: {
-  audioBuffer: AudioBuffer;
-  scale?: number;
-  width: number;
-  height: number;
-}) {
+export const GPUWaveform = React.forwardRef(function GPUWaveformImpl(
+  {
+    audioBuffer,
+    scale,
+    offset = 0,
+    ...props
+  }: React.CanvasHTMLAttributes<HTMLCanvasElement> & {
+    audioBuffer: AudioBuffer;
+    scale?: number;
+    offset?: number;
+  },
+  ref,
+) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const renderer = useWaveformRenderer(canvasRef, audioBuffer);
 
-  useEffect(() => {
-    const s = scale != null ? scale : audioBuffer.length / width;
-    renderer?.render(s);
-    // renderer?.render(Math.round(Math.exp((Math.log(1000) / 100) * scale)));
-  }, [audioBuffer, renderer, scale, width]);
+  const { width, height } = useResizeObserver<HTMLCanvasElement>({
+    ref: canvasRef,
+    // onResize: useCallback(
+    //   ({ width }: { width?: number; height?: number }) => {
+    //     // project.viewport.projectDivWidth.set(width ?? 0);
+    //   },
+    //   [project.viewport.projectDivWidth],
+    // ),
+  });
 
-  return <canvas ref={canvasRef} width={width} height={height}></canvas>;
-}
+  useEffect(() => {
+    if (width == null || height == null) {
+      return;
+    }
+
+    const s = scale != null ? scale : audioBuffer.length / width;
+    renderer?.render(s, offset, width, height);
+    // renderer?.render(Math.round(Math.exp((Math.log(1000) / 100) * scale)));
+  }, [audioBuffer, height, offset, renderer, scale, width]);
+
+  return <canvas ref={mergeRefs([canvasRef, ref])} {...props} />;
+});
+
+// export function useObserveDims(ref: React.RefObject<HTMLElement>) {
+//   useLayoutEffect(() => {
+//     const width = ref.current?.getBoundingClientRect().width;
+//     console.log("HERE", width);
+//     if (width) {
+//       // project.viewport.projectDivWidth.set(width);
+//     }
+//   }, [ref]);
+
+//   const res = useResizeObserver<HTMLElement>({
+//     ref: ref,
+//     onResize: useCallback(
+//       ({ width }: { width?: number; height?: number }) => {
+//         project.viewport.projectDivWidth.set(width ?? 0);
+//       },
+//       [project.viewport.projectDivWidth],
+//     ),
+//   });
+// }

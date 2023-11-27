@@ -74,6 +74,7 @@ export function DebugData({ project }: { project: AudioProject }) {
         fontSize: 12,
         position: "absolute",
         bottom: 0,
+        left: 100,
         background: "rgba(233,233,233,0.7)",
         border: "1px solid black",
         color: "black",
@@ -96,5 +97,62 @@ export function DebugData({ project }: { project: AudioProject }) {
       </div>
       <pre>{allState}</pre>
     </details>
+  );
+}
+
+export function DebugContent({ project }: { project: AudioProject }) {
+  const [selected] = useLinkedState(project.selected);
+  const [cursorPos] = useLinkedState(project.cursorPos);
+  const [selectionWidth] = useLinkedState(project.selectionWidth);
+  const tracks = useContainer(project.allTracks);
+  const [pressed] = useLinkedState(pressedState);
+  const [activeTrack] = useLinkedState(project.activeTrack);
+  const [cursorTracks] = useLinkedSet(project.cursorTracks);
+  const [viewportStartPx] = useLinkedState(project.viewportStartPx);
+  const [projectDivWidth] = useLinkedState(project.viewport.projectDivWidth);
+
+  if (window.location.host.indexOf("localhost") === -1) {
+    return null;
+  }
+
+  const allState = tracks
+    .map((track, i) => {
+      return `Track ${i}:\n${track.toString()}\n`;
+    })
+    .join("\n");
+
+  return (
+    <>
+      <div style={{ overflow: "scroll", background: "#222" }}>
+        <pre>
+          |{viewportStartPx}px -{projectDivWidth}-
+        </pre>
+        <div>
+          Cursor: {cursorPos} {selectionWidth} <br />
+          Cursor Tracks: {[...cursorTracks.values()].map((track) => `${track.name.get()}`)}
+          <hr></hr>
+          <br />
+          Selected: {stringOfSelected(selected)}
+          <br />
+          Pressed: {pressed?.status}
+          <br />
+          Active Track: {activeTrack?.name.get()}
+        </div>
+      </div>
+      <div>
+        <div
+          style={{
+            marginLeft: 4,
+            overflow: "scroll",
+            background: "#222",
+            flexShrink: 1,
+            minHeight: 0,
+            maxHeight: "100%",
+          }}
+        >
+          <pre>{allState}</pre>
+        </div>
+      </div>
+    </>
   );
 }

@@ -1,3 +1,4 @@
+import { SPrimitive } from "structured-state";
 import { liveAudioContext, sampleSize } from "../constants";
 import { MidiTrack } from "../midi/MidiTrack";
 // import SharedBufferWorkletNode from "./lib/shared-buffer-worklet-node";
@@ -27,9 +28,10 @@ export class AnalizedPlayer {
 
   // For main timeline
   public onFrame: ((playbackTime: number) => void) | null = null;
-  // For subview timeline
+  // For subview timeline, (ie, clip editor)
   public onFrame2: ((playbackTime: number) => void) | null = null;
   public playbackTime: number = 0;
+  public playbackPos = SPrimitive.of(0); // todo keep only hte SState?
 
   // The time in the audio context we should count as zero
   CTX_PLAY_START_TIME: number = 0;
@@ -65,6 +67,7 @@ export class AnalizedPlayer {
           this.drawPlaybeatTime?.(currentTimeInBuffer);
           if (this.onFrame) this.onFrame(currentTimeInBuffer);
           if (this.onFrame2) this.onFrame2(currentTimeInBuffer);
+          this.playbackPos.set(currentTimeInBuffer);
           this.playbackTime = currentTimeInBuffer;
         });
       } else {

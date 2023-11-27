@@ -41,9 +41,10 @@ export function BottomPanel({ project, player }: { project: AudioProject; player
   if (!(activeTrack instanceof MidiTrack)) {
     return (
       <div>
-        <div ref={testref}>TEST</div>
+        nothing to show
+        {/* <div ref={testref}>TEST</div>
         <UtilityPanel layout={"horizontal"}>nothing to show</UtilityPanel>
-        <UtilityPanel layout={"horizontal"}>nothing to show</UtilityPanel>
+        <UtilityPanel layout={"horizontal"}>nothing to show</UtilityPanel> */}
       </div>
     );
   }

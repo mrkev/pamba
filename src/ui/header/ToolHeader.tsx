@@ -107,7 +107,15 @@ export function ToolHeader({
       <div className={classes.tools}>
         <div className={classes.topRow}>
           <NewProjectButton project={project} />
-          <select
+          {/* <button
+            className={utility.button}
+            onClick={async () => {
+              documentCommands.execById("createAudioTrack", project);
+            }}
+          >
+            new track
+          </button> */}
+          {/* <select
             style={{ width: 100, fontSize: 12 }}
             value={selectedDevice ?? undefined}
             onChange={(e) => recorder.selectInputDevice(e.target.value)}
@@ -117,7 +125,7 @@ export function ToolHeader({
                 {device.label}
               </option>
             ))}
-          </select>
+          </select> */}
           <div style={{ display: "flex", flexDirection: "row", alignItems: "center" }}>
             <UtilityNumber
               value={tempo}

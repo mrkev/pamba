@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from "react";
-import nullthrows from "../utils/nullthrows";
+import { nullthrows } from "../utils/nullthrows";
 import { RenamableLabel } from "./RenamableLabel";
 
 export type Point = [number, number];

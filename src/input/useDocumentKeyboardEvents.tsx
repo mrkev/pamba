@@ -94,6 +94,10 @@ export const documentCommands = CommandBlock.create((command) => {
       project.pointerTool.set("slice");
       document.body.style.cursor = "crosshair";
     }).helptext("Select Slice tool", "On click splits clips at selected time"),
+
+    // Panels
+
+    showLibrary: command(["KeyL"], (e, project) => {}),
   };
 });
 

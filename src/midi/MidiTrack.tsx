@@ -4,7 +4,7 @@ import { CLIP_HEIGHT, PIANO_ROLL_PLUGIN_URL, SECS_IN_MINUTE, TIME_SIGNATURE, liv
 import { appEnvironment } from "../lib/AppEnvironment";
 import { ProjectTrack } from "../lib/ProjectTrack";
 import { connectSerialNodes } from "../lib/connectSerialNodes";
-import nullthrows from "../utils/nullthrows";
+import { nullthrows } from "../utils/nullthrows";
 import { PianoRollModule, PianoRollNode } from "../wam/pianorollme/PianoRollNode";
 import { MidiClip } from "./MidiClip";
 import { MidiInstrument } from "./MidiInstrument";
