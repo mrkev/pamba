@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { useContainer } from "structured-state";
+import { history, useContainer } from "structured-state";
 import useResizeObserver from "use-resize-observer";
 import { useTimelineMouseEvents } from "../input/useProjectMouseEvents";
 import { AudioClip } from "../lib/AudioClip";
@@ -123,8 +123,8 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
 
       if (url && url.length > 0) {
         console.log("dropped", url, "to timeline");
+        // history.record(() => {});
         const clip = await AudioClip.fromURL(url);
-
         const track = AudioTrack.fromClip(project, clip);
         AudioProject.addAudioTrack(project, undefined, track, "bottom");
       }
@@ -198,7 +198,9 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
         }
         exhaustive(track);
       })}
-      {draggingOver && <div style={{ padding: "16px", pointerEvents: "none" }}>Create a new track from clip</div>}
+      {draggingOver && (
+        <div style={{ padding: "16px", pointerEvents: "none", position: "relative" }}>Create a new track from clip</div>
+      )}
       <TimelineCursor project={project} />
       <div ref={playbackPosDiv} className={classes.playbackPosDiv}></div>
     </div>

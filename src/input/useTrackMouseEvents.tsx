@@ -52,7 +52,8 @@ export function useTrackMouseEvents(
         // selection state
         // project.selected.set(null);
 
-        // e.stopPropagation();
+        // We handle it here, we dont want the projectDiv mouse event to handle it too
+        e.stopPropagation();
         e.preventDefault();
       },
       [project, track, trackRef],

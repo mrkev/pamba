@@ -21,7 +21,7 @@ export const documentCommands = CommandBlock.create((command) => {
     save: command(["KeyS", "meta"], async (e, project) => {
       e?.preventDefault();
       e?.stopPropagation();
-      return Promise.all([ProjectPersistance.doSave(project), appEnvironment.localFiles.saveProject(project)]);
+      return ProjectPersistance.doSave(project);
     }).helptext("Save"),
 
     // TODO: save as/save copy
@@ -97,7 +97,15 @@ export const documentCommands = CommandBlock.create((command) => {
 
     // Panels
 
-    showLibrary: command(["KeyL"], (e, project) => {}),
+    showLibrary: command(["KeyL"], () => {}),
+
+    createSampleProject: command(["KeyS", "meta", "shift"], async () => {
+      const project = await ProjectPersistance.sampleProject();
+      appEnvironment.projectStatus.set({
+        status: "loaded",
+        project,
+      });
+    }),
   };
 });
 

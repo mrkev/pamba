@@ -57,6 +57,46 @@ export function useTimelineMouseEvents(
   project: AudioProject,
   projectDivRef: React.MutableRefObject<HTMLDivElement | null>,
 ): void {
+  useEventListener(
+    "mousedown",
+    projectDivRef,
+    useCallback(
+      (e) => {
+        const div = projectDivRef.current;
+        if (div == null) {
+          return;
+        }
+
+        if (project.pointerTool.get() !== "move") {
+          return;
+        }
+
+        const position = {
+          x: e.clientX + div.scrollLeft - div.getBoundingClientRect().x,
+          y: e.clientY + div.scrollTop - div.getBoundingClientRect().y,
+        };
+
+        const asSecs = project.viewport.pxToSecs(position.x);
+        const newPos = snapped(project, e, asSecs);
+
+        pressedState.set({
+          status: "selecting_global_time",
+          clientX: e.clientX,
+          clientY: e.clientY,
+          startTime: newPos,
+        });
+
+        // TODO: the bottomost track?
+        // project.cursorTracks.clear();
+        // project.cursorTracks.add(track);
+        // the cursor
+        project.cursorPos.set(newPos);
+        project.selectionWidth.set(null);
+      },
+      [project, projectDivRef],
+    ),
+  );
+
   useDocumentEventListener(
     "mouseup",
     useCallback(

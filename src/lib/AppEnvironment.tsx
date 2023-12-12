@@ -77,8 +77,10 @@ export class AppEnvironment {
   }
 
   private async initialLoadProject() {
+    //
+
     if (this.projectStatus.get().status === "loading") {
-      const maybeProject = await ProjectPersistance.openSaved();
+      const maybeProject = await ProjectPersistance.openLastProject(this.localFiles);
       if (maybeProject == null) {
         alert("Could not open project. Clearing");
         // ProjectPersistance.clearSaved();

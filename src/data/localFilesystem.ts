@@ -156,7 +156,7 @@ export class LocalFilesystem {
     return metadata;
   }
 
-  private async getAllProjects(): Promise<{ name: string; id: string }[]> {
+  public async getAllProjects(): Promise<{ name: string; id: string }[]> {
     const opfsRoot = await navigator.storage.getDirectory();
     const projects = await opfsRoot.getDirectoryHandle("projects", { create: true });
     // https://github.com/microsoft/TypeScript-DOM-lib-generator/issues/1639\
@@ -175,3 +175,5 @@ export class LocalFilesystem {
     return result;
   }
 }
+
+function sampleIfNeeded() {}

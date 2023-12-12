@@ -11,12 +11,12 @@ import { AudioProject } from "../../lib/project/AudioProject";
 import { useLinkedMap } from "../../lib/state/LinkedMap";
 import { useLinkedState } from "../../lib/state/LinkedState";
 import { doConfirm } from "../ConfirmDialog";
+import { RenamableLabel } from "../RenamableLabel";
 import { UtilityNumber } from "../UtilityNumber";
 import { utility } from "../utility";
 import { BounceButton } from "./BounceButton";
 import { ToolSelector } from "./ToolSelector";
 import { PlaybackControl, TransportControl } from "./TransportControl";
-import { RenamableLabel } from "../RenamableLabel";
 import { UtilityToggle } from "../UtilityToggle";
 
 export async function closeProject(project: AudioProject) {
@@ -57,25 +57,8 @@ function NewProjectButton({ project }: { project: AudioProject }) {
   );
 }
 
-export function ToolHeader({
-  project,
-  player,
-  renderer,
-  recorder,
-}: {
-  project: AudioProject;
-  player: AnalizedPlayer;
-  renderer: AudioRenderer;
-  recorder: AudioRecorder;
-}) {
-  const classes = useStyles();
-  const [scaleFactor] = useLinkedState(project.scaleFactor);
-  const [tempo] = useLinkedState(project.tempo);
+export function PlaybeatTime({ project, player }: { project: AudioProject; player: AnalizedPlayer }) {
   const playbeatCanvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [snapToGrid] = useLinkedState(project.snapToGrid);
-  const [inputDevices] = useLinkedMap(recorder.audioInputDevices);
-  const [selectedDevice] = useLinkedState(recorder.currentInput);
-  const [projectName] = useLinkedState(project.projectName);
 
   const drawPlaybeatTime = useCallback(
     (time: number) => {
@@ -103,10 +86,55 @@ export function ToolHeader({
   );
 
   return (
+    <canvas
+      style={{
+        background: "black",
+        width: 72,
+        height: 18,
+        alignSelf: "center",
+      }}
+      width={2 * 72 + "px"}
+      height={2 * 18 + "px"}
+      ref={(ref) => {
+        playbeatCanvasRef.current = ref;
+        player.drawPlaybeatTime = drawPlaybeatTime;
+      }}
+    />
+  );
+}
+
+export function ToolHeader({
+  project,
+  player,
+  renderer,
+  recorder,
+}: {
+  project: AudioProject;
+  player: AnalizedPlayer;
+  renderer: AudioRenderer;
+  recorder: AudioRecorder;
+}) {
+  const classes = useStyles();
+  const [scaleFactor] = useLinkedState(project.scaleFactor);
+  const [tempo] = useLinkedState(project.tempo);
+  const [snapToGrid] = useLinkedState(project.snapToGrid);
+  const [inputDevices] = useLinkedMap(recorder.audioInputDevices);
+  const [selectedDevice] = useLinkedState(recorder.currentInput);
+  const [projectName] = useLinkedState(project.projectName);
+
+  return (
     <div className={classes.headerContainer}>
       <div className={classes.tools}>
         <div className={classes.topRow}>
           <NewProjectButton project={project} />
+          <button
+            className={utility.button}
+            onClick={async () => {
+              documentCommands.execById("save", project);
+            }}
+          >
+            save
+          </button>
           {/* <button
             className={utility.button}
             onClick={async () => {
@@ -134,20 +162,7 @@ export function ToolHeader({
               }}
             ></UtilityNumber>
             <button className="utilityButton">4 / 4</button>
-            <canvas
-              style={{
-                background: "black",
-                width: 72,
-                height: 18,
-                alignSelf: "center",
-              }}
-              width={2 * 72 + "px"}
-              height={2 * 18 + "px"}
-              ref={(ref) => {
-                playbeatCanvasRef.current = ref;
-                player.drawPlaybeatTime = drawPlaybeatTime;
-              }}
-            />
+            <PlaybeatTime project={project} player={player} />
           </div>
 
           <div style={{ flexGrow: 1 }}></div>
@@ -163,7 +178,39 @@ export function ToolHeader({
           <BounceButton project={project} renderer={renderer} />
         </div>
         <div className={classes.bottomRow}>
-          <TransportControl project={project} renderer={renderer} recorder={recorder} />
+          <UtilityToggle
+            title="snap to grid"
+            toggled={snapToGrid}
+            toggleStyle={{ background: "orange" }}
+            onToggle={function (toggled: boolean): void {
+              project.snapToGrid.set(toggled);
+            }}
+          >
+            <i className="ri-focus-3-line"></i>
+            {/* snap to grid */}
+          </UtilityToggle>
+          {/* <span
+            style={{
+              fontSize: 12,
+              display: "flex",
+              flexDirection: "row",
+              alignItems: "center",
+              color: "var(--text-on-background)",
+              marginLeft: 0,
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={snapToGrid}
+              onChange={() => {
+                project.snapToGrid.setDyn((prev) => !prev);
+              }}
+            ></input>
+            snap to grid
+          </span> */}
+          {/* Space to center project title */}
+          <div style={{ minWidth: "185px", flexShrink: 0 }}></div>
+          {/* <TransportControl project={project} renderer={renderer} recorder={recorder} /> */}
           <div style={{ flexGrow: 1 }}></div>
           <span title="current open project">
             <i className="ri-file-music-line" />{" "}
@@ -175,34 +222,6 @@ export function ToolHeader({
             />
           </span>
           <div style={{ flexGrow: 1 }}></div>
-          <span
-            style={{
-              fontSize: 12,
-              display: "flex",
-              flexDirection: "row",
-              alignItems: "center",
-              color: "var(--text-on-background)",
-            }}
-          >
-            snap to grid
-            <input
-              type="checkbox"
-              checked={snapToGrid}
-              onChange={() => {
-                project.snapToGrid.setDyn((prev) => !prev);
-              }}
-            ></input>
-          </span>
-
-          {/* <UtilityToggle
-            toggled={snapToGrid}
-            toggleStyle={{ background: "orange" }}
-            onToggle={function (toggled: boolean): void {
-              project.snapToGrid.set(toggled);
-            }}
-          >
-            snap to grid
-          </UtilityToggle> */}
 
           <input
             type="range"
@@ -265,8 +284,10 @@ const useStyles = createUseStyles({
     flexGrow: 1,
     display: "flex",
     flexDirection: "column",
-    justifyContent: "space-around",
+    // justifyContent: "space-around",
     marginRight: 12,
+    marginLeft: 12,
+    gap: 2,
   },
   topRow: {
     display: "flex",

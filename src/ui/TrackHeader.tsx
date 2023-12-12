@@ -75,6 +75,7 @@ export const TrackHeader = React.memo(function TrackHeader({
           height: height - TRACK_SEPARATOR_HEIGHT,
           position: "relative",
           userSelect: "none",
+          background: isSelected ? "rgba(0,0,0,0.5)" : "none",
           display: "flex",
           flexDirection: "column",
           borderBottom: isDspExpanded ? `${TRACK_SEPARATOR_HEIGHT}px solid #444444` : undefined,
@@ -225,7 +226,7 @@ export const TrackHeader = React.memo(function TrackHeader({
         {/* TODO: allow rezising track by dragging either line below dsp, or line between dsp and clips */}
 
         <UtilityToggle
-          style={{ margin: "2px", fontWeight: 200, fontSize: 10, height: 14 }}
+          style={{ margin: "2px 0px 2px 4px", fontWeight: 200, fontSize: 10, height: 14 }}
           toggled={isDspExpanded}
           onToggle={function (): void {
             if (dspExpandedTracks.has(track)) {
@@ -334,7 +335,7 @@ const useStyles = createUseStyles({
     flexDirection: "row",
     alignItems: "center",
     gap: "2px",
-    padding: "2px 0px 0px 2px",
+    padding: "2px 0px 0px 4px",
   },
   headerButton: {
     fontSize: "10px",

@@ -109,6 +109,7 @@ const useStyles = createUseStyles({
     width: "100%",
     flexGrow: 1,
     borderTopLeftRadius: "3px",
+    borderBottomLeftRadius: "3px",
     paddingRight: "4px",
     msOverflowY: "scroll",
     "&::-webkit-scrollbar": {

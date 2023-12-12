@@ -151,7 +151,7 @@ export function ClipA({
     }
   }
 
-  const border = isSelected ? "1px solid var(--clip-border-selected)" : "1px solid var(--clip-border)";
+  const border = isSelected ? "1px solid var(--clip-border-selected)" : "1px solid var(--clip-header)";
   const backgroundImageData = clip.getWaveformDataURL(
     // totalBufferWidth,
     1000,

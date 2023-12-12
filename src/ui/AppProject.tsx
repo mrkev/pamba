@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
+import { Panel, PanelGroup } from "react-resizable-panels";
 import { modifierState, useSingletonKeyboardModifierState } from "../ModifierState";
 import { useDocumentKeyboardEvents } from "../input/useDocumentKeyboardEvents";
 import { appEnvironment } from "../lib/AppEnvironment";
@@ -7,6 +7,7 @@ import { AudioRecorder } from "../lib/AudioRecorder";
 import { AudioRenderer } from "../lib/AudioRenderer";
 import { AudioProject } from "../lib/project/AudioProject";
 import { BottomPanel } from "./BottomPanel";
+import { DebugContent } from "./DebugData";
 import { Help, History, Settings } from "./History";
 import { Library } from "./Library";
 import { ProjectSettings } from "./ProjectSettings";
@@ -14,7 +15,7 @@ import { TimelineView } from "./TimelineView";
 import { UtilityTabbedPanel } from "./UtilityTabbedPanel";
 import { ToolHeader } from "./header/ToolHeader";
 import { useLocalStorage } from "./useLocalStorage";
-import { DebugContent } from "./DebugData";
+import { TransportControl } from "./header/TransportControl";
 
 function useStopPlaybackOnUnmount(renderer: AudioRenderer) {
   useEffect(() => {
@@ -88,6 +89,9 @@ export function AppProject({ project }: { project: AudioProject }) {
           onSelectTab={setActiveBottomPanel}
           dividerPosition={"top"}
           expandedSize={295}
+          extraControls={
+            <TransportControl style={{ marginTop: 2 }} project={project} renderer={renderer} recorder={recorder} />
+          }
           panels={{
             editor: {
               icon: <i className="ri-edit-line"></i>,
@@ -121,14 +125,19 @@ export function AppProject({ project }: { project: AudioProject }) {
                     <br />
                     ---
                     <br />
-                    OBXD: TODO:LINK
+                    OBXD: Jari Kleimola
                     <br />
-                    StonePhaserStereo, BigMuff: TODOLINK
+                    - <A href="https://github.com/jariseon/webOBXD" />
                     <br />
-                    Dattorro Reverb: TODO SPELLING, LINK
+                    StonePhaserStereo, BigMuff: Michel Buffa
                     <br />
+                    - <A href="http://users.polytech.unice.fr/~buffa/" />
                     <br />
+                    Dattorro Reverb: Jakob Zerbian
                     <br />
+                    - <A href="https://github.com/grame-cncm/faustlibraries/blob/master/reverbs.lib" />
+                    <br />
+                    {/* todo: where did I get the sample music and how do I credit? */}
                   </pre>
                 </div>
               ),
@@ -137,5 +146,13 @@ export function AppProject({ project }: { project: AudioProject }) {
         />
       </PanelGroup>
     </>
+  );
+}
+
+function A({ href }: { href: string }) {
+  return (
+    <a href={href} style={{ color: "white" }}>
+      {href}
+    </a>
   );
 }

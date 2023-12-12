@@ -15,6 +15,7 @@ export function UtilityTabbedPanel({
   dividerPosition,
   expandedSize = 220,
   style,
+  extraControls,
 }: {
   activeTab: string | null;
   onSelectTab: SetState<string | null>;
@@ -22,6 +23,7 @@ export function UtilityTabbedPanel({
   dividerPosition: "right" | "left" | "top" | "bottom";
   expandedSize?: number;
   style?: React.CSSProperties;
+  extraControls?: React.ReactNode;
 }) {
   const styles = useStyles();
   const activePanel = activeTab != null ? panels[activeTab] : null;
@@ -70,7 +72,7 @@ export function UtilityTabbedPanel({
               }
             : {
                 // borderRight: "2px solid var(--control-bg-color)",
-                alignSelf: "flex-start",
+                // alignSelf: "flex-start",
                 padding: "0px 4px 0px 0px",
               }
         }
@@ -95,6 +97,8 @@ export function UtilityTabbedPanel({
             </button>
           );
         })}
+        <div className="spacer"></div>
+        {extraControls}
       </div>
       {layout === "horizontal" ? (
         activePanel?.render()
@@ -155,5 +159,7 @@ const useStyles = createUseStyles({
   },
   bottomPanelTabs: {
     paddingTop: "4px",
+    alignSelf: "stretch",
+    // alignItems: "center",
   },
 });

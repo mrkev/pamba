@@ -13,10 +13,12 @@ export function TransportControl({
   project,
   renderer,
   recorder,
+  style,
 }: {
   project: AudioProject;
   renderer: AudioRenderer;
   recorder: AudioRecorder;
+  style?: React.CSSProperties;
 }) {
   const cursorCanvasRef = useRef<HTMLCanvasElement>(null);
   const [isAudioPlaying] = useLinkedState(renderer.isAudioPlaying);
@@ -45,7 +47,7 @@ export function TransportControl({
   }, [cursorPos, selectionWidth]);
 
   return (
-    <div style={{ display: "flex", flexDirection: "row", alignItems: "center" }}>
+    <div style={{ display: "flex", flexDirection: "row", alignItems: "center", ...style }}>
       {/* Cursor canvas */}
       <canvas
         style={{

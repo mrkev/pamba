@@ -9,9 +9,8 @@ import { MidiInstrument } from "../midi/MidiInstrument";
 import { exhaustive } from "../utils/exhaustive";
 import { PambaWamNode } from "../wam/PambaWamNode";
 import { AppProject } from "./AppProject";
-import { DebugData } from "./DebugData";
-import { PambaWamNodeWindowPanel } from "./PambaWamNodeWindowPanel";
 import { ConfirmDialog } from "./ConfirmDialog";
+import { PambaWamNodeWindowPanel } from "./PambaWamNodeWindowPanel";
 
 // var w = new TrackThread();
 // var sab = new SharedArrayBuffer(1024);
@@ -44,8 +43,6 @@ export function App(): React.ReactElement {
           {/* <MidiDemo /> */}
           <ConfirmDialog />
           <AppProject project={projectStatus.project} />
-          {/* <DebugData project={projectStatus.project} /> */}
-          {/* <button onClick={() => test()}>fooobar</button> */}
         </>
       );
     }

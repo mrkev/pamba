@@ -27,7 +27,7 @@ export function TimelineCursor({ project, isHeader }: { project: AudioProject; i
           <MarkerTriangle
             size={3}
             left={left + Math.floor(secsToPx(Math.abs(selectionWidth)))}
-            color={"green"}
+            color={"white"}
             style={{
               position: "absolute",
               userSelect: "none",
@@ -44,7 +44,7 @@ export function TimelineCursor({ project, isHeader }: { project: AudioProject; i
     <div
       style={{
         borderLeft: "1px solid var(--cursor)",
-        borderRight: selectionWidth === 0 ? undefined : "1px solid green",
+        borderRight: selectionWidth === 0 ? undefined : "1px solid white",
         height: "100%",
         position: "absolute",
         userSelect: "none",
