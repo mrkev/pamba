@@ -8,7 +8,7 @@ type Panel = {
   title: string;
   render: () => React.ReactElement;
 };
-export function UtilityTabbedPanel({
+export function UtilityTabbedPanel<P extends Record<string, Panel>>({
   activeTab,
   onSelectTab,
   panels,
@@ -17,9 +17,9 @@ export function UtilityTabbedPanel({
   style,
   extraControls,
 }: {
-  activeTab: string | null;
-  onSelectTab: SetState<string | null>;
-  panels: Record<string, Panel>;
+  activeTab: keyof P | null;
+  onSelectTab: SetState<keyof P | null>;
+  panels: P;
   dividerPosition: "right" | "left" | "top" | "bottom";
   expandedSize?: number;
   style?: React.CSSProperties;

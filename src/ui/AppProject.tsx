@@ -16,6 +16,7 @@ import { UtilityTabbedPanel } from "./UtilityTabbedPanel";
 import { ToolHeader } from "./header/ToolHeader";
 import { useLocalStorage } from "./useLocalStorage";
 import { TransportControl } from "./header/TransportControl";
+import { usePrimitive } from "structured-state";
 
 function useStopPlaybackOnUnmount(renderer: AudioRenderer) {
   useEffect(() => {
@@ -36,8 +37,8 @@ export function AppProject({ project }: { project: AudioProject }) {
   useSingletonKeyboardModifierState(modifierState);
   useDocumentKeyboardEvents(project, renderer.analizedPlayer, renderer);
   useStopPlaybackOnUnmount(renderer);
-  const [activeSidePanel, setActiveSidePanel] = useLocalStorage<string | null>("side-panel-active", null);
-  const [activeBottomPanel, setActiveBottomPanel] = useLocalStorage<string | null>("bottom-panel-active", "editor");
+  const [activeSidePanel, setActiveSidePanel] = usePrimitive(appEnvironment.activeSidePanel);
+  const [activeBottomPanel, setActiveBottomPanel] = usePrimitive(appEnvironment.activeBottomPanel);
 
   return (
     <>

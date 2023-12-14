@@ -20,6 +20,8 @@ export const TIME_SIGNATURE = [4, 4] as const;
 export const SECS_IN_MINUTE = 60;
 export const DEFAULT_TEMPO = 75;
 
+export const LIBRARY_SEARCH_INPUT_ID = "library-search";
+
 import PIANO_ROLL_PLUGIN_URL from "./midi/pianoroll/index?url";
 
 // WAM

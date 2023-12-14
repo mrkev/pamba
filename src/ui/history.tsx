@@ -126,6 +126,8 @@ function KeyboardCommandHelp({ command }: { command: Command }) {
                 ? "\u2303"
                 : x === "shift"
                 ? "\u21EA"
+                : x === "Period"
+                ? "."
                 : x.replace(/^Key/, "")}
             </kbd>
           ))}

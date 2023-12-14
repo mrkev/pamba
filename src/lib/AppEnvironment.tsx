@@ -15,6 +15,7 @@ import type { MidiInstrument } from "../midi/MidiInstrument";
 import { LocalFilesystem } from "../data/localFilesystem";
 import { AudioRenderer } from "./AudioRenderer";
 import { AnalizedPlayer } from "./AnalizedPlayer";
+import { LocalSPrimitive } from "../ui/useLocalStorage";
 
 export type WAMAvailablePlugin = {
   // midi out, audio out, midi to audio, audio to audio
@@ -40,6 +41,15 @@ export class AppEnvironment {
   readonly localFiles: LocalFilesystem = new LocalFilesystem();
   // UI
   readonly openEffects: LinkedSet<DSPNode | MidiInstrument>;
+  readonly activeSidePanel = LocalSPrimitive.create<"library" | "project" | "history" | "settings" | "help" | null>(
+    "side-panel-active",
+    null,
+  );
+  readonly activeBottomPanel = LocalSPrimitive.create<"editor" | "debug" | "about" | null>(
+    "bottom-panel-active",
+    "editor",
+  );
+
   // System
   renderer: AudioRenderer = null as any; // TODO: do this in a way that avoids the null?
 
@@ -47,6 +57,7 @@ export class AppEnvironment {
     this.firebaseApp = initFirebaseApp();
     this.firebaseAuth = getAuth(this.firebaseApp);
     this.openEffects = LinkedSet.create();
+
     this.projectStatus = SPrimitive.of<ProjectState>(
       ProjectPersistance.hasSavedData()
         ? { status: "loading" }

@@ -9,6 +9,8 @@ import { doPaste } from "../lib/project/ClipboardState";
 import { MidiTrack } from "../midi/MidiTrack";
 import { ignorePromise } from "../utils/ignorePromise";
 import { CommandBlock } from "./Command";
+import { LIBRARY_SEARCH_INPUT_ID } from "../constants";
+import { flushSync } from "react-dom";
 
 export const documentCommands = CommandBlock.create((command) => {
   return {
@@ -97,7 +99,31 @@ export const documentCommands = CommandBlock.create((command) => {
 
     // Panels
 
-    showLibrary: command(["KeyL"], () => {}),
+    toggleLibrary: command(["KeyL"], () => {
+      if (appEnvironment.activeSidePanel.get() === "library") {
+        appEnvironment.activeSidePanel.set(null);
+      } else {
+        appEnvironment.activeSidePanel.set("library");
+      }
+    }).helptext("Toggle Library", "Show/Hide library on side panel"),
+
+    toggleEditor: command(["Period"], () => {
+      if (appEnvironment.activeBottomPanel.get() === "editor") {
+        appEnvironment.activeBottomPanel.set(null);
+      } else {
+        appEnvironment.activeBottomPanel.set("editor");
+      }
+    }).helptext("Toggle Details", "Show/Hide details on bottom panel"),
+
+    findInLibrary: command(["KeyF", "meta"], (e) => {
+      flushSync(() => {
+        appEnvironment.activeSidePanel.set("library");
+      });
+      document.getElementById(LIBRARY_SEARCH_INPUT_ID)?.focus();
+      e?.preventDefault();
+    }),
+
+    // Debugging
 
     createSampleProject: command(["KeyS", "meta", "shift"], async () => {
       const project = await ProjectPersistance.sampleProject();

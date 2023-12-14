@@ -17,6 +17,7 @@ import { UploadAudioButton } from "./UploadAudioButton";
 import { ListEntry, UtilityDataList } from "./UtilityList";
 import { closeProject } from "./header/ToolHeader";
 import { UserAuthControl } from "./header/UserAuthControl";
+import { LIBRARY_SEARCH_INPUT_ID } from "../constants";
 
 const STATIC_AUDIO_FILES = ["drums.mp3", "clav.mp3", "bassguitar.mp3", "horns.mp3", "leadguitar.mp3"];
 
@@ -108,6 +109,7 @@ export function Library({
   return (
     <>
       <input
+        id={LIBRARY_SEARCH_INPUT_ID}
         type="search"
         placeholder="Search..."
         value={libraryFilter}
