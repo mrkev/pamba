@@ -33,7 +33,7 @@ export interface AbstractClip<U extends Seconds | Pulses> {
   clone(): AbstractClip<U>;
 }
 
-export class BaseClip extends Struct<BaseClip> {
+export class BaseClip extends Struct<BaseClip> implements AbstractClip<Seconds> {
   // A BaseClip represents media that has a certain length (in frames), but has
   // been trimmed to be of another length.
   readonly lengthSec: number; // seconds, whole buffer
@@ -134,5 +134,54 @@ export class BaseClip extends Struct<BaseClip> {
       this.trimStartSec += addedTime;
       this.startOffsetSec += addedTime;
     });
+  }
+
+  // interface AbstractClip
+
+  get _startOffsetU(): Seconds {
+    return this._startOffsetSec;
+  }
+
+  _setStartOffsetU(num: Seconds): void {
+    this._startOffsetSec = num;
+  }
+
+  get _endOffsetU(): Seconds {
+    return this.endOffsetSec as Seconds;
+  }
+
+  _setEndOffsetU(num: number): void {
+    this.endOffsetSec = num;
+  }
+
+  trimToOffset(timeSec: number): void {
+    return this.trimToOffsetSec(timeSec);
+  }
+
+  // Trim start to time.
+  trimToOffsetSec(timeSec: number): void {
+    if (timeSec < this.startOffsetSec) {
+      // can't grow back past beggining of clip audio
+      return;
+    }
+
+    if (timeSec > this.endOffsetSec) {
+      throw new Error("trimming past end time");
+    }
+
+    const delta = timeSec - this.startOffsetSec;
+
+    this.startOffsetSec = timeSec;
+    this.trimStartSec = this.trimStartSec + delta;
+  }
+
+  clone(): BaseClip {
+    const newClip = new BaseClip({
+      lengthSec: this.lengthSec,
+      startOffsetSec: this._startOffsetSec,
+      trimStartSec: this._trimStartSec,
+      trimEndSec: this._trimEndSec,
+    });
+    return newClip;
   }
 }

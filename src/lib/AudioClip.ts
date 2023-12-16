@@ -87,7 +87,7 @@ export class AudioClip extends BaseClip implements Subbable<AudioClip>, Mutation
     return new AudioClip(buffer, name || "untitled", url, 0, 0, buffer.duration);
   }
 
-  clone(): AudioClip {
+  override clone(): AudioClip {
     const newClip = new AudioClip(
       this.buffer,
       this.name.get(),
@@ -165,44 +165,5 @@ export class AudioClip extends BaseClip implements Subbable<AudioClip>, Mutation
 
   set trimStartFr(f: number) {
     this._trimStartSec = this.frToSec(f);
-  }
-
-  // interface AbstractClip
-
-  get _startOffsetU(): Seconds {
-    return this._startOffsetSec;
-  }
-
-  _setStartOffsetU(num: Seconds): void {
-    this._startOffsetSec = num;
-  }
-
-  get _endOffsetU(): Seconds {
-    return this.endOffsetSec as Seconds;
-  }
-
-  _setEndOffsetU(num: number): void {
-    this.endOffsetSec = num;
-  }
-
-  trimToOffset(timeSec: number): void {
-    return this.trimToOffsetSec(timeSec);
-  }
-
-  // Trim start to time.
-  trimToOffsetSec(timeSec: number): void {
-    if (timeSec < this.startOffsetSec) {
-      // can't grow back past beggining of clip audio
-      return;
-    }
-
-    if (timeSec > this.endOffsetSec) {
-      throw new Error("trimming past end time");
-    }
-
-    const delta = timeSec - this.startOffsetSec;
-
-    this.startOffsetSec = timeSec;
-    this.trimStartSec = this.trimStartSec + delta;
   }
 }

@@ -1,8 +1,10 @@
+import { describe, expect, it } from "vitest";
+
 import { BaseClip } from "../BaseClip";
 
-function clip(startOffset, endOffset) {
+function clip(startOffset: number, endOffset: number) {
   const DEFAULT_SAMPLE_RATE = 1000;
-  const result = BaseClip.of(endOffset - startOffset, DEFAULT_SAMPLE_RATE);
+  const result = BaseClip.of(endOffset - startOffset, DEFAULT_SAMPLE_RATE, 0, endOffset - startOffset);
   result.startOffsetSec = startOffset;
   return result;
 }

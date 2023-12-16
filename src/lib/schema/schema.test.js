@@ -1,3 +1,5 @@
+import { describe, expect, it } from "vitest";
+
 describe("startOffsetSec", () => {
   it("test", () => {
     expect(2 === 3).toBe(false);

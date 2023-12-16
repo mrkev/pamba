@@ -1,3 +1,4 @@
+import { describe, expect, it } from "vitest";
 import { string, number, boolean, object, union, map, nil, array } from "./nwschema";
 import type { NWConsumeResult } from "./nwschema";
 

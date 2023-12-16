@@ -145,7 +145,7 @@ export function deleteTime<Clip extends AbstractClip<U>, U extends Pulses | Seco
     }
   }
 
-  console.log("clips", clips, toRemove, toResort);
+  // console.log("clips", clips, toRemove, toResort);
 
   for (let clip of toRemove) {
     // todo: optimize
@@ -156,7 +156,7 @@ export function deleteTime<Clip extends AbstractClip<U>, U extends Pulses | Seco
     addClip(clip, clips);
   }
 
-  console.log(clips);
+  // console.log(clips);
   assertClipInvariants(res);
 }
 

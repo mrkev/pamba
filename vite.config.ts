@@ -1,3 +1,5 @@
+/// <reference types="vitest" />
+
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import svgrPlugin from "vite-plugin-svgr";
@@ -12,6 +14,10 @@ import { NodeModulesPolyfillPlugin } from "@esbuild-plugins/node-modules-polyfil
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  test: {
+    root: "src",
+    environment: "jsdom",
+  },
   build: {
     minify: "terser",
     outDir: "./build",
