@@ -13,6 +13,8 @@ export const PX_OVER_SEC = PX_PER_SEC;
 export const SECS_PER_PX = 1 / PX_PER_SEC;
 export const SECS_OVER_PX = SECS_PER_PX;
 
+export const FIREBASE_ENABLED = false;
+
 export const CANVAS_HEIGHT = 42; // 256 / 6;
 export const CANVAS_WIDTH = TRACK_HEADER_WIDTH + 10; //512 / 3; // 10px from scrollbar + padding of the timeline view
 

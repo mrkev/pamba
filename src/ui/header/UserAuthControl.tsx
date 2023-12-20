@@ -15,21 +15,30 @@ export function UserAuthControl() {
     useCallback((user: User | null) => {
       // should be the only setter for firebaseUser. It'll catch everything
       appEnvironment.firebaseUser.set(user);
-    }, [])
+    }, []),
   );
 
   useEffect(() => {
+    const { firebaseAuth } = appEnvironment;
+    if (firebaseAuth == null) {
+      return;
+    }
     ignorePromise(
       (async () => {
-        const result = await anonymousSignIn(appEnvironment.firebaseAuth);
+        const result = await anonymousSignIn(firebaseAuth);
         if (result != null) {
           console.log("Anonymous user signed-in.");
         }
-      })()
+      })(),
     );
   }, []);
 
   const onFormSubmit = async (formData: FormData) => {
+    const { firebaseAuth } = appEnvironment;
+    if (firebaseAuth == null) {
+      throw new Error("firebase disabled");
+    }
+
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
     const mode = formData.get("mode");
@@ -37,16 +46,21 @@ export function UserAuthControl() {
     try {
       const userCredential =
         mode === "login"
-          ? await signInWithEmailAndPassword(appEnvironment.firebaseAuth, email, password)
-          : await createUserWithEmailAndPassword(appEnvironment.firebaseAuth, email, password);
+          ? await signInWithEmailAndPassword(firebaseAuth, email, password)
+          : await createUserWithEmailAndPassword(firebaseAuth, email, password);
 
-      // appEnvironment.firebaseUser.set(userCredential.user);
+      // firebaseUser.set(userCredential.user);
     } catch (error: any) {
       const errorCode = error.code;
       const errorMessage = error.message;
       console.error(error);
     }
   };
+
+  const { firebaseAuth } = appEnvironment;
+  if (firebaseAuth == null) {
+    return <div>firebase disabled</div>;
+  }
 
   return (
     <>
@@ -70,7 +84,7 @@ export function UserAuthControl() {
             className={utility.button}
             onClick={async () => {
               try {
-                await signOut(appEnvironment.firebaseAuth);
+                await signOut(firebaseAuth);
               } catch (error: any) {
                 const errorCode = error.code;
                 const errorMessage = error.message;

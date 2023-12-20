@@ -1,7 +1,7 @@
 import { WamDescriptor } from "@webaudiomodules/api";
 import { FirebaseApp } from "firebase/app";
 import { Auth, User, getAuth } from "firebase/auth";
-import { WAM_PLUGINS } from "../constants";
+import { FIREBASE_ENABLED, WAM_PLUGINS } from "../constants";
 import { initFirebaseApp } from "../firebase/firebaseConfig";
 import { WAMImport, fetchWam } from "../wam/wam";
 import { ProjectPersistance } from "./ProjectPersistance";
@@ -28,8 +28,8 @@ type ProjectState = { status: "loading" } | { status: "loaded"; project: AudioPr
 
 export class AppEnvironment {
   // Firebase
-  readonly firebaseApp: FirebaseApp;
-  readonly firebaseAuth: Auth;
+  readonly firebaseApp: FirebaseApp | null;
+  readonly firebaseAuth: Auth | null;
   readonly firebaseUser = SPrimitive.of<User | null>(null);
   // Plugins
   readonly wamHostGroup = SPrimitive.of<[id: string, key: string] | null>(null);
@@ -54,8 +54,14 @@ export class AppEnvironment {
   renderer: AudioRenderer = null as any; // TODO: do this in a way that avoids the null?
 
   constructor() {
-    this.firebaseApp = initFirebaseApp();
-    this.firebaseAuth = getAuth(this.firebaseApp);
+    if (FIREBASE_ENABLED) {
+      this.firebaseApp = initFirebaseApp();
+      this.firebaseAuth = getAuth(this.firebaseApp);
+    } else {
+      this.firebaseApp = null;
+      this.firebaseAuth = null;
+    }
+
     this.openEffects = LinkedSet.create();
 
     this.projectStatus = SPrimitive.of<ProjectState>({ status: "loading" });
