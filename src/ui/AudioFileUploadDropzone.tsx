@@ -81,7 +81,7 @@ export function AudioFileUploadDropzone({
     for (let i = 0; i < dataTransfer.files.length; i++) {
       const file = dataTransfer.files[i];
       console.log("TODO: VERIFY FILE TYPE. Parallel uploads", file);
-      const result = await audioStorage.uploadAudioFile(file);
+      const result = await audioStorage.uploadLocally(file);
       if (result instanceof Error) {
         throw result;
       }

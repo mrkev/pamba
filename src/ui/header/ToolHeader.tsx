@@ -124,6 +124,7 @@ export function ToolHeader({
 
   return (
     <div className={classes.headerContainer}>
+      {/* foo */}
       <div className={classes.tools}>
         <div className={classes.topRow}>
           <NewProjectButton project={project} />
@@ -286,7 +287,9 @@ const useStyles = createUseStyles({
     flexDirection: "column",
     // justifyContent: "space-around",
     marginRight: 12,
-    marginLeft: 12,
+    marginLeft: 4,
+    marginBottom: 6,
+    // marginTop: 4,
     gap: 2,
   },
   topRow: {

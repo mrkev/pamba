@@ -8,6 +8,7 @@ type Panel = {
   title: string;
   render: () => React.ReactElement;
 };
+
 export function UtilityTabbedPanel<P extends Record<string, Panel>>({
   activeTab,
   onSelectTab,

@@ -1,9 +1,11 @@
+import { IAudioMetadata } from "music-metadata-browser";
 import { AudioProject } from "../lib/project/AudioProject";
 import { isRecord } from "../lib/schema/schema";
 import { LinkedMap } from "../lib/state/LinkedMap";
 import { bucketizeId } from "../utils/data";
 import { pAll, pTry, runAll } from "../utils/ignorePromise";
 import { construct, serializable } from "./serializable";
+import { AudioPackage } from "../lib/project/AudioPackage";
 
 type ProjectFileIssue = { status: "not_found" } | { status: "invalid" };
 
@@ -27,20 +29,34 @@ export function niceBytes(n: number) {
  *      * metadata          // rn only has the name, so we don't need to open the whole project
  *      * AudioProject
  *      - audio
- *        * <audio_file_1>
- *        * <audio_file_2>
- *        * ...
+ *        - <audio_dir_1>
+ *          - audio.(mp3/wav/etc)
+ *          - metadata.json
+ *        - <audio_dir_2>
+ *        - ...
  * - AudioLib
- *  * <audio_file_1>
- *  * <audio_file_2>
+ *  - <audio_dir_1>
+ *  - <audio_dir_2>
+ *
  */
+
 export class LocalFilesystem {
   // id -> name, id
   readonly _projects = LinkedMap.create<string, { name: string; id: string }>();
+  readonly _audioLib = LinkedMap.create<string, AudioPackage>();
+
+  dirExists(location: FileSystemDirectoryHandle, name: string) {
+    return pTry(location.getDirectoryHandle(name), "not_found" as const);
+  }
 
   async updateProjects() {
     const updated = await this.getAllProjects();
     this._projects._setRaw(bucketizeId(updated));
+  }
+
+  async updateAudioLib() {
+    const updated = await this.getAllAudioLibFiles();
+    this._audioLib._setRaw(updated);
   }
 
   private async projectsDir() {
@@ -49,7 +65,7 @@ export class LocalFilesystem {
     return projects;
   }
 
-  private async audioDir() {
+  public async audioLibDir() {
     const opfsRoot = await navigator.storage.getDirectory();
     const audioDir = await opfsRoot.getDirectoryHandle("audiolib", { create: true });
     return audioDir;
@@ -89,7 +105,7 @@ export class LocalFilesystem {
     }
   }
 
-  async getSize(projectId: string) {
+  async getProjectSize(projectId: string) {
     const projects = await this.projectsDir();
     const project = await pTry(projects.getDirectoryHandle(`${projectId}`), "not_found" as const);
     if (project === "not_found") {
@@ -169,11 +185,28 @@ export class LocalFilesystem {
       }
 
       const metadata = await this.getProjectMetadata(handle);
-      result.push({ name: (metadata.projectName ?? "untitled") as string, id });
+      result.push({ name: (metadata.projectName ?? "untitled") as string, id, handle });
+    }
+
+    return result;
+  }
+
+  public async getAllAudioLibFiles(): Promise<Map<string, AudioPackage>> {
+    const packages = await this.audioLibDir();
+
+    // https://github.com/microsoft/TypeScript-DOM-lib-generator/issues/1639
+    const result = new Map<string, AudioPackage>();
+    for await (let [id, handle] of (packages as any).entries()) {
+      handle as FileSystemDirectoryHandle | FileSystemFileHandle;
+      if (handle instanceof FileSystemFileHandle) {
+        continue;
+      }
+
+      const audioPackage = await AudioPackage.existingPackage(handle);
+
+      result.set(id, audioPackage);
     }
 
     return result;
   }
 }
-
-function sampleIfNeeded() {}

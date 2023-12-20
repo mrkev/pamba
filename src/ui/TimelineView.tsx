@@ -14,6 +14,7 @@ import { UtilityMenu } from "./UtilityMenu";
 import { documentCommands } from "../input/useDocumentKeyboardEvents";
 import { ProjectView } from "./ProjectView";
 import { utility } from "./utility";
+import classNames from "classnames";
 
 export function TimelineView({
   project,
@@ -31,7 +32,7 @@ export function TimelineView({
   useAxisContainerMouseEvents(project, axisContainerRef);
 
   return (
-    <div id="container" className={classes.container}>
+    <div id="container" className={classNames(classes.container, "scrollbar-track")}>
       <div ref={axisContainerRef} className={classes.axisContainer}>
         <Axis project={project} isHeader />
         <CursorSelection track={null} project={project} leftOffset={-viewportStartPx} />
@@ -110,20 +111,10 @@ const useStyles = createUseStyles({
     flexGrow: 1,
     borderTopLeftRadius: "3px",
     borderBottomLeftRadius: "3px",
-    paddingRight: "4px",
+    // paddingRight: "4px",
+    marginRight: 1,
+    paddingRight: 4,
     msOverflowY: "scroll",
-    "&::-webkit-scrollbar": {
-      "-webkit-appearance": "none",
-      width: "6px",
-    },
-
-    "&::-webkit-scrollbar-track": {
-      // background: "#ddd",
-    },
-    "&::-webkit-scrollbar-thumb": {
-      backgroundColor: "rgba(0, 0, 0, .5)",
-      borderRadius: "4px",
-    },
   },
   axisSpacer: {
     backgroundColor: "var(--backgroud)",

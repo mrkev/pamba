@@ -58,11 +58,7 @@ export class AppEnvironment {
     this.firebaseAuth = getAuth(this.firebaseApp);
     this.openEffects = LinkedSet.create();
 
-    this.projectStatus = SPrimitive.of<ProjectState>(
-      ProjectPersistance.hasSavedData()
-        ? { status: "loading" }
-        : { status: "loaded", project: ProjectPersistance.defaultProject() },
-    );
+    this.projectStatus = SPrimitive.of<ProjectState>({ status: "loading" });
   }
 
   async initAsync(liveAudioContext: AudioContext) {
@@ -83,6 +79,7 @@ export class AppEnvironment {
 
     // IDEA: Maybe merge player and renderer?
     this.renderer = new AudioRenderer(new AnalizedPlayer());
+    await this.localFiles.updateAudioLib();
     // once plugins have been loaded, so they're available to the project
     await this.initialLoadProject();
   }

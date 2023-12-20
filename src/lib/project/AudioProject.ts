@@ -122,10 +122,10 @@ export class AudioProject {
   private async asyncInits() {
     try {
       const storage = await getFirebaseStorage();
-      if (storage !== "no-storage") {
-        const audioStorage = await AudioStorage.initAtRootLocation(this, storage);
-        this.audioStorage.set(audioStorage);
-      }
+      // if (storage !== "no-storage") {
+      const audioStorage = await AudioStorage.init(this, storage === "no-storage" ? null : storage);
+      this.audioStorage.set(audioStorage);
+      // }
     } catch (e) {
       console.error(e);
     }

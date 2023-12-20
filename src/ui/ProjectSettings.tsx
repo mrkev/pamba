@@ -26,7 +26,7 @@ export function ProjectSettings({ project }: { project: AudioProject }) {
   const [name] = useLinkedState(project.projectName);
   const sizeResult = useAsync(
     useMemo(() => {
-      return appEnvironment.localFiles.getSize(project.projectId);
+      return appEnvironment.localFiles.getProjectSize(project.projectId);
     }, [project.projectId]),
   );
   // appEnvironment.localFiles.getSize(project.projectId)

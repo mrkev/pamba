@@ -1,10 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { createUseStyles } from "react-jss";
+import { LIBRARY_SEARCH_INPUT_ID } from "../constants";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioRenderer } from "../lib/AudioRenderer";
 import { AudioTrack } from "../lib/AudioTrack";
+import { AudioPackage } from "../lib/project/AudioPackage";
 import { AudioProject } from "../lib/project/AudioProject";
 import { useLinkedArrayMaybe } from "../lib/state/LinkedArray";
 import { useLinkedMap } from "../lib/state/LinkedMap";
@@ -16,18 +18,21 @@ import { AudioFileUploadDropzone } from "./AudioFileUploadDropzone";
 import { UploadAudioButton } from "./UploadAudioButton";
 import { ListEntry, UtilityDataList } from "./UtilityList";
 import { closeProject } from "./header/ToolHeader";
-import { UserAuthControl } from "./header/UserAuthControl";
-import { LIBRARY_SEARCH_INPUT_ID } from "../constants";
 
 const STATIC_AUDIO_FILES = ["drums.mp3", "clav.mp3", "bassguitar.mp3", "horns.mp3", "leadguitar.mp3"];
 
-function useAudioLibrary(project: AudioProject, filter: string): string[] {
+function useAudioLibrary(project: AudioProject, filter: string): (string | AudioPackage)[] {
   const [audioStorage] = useLinkedState(project.audioStorage);
-  const remoteFiles = useLinkedArrayMaybe(audioStorage?.remoteFiles ?? null);
-  const audioLibrary = STATIC_AUDIO_FILES.concat(remoteFiles ?? []);
+  const remoteAudio = useLinkedArrayMaybe(audioStorage?.remoteFiles ?? null);
+  const [localAudio] = useLinkedMap(appEnvironment.localFiles._audioLib);
+  const audioLibrary = [...STATIC_AUDIO_FILES, ...(remoteAudio ?? []), ...localAudio.values()];
 
-  return audioLibrary.filter((url) => {
-    return url.includes(filter);
+  return audioLibrary.filter((audio) => {
+    if (typeof audio === "string") {
+      return audio.includes(filter);
+    } else {
+      return audio.name.includes(filter);
+    }
   });
 }
 
@@ -96,12 +101,24 @@ export function Library({
         } as const;
       }),
       "separator",
-      ...audioLibrary.map((url) => {
-        return {
-          title: url,
-          icon: <i className="ri-volume-up-fill"></i>,
-          data: { kind: "audio", url },
-        } as const;
+      ...audioLibrary.map((audio) => {
+        if (typeof audio === "string") {
+          const url = audio;
+          return {
+            title: url,
+            icon: <i className="ri-volume-up-fill"></i>,
+            data: { kind: "audio", url },
+          } as const;
+        } else if (audio instanceof AudioPackage) {
+          console.log("package");
+          return {
+            title: audio.name,
+            icon: <i className="ri-volume-up-fill"></i>,
+            data: { kind: "audio", url: audio.localURL },
+          } as const;
+        } else {
+          exhaustive(audio);
+        }
       }),
     ];
   }, [audioLibrary, localProjects, project.projectId]);
@@ -167,10 +184,11 @@ export function Library({
         />
       </AudioFileUploadDropzone>
 
-      <hr style={{ width: "100%", borderColor: "var(--border-against-bg)", borderStyle: "dotted" }} />
       {/* TODO: library won't be updated when new audio gets uploaded, unless it's constantly executed when I think it might be */}
       <UploadAudioButton project={project} loadClip={loadClip} />
-      <UserAuthControl />
+      <hr style={{ width: "100%", borderColor: "var(--border-against-bg)", borderStyle: "dotted" }} />
+
+      {/* <UserAuthControl /> */}
     </>
   );
 }

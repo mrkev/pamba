@@ -1,3 +1,4 @@
+import classNames from "classnames";
 import React, { useCallback, useRef, useState } from "react";
 import { createUseStyles } from "react-jss";
 import { useContainer } from "structured-state";
@@ -16,7 +17,6 @@ import { ClipA } from "./ClipA";
 import { ClipInvalid } from "./ClipInvalid";
 import { CursorSelection } from "./CursorSelection";
 import { EffectRack } from "./EffectRack";
-import classNames from "classnames";
 
 function clientXToTrackX(trackElem: HTMLDivElement | null, clientX: number) {
   if (trackElem == null) {
@@ -37,11 +37,11 @@ export async function getDroppedAudioURL(audioStorage: AudioStorage | null, data
     const file = dataTransfer.files[i];
     console.log("TODO: VERIFY FILE TYPE. Parallel uploads", file);
 
-    const result = await audioStorage.uploadAudioFile(file);
+    const result = await audioStorage.uploadLocally(file);
     if (result instanceof Error) {
       throw result;
     }
-    url = result;
+    url = result.localURL;
   }
 
   // We can drop urls to audio from other parts of the UI

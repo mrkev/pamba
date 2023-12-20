@@ -10,7 +10,7 @@ export function UploadAudioButton({
   loadClip,
 }: {
   project: AudioProject;
-  loadClip: (url: string, name?: string) => Promise<void>;
+  loadClip?: (url: string, name?: string) => Promise<void>;
 }) {
   const [uploadStatus, setUploadStatus] = useState<"idle" | "uploading">("idle");
   const [audioStorage] = useLinkedState(project.audioStorage);
@@ -19,7 +19,7 @@ export function UploadAudioButton({
     audioStorage && (
       <UploadButton
         className={utility.button}
-        value={uploadStatus === "idle" ? "upload audio" : "uploading..."}
+        value={uploadStatus === "idle" ? "add audio to library" : "loading..."}
         disabled={uploadStatus === "uploading"}
         accept="audio/*"
         onChange={async function (e) {
@@ -29,12 +29,13 @@ export function UploadAudioButton({
             return;
           }
           setUploadStatus("uploading");
-          const result = await audioStorage.uploadAudioFile(file);
+          const result = await audioStorage.uploadLocally(file);
           if (result instanceof Error) {
+            setUploadStatus("idle");
             throw result;
           }
-          const url = result;
-          ignorePromise(loadClip(url, file.name));
+          const url = result.localURL;
+          ignorePromise(loadClip?.(url, file.name));
           setUploadStatus("idle");
         }}
       />

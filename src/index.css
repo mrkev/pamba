@@ -112,3 +112,20 @@ kbd {
 .spacer {
   flex-grow: 1;
 }
+
+.scrollbar-track {
+  padding-right: 2px;
+}
+
+.scrollbar-track::-webkit-scrollbar {
+  -webkit-appearance: none;
+  width: 6px;
+  margin-left: 3px;
+}
+.scrollbar-track::-webkit-scrollbar-track {
+  /* background: #ddd; */
+}
+.scrollbar-track::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.5);
+  border-radius: 4px;
+}

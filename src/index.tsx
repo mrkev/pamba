@@ -6,19 +6,19 @@ import "./index.css";
 import { appEnvironment } from "./lib/AppEnvironment";
 import { ignorePromise } from "./utils/ignorePromise";
 import { nullthrows } from "./utils/nullthrows";
+import { App } from "./ui/App";
 
 async function init() {
+  const root = createRoot(nullthrows(document.getElementById("root")));
+  root.render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>,
+  );
+
   try {
     await wait(1);
     await appEnvironment.initAsync(liveAudioContext);
-    // We wait to load the app since some modules might import liveAudioContext
-    const App = (await import("./ui/App")).App;
-    const root = createRoot(nullthrows(document.getElementById("root")));
-    root.render(
-      <React.StrictMode>
-        <App />
-      </React.StrictMode>,
-    );
   } catch (e) {
     console.trace(e);
   }

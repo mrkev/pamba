@@ -77,7 +77,10 @@ export function Help({ project }: { project: AudioProject }) {
     <>
       <b style={{ fontSize: "12px" }}>Keyboard Shortcuts:</b>
       {/* <hr style={{ width: "100%" }} /> */}
-      <div style={{ display: "flex", flexDirection: "column", overflow: "scroll", padding: "2px 0px", gap: 4 }}>
+      <div
+        className="scrollbar-track"
+        style={{ display: "flex", flexDirection: "column", overflowY: "scroll", padding: "2px 2px 2px 0px", gap: 4 }}
+      >
         {documentCommands.getAllCommands().map((c, i) => {
           return c.label != null && <KeyboardCommandHelp key={i} command={c} />;
         })}
