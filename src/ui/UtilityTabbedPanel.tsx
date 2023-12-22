@@ -101,13 +101,13 @@ export function UtilityTabbedPanel<P extends Record<string, Panel>>({
         <div className="spacer"></div>
         {extraControls}
       </div>
-      {layout === "horizontal" ? (
-        activePanel?.render()
-      ) : (
-        <div className={styles.vertical} style={{ flexShrink: 1, minHeight: 0, paddingBottom: 4 }}>
-          {activePanel?.render()}
-        </div>
-      )}
+      {layout === "horizontal"
+        ? activePanel?.render()
+        : activePanel && (
+            <div className={styles.vertical} style={{ flexShrink: 1, minHeight: 0, paddingBottom: 4 }}>
+              {activePanel.render()}
+            </div>
+          )}
     </div>
   );
 }

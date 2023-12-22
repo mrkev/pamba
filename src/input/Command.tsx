@@ -1,4 +1,5 @@
 import { AudioProject } from "../lib/project/AudioProject";
+import { bucketize } from "../utils/data";
 import { KeyCode } from "./KeyCode";
 
 type KeyboardShortcut = [key: KeyCode, ...modifiers: ("meta" | "alt" | "ctrl" | "shift")[]];
@@ -9,10 +10,11 @@ type CommandCallback = (
   // renderer: AudioRenderer,
 ) => void;
 
-export class Command {
+export class Command<S extends string[] = string[]> {
   readonly cb: CommandCallback;
   private _label: string | null = null;
   private _description: string | null = null;
+  private _section: string | null = null;
   readonly shortcut: KeyboardShortcut;
 
   readonly onTrigger = new Set<() => void>();
@@ -43,17 +45,26 @@ export class Command {
     return this._description;
   }
 
+  getSection(): S[number] | null {
+    return this._section;
+  }
+
   helptext(label: string, description?: string) {
     this._label = label;
     this._description = description ?? null;
     return this;
   }
+
+  section(section: S[number]) {
+    this._section = section;
+    return this;
+  }
 }
 
-export class CommandBlock<T extends Record<string, Command>> {
+export class CommandBlock<S extends string[], T extends Record<string, Command>> {
   private readonly byId: T;
   private readonly byKeyCode: Map<string, Command>;
-  constructor(byId: T, byKeyCode: Map<string, Command>) {
+  constructor(byId: T, byKeyCode: Map<string, Command>, sections: S) {
     this.byId = byId;
     this.byKeyCode = byKeyCode;
   }
@@ -81,16 +92,21 @@ export class CommandBlock<T extends Record<string, Command>> {
     return [...this.byKeyCode.values()];
   }
 
+  getCommandsBySection(): Map<S[number] | null, Command[]> {
+    return bucketize((c) => c.getSection(), [...this.byKeyCode.values()]);
+  }
+
   static keyboardChordId(code: string, meta: boolean, alt: boolean, ctrl: boolean, shift: boolean) {
     return `${code}-${meta}-${alt}-${ctrl}-${shift}`;
   }
 
-  static create<T extends Record<string, Command>>(
-    commandFn: (fn: (shortcut: KeyboardShortcut, cb: CommandCallback) => Command) => T,
+  static create<S extends string[], T extends Record<string, Command<S>>>(
+    sections: S,
+    commandFn: (fn: (shortcut: KeyboardShortcut, cb: CommandCallback) => Command<S>) => T,
   ) {
     const byKeyCode = new Map<string, Command>();
 
-    function command(shortcut: KeyboardShortcut, cb: CommandCallback): Command {
+    function command(shortcut: KeyboardShortcut, cb: CommandCallback): Command<S> {
       const set = new Set(shortcut);
       const chordId = CommandBlock.keyboardChordId(
         shortcut[0],
@@ -99,7 +115,7 @@ export class CommandBlock<T extends Record<string, Command>> {
         set.has("ctrl"),
         set.has("shift"),
       );
-      const command = new Command(cb, shortcut);
+      const command = new Command<S>(cb, shortcut);
       if (byKeyCode.has(chordId)) {
         throw new Error("Duplicate keyboard shortcuts for command:" + chordId);
       }
@@ -108,6 +124,6 @@ export class CommandBlock<T extends Record<string, Command>> {
     }
 
     const byId = commandFn(command);
-    return new CommandBlock(byId, byKeyCode);
+    return new CommandBlock(byId, byKeyCode, sections);
   }
 }

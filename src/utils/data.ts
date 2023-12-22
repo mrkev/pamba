@@ -14,3 +14,29 @@ export function classify<T extends Record<string, unknown>>(key: keyof T, array:
   }
   return result;
 }
+
+export function bucketizeKey<T extends Record<string, unknown>>(key: keyof T, array: T[]): Map<string, T[]> {
+  const result = new Map<any, T[]>();
+  for (const elem of array) {
+    let s = result.get(elem[key]);
+    if (s == null) {
+      s = [];
+      result.set(elem[key], s);
+    }
+    s.push(elem);
+  }
+  return result;
+}
+
+export function bucketize<T, U>(key: (elem: T) => U, array: T[]): Map<U, T[]> {
+  const result = new Map<U, T[]>();
+  for (const elem of array) {
+    let s = result.get(key(elem));
+    if (s == null) {
+      s = [];
+      result.set(key(elem), s);
+    }
+    s.push(elem);
+  }
+  return result;
+}

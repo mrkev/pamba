@@ -48,6 +48,7 @@ export function AppProject({ project }: { project: AudioProject }) {
           display: "flex",
           flexDirection: "row",
           alignItems: "stretch",
+          flexShrink: 1,
         }}
       >
         <UtilityTabbedPanel

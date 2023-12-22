@@ -42,9 +42,10 @@ export function App(): React.ReactElement {
         </p>
         ## Usage Notes
         <ul style={{ listStyleType: "'- '", width: "56ch", whiteSpace: "normal", paddingInlineStart: "2ch" }}>
+          <li>Only Chrome is supported at the moment.</li>
           <li>All files are stored locally.</li>
           <li>
-            <b>While on alpha, updates might delete all files.</b>
+            <b>While on alpha, updates might break or delete files.</b>
           </li>
           <li>Pinch to zoom</li>
         </ul>

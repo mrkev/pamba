@@ -7,6 +7,7 @@ import { AudioClip } from "../lib/AudioClip";
 import { AudioProject } from "../lib/project/AudioProject";
 import { LinkedArray } from "../lib/state/LinkedArray";
 import { UtilityDataList } from "./UtilityList";
+import React from "react";
 
 export type HistoryItem = {
   clip: AudioClip;
@@ -81,8 +82,15 @@ export function Help({ project }: { project: AudioProject }) {
         className="scrollbar-track"
         style={{ display: "flex", flexDirection: "column", overflowY: "scroll", padding: "2px 2px 2px 0px", gap: 4 }}
       >
-        {documentCommands.getAllCommands().map((c, i) => {
-          return c.label != null && <KeyboardCommandHelp key={i} command={c} />;
+        {[...documentCommands.getCommandsBySection().entries()].map(([s, cs], i) => {
+          const slabel = s == null ? "Other" : s;
+          return (
+            <React.Fragment key={slabel}>
+              <span style={{ margin: "6px 0px 2px 0px", fontWeight: "bold" }}>{s == null ? "Other" : s}</span>
+
+              {cs.map((c, i) => c.label != null && <KeyboardCommandHelp key={i} command={c} />)}
+            </React.Fragment>
+          );
         })}
       </div>
     </>
@@ -117,7 +125,10 @@ function KeyboardCommandHelp({ command }: { command: Command }) {
       }}
     >
       <span style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-        <b>{command.label}:</b>
+        <b>
+          {command.label}
+          {command.description && ":"}
+        </b>
         <span>
           {keys.map((x, i) => (
             <kbd title={x} key={i}>
