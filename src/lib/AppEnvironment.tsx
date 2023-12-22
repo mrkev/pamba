@@ -43,12 +43,9 @@ export class AppEnvironment {
   readonly openEffects: LinkedSet<DSPNode | MidiInstrument>;
   readonly activeSidePanel = LocalSPrimitive.create<"library" | "project" | "history" | "settings" | "help" | null>(
     "side-panel-active",
-    null,
+    "library",
   );
-  readonly activeBottomPanel = LocalSPrimitive.create<"editor" | "debug" | "about" | null>(
-    "bottom-panel-active",
-    "editor",
-  );
+  readonly activeBottomPanel = LocalSPrimitive.create<"editor" | "debug" | "about" | null>("bottom-panel-active", null);
 
   // System
   renderer: AudioRenderer = null as any; // TODO: do this in a way that avoids the null?
