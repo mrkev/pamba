@@ -180,6 +180,7 @@ export function AudioClipEditor({
             setValue={(value) => {
               clip.name.set(value);
             }}
+            showEditButton
           />
         </div>
         <div

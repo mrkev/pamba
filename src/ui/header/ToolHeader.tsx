@@ -13,11 +13,11 @@ import { useLinkedState } from "../../lib/state/LinkedState";
 import { doConfirm } from "../ConfirmDialog";
 import { RenamableLabel } from "../RenamableLabel";
 import { UtilityNumber } from "../UtilityNumber";
+import { UtilityToggle } from "../UtilityToggle";
 import { utility } from "../utility";
 import { BounceButton } from "./BounceButton";
 import { ToolSelector } from "./ToolSelector";
-import { PlaybackControl, TransportControl } from "./TransportControl";
-import { UtilityToggle } from "../UtilityToggle";
+import { PlaybackControl } from "./TransportControl";
 
 export async function closeProject(project: AudioProject) {
   const selection = await doConfirm(`Save changes to "${project.projectName.get()}"?`, "yes", "no", "cancel");
@@ -220,6 +220,7 @@ export function ToolHeader({
               value={projectName}
               setValue={(v) => project.projectName.set(v)}
               highlightFocus
+              showEditButton
             />
           </span>
           <div style={{ flexGrow: 1 }}></div>

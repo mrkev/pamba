@@ -291,6 +291,8 @@ export class ProjectSelection {
         break;
       }
       case "tracks": {
+        // TODO: if playing don't delete. show track locked?
+
         for (let track of selected.tracks) {
           console.log("remove", selected);
           AudioProject.removeTrack(project, appEnvironment.renderer.analizedPlayer, track);

@@ -71,11 +71,6 @@ export function AppProject({ project }: { project: AudioProject }) {
               title: "History",
               render: () => <History project={project} />,
             },
-            // shortcuts: {
-            //   icon: <i className="ri-keyboard-box-line" style={{ paddingRight: 2 }}></i>,
-            //   title: "Shortcuts",
-            //   render: () => <Shortcuts project={project} />,
-            // },
             settings: {
               icon: <i className="ri-settings-3-line" style={{ paddingRight: 2 }}></i>,
               title: "Settings",

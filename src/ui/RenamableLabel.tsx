@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { MouseEvent, useCallback, useEffect, useRef, useState } from "react";
+import { MouseEvent, useCallback, useRef, useState } from "react";
 import { createUseStyles } from "react-jss";
 
 export function RenamableLabel({
@@ -9,16 +9,19 @@ export function RenamableLabel({
   highlightFocus,
   disabled,
   className,
+  showEditButton,
   ...divProps
 }: {
   value: string;
   setValue: (newVal: string) => void;
   highlightFocus?: boolean;
   disabled?: boolean;
+  showEditButton?: boolean;
 } & React.HTMLAttributes<HTMLDivElement>) {
   const classes = useStyles();
   const renameInputRef = useRef<HTMLInputElement>(null);
   const [isRenaming, setIsRenaming] = useState(false);
+  const showEdit = Boolean(showEditButton);
 
   const onDoubleClick = useCallback(
     (e: MouseEvent<HTMLDivElement>) => {
@@ -75,7 +78,21 @@ export function RenamableLabel({
           onBlur={() => setIsRenaming(false)}
         />
       ) : (
-        value
+        <>
+          {value}{" "}
+          {showEdit && (
+            <i
+              style={{ cursor: "pointer" }}
+              className="ri-edit-line"
+              onClick={() => {
+                if (disabled) {
+                  return;
+                }
+                setIsRenaming(true);
+              }}
+            ></i>
+          )}
+        </>
       )}
     </span>
   );

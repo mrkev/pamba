@@ -100,8 +100,8 @@ export class BaseClip extends Struct<BaseClip> implements AbstractClip<Seconds> 
   }
 
   set trimEndSec(s: number) {
-    if (s > this.getDuration()) {
-      // todo
+    if (s > this.lengthSec) {
+      this._trimEndSec = this.lengthSec;
     }
 
     if (s < 0) {
