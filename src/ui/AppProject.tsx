@@ -115,7 +115,7 @@ export function AppProject({ project }: { project: AudioProject }) {
             render: () => (
               <div style={{ userSelect: "all" }}>
                 <pre>
-                  WebDAW v0.1.0
+                  cephei v0.1.0
                   <br />
                   ---
                   <br />

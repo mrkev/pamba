@@ -29,7 +29,7 @@ export function App(): React.ReactElement {
           padding: 48,
         }}
       >
-        WebDAW v0.1.0 (alpha)
+        cephei v0.1.0 (alpha)
         <br />
         ---
         <br />
