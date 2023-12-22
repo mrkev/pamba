@@ -13,6 +13,8 @@ import { pressedState } from "../pressedState";
 import { exhaustive } from "../utils/exhaustive";
 import { RenamableLabel } from "./RenamableLabel";
 import { useEventListener } from "./useEventListener";
+import { appEnvironment } from "../lib/AppEnvironment";
+import { documentCommands } from "../input/useDocumentKeyboardEvents";
 // import { dataWaveformToCanvas } from "../lib/waveformAsync";
 
 export function ClipA({
@@ -104,11 +106,17 @@ export function ClipA({
         });
 
         project.selectionWidth.set(null);
-        e.stopPropagation();
-        console.log("AA");
       },
       [clip, editable, project.selected, project.selectionWidth, tool, track],
     ),
+  );
+
+  useEventListener(
+    "dblclick",
+    headerRef,
+    useCallback(() => {
+      appEnvironment.activeBottomPanel.set("editor");
+    }, []),
   );
 
   function onClipClick(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
@@ -185,6 +193,7 @@ export function ClipA({
       <div
         className={styles.clipHeader}
         ref={headerRef}
+        data-clip-header={"true"}
         style={{
           color: isSelected ? "white" : "black",
           background: isSelected ? "var(--clip-header-selected)" : "var(--clip-header)",

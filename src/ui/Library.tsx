@@ -144,6 +144,7 @@ export function Library({
           // data is url
           filter={libraryFilter}
           draggable={!isAudioPlaying}
+          disabled={isAudioPlaying}
           onDragStart={function (item, ev: React.DragEvent<HTMLDivElement>) {
             if (item.data.kind !== "audio") {
               return;

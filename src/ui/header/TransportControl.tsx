@@ -89,6 +89,7 @@ export function PlaybackControl({
   return (
     <div style={{ display: "flex", flexDirection: "row", ...style }}>
       <button
+        title="jump to start"
         className={utility.button}
         disabled={isAudioPlaying || isRecording || (cursorPos === 0 && selectionWidth === 0)}
         style={isRecording ? { color: "red" } : undefined}
@@ -100,6 +101,7 @@ export function PlaybackControl({
       </button>
       {!isAudioPlaying && (
         <button
+          title="play"
           className={utility.button}
           style={{ color: isRecording ? "red" : undefined, width: 17.56 }}
           disabled={tracks.length === 0}
@@ -113,6 +115,7 @@ export function PlaybackControl({
 
       {isAudioPlaying && (
         <button
+          title="stop"
           className={utility.button}
           style={{ color: isRecording ? "red" : undefined, width: 17.56 }}
           disabled={tracks.length === 0}

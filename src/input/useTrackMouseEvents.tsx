@@ -17,7 +17,17 @@ export function useTrackMouseEvents(
     trackRef,
     useCallback(
       (e: MouseEvent) => {
-        console.log("foobar");
+        if (
+          e.target instanceof HTMLElement &&
+          (e.target.getAttribute("data-clip-header") === "true" ||
+            // TODO: hack find a more reliable way to not move the cursor when clicking the header
+            // withought preventDefault on the clip header's mousedown because it breaks the clip
+            // header's double-click. We look at the parent in case the user clicks the renamable label
+            e.target.parentElement?.getAttribute("data-clip-header") === "true")
+        ) {
+          return true;
+        }
+
         const div = trackRef.current;
         if (div == null) {
           return;
@@ -54,7 +64,7 @@ export function useTrackMouseEvents(
 
         // We handle it here, we dont want the projectDiv mouse event to handle it too
         e.stopPropagation();
-        e.preventDefault();
+        // e.preventDefault();
       },
       [project, track, trackRef],
     ),

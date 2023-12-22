@@ -26,6 +26,7 @@ export function UtilityDataList<T>({
   onDragStart: dragStart,
   onDragEnd: dragEnd,
   onKeydown,
+  disabled: listDisabled,
 }: {
   items: ListEntry<T>[];
   onItemFocus?: (item: ListItem<T>) => void;
@@ -34,6 +35,7 @@ export function UtilityDataList<T>({
   onDragEnd?: (item: ListItem<T>, e: React.DragEvent<HTMLDivElement>) => void;
   onKeydown?: (item: ListItem<T>, e: React.KeyboardEvent<HTMLDivElement>) => void;
   draggable?: boolean;
+  disabled?: boolean;
   filter?: string;
 }) {
   const classes = useStyles();
@@ -50,13 +52,13 @@ export function UtilityDataList<T>({
   }, [filter, items]);
 
   return (
-    <div className={classes.list}>
+    <div className={classNames(classes.list, listDisabled && classes.listDisabled)} aria-disabled={listDisabled}>
       {filtered.map(function (item, i) {
         if (item === "separator") {
           return <hr key={i} style={{ margin: "2px 4px 0px 4px" }} />;
         }
 
-        const disabled = Boolean(item.disabled);
+        const disabled = Boolean(listDisabled) || Boolean(item.disabled);
         const disableDrag = Boolean(item.disableDrag);
 
         return (
@@ -150,6 +152,11 @@ const useStyles = createUseStyles({
     padding: "2px 0px",
     background: "var(--utility-list-bg)",
     color: "var(--control-text-color)",
+  },
+  listDisabled: {
+    background: "#EBEBE4",
+    color: "#666",
+    pointerEvents: "none",
   },
   listItem: {
     textOverflow: "ellipsis",

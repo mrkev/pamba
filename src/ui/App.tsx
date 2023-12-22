@@ -42,24 +42,27 @@ export function App(): React.ReactElement {
         </p>
         ## Usage Notes
         <ul style={{ listStyleType: "'- '", width: "56ch", whiteSpace: "normal", paddingInlineStart: "2ch" }}>
-          <li>Trackpad horizontal scroll and pinch to zoom are fully supported.</li>
-          <li>At the moment, all files are stored locally.</li>
-          <li>As long as it remains an alpha, future comatibility is not assured.</li>
+          <li>All files are stored locally.</li>
+          <li>
+            <b>While on alpha, updates might delete all files.</b>
+          </li>
+          <li>Pinch to zoom</li>
         </ul>
         ## Known Bugs
         <ul style={{ listStyleType: "'- '", width: "56ch", whiteSpace: "normal", paddingInlineStart: "2ch" }}>
-          <li>Undo is turbo-broken</li>
-          <li>Ocassionaly, clicking clips appends instead of replacing selection</li>
-          <li>Moving a clip to a locked track deletes the clip</li>
-          <li>Deleting a selection of multiple clips might not delete all of them</li>
-          <li>Opening projects can make ticks in the timeline disappear</li>
+          <li>Undo is turbo-broken.</li>
+          <li>Ocassionaly, clicking clips appends-to instead of replacing selection.</li>
+          <li>Moving a clip to a locked track deletes the clip.</li>
+          <li>Deleting a selection of multiple clips might not delete all of them.</li>
+          <li>Opening projects might cause ticks in the timeline disappear.</li>
           <li>
             Found any others?{" "}
-            <a href="https://github.com/mrkev/web-daw-issues" style={{ color: "white" }}>
+            <a href="https://github.com/mrkev/web-daw-issues/issues" style={{ color: "white" }}>
               Let me know
             </a>
             .
           </li>
+          <li>Effects added during playback are applied on next playback, or might not be applied at all.</li>
         </ul>
         ## Get in Touch
         <p style={{ width: "56ch", whiteSpace: "normal" }}>
@@ -68,8 +71,8 @@ export function App(): React.ReactElement {
             @aykev
           </a>
           <br />- Bugs:{" "}
-          <a href="https://github.com/mrkev/web-daw-issues" style={{ color: "white" }}>
-            https://github.com/mrkev/web-daw-issues
+          <a href="https://github.com/mrkev/web-daw-issues/issues" style={{ color: "white" }}>
+            https://github.com/mrkev/web-daw-issues/issues
           </a>
         </p>
         ---

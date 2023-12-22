@@ -11,6 +11,7 @@ import { pressedState } from "../pressedState";
 import { useDocumentEventListener, useEventListener } from "../ui/useEventListener";
 import { exhaustive } from "../utils/exhaustive";
 import { history } from "structured-state";
+import { appEnvironment } from "../lib/AppEnvironment";
 
 export function useAxisContainerMouseEvents(
   project: AudioProject,
@@ -71,6 +72,21 @@ export function useTimelineMouseEvents(
           return;
         }
 
+        if (
+          e.target instanceof HTMLElement &&
+          (e.target.getAttribute("data-clip-header") === "true" ||
+            // TODO: hack find a more reliable way to not move the cursor when clicking the header
+            // withought preventDefault on the clip header's mousedown because it breaks the clip
+            // header's double-click. We look at the parent in case the user clicks the renamable label
+            e.target.parentElement?.getAttribute("data-clip-header") === "true")
+        ) {
+          // duble-clicking the clip headr
+          if (e.detail === 2) {
+            appEnvironment.activeBottomPanel.set("editor");
+          }
+          return;
+        }
+
         const position = {
           x: e.clientX + div.scrollLeft - div.getBoundingClientRect().x,
           y: e.clientY + div.scrollTop - div.getBoundingClientRect().y,
@@ -113,6 +129,7 @@ export function useTimelineMouseEvents(
         const { status } = pressed;
         switch (status) {
           case "moving_clip": {
+            // console.log("HEREHERE", e.target);
             if (
               pressed.track instanceof AudioTrack &&
               pressed.originalTrack instanceof AudioTrack &&
