@@ -25,12 +25,14 @@ export function UtilityDataList<T>({
   draggable,
   onDragStart: dragStart,
   onDragEnd: dragEnd,
+  onKeydown,
 }: {
   items: ListEntry<T>[];
   onItemFocus?: (item: ListItem<T>) => void;
   onItemSelect?: (item: ListItem<T>) => void;
   onDragStart?: (item: ListItem<T>, e: React.DragEvent<HTMLDivElement>) => void;
   onDragEnd?: (item: ListItem<T>, e: React.DragEvent<HTMLDivElement>) => void;
+  onKeydown?: (item: ListItem<T>, e: React.KeyboardEvent<HTMLDivElement>) => void;
   draggable?: boolean;
   filter?: string;
 }) {
@@ -102,6 +104,8 @@ export function UtilityDataList<T>({
                 setTimeout(() => onItemSelect?.(item), 0);
                 return;
               }
+
+              onKeydown?.(item, e);
             }}
             onDragEnd={(e) => {
               dragEnd?.(item, e);

@@ -5,7 +5,7 @@ import { LinkedMap } from "../lib/state/LinkedMap";
 import { bucketizeId } from "../utils/data";
 import { pAll, pTry, runAll } from "../utils/ignorePromise";
 import { construct, serializable } from "./serializable";
-import { AudioPackage } from "../lib/project/AudioPackage";
+import { AudioPackage } from "./AudioPackage";
 
 type ProjectFileIssue = { status: "not_found" } | { status: "invalid" };
 
@@ -159,6 +159,18 @@ export class LocalFilesystem {
       id: project.projectId,
       name: project.projectName.get(),
     });
+  }
+
+  async deleteProject(projectId: string) {
+    const projects = await this.projectsDir();
+    try {
+      await projects.removeEntry(projectId, { recursive: true });
+    } catch (e) {
+      return "error";
+    }
+
+    await this.updateProjects();
+    return null;
   }
 
   private async getProjectMetadata(project: FileSystemDirectoryHandle) {

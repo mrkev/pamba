@@ -6,7 +6,7 @@ import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioRenderer } from "../lib/AudioRenderer";
 import { AudioTrack } from "../lib/AudioTrack";
-import { AudioPackage } from "../lib/project/AudioPackage";
+import { AudioPackage } from "../data/AudioPackage";
 import { AudioProject } from "../lib/project/AudioProject";
 import { useLinkedArrayMaybe } from "../lib/state/LinkedArray";
 import { useLinkedMap } from "../lib/state/LinkedMap";
@@ -18,6 +18,8 @@ import { AudioFileUploadDropzone } from "./AudioFileUploadDropzone";
 import { UploadAudioButton } from "./UploadAudioButton";
 import { ListEntry, UtilityDataList } from "./UtilityList";
 import { closeProject } from "./header/ToolHeader";
+import { UtilityMenu } from "./UtilityMenu";
+import { doConfirm } from "./ConfirmDialog";
 
 const STATIC_AUDIO_FILES = ["drums.mp3", "clav.mp3", "bassguitar.mp3", "horns.mp3", "leadguitar.mp3"];
 
@@ -92,11 +94,13 @@ export function Library({
             p.id === project.projectId ? (
               <i style={{ color: "gray" }}>open</i>
             ) : (
-              <button
-                style={{ border: "none", padding: "0px 2px", fontSize: "10px", fontWeight: 800, background: "none" }}
-              >
-                ...
-              </button>
+              ""
+              // <UtilityMenu label={"foobar"} items={{ delete: () => {} }} />
+              // <button
+              //   style={{ border: "none", padding: "0px 2px", fontSize: "10px", fontWeight: 800, background: "none" }}
+              // >
+              //   ...
+              // </button>
             ),
         } as const;
       }),
@@ -110,7 +114,6 @@ export function Library({
             data: { kind: "audio", url },
           } as const;
         } else if (audio instanceof AudioPackage) {
-          console.log("package");
           return {
             title: audio.name,
             icon: <i className="ri-volume-up-fill"></i>,
@@ -174,6 +177,40 @@ export function Library({
                   return;
                 }
                 appEnvironment.loadProject(openedProject);
+                break;
+              }
+              default:
+                exhaustive(item.data);
+            }
+          }}
+          onKeydown={async (item, e) => {
+            if (e.key !== "Backspace") {
+              return;
+            }
+
+            const selection = await doConfirm(
+              `Are you sure you want to delete "${item.title}"?\nThis cannot be undone.`,
+              "yes",
+              "no",
+            );
+
+            if (selection === "no" || selection === "cancel") {
+              return;
+            }
+
+            switch (item.data.kind) {
+              case "audio":
+                // TODO? Warn about files that use this audio?
+                alert("not implemented, coming soon");
+                break;
+              case "project": {
+                if (item.data.id === project.projectId) {
+                  alert("cant delete current project");
+                  // todo: auto-close, create new empty project, etc
+                }
+
+                const result = await appEnvironment.localFiles.deleteProject(item.data.id);
+                // todo do something with result? necessary?
                 break;
               }
               default:

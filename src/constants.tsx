@@ -15,8 +15,8 @@ export const SECS_OVER_PX = SECS_PER_PX;
 
 export const FIREBASE_ENABLED = false;
 
-export const CANVAS_HEIGHT = 42; // 256 / 6;
-export const CANVAS_WIDTH = TRACK_HEADER_WIDTH + 10; //512 / 3; // 10px from scrollbar + padding of the timeline view
+export const CANVAS_HEIGHT = 46; // 256 / 6 + 4
+export const CANVAS_WIDTH = TRACK_HEADER_WIDTH + 11; //512 / 3; // 11px from scrollbar + padding of the timeline view
 
 export const TIME_SIGNATURE = [4, 4] as const;
 export const SECS_IN_MINUTE = 60;

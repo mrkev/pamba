@@ -52,6 +52,7 @@ export function App(): React.ReactElement {
           <li>Ocassionaly, clicking clips appends instead of replacing selection</li>
           <li>Moving a clip to a locked track deletes the clip</li>
           <li>Deleting a selection of multiple clips might not delete all of them</li>
+          <li>Opening projects can make ticks in the timeline disappear</li>
           <li>
             Found any others?{" "}
             <a href="https://github.com/mrkev/web-daw-issues" style={{ color: "white" }}>

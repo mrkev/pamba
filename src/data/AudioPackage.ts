@@ -1,7 +1,7 @@
 import * as musicMetadata from "music-metadata-browser";
-import { pAll, pTry, runAll } from "../../utils/ignorePromise";
-import { appEnvironment } from "../AppEnvironment";
-import { isRecord } from "../nw/nwschema";
+import { pAll, pTry, runAll } from "../utils/ignorePromise";
+import { appEnvironment } from "../lib/AppEnvironment";
+import { isRecord } from "../lib/nw/nwschema";
 
 function localURLOfFileName(fileName: string) {
   return `library://${fileName}`;

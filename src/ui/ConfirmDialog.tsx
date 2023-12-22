@@ -4,6 +4,7 @@ import { createUseStyles } from "react-jss";
 import { SPrimitive, useLinkedState } from "../lib/state/LinkedState";
 import { subscribe } from "../lib/state/Subbable";
 import { nullthrows } from "../utils/nullthrows";
+import React from "react";
 
 const confirmationModal = SPrimitive.of<
   | { status: "open"; message: string; okString?: string; noString?: string; cancelString?: string }
@@ -79,7 +80,14 @@ export function ConfirmDialog() {
     >
       {value.status === "closed" ? null : (
         <>
-          <span className={styles.message}>{value.message}</span>
+          <span className={styles.message}>
+            {value.message.split("\n").map((str, i) => (
+              <React.Fragment key={i}>
+                {str}
+                <br />
+              </React.Fragment>
+            ))}
+          </span>
           <div className={styles.buttons}>
             {value.cancelString && (
               <button className={styles.button} style={{ marginRight: 32 }} onClick={onCancel}>

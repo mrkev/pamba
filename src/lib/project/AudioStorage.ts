@@ -5,7 +5,7 @@ import { AsyncResultStatus, useAsyncResult } from "../../ui/useAsyncResult";
 import { appEnvironment } from "../AppEnvironment";
 import { LinkedArray } from "../state/LinkedArray";
 import type { AudioProject } from "./AudioProject";
-import { AudioPackage } from "./AudioPackage";
+import { AudioPackage } from "../../data/AudioPackage";
 
 export class AudioStorage {
   readonly remoteFiles: LinkedArray<string>;
