@@ -4,6 +4,7 @@ import { createUseStyles } from "react-jss";
 import { history } from "structured-state";
 import { modifierState } from "../ModifierState";
 import { CLIP_HEIGHT } from "../constants";
+import { appEnvironment } from "../lib/AppEnvironment";
 import type { AudioClip } from "../lib/AudioClip";
 import type { AudioTrack } from "../lib/AudioTrack";
 import type { AudioProject, XScale } from "../lib/project/AudioProject";
@@ -13,8 +14,6 @@ import { pressedState } from "../pressedState";
 import { exhaustive } from "../utils/exhaustive";
 import { RenamableLabel } from "./RenamableLabel";
 import { useEventListener } from "./useEventListener";
-import { appEnvironment } from "../lib/AppEnvironment";
-import { documentCommands } from "../input/useDocumentKeyboardEvents";
 // import { dataWaveformToCanvas } from "../lib/waveformAsync";
 
 export function ClipA({
@@ -34,8 +33,8 @@ export function ClipA({
 }) {
   const styles = useStyles();
   const headerRef = useRef<HTMLDivElement>(null);
-  const width = project.viewport.secsToPx(clip.getDuration());
-  const totalBufferWidth = project.viewport.secsToPx(clip.lengthSec);
+  const width = project.viewport.secsToPx(clip.clipLengthSec);
+  const totalBufferWidth = project.viewport.secsToPx(clip.bufferLength);
   const startTrimmedWidth = project.viewport.secsToPx(clip.trimStartSec);
   const [tool] = useLinkedState(project.pointerTool);
   const height = CLIP_HEIGHT - 3; // to clear the bottom track separator gridlines
@@ -54,9 +53,13 @@ export function ClipA({
       status: "resizing_clip",
       clip,
       // IDEA: just clone and have the original clip at hand
-      originalClipEndPosSec: clip.trimEndSec,
-      originalClipStartPosSec: clip.trimStartSec,
-      originalClipOffsetSec: clip.startOffsetSec,
+      originalClipLength: clip.clipLengthSec,
+      originalClipTimelineStartSec: clip.timelineStartSec,
+      originalBufferOffset: clip.bufferOffset,
+      originalTimelineStartSec: clip.timelineStartSec,
+      // originalClipEndPosSec: clip.trimEndSec,
+      // originalClipStartPosSec: clip.trimStartSec,
+      // originalClipOffsetSec: clip.timelineStartSec,
       from,
       clientX: e.clientX,
       clientY: e.clientY,
@@ -84,8 +87,8 @@ export function ClipA({
           clip,
           track,
           originalTrack: track,
-          originalClipStartOffsetSec: clip.startOffsetSec,
-          originalClipEndOffsetSec: clip.endOffsetSec,
+          originalClipStartOffsetSec: clip.timelineStartSec,
+          originalClipEndOffsetSec: clip.timelineEndSec,
           inHistory: false,
         });
 
@@ -131,16 +134,16 @@ export function ClipA({
     switch (tool) {
       case "move":
         break;
-      case "slice":
+      case "slice": // TODO: BROKEN
         const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
         const secFromStartOfClip = project.viewport.pxToSecs(pxFromStartOfClip);
-        const secFromTimelineStart = clip.startOffsetSec + secFromStartOfClip;
+        const secFromTimelineStart = clip.timelineStartSec + secFromStartOfClip;
         track.splitClip(project, clip, secFromTimelineStart);
         break;
       case "trimStart": {
         const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
         const asSec = project.viewport.pxToSecs(pxFromStartOfClip);
-        project.cursorPos.set(clip.startOffsetSec + asSec);
+        project.cursorPos.set(clip.timelineStartSec + asSec);
         void history.record(() => {
           clip.trimStartAddingTime(asSec);
         });
@@ -149,8 +152,7 @@ export function ClipA({
       case "trimEnd": {
         const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
         const secsFromStartPos = project.viewport.pxToSecs(pxFromStartOfClip);
-        const secsFromZero = clip.trimStartSec + secsFromStartPos;
-        clip.trimEndSec = secsFromZero;
+        clip.clipLengthSec = secsFromStartPos;
         clip._notifyChange();
         break;
       }
@@ -186,7 +188,7 @@ export function ClipA({
         display: "flex",
         flexDirection: "column",
         position: "absolute",
-        left: project.viewport.secsToPx(clip.startOffsetSec),
+        left: project.viewport.secsToPx(clip.timelineStartSec),
         ...style,
       }}
     >
@@ -202,15 +204,15 @@ export function ClipA({
         }}
       >
         {/* TODO: not working */}
-        <RenamableLabel
+        {/* <RenamableLabel
           style={{
             color: isSelected ? "white" : "black",
             fontSize: 10,
           }}
           value={name}
           setValue={console.log}
-        />{" "}
-        ({Math.round(clip.getDuration() * 100) / 100})
+        />{" "} */}
+        {clip.toString()}
       </div>
       {editable && <div className={styles.resizerStart} onMouseDownCapture={(e) => onMouseDownToResize(e, "start")} />}
       {editable && <div className={styles.resizerEnd} onMouseDownCapture={(e) => onMouseDownToResize(e, "end")} />}
@@ -250,7 +252,7 @@ function _ClipAutomation({ clip, secsToPx }: { clip: AudioClip; secsToPx: XScale
       {clip.gainAutomation.map(({ time, value }, i) => {
         const [x1, y1] = [secsToPx(time), valToPcnt(value)];
         const { time: time2, value: value2 } = clip.gainAutomation[i + 1] || {
-          time: clip.trimEndSec,
+          time: 0, // TODO
           value,
         };
         const [x2, y2] = [secsToPx(time2), valToPcnt(value2)];

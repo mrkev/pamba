@@ -19,10 +19,9 @@ export type SAudioClip = {
   kind: "AudioClip";
   name: string;
   bufferURL: string;
-  lengthSec: number;
-  startOffsetSec: number;
-  trimStartSec: number;
-  trimEndSec: number;
+  bufferOffset: number;
+  timelineStartSec: number;
+  clipLengthSec: number;
 };
 
 export type SMidiClip = Readonly<{
@@ -79,8 +78,15 @@ export async function serializable(
   obj: AudioClip | AudioTrack | MidiClip | MidiTrack | AudioProject | FaustAudioEffect | PambaWamNode,
 ): Promise<SAudioClip | SAudioTrack | SMidiClip | SMidiTrack | SAudioProject | SFaustAudioEffect | SPambaWamNode> {
   if (obj instanceof AudioClip) {
-    const { name, bufferURL, startOffsetSec, lengthSec, trimStartSec, trimEndSec } = obj;
-    return { kind: "AudioClip", name: name.get(), bufferURL, startOffsetSec, lengthSec, trimStartSec, trimEndSec };
+    const { name, bufferURL, bufferOffset, timelineStartSec, clipLengthSec } = obj;
+    return {
+      kind: "AudioClip",
+      name: name.get(),
+      bufferURL,
+      bufferOffset,
+      timelineStartSec,
+      clipLengthSec,
+    };
   }
 
   if (obj instanceof MidiClip) {
@@ -146,8 +152,8 @@ export async function construct(
 ): Promise<AudioClip | MidiClip | AudioTrack | MidiTrack | AudioProject | FaustAudioEffect | PambaWamNode> {
   switch (rep.kind) {
     case "AudioClip": {
-      const { bufferURL, name } = rep;
-      return AudioClip.fromURL(bufferURL, name);
+      const { bufferURL, name, bufferOffset, clipLengthSec, timelineStartSec } = rep;
+      return AudioClip.fromURL(bufferURL, name, { bufferOffset, clipLengthSec, timelineStartSec });
     }
     case "MidiClip": {
       const { name, startOffsetPulses, lengthPulses, notes } = rep;

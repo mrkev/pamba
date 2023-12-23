@@ -12,7 +12,7 @@ export function clipMoveSec(
   snap: boolean,
 ) {
   if (!snap) {
-    clip.startOffsetSec = newOffsetSec;
+    clip.timelineStartSec = newOffsetSec;
     clip._notifyChange();
   } else {
     const tempo = project.tempo.get();
@@ -20,7 +20,7 @@ export function clipMoveSec(
     const steppedToTick = stepNumber(newOffsetSec, tickBeatLength);
     const steppedToOriginalStart = stepNumber(newOffsetSec, tickBeatLength, originalStartOffsetSec);
     const result = returnClosest(newOffsetSec, steppedToTick, steppedToOriginalStart);
-    clip.startOffsetSec = result;
+    clip.timelineStartSec = result;
     clip._notifyChange();
   }
 }

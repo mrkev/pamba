@@ -34,10 +34,9 @@ export class AudioClip extends BaseClip implements Subbable<AudioClip>, Mutation
       kind: "AudioClip",
       name: name.get(),
       bufferURL,
-      lengthSec: this.lengthSec,
-      startOffsetSec: this.startOffsetSec,
-      trimStartSec: this.trimStartSec,
-      trimEndSec: this.trimEndSec,
+      bufferOffset: this.bufferOffset,
+      timelineStartSec: this.timelineStartSec,
+      clipLengthSec: this.clipLengthSec,
     };
     return result;
   }
@@ -47,15 +46,22 @@ export class AudioClip extends BaseClip implements Subbable<AudioClip>, Mutation
     this.name.set(json.name);
     // note: can't change bufferURL, length. They're readonly to the audio buffer. Should be ok
     // cause audio buffer never changes, and all clips that replace this one will be the same buffer
-    this.startOffsetSec = json.startOffsetSec;
-    this.trimStartSec = json.trimStartSec;
-    this.trimEndSec = json.trimEndSec;
+    this.bufferOffset = json.bufferOffset;
+    this.timelineStartSec = json.timelineStartSec;
+    this.clipLengthSec = json.clipLengthSec;
   }
 
   // NOTE: override construction
   static _construct(json: SAudioClip) {
     const buffer = nullthrows(SOUND_LIB_FOR_HISTORY.get(json.bufferURL));
-    return new AudioClip(buffer, json.name, json.bufferURL, json.startOffsetSec, json.trimStartSec, json.trimEndSec);
+    return new AudioClip(
+      buffer,
+      json.name,
+      json.bufferURL,
+      json.bufferOffset,
+      json.timelineStartSec,
+      json.clipLengthSec,
+    );
   }
 
   gainAutomation: Array<{ time: number; value: number }> = [{ time: 0, value: 1 }];
@@ -67,13 +73,18 @@ export class AudioClip extends BaseClip implements Subbable<AudioClip>, Mutation
     buffer: AudioBuffer,
     name: string,
     bufferURL: string,
-    startOffsetSec: number,
-    trimStartSec: number,
-    trimEndSec: number,
+    bufferOffset: number,
+    timelineStartSec: number,
+    clipLengthSec: number,
   ) {
     // todo, should convert buffer.length to seconds myself? Are buffer.duration
     // and buffer.length always congruent?
-    super({ lengthSec: buffer.duration, startOffsetSec, trimStartSec, trimEndSec });
+    super({
+      bufferLength: buffer.duration,
+      bufferOffset,
+      timelineStart: timelineStartSec,
+      clipLengthSec,
+    });
     this.buffer = new SharedAudioBuffer(buffer);
     this.numberOfChannels = buffer.numberOfChannels;
     this.name = SPrimitive.of(name);
@@ -82,9 +93,16 @@ export class AudioClip extends BaseClip implements Subbable<AudioClip>, Mutation
     console.log("CREATED AUDIO", this._id);
   }
 
-  static async fromURL(url: string, name?: string) {
+  static async fromURL(
+    url: string,
+    name?: string,
+    dimensions?: { bufferOffset: number; timelineStartSec: number; clipLengthSec: number },
+  ) {
     const buffer = await loadSound(staticAudioContext, url);
-    return new AudioClip(buffer, name || "untitled", url, 0, 0, buffer.duration);
+    const bufferOffset = dimensions?.bufferOffset ?? 0;
+    const timelineStartSec = dimensions?.timelineStartSec ?? 0;
+    const clipLengthSec = dimensions?.clipLengthSec ?? buffer.length / buffer.sampleRate;
+    return new AudioClip(buffer, name || "untitled", url, bufferOffset, timelineStartSec, clipLengthSec);
   }
 
   override clone(): AudioClip {
@@ -92,9 +110,9 @@ export class AudioClip extends BaseClip implements Subbable<AudioClip>, Mutation
       this.buffer,
       this.name.get(),
       this.bufferURL,
-      this.startOffsetSec,
-      this.trimStartSec,
-      this.trimEndSec,
+      this.bufferOffset,
+      this.timelineStartSec,
+      this.clipLengthSec,
     );
     return newClip;
   }
@@ -113,9 +131,9 @@ export class AudioClip extends BaseClip implements Subbable<AudioClip>, Mutation
   }
 
   override toString() {
-    return `${this.startOffsetSec.toFixed(2)} [ ${this.trimStartSec.toFixed(
-      2,
-    )} | ${this.name.get()} | ${this.trimEndSec.toFixed(2)} ] ${this.endOffsetSec.toFixed(2)}`;
+    return `ts:${this.timelineStartSec.toFixed(2)} |~bo:${this.bufferOffset.toFixed(2)}~["${
+      this._id
+    }", cl:${this.clipLengthSec.toFixed(2)} ]`;
   }
 
   // Frames units
@@ -129,17 +147,17 @@ export class AudioClip extends BaseClip implements Subbable<AudioClip>, Mutation
   }
 
   get lengthFr(): number {
-    return this.secToFr(this.lengthSec);
+    return this.secToFr(this.bufferLength);
   }
 
   // Offset relates to the clip in the timeline
   // Pos referes to the position the audio-clip plays in an audio file
   get startOffsetFr() {
-    return this.secToFr(this._startOffsetSec);
+    return this.secToFr(this._timelineStartSec);
   }
 
   set startOffsetFr(frs: number) {
-    this._startOffsetSec = this.frToSec(frs);
+    this._timelineStartSec = this.frToSec(frs);
   }
 
   // on the timeline, the x position where + width (duration)
@@ -147,23 +165,11 @@ export class AudioClip extends BaseClip implements Subbable<AudioClip>, Mutation
     return this.startOffsetFr + this.durationFr;
   }
 
-  get trimEndFr() {
-    return this.secToFr(this._trimEndSec);
-  }
-
-  set trimEndFr(f: number) {
-    this._trimEndSec = this.frToSec(f);
+  get trimStartFr() {
+    return this.secToFr(this._bufferOffset);
   }
 
   get durationFr() {
-    return this.secToFr(this.getDuration());
-  }
-
-  get trimStartFr() {
-    return this.secToFr(this._trimStartSec);
-  }
-
-  set trimStartFr(f: number) {
-    this._trimStartSec = this.frToSec(f);
+    return this.secToFr(this.clipLengthSec);
   }
 }

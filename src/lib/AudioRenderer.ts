@@ -62,10 +62,10 @@ export class AudioRenderer {
       for (let track of tracks) {
         for (let clip of track.clips._getRaw()) {
           if (clip instanceof AudioClip) {
-            end = end == null || clip.endOffsetSec > end ? clip.endOffsetSec : end;
-            console.log("endOffsetSec", clip.endOffsetSec, end);
+            end = end == null || clip.timelineEndSec > end ? clip.timelineEndSec : end;
+            console.log("endOffsetSec", clip.timelineEndSec, end);
           } else if (clip instanceof MidiClip) {
-            const endOffsetSec = pulsesToSec(clip._endOffsetU, tempo);
+            const endOffsetSec = pulsesToSec(clip._timelineEndU, tempo);
             end = end == null || endOffsetSec > end ? endOffsetSec : end;
             console.log("endOffsetSec", endOffsetSec, end);
           } else {

@@ -105,7 +105,7 @@ export function MidiClipEditor({
       }
 
       // after
-      if (playbackTimePulses > clip._endOffsetU) {
+      if (playbackTimePulses > clip._timelineEndU) {
         cursorElem.style.display = "none";
         return;
       }

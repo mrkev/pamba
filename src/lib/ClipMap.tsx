@@ -23,7 +23,7 @@ export class ClipMap<U extends Pulses | Seconds, T extends AbstractClip<U>>
   }
 
   private setFromClipsArray(arr: readonly T[]): void {
-    const entries = arr.map((clip) => [clip._startOffsetU, clip] as const); //[...this.clipMap.entries()].sort(([tA], [tB]) => tA - tB);
+    const entries = arr.map((clip) => [clip._timelineStartU, clip] as const); //[...this.clipMap.entries()].sort(([tA], [tB]) => tA - tB);
     this.clipMap.clear();
     for (const [t, c] of entries) {
       this.clipMap.set(t, c);

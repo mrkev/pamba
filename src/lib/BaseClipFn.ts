@@ -11,12 +11,12 @@ export function assertClipInvariants<U extends Pulses | Seconds>(clips: SArray<A
   let cEnd = 0;
   for (let i = 0; i < clips.length; i++) {
     const clip = nullthrows(clips.at(i));
-    if (clip._startOffsetU < cStart) {
+    if (clip._timelineStartU < cStart) {
       // console.log(`Out of place clip at position ${i}!`, clip, clips);
       throw new Error("Failed invariant: clips are not sorted.\n" + "They look like this:\n" + printClips(clips));
     }
 
-    if (cEnd > clip._startOffsetU) {
+    if (cEnd > clip._timelineStartU) {
       // console.log(
       //   `Clip at position ${i} overlaps with previous!`,
       //   clip.toString(),
@@ -26,8 +26,8 @@ export function assertClipInvariants<U extends Pulses | Seconds>(clips: SArray<A
       throw new Error("Failed invariant: clips overlap.\n" + "They look like this:\n" + printClips(clips));
     }
 
-    cStart = clip._startOffsetU;
-    cEnd = clip._startOffsetU;
+    cStart = clip._timelineStartU;
+    cEnd = clip._timelineStartU;
   }
 }
 
@@ -47,17 +47,17 @@ export function addClip<Clip extends AbstractClip<U>, U extends Pulses | Seconds
     // We want to iterate until i
     // we find a spot where if we were to keep going we'd be
     // later than the next clip
-    if (next && next._startOffsetU < newClip._startOffsetU) {
+    if (next && next._timelineStartU < newClip._timelineStartU) {
       continue;
     }
 
-    if (next && next._startOffsetU >= newClip._startOffsetU) {
+    if (next && next._timelineStartU >= newClip._timelineStartU) {
       // we insert here
       break;
     }
   }
 
-  deleteTime(newClip._startOffsetU, newClip._endOffsetU, clips);
+  deleteTime(newClip._timelineStartU, newClip._timelineEndU, clips);
 
   // Insert the clip
 
@@ -78,17 +78,30 @@ export function addClip<Clip extends AbstractClip<U>, U extends Pulses | Seconds
   assertClipInvariants(clips);
 }
 
+function simplyAddSorted<Clip extends AbstractClip<U>, U extends Pulses | Seconds>(
+  newClips: Clip[],
+  clips: SArray<Clip>,
+): void {
+  if (newClips.length === 0) {
+    return;
+  }
+
+  // TODO: add pushAll to substate to avoid possible stack overflows
+  clips.push(...newClips);
+  clips.sort((a, b) => a._timelineStartU - b._timelineStartU);
+}
+
 /**
  * deletes/trims clips as necessary to make the time from
  * start to end, using track units
  */
 export function deleteTime<Clip extends AbstractClip<U>, U extends Pulses | Seconds>(
-  start: number,
-  end: number,
+  start: number, // in timeline units
+  end: number, // in timeline units
   clips: SArray<Clip>,
-): void {
+): Clip[] {
   if (start === end) {
-    return;
+    return [];
   }
 
   if (start > end) {
@@ -98,12 +111,13 @@ export function deleteTime<Clip extends AbstractClip<U>, U extends Pulses | Seco
   const toRemove = [];
   const toResort = [];
 
+  const notifyClips = [];
   let res = clips;
   for (let i = 0; i < clips.length; i++) {
     const current = nullthrows(clips.at(i));
 
-    const remStart = start < current._startOffsetU && current._startOffsetU < end;
-    const remEnd = start < current._endOffsetU && current._endOffsetU < end;
+    const remStart = start < current._timelineStartU && current._timelineStartU < end;
+    const remEnd = start < current._timelineEndU && current._timelineEndU < end;
 
     // remove the whole clip
     if (remStart && remEnd) {
@@ -114,15 +128,17 @@ export function deleteTime<Clip extends AbstractClip<U>, U extends Pulses | Seco
     // Trim the start of the clip
     if (remStart) {
       // need to remove and re-sort clip
-      current.trimToOffset(end as U);
+      current.trimToOffsetU(end as U);
       toRemove.push(current);
       toResort.push(current);
+      notifyClips.push(current);
       continue;
     }
 
     // Trim the end of the clip
     if (remEnd) {
-      current._setEndOffsetU(start as U);
+      current._setTimelineEndU(start as U);
+      notifyClips.push(current);
       continue;
     }
 
@@ -130,18 +146,19 @@ export function deleteTime<Clip extends AbstractClip<U>, U extends Pulses | Seco
     // this clip, in which case we would split this clip into three parts and
     // remove the one corresponding to the time we want to delete
     if (
-      current._startOffsetU < start &&
-      start < current._endOffsetU &&
-      current._startOffsetU < end &&
-      end < current._endOffsetU
+      current._timelineStartU < start &&
+      start < current._timelineEndU &&
+      current._timelineStartU < end &&
+      end < current._timelineEndU
     ) {
       const first = current;
       const second = current.clone();
 
       toResort.push(second);
 
-      first._setEndOffsetU(start as U);
-      second.trimToOffset(end as U);
+      first._setTimelineEndU(start as U);
+      second.trimToOffsetU(end as U);
+      console.log("HERE");
     }
   }
 
@@ -152,12 +169,11 @@ export function deleteTime<Clip extends AbstractClip<U>, U extends Pulses | Seco
     removeClip(clip, clips);
   }
 
-  for (let clip of toResort) {
-    addClip(clip, clips);
-  }
+  simplyAddSorted(toResort, clips);
 
   // console.log(clips);
   assertClipInvariants(res);
+  return notifyClips;
 }
 
 /**
@@ -183,10 +199,10 @@ export function removeClip<Clip extends AbstractClip<U>, U extends Pulses | Seco
  */
 export function splitClip<Clip extends AbstractClip<U>, U extends Pulses | Seconds>(
   clip: Clip,
-  time: number,
+  timelineTime: number,
   clips: SArray<Clip>,
 ): [before: Clip, after: Clip] | null {
-  if (time > clip._endOffsetU || time < clip._startOffsetU) {
+  if (timelineTime > clip._timelineEndU || timelineTime < clip._timelineStartU) {
     return null;
   }
 
@@ -200,8 +216,8 @@ export function splitClip<Clip extends AbstractClip<U>, U extends Pulses | Secon
 
   const clipAfter = clip.clone() as Clip;
 
-  clipAfter.trimToOffset(time as U);
-  clip._setEndOffsetU(time as U);
+  clipAfter.trimToOffsetU(timelineTime as U);
+  clip._setTimelineEndU(timelineTime as U);
   clips.splice(i + 1, 0, clipAfter);
 
   assertClipInvariants(clips);
@@ -218,9 +234,9 @@ export function pushClip<Clip extends AbstractClip<U>, U extends Pulses | Second
   const lastClip = clips.length > 0 ? clips.at(-1) : null;
 
   if (!lastClip) {
-    newClip._setStartOffsetU(0 as U);
+    newClip._setTimelineStartU(0 as U);
   } else {
-    newClip._setStartOffsetU(lastClip._endOffsetU);
+    newClip._setTimelineStartU(lastClip._timelineEndU);
   }
 
   clips.push(newClip);
@@ -247,7 +263,7 @@ export function moveClip<Clip extends AbstractClip<U>, U extends Pulses | Second
   for (let i = 0; i < clips.length; i++) {
     const c = nullthrows(clips.at(i));
 
-    if (clip._startOffsetU <= c._startOffsetU) {
+    if (clip._timelineStartU <= c._timelineStartU) {
       newArr.push(clip);
       placed = true;
     }

@@ -55,7 +55,7 @@ export class AudioRecorder {
       console.log("LOAD CLIP", this.project.cursorPos.get());
       // load clip
       const clip = await AudioClip.fromURL(url, name);
-      clip.startOffsetSec = this.project.cursorPos.get();
+      clip.timelineStartSec = this.project.cursorPos.get();
 
       const armedTrack = this.project.armedTrack.get();
       if (armedTrack == null) {

@@ -84,31 +84,31 @@ export class MidiClip extends Struct<MidiClip> implements Subbable<MidiClip>, Mu
     this._startOffsetPulses = value as Pulses;
   }
 
-  get _startOffsetU(): Pulses {
+  get _timelineStartU(): Pulses {
     return this._startOffsetPulses;
   }
 
-  _setStartOffsetU(): void {
+  _setTimelineStartU(): void {
     this._startOffsetPulses = this._startOffsetPulses;
   }
 
-  get _endOffsetU(): Pulses {
+  get _timelineEndU(): Pulses {
     return (this._startOffsetPulses + this.lengthPulses) as Pulses;
   }
 
-  _setEndOffsetU(newEnd: number): void {
+  _setTimelineEndU(newEnd: number): void {
     if (newEnd < this._startOffsetPulses) {
       throw new Error("Can't set endOffsetSec to be before startOffsetSec");
     }
     this.lengthPulses = (newEnd - this._startOffsetPulses) as Pulses;
   }
 
-  trimToOffset(timePulses: number) {
+  trimToOffsetU(timePulses: number) {
     if (timePulses < this._startOffsetPulses) {
       return;
     }
 
-    if (timePulses > this._endOffsetU) {
+    if (timePulses > this._timelineEndU) {
       throw new Error("trimming past end time");
     }
 
@@ -130,7 +130,7 @@ export class MidiClip extends Struct<MidiClip> implements Subbable<MidiClip>, Mu
   }
 
   override toString() {
-    return `${this._startOffsetU} [ ${this.name.get()} ] ${this._endOffsetU}`;
+    return `${this._timelineStartU} [ ${this.name.get()} ] ${this._timelineEndU}`;
   }
 }
 

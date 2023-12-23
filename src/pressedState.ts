@@ -43,9 +43,10 @@ export type CursorState =
   | Readonly<{
       status: "resizing_clip";
       from: "start" | "end";
-      originalClipEndPosSec: number;
-      originalClipStartPosSec: number;
-      originalClipOffsetSec: number;
+      originalClipLength: number;
+      originalClipTimelineStartSec: number;
+      originalBufferOffset: number;
+      originalTimelineStartSec: number;
       clip: AudioClip | MidiClip;
       clientX: number;
       clientY: number;

@@ -66,7 +66,7 @@ const loadAudioClipIntoTrack = async (
 
     // load clip
     const clip = await AudioClip.fromURL(url, name);
-    clip.startOffsetSec = startOffsetSec;
+    clip.timelineStartSec = startOffsetSec;
     track.addClip(project, clip);
   } catch (e) {
     console.trace(e);

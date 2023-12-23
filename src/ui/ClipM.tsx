@@ -68,7 +68,7 @@ export function ClipM({
       track,
       originalTrack: track,
       originalClipStartOffsetSec: pulsesToSec(clip.startOffsetPulses, bpm),
-      originalClipEndOffsetSec: pulsesToSec(clip._endOffsetU, bpm),
+      originalClipEndOffsetSec: pulsesToSec(clip._timelineEndU, bpm),
       inHistory: false,
     });
 

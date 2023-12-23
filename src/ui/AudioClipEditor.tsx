@@ -1,16 +1,16 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { createUseStyles } from "react-jss";
+import { usePrimitive } from "structured-state";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioProject } from "../lib/project/AudioProject";
 import { useSubscribeToSubbableMutationHashable } from "../lib/state/LinkedMap";
 import { useLinkedState } from "../lib/state/LinkedState";
-import { RenamableLabel } from "./RenamableLabel";
-import { GPUWaveform } from "./GPUWaveform";
-import { useEventListener } from "./useEventListener";
-import { nullthrows } from "../utils/nullthrows";
 import { clamp } from "../utils/math";
-import { usePrimitive } from "structured-state";
+import { nullthrows } from "../utils/nullthrows";
+import { GPUWaveform } from "./GPUWaveform";
+import { RenamableLabel } from "./RenamableLabel";
+import { useEventListener } from "./useEventListener";
 
 type AudioViewportT = {
   pxPerSec: number;
@@ -120,26 +120,26 @@ export function AudioClipEditor({
         const mouseX = e.clientX - canvas.getBoundingClientRect().left;
         const positionSamples = (mouseX + waveformStartFr) * realScale;
         const positionSecs = positionSamples / clip.sampleRate;
-        const positionTimeline = positionSecs + clip.startOffsetSec;
+        const positionTimeline = positionSecs + clip.timelineStartSec;
 
         project.cursorPos.set(positionTimeline);
 
         console.log(mouseX, (mouseX + waveformStartFr) * realScale);
       },
-      [clip.sampleRate, clip.startOffsetSec, project.cursorPos, realScale, waveformStartFr],
+      [clip.sampleRate, clip.timelineStartSec, project.cursorPos, realScale, waveformStartFr],
     ),
   );
 
   // console.log("SCSL", scale);
   const timelineSecsToClipPx = useCallback(
     (timelineSecs: number) => {
-      const clipSecs = timelineSecs - clip.startOffsetSec;
+      const clipSecs = timelineSecs - clip.timelineStartSec;
       const clipFr = clipSecs * clip.sampleRate;
       const clipPx = clipFr / realScale;
 
       return clipPx - waveformStartFr / realScale;
     },
-    [clip.sampleRate, clip.startOffsetSec, realScale, waveformStartFr],
+    [clip.sampleRate, clip.timelineStartSec, realScale, waveformStartFr],
   );
 
   // useEffect(() => {
@@ -196,7 +196,7 @@ export function AudioClipEditor({
             background: "#4e4e4e",
           }}
         >
-          Length <input type="number" value={clip.getDuration()} disabled />
+          Length <input type="number" value={clip.clipLengthSec} disabled />
           Filename:
           <input type="text" value={clip.bufferURL} disabled />
           Sample Rate:
@@ -308,7 +308,7 @@ export function AudioClipEditor({
                 position: "absolute",
                 left: pxOfSec(clip.trimStartSec), //todo viewport
                 height: "100%",
-                width: pxOfSec(clip.getDuration()),
+                width: pxOfSec(clip.clipLengthSec),
                 border,
                 boxSizing: "border-box",
               }}

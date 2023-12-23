@@ -1,5 +1,7 @@
 import { useCallback } from "react";
+import { history } from "structured-state";
 import { MIN_TRACK_HEIGHT } from "../constants";
+import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioTrack } from "../lib/AudioTrack";
 import { clipMovePPQN, clipMoveSec } from "../lib/clipMoveSec";
@@ -10,8 +12,17 @@ import { MidiTrack } from "../midi/MidiTrack";
 import { pressedState } from "../pressedState";
 import { useDocumentEventListener, useEventListener } from "../ui/useEventListener";
 import { exhaustive } from "../utils/exhaustive";
-import { history } from "structured-state";
-import { appEnvironment } from "../lib/AppEnvironment";
+import { clamp } from "../utils/math";
+
+export function timelineSecs(e: MouseEvent, projectDiv: HTMLDivElement, project: AudioProject) {
+  const viewportStartPx = project.viewportStartPx.get();
+  const position = {
+    x: e.clientX + projectDiv.scrollLeft - projectDiv.getBoundingClientRect().x,
+    y: e.clientY + projectDiv.scrollTop - projectDiv.getBoundingClientRect().y,
+  };
+  const asSecs = project.viewport.pxToSecs(position.x + viewportStartPx);
+  return asSecs;
+}
 
 export function useAxisContainerMouseEvents(
   project: AudioProject,
@@ -135,9 +146,9 @@ export function useTimelineMouseEvents(
               pressed.originalTrack instanceof AudioTrack &&
               pressed.clip instanceof AudioClip
             ) {
-              pressed.track.deleteTime(project, pressed.clip.startOffsetSec, pressed.clip.endOffsetSec);
-              pressed.originalTrack.removeClip(project, pressed.clip);
+              pressed.track.deleteTime(project, pressed.clip.timelineStartSec, pressed.clip.timelineEndSec);
               pressed.track.addClip(project, pressed.clip);
+              pressed.originalTrack.removeClip(project, pressed.clip);
             }
 
             if (
@@ -145,7 +156,7 @@ export function useTimelineMouseEvents(
               pressed.originalTrack instanceof MidiTrack &&
               pressed.clip instanceof MidiClip
             ) {
-              pressed.track.deleteTime(project, pressed.clip.startOffsetPulses, pressed.clip._endOffsetU);
+              pressed.track.deleteTime(project, pressed.clip.startOffsetPulses, pressed.clip._timelineEndU);
               pressed.originalTrack.removeClip(project, pressed.clip);
               pressed.track.addClip(project, pressed.clip);
             }
@@ -296,7 +307,7 @@ export function useTimelineMouseEvents(
           }
 
           case "resizing_clip": {
-            const deltaXSecs = project.viewport.pxToSecs(e.clientX - pressed.clientX);
+            const opDeltaXSecs = project.viewport.pxToSecs(e.clientX - pressed.clientX);
             if (pressed.clip instanceof MidiClip) {
               throw new Error("MidiClip unimplemented");
             }
@@ -306,24 +317,40 @@ export function useTimelineMouseEvents(
             }
 
             if (pressed.from === "end") {
-              // We can't trim a clip to end before it's beggining
-              let newEndPosSec = Math.max(0, pressed.originalClipEndPosSec + deltaXSecs);
-              // and also prevent it from extending beyond its original length
-              newEndPosSec = Math.min(newEndPosSec, pressed.clip.lengthSec);
-              pressed.clip.trimEndSec = newEndPosSec;
+              const newClipEnd = clamp(
+                // We can't trim a clip to end before it's beggining
+                0,
+                pressed.originalClipLength + opDeltaXSecs,
+                // and also prevent it from extending beyond its original length
+                pressed.clip.bufferLength - pressed.clip.bufferOffset,
+              );
+              pressed.clip.clipLengthSec = newClipEnd;
             } else if (pressed.from === "start") {
-              // Can't trim past the length of the clip, so
-              // clamp it on one side to that.
-              let newTrimStartSec = Math.min(pressed.clip.lengthSec, pressed.originalClipStartPosSec + deltaXSecs);
-              // let's not allow extending the begging back before 0
-              newTrimStartSec = Math.max(newTrimStartSec, 0);
-
-              // The change in trim, not mouse position
-              const actualDelta = newTrimStartSec - pressed.originalClipStartPosSec;
-              let newOffset = pressed.originalClipOffsetSec + actualDelta;
-
-              pressed.clip.trimStartSec = newTrimStartSec;
-              pressed.clip.startOffsetSec = newOffset;
+              const newBufferOffset = clamp(
+                // let's not allow extending the beginning back before 0
+                0,
+                pressed.originalBufferOffset + opDeltaXSecs,
+                // Can't trim past the length of the clip
+                pressed.originalBufferOffset + pressed.originalClipLength,
+              );
+              // console.log("NBO", newBufferOffset, pressed.originalClipLength);
+              const newTimelineStartSec = clamp(
+                pressed.originalTimelineStartSec - pressed.originalBufferOffset,
+                pressed.originalTimelineStartSec + opDeltaXSecs,
+                pressed.originalTimelineStartSec + pressed.originalClipLength,
+              );
+              const newClipLength = clamp(
+                // zero length is minimum
+                0,
+                pressed.originalClipLength - opDeltaXSecs,
+                // since trimming from start, max is going back all the way to zero
+                pressed.originalClipLength + pressed.originalBufferOffset,
+              );
+              pressed.clip.bufferOffset = newBufferOffset;
+              pressed.clip.timelineStartSec = newTimelineStartSec;
+              pressed.clip.clipLengthSec = newClipLength;
+            } else {
+              exhaustive(pressed.from);
             }
 
             // NOTE: hacking away the readonly

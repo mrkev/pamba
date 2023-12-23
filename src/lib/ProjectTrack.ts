@@ -6,7 +6,7 @@ import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
 import { nullthrows } from "../utils/nullthrows";
 import { PambaWamNode } from "../wam/PambaWamNode";
 import { appEnvironment } from "./AppEnvironment";
-import { AbstractClip } from "./BaseClip";
+import { AbstractClip, Seconds } from "./BaseClip";
 import { addClip, deleteTime, pushClip, removeClip, splitClip } from "./BaseClipFn";
 import { connectSerialNodes } from "./connectSerialNodes";
 import { AudioContextInfo } from "./initAudioContext";
@@ -14,6 +14,7 @@ import { PBGainNode } from "./offlineNodes";
 import type { AudioProject } from "./project/AudioProject";
 import { LinkedArray } from "./state/LinkedArray";
 import { SPrimitive } from "./state/LinkedState";
+import { AudioClip } from "./AudioClip";
 
 export abstract class ProjectTrack<T extends AbstractClip<any>> extends DSPNode<null> {
   public readonly name: SPrimitive<string>;
@@ -147,8 +148,12 @@ export abstract class ProjectTrack<T extends AbstractClip<any>> extends DSPNode<
       return;
     }
 
-    deleteTime(start, end, this.clips);
-    // this.clips._setRaw(clips);
+    console.log("AT deleteTime");
+    const notifyClips = deleteTime<AudioClip, Seconds>(start, end, this.clips);
+    notifyClips.forEach((clip) => {
+      console.log("clip", clip);
+      clip._notifyChange();
+    });
   }
 
   splitClip(project: AudioProject, clip: T, offset: number): void {

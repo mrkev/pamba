@@ -1,13 +1,12 @@
-import { describe, expect, it } from "vitest";
 import { SArray } from "structured-state";
-import { BaseClip } from "../BaseClip";
-import { addClip, assertClipInvariants, deleteTime, pushClip, removeClip, splitClip } from "../BaseClipFn";
+import { describe, expect, it } from "vitest";
 import { nullthrows } from "../../utils/nullthrows";
+import { BaseClip } from "../BaseClip";
+import { addClip, assertClipInvariants, deleteTime, printClips, pushClip, removeClip, splitClip } from "../BaseClipFn";
 
 function bclip(startOffset: number, endOffset: number): BaseClip {
-  const DEFAULT_SAMPLE_RATE = 1000;
-  const result = BaseClip.of(endOffset - startOffset, DEFAULT_SAMPLE_RATE, 0, endOffset - startOffset);
-  result.startOffsetSec = startOffset;
+  const result = BaseClip.of2(startOffset, endOffset - startOffset, 0, endOffset - startOffset);
+  result.timelineStartSec = startOffset;
   return result;
 }
 
@@ -53,13 +52,15 @@ describe("deleteTime", () => {
 
   it("deletes narrow", () => {
     const all = clips([bclip(0, 3)]);
+    console.log(printClips(all), "\n");
     deleteTime(1, 2, all);
+    console.log(printClips(all));
 
     expect(all.length).toBe(2);
-    expect(all.at(0)?.startOffsetSec).toBe(0);
-    expect(all.at(0)?.endOffsetSec).toBe(1);
-    expect(all.at(1)?.startOffsetSec).toBe(2);
-    expect(all.at(1)?.endOffsetSec).toBe(3);
+    expect(all.at(0)?.timelineStartSec).toBe(0);
+    expect(all.at(0)?.timelineEndSec).toBe(1);
+    expect(all.at(1)?.timelineStartSec).toBe(2);
+    expect(all.at(1)?.timelineEndSec).toBe(3);
   });
 });
 
@@ -70,7 +71,7 @@ describe("pushClip", () => {
     const res = pushClip(foo, all);
 
     expect(res).toContain(foo);
-    expect(foo.startOffsetSec).toEqual(2);
+    expect(foo.timelineStartSec).toEqual(2);
     expect(res.indexOf(foo)).toEqual(2);
   });
 });
@@ -110,7 +111,7 @@ describe("addClip", () => {
 
     expect(all).toContain(foo);
     expect(all.indexOf(foo)).toEqual(1);
-    expect(all.at(0)?.endOffsetSec).toEqual(5);
+    expect(all.at(0)?.timelineEndSec).toEqual(5);
   });
 
   it("adds correctly simple overlap at start", () => {
@@ -120,8 +121,8 @@ describe("addClip", () => {
 
     expect(all).toContain(foo);
     expect(all.indexOf(foo)).toEqual(0);
-    expect(all.at(1)?.startOffsetSec).toEqual(10);
-    expect(all.at(1)?.endOffsetSec).toEqual(15);
+    expect(all.at(1)?.timelineStartSec).toEqual(10);
+    expect(all.at(1)?.timelineEndSec).toEqual(15);
   });
 
   it("adds correctly when wide overlap over another clip", () => {
@@ -142,8 +143,8 @@ describe("addClip", () => {
 
     expect(all).toContain(foo);
     expect(all.length).toBe(3);
-    expect(all.at(0)?.endOffsetSec).toBe(2);
-    expect(all.at(2)?.startOffsetSec).toBe(8);
+    expect(all.at(0)?.timelineEndSec).toBe(2);
+    expect(all.at(2)?.timelineStartSec).toBe(8);
   });
 });
 
@@ -154,10 +155,10 @@ describe("splitClip", () => {
     splitClip(foo, 5, all);
 
     expect(all.length).toBe(2);
-    expect(all.at(0)?.startOffsetSec).toBe(0);
-    expect(all.at(0)?.endOffsetSec).toBe(5);
-    expect(all.at(1)?.startOffsetSec).toBe(5);
-    expect(all.at(1)?.endOffsetSec).toBe(10);
+    expect(all.at(0)?.timelineStartSec).toBe(0);
+    expect(all.at(0)?.timelineEndSec).toBe(5);
+    expect(all.at(1)?.timelineStartSec).toBe(5);
+    expect(all.at(1)?.timelineEndSec).toBe(10);
   });
 
   it("returns the two clips", () => {
@@ -169,10 +170,10 @@ describe("splitClip", () => {
     expect(all.length).toBe(2);
     expect(all).toContain(before);
     expect(all).toContain(after);
-    expect(before.startOffsetSec).toBe(0);
-    expect(before.endOffsetSec).toBe(5);
-    expect(after.startOffsetSec).toBe(5);
-    expect(after.endOffsetSec).toBe(10);
+    expect(before.timelineStartSec).toBe(0);
+    expect(before.timelineEndSec).toBe(5);
+    expect(after.timelineStartSec).toBe(5);
+    expect(after.timelineEndSec).toBe(10);
   });
 
   it("splits a clip with start offset, chained", () => {
@@ -182,11 +183,11 @@ describe("splitClip", () => {
     const [_, __] = nullthrows(splitClip(after, 6, all));
 
     expect(all.length).toBe(3);
-    expect(all.at(0)?.startOffsetSec).toBe(2);
-    expect(all.at(0)?.endOffsetSec).toBe(4);
-    expect(all.at(1)?.startOffsetSec).toBe(4);
-    expect(all.at(1)?.endOffsetSec).toBe(6);
-    expect(all.at(2)?.startOffsetSec).toBe(6);
-    expect(all.at(2)?.endOffsetSec).toBe(8);
+    expect(all.at(0)?.timelineStartSec).toBe(2);
+    expect(all.at(0)?.timelineEndSec).toBe(4);
+    expect(all.at(1)?.timelineStartSec).toBe(4);
+    expect(all.at(1)?.timelineEndSec).toBe(6);
+    expect(all.at(2)?.timelineStartSec).toBe(6);
+    expect(all.at(2)?.timelineEndSec).toBe(8);
   });
 });
