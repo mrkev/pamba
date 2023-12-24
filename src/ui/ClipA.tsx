@@ -1,7 +1,7 @@
 import { scaleLinear } from "d3-scale";
 import React, { useCallback, useRef } from "react";
 import { createUseStyles } from "react-jss";
-import { history } from "structured-state";
+import { history, usePrimitive } from "structured-state";
 import { modifierState } from "../ModifierState";
 import { CLIP_HEIGHT } from "../constants";
 import { appEnvironment } from "../lib/AppEnvironment";
@@ -12,7 +12,6 @@ import { useSubscribeToSubbableMutationHashable } from "../lib/state/LinkedMap";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { pressedState } from "../pressedState";
 import { exhaustive } from "../utils/exhaustive";
-import { RenamableLabel } from "./RenamableLabel";
 import { useEventListener } from "./useEventListener";
 // import { dataWaveformToCanvas } from "../lib/waveformAsync";
 
@@ -39,7 +38,7 @@ export function ClipA({
   const [tool] = useLinkedState(project.pointerTool);
   const height = CLIP_HEIGHT - 3; // to clear the bottom track separator gridlines
   // const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [name] = useLinkedState(clip.name);
+  const [name] = usePrimitive(clip.name);
 
   useSubscribeToSubbableMutationHashable(clip);
 

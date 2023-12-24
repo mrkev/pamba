@@ -84,34 +84,33 @@ export function UtilityNumber({
 
   return (
     <>
-      {/* <div
-        
+      <div
         style={{
           textAlign: "center",
           // width: 17,
           padding: "0px",
         }}
         className="utilityButton"
-      > */}
-      <RenamableLabel
-        value={String(value)}
-        setValue={function (newVal: string): void {
-          const val = parseFloat(newVal);
-          if (Number.isNaN(val)) {
-            return;
-          }
-          onChange?.(val);
-        }}
-        style={{
-          justifyContent: "center",
-          width: 20,
-          paddingTop: 0,
-          paddingBottom: 0,
-          color: "var(--control-text-color)",
-        }}
-        className="utilityButton"
-      ></RenamableLabel>
-      {/* </div> */}
+      >
+        <RenamableLabel
+          value={String(value)}
+          setValue={function (newVal: string): void {
+            const val = parseFloat(newVal);
+            if (Number.isNaN(val)) {
+              return;
+            }
+            onChange?.(val);
+          }}
+          style={{
+            justifyContent: "center",
+            width: 20,
+            paddingTop: 0,
+            paddingBottom: 0,
+            color: "var(--control-text-color)",
+          }}
+          className="utilityButton"
+        ></RenamableLabel>
+      </div>
     </>
   );
 }

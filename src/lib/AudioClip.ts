@@ -1,3 +1,4 @@
+import { SPrimitive } from "structured-state";
 import { staticAudioContext } from "../constants";
 import { SAudioClip } from "../data/serializable";
 import { nullthrows } from "../utils/nullthrows";
@@ -5,7 +6,7 @@ import { dataURLForWaveform } from "../utils/waveform";
 import { AbstractClip, BaseClip, Seconds } from "./BaseClip";
 import { SharedAudioBuffer } from "./SharedAudioBuffer";
 import { SOUND_LIB_FOR_HISTORY, loadSound } from "./loadSound";
-import { SPrimitive } from "./state/LinkedState";
+
 import { MutationHashable } from "./state/MutationHashable";
 import { Subbable } from "./state/Subbable";
 

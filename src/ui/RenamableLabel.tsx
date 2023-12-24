@@ -1,15 +1,35 @@
 import classNames from "classnames";
-import { MouseEvent, useCallback, useRef, useState } from "react";
+import { MouseEvent, useCallback, useEffect, useRef, useState } from "react";
 import { createUseStyles } from "react-jss";
 
+function usePotentialInternalState<T>(
+  mode: "internal" | "external",
+  value: T,
+  setValue: (val: T) => void,
+): [T, (val: T) => void] {
+  const [internal, setInternal] = useState<T>(value);
+  useEffect(() => {
+    if (mode === "internal") {
+      setInternal(value);
+    }
+  }, [mode, value]);
+
+  if (mode === "internal") {
+    return [internal, setInternal];
+  } else {
+    return [value, setValue];
+  }
+}
+
 export function RenamableLabel({
-  value,
-  setValue,
+  value: eValue,
+  setValue: setEValue,
   onDoubleClick: onDoubleClickMaybe,
   highlightFocus,
   disabled,
   className,
   showEditButton,
+  mode = "enter",
   ...divProps
 }: {
   value: string;
@@ -17,11 +37,13 @@ export function RenamableLabel({
   highlightFocus?: boolean;
   disabled?: boolean;
   showEditButton?: boolean;
+  mode?: "immediate" | "enter";
 } & React.HTMLAttributes<HTMLDivElement>) {
   const classes = useStyles();
   const renameInputRef = useRef<HTMLInputElement>(null);
   const [isRenaming, setIsRenaming] = useState(false);
   const showEdit = Boolean(showEditButton);
+  const [value, setValue] = usePotentialInternalState<string>("internal", eValue, setEValue);
 
   const onDoubleClick = useCallback(
     (e: MouseEvent<HTMLDivElement>) => {
@@ -65,13 +87,24 @@ export function RenamableLabel({
           type="text"
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          onKeyDown={(e) => e.stopPropagation()}
-          onKeyUp={(e) => e.stopPropagation()}
-          onKeyPress={(e) => {
+          onKeyDown={(e) => {
             e.stopPropagation();
             if (e.key === "Enter") {
               setIsRenaming(false);
+              if (mode === "enter") {
+                setEValue(value);
+              }
             }
+            if (e.key === "Escape") {
+              setIsRenaming(false);
+              if (mode === "enter") {
+                setValue(eValue);
+              }
+            }
+          }}
+          onKeyUp={(e) => e.stopPropagation()}
+          onKeyPress={(e) => {
+            e.stopPropagation();
           }}
           onClick={(e) => e.stopPropagation()}
           onMouseUp={(e) => e.stopPropagation()}

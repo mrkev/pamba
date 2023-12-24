@@ -1,7 +1,7 @@
 import classNames from "classnames";
 import React, { useCallback, useRef, useState } from "react";
 import { createUseStyles } from "react-jss";
-import { useContainer } from "structured-state";
+import { useContainer, usePrimitive } from "structured-state";
 import { TRACK_SEPARATOR_HEIGHT } from "../constants";
 import { useTrackMouseEvents } from "../input/useTrackMouseEvents";
 import { AudioClip } from "../lib/AudioClip";
@@ -91,7 +91,7 @@ export function TrackA({
   const [pressed] = useLinkedState(pressedState);
   const [selected] = useLinkedState(project.selected);
   const clips = useContainer(track.clips);
-  const [height] = useLinkedState(track.height);
+  const [height] = usePrimitive(track.height);
   const [activeTrack] = useLinkedState(project.activeTrack);
   const [lockedTracks] = useLinkedSet(project.lockedTracks);
   const [audioStorage] = useLinkedState(project.audioStorage);

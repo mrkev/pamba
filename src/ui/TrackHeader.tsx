@@ -1,12 +1,12 @@
 import classNames from "classnames";
 import React, { useState } from "react";
 import { createUseStyles } from "react-jss";
+import { useContainer, usePrimitive } from "structured-state";
 import { EFFECT_HEIGHT, TRACK_SEPARATOR_HEIGHT } from "../constants";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioTrack } from "../lib/AudioTrack";
 import { AudioProject, ProjectSelection } from "../lib/project/AudioProject";
-import { useLinkedArray } from "../lib/state/LinkedArray";
 import { useLinkedSet } from "../lib/state/LinkedSet";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { MidiTrack } from "../midi/MidiTrack";
@@ -33,9 +33,9 @@ export const TrackHeader = React.memo(function TrackHeader({
   const [dspExpandedTracks] = useLinkedSet(project.dspExpandedTracks);
   const [solodTracks] = useLinkedSet(project.solodTracks);
   const [lockedTracks] = useLinkedSet(project.lockedTracks);
-  const [trackEffects] = useLinkedArray(track.effects);
-  const [trackName, setTrackName] = useLinkedState(track.name);
-  const [height] = useLinkedState(track.height);
+  const trackEffects = useContainer(track.effects);
+  const [trackName, setTrackName] = usePrimitive(track.name);
+  const [height] = usePrimitive(track.height);
   const [selected] = useLinkedState(project.selected);
   const [activeTrack] = useLinkedState(project.activeTrack);
   const [armedTrack] = useLinkedState(project.armedTrack);

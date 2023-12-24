@@ -17,6 +17,7 @@ export function UtilityTabbedPanel<P extends Record<string, Panel>>({
   expandedSize = 220,
   style,
   extraControls,
+  className,
 }: {
   activeTab: keyof P | null;
   onSelectTab: SetState<keyof P | null>;
@@ -25,6 +26,7 @@ export function UtilityTabbedPanel<P extends Record<string, Panel>>({
   expandedSize?: number;
   style?: React.CSSProperties;
   extraControls?: React.ReactNode;
+  className?: string;
 }) {
   const styles = useStyles();
   const activePanel = activeTab != null ? panels[activeTab] : null;
@@ -36,6 +38,7 @@ export function UtilityTabbedPanel<P extends Record<string, Panel>>({
   return (
     <div
       className={classNames(
+        className,
         styles.panel,
         layout === "vertical" && styles.panelVertical,
         isCollapsed && layout === "horizontal" && styles.panelCollapsedHorizontal,

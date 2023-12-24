@@ -1,5 +1,5 @@
 import type { AudioContextInfo } from "../lib/initAudioContext";
-import type { SPrimitive } from "../lib/state/LinkedState";
+import type { SPrimitive } from "structured-state";
 
 export abstract class DSPNode<I extends AudioNode | null = AudioNode> {
   private readonly destinations: Set<AudioNode | DSPNode> = new Set();

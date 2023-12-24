@@ -38,10 +38,10 @@ export function AudioClipEditor({
   const containerRef = useRef<HTMLDivElement>(null);
   const playbackDiv = useRef<HTMLDivElement>(null);
   const backgroundRef = useRef<HTMLCanvasElement>(null);
-  const [name] = useLinkedState(clip.name);
+  const [name] = usePrimitive(clip.name);
   const [bpm] = useLinkedState(project.tempo);
-  const [scrollLeft] = useLinkedState(clip.detailedViewport.scrollLeft);
-  const [pxPerSec] = useLinkedState(clip.detailedViewport.pxPerSec);
+  const [scrollLeft] = usePrimitive(clip.detailedViewport.scrollLeft);
+  const [pxPerSec] = usePrimitive(clip.detailedViewport.pxPerSec);
   const waveformRef = useRef<HTMLCanvasElement>(null);
   const [waveformStartFr, setWaveformStartFr] = useState(0);
   const [scale, setScale] = useState(80);

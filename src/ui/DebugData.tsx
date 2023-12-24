@@ -1,4 +1,4 @@
-import { useContainer } from "structured-state";
+import { debugOut, useContainer } from "structured-state";
 import { AudioProject } from "../lib/project/AudioProject";
 import { PrimarySelectionState } from "../lib/project/SelectionState";
 import { useLinkedSet } from "../lib/state/LinkedSet";
@@ -123,7 +123,23 @@ export function DebugContent({ project }: { project: AudioProject }) {
 
   return (
     <>
-      <div style={{ overflow: "scroll", background: "#222" }}>
+      <pre
+        style={{
+          overflow: "scroll",
+          background: "#222",
+          margin: "0px 4px",
+          textAlign: "left",
+          width: 300,
+          fontSize: 12,
+          userSelect: "text",
+        }}
+      >
+        ## Track Structure
+        <br />
+        <br />
+        {debugOut(tracks, 0, false)}
+      </pre>
+      <div style={{ overflow: "scroll", background: "#222", flexGrow: 1 }}>
         <pre>
           |{viewportStartPx}px -{projectDivWidth}-
         </pre>
@@ -139,19 +155,18 @@ export function DebugContent({ project }: { project: AudioProject }) {
           Active Track: {activeTrack?.name.get()}
         </div>
       </div>
-      <div>
-        <div
-          style={{
-            marginLeft: 4,
-            overflow: "scroll",
-            background: "#222",
-            flexShrink: 1,
-            minHeight: 0,
-            maxHeight: "100%",
-          }}
-        >
-          <pre>{allState}</pre>
-        </div>
+
+      <div
+        style={{
+          marginLeft: 4,
+          overflow: "scroll",
+          background: "#222",
+          flexShrink: 1,
+          minHeight: 0,
+          maxHeight: "100%",
+        }}
+      >
+        <pre>{allState}</pre>
       </div>
     </>
   );

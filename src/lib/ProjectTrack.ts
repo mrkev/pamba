@@ -1,4 +1,4 @@
-import { SSchemaArray } from "structured-state";
+import { SArray, SPrimitive, SSchemaArray } from "structured-state";
 import { liveAudioContext } from "../constants";
 import { DSPNode } from "../dsp/DSPNode";
 import { EffectID } from "../dsp/FAUST_EFFECTS";
@@ -6,19 +6,39 @@ import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
 import { nullthrows } from "../utils/nullthrows";
 import { PambaWamNode } from "../wam/PambaWamNode";
 import { appEnvironment } from "./AppEnvironment";
+import { AudioClip } from "./AudioClip";
 import { AbstractClip, Seconds } from "./BaseClip";
 import { addClip, deleteTime, pushClip, removeClip, splitClip } from "./BaseClipFn";
 import { connectSerialNodes } from "./connectSerialNodes";
 import { AudioContextInfo } from "./initAudioContext";
 import { PBGainNode } from "./offlineNodes";
 import type { AudioProject } from "./project/AudioProject";
-import { LinkedArray } from "./state/LinkedArray";
-import { SPrimitive } from "./state/LinkedState";
-import { AudioClip } from "./AudioClip";
+
+class ProjectTrackNode<T extends AbstractClip<any>> extends DSPNode<null> {
+  override readonly effectId = "builtin:ProjectTrackNode";
+  override name: string | SPrimitive<string>;
+  constructor(private readonly track: ProjectTrack<T>) {
+    super();
+    this.name = track.name;
+  }
+
+  override inputNode(): null {
+    return null;
+  }
+
+  override outputNode() {
+    return this.track._hiddenGainNode;
+  }
+
+  override cloneToOfflineContext(_context: OfflineAudioContext): Promise<DSPNode<AudioNode> | null> {
+    throw new Error("AudioTrack: DSPNode: can't cloneToOfflineContext.");
+  }
+}
 
 export abstract class ProjectTrack<T extends AbstractClip<any>> extends DSPNode<null> {
   public readonly name: SPrimitive<string>;
   public readonly height: SPrimitive<number>;
+  public readonly node: ProjectTrackNode<T>;
 
   abstract prepareForPlayback(context: AudioContext): void;
   abstract prepareForBounce(context: OfflineAudioContext, offlineContextInfo: AudioContextInfo): Promise<AudioNode>;
@@ -34,7 +54,7 @@ export abstract class ProjectTrack<T extends AbstractClip<any>> extends DSPNode<
   public abstract readonly clips: SSchemaArray<any>; // TODO: <T>, not there cause midi clip isn't ready
 
   // DSP
-  public readonly effects: LinkedArray<FaustAudioEffect | PambaWamNode>;
+  public readonly effects: SArray<FaustAudioEffect | PambaWamNode>;
   // The "volume" of the track
   public readonly gainNode: PBGainNode;
   // Hidden gain node, just for solo-ing tracks.
@@ -60,10 +80,11 @@ export abstract class ProjectTrack<T extends AbstractClip<any>> extends DSPNode<
   constructor(name: string, effects: (FaustAudioEffect | PambaWamNode)[], height: number) {
     super();
     this.name = SPrimitive.of(name);
-    this.effects = LinkedArray.create(effects);
+    this.effects = SArray.create(effects);
     this.height = SPrimitive.of<number>(height);
     this.gainNode = new PBGainNode();
     this._hiddenGainNode = new PBGainNode();
+    this.node = new ProjectTrackNode(this);
   }
 
   public connectToDSPForPlayback(source: AudioNode): void {
