@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { BaseClip } from "../BaseClip";
 
 function clip(startOffset: number, endOffset: number) {
-  const result = BaseClip.of2(startOffset, endOffset, 0, endOffset - startOffset);
+  const result = BaseClip.of(startOffset, endOffset, 0, endOffset - startOffset);
   // result.startOffsetSec = startOffset;
   return result;
 }

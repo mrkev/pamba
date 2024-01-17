@@ -15,8 +15,17 @@ class AudioViewport {
   readonly scrollLeft = SPrimitive.of(0);
 }
 
+interface Structured<S> {
+  _simplify(): S;
+  _replace(json: S): void;
+  // _construct(json: S)
+}
+
 // A clip of audio, this has _hash and _subscriptors from BaseClip extending Struct
-export class AudioClip extends BaseClip implements Subbable<AudioClip>, MutationHashable, AbstractClip<Seconds> {
+export class AudioClip
+  extends BaseClip
+  implements Subbable<AudioClip>, MutationHashable, AbstractClip<Seconds>, Structured<SAudioClip>
+{
   // AudioClip
   readonly unit = "sec";
   readonly name: SPrimitive<string>;

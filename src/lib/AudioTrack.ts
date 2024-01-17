@@ -1,7 +1,6 @@
-import { SSchemaArray } from "structured-state";
 import * as s from "structured-state";
+import { SSchemaArray } from "structured-state";
 import { CLIP_HEIGHT } from "../constants";
-import { DSPNode } from "../dsp/DSPNode";
 import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
 import { MidiTrack } from "../midi/MidiTrack";
 import { mixDown } from "../mixDown";
@@ -15,17 +14,12 @@ import { AudioProject } from "./project/AudioProject";
 
 export class AudioTrack extends ProjectTrack<AudioClip> {
   public override clips: SSchemaArray<AudioClip>;
-  override effectId: string = "Builtin:AudioTrack";
 
   // For background processing
   private thread_UNUSED = new TrackThread();
 
   // if audo is playing, this is the soruce with the playing buffer
   private playingSource: AudioBufferSourceNode | null;
-
-  override cloneToOfflineContext(_context: OfflineAudioContext): Promise<DSPNode<AudioNode> | null> {
-    throw new Error("AudioTrack: DSPNode: can't cloneToOfflineContext.");
-  }
 
   private constructor(name: string, clips: AudioClip[], effects: (FaustAudioEffect | PambaWamNode)[], height: number) {
     super(name, effects, height);

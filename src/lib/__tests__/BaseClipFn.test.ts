@@ -5,7 +5,7 @@ import { BaseClip } from "../BaseClip";
 import { addClip, assertClipInvariants, deleteTime, printClips, pushClip, removeClip, splitClip } from "../BaseClipFn";
 
 function bclip(startOffset: number, endOffset: number): BaseClip {
-  const result = BaseClip.of2(startOffset, endOffset - startOffset, 0, endOffset - startOffset);
+  const result = BaseClip.of(startOffset, endOffset - startOffset, 0, endOffset - startOffset);
   result.timelineStartSec = startOffset;
   return result;
 }

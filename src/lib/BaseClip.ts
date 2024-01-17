@@ -46,7 +46,7 @@ export class BaseClip extends Struct<BaseClip> implements AbstractClip<Seconds> 
     return `${this._timelineStartSec} | ${this._bufferOffset} [ ${this.clipLengthSec} ] ${this.timelineEndSec}`;
   }
 
-  static of2(timelineStart: number, clipLengthSec: number, bufferOffset: number, bufferLength: number) {
+  static of(timelineStart: number, clipLengthSec: number, bufferOffset: number, bufferLength: number) {
     return create(BaseClip, { bufferLength, bufferOffset, timelineStart, clipLengthSec });
   }
 

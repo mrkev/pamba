@@ -1,4 +1,4 @@
-import { SArray, SPrimitive, SSchemaArray } from "structured-state";
+import { SArray, SPrimitive, SSchemaArray, Struct } from "structured-state";
 import { liveAudioContext } from "../constants";
 import { DSPNode } from "../dsp/DSPNode";
 import { EffectID } from "../dsp/FAUST_EFFECTS";
@@ -35,7 +35,7 @@ class ProjectTrackNode<T extends AbstractClip<any>> extends DSPNode<null> {
   }
 }
 
-export abstract class ProjectTrack<T extends AbstractClip<any>> extends DSPNode<null> {
+export abstract class ProjectTrack<T extends AbstractClip<any>> {
   public readonly name: SPrimitive<string>;
   public readonly height: SPrimitive<number>;
   public readonly node: ProjectTrackNode<T>;
@@ -78,7 +78,6 @@ export abstract class ProjectTrack<T extends AbstractClip<any>> extends DSPNode<
   }
 
   constructor(name: string, effects: (FaustAudioEffect | PambaWamNode)[], height: number) {
-    super();
     this.name = SPrimitive.of(name);
     this.effects = SArray.create(effects);
     this.height = SPrimitive.of<number>(height);
@@ -114,18 +113,6 @@ export abstract class ProjectTrack<T extends AbstractClip<any>> extends DSPNode<
       const nextNode = chain[i + 1];
       currentNode.disconnect(nextNode);
     }
-  }
-
-  override inputNode(): null {
-    return null;
-  }
-
-  override outputNode() {
-    return this._hiddenGainNode;
-  }
-
-  override cloneToOfflineContext(_context: OfflineAudioContext): Promise<DSPNode<AudioNode> | null> {
-    throw new Error("AudioTrack: DSPNode: can't cloneToOfflineContext.");
   }
 
   //////////// CLIPS ////////////
@@ -207,7 +194,7 @@ export abstract class ProjectTrack<T extends AbstractClip<any>> extends DSPNode<
 
   /////////////// DEBUGGING /////////////////
 
-  override toString() {
+  toString() {
     return this.clips
       ._getRaw()
       .map((c) => c.toString())

@@ -71,7 +71,6 @@ const SAMPLE_STATE = {
 
 export class MidiTrack extends ProjectTrack<MidiClip> {
   public override clips: SSchemaArray<MidiClip>;
-  override effectId: string = "Builtin:MidiTrack";
   // todo: instrument can be empty?
   instrument: MidiInstrument;
   pianoRoll: PianoRollModule;
