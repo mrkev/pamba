@@ -16,6 +16,7 @@ import { LocalFilesystem } from "../data/localFilesystem";
 import { AudioRenderer } from "./AudioRenderer";
 import { AnalizedPlayer } from "./AnalizedPlayer";
 import { LocalSPrimitive } from "../ui/useLocalStorage";
+import { FAUST_EFFECTS } from "../dsp/FAUST_EFFECTS";
 
 export type WAMAvailablePlugin = {
   // midi out, audio out, midi to audio, audio to audio
@@ -35,7 +36,7 @@ export class AppEnvironment {
   readonly wamHostGroup = SPrimitive.of<[id: string, key: string] | null>(null);
   readonly wamPlugins = LinkedMap.create<string, WAMAvailablePlugin>(new Map());
   readonly wamStatus = SPrimitive.of<"loading" | "ready">("loading");
-  readonly faustEffects = ["PANNER", "REVERB"] as const;
+  readonly faustEffects = Object.keys(FAUST_EFFECTS) as (keyof typeof FAUST_EFFECTS)[];
   // Project
   readonly projectStatus: SPrimitive<ProjectState>;
   readonly localFiles: LocalFilesystem = new LocalFilesystem();
