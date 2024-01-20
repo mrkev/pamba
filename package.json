@@ -1,6 +1,6 @@
 {
   "name": "pamba",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "//notes": [
     "js-sha256 added for faust2webaudio"

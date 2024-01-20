@@ -29,7 +29,7 @@ export function App(): React.ReactElement {
           padding: 48,
         }}
       >
-        cephei v0.1.0 (alpha)
+        cephei v{__APP_VERSION__} (alpha)
         <br />
         ---
         <br />

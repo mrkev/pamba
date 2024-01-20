@@ -18,6 +18,9 @@ export default defineConfig({
     root: "src",
     environment: "jsdom",
   },
+  define: {
+    __APP_VERSION__: JSON.stringify(process.env.npm_package_version),
+  },
   build: {
     minify: "terser",
     outDir: "./build",

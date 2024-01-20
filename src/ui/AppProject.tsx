@@ -8,7 +8,7 @@ import { AudioRenderer } from "../lib/AudioRenderer";
 import { AudioProject } from "../lib/project/AudioProject";
 import { BottomPanel } from "./BottomPanel";
 import { DebugContent } from "./DebugData";
-import { Help, History, Settings } from "./History";
+import { Help, History, Settings } from "./history";
 import { Library } from "./Library";
 import { ProjectSettings } from "./ProjectSettings";
 import { TimelineView } from "./TimelineView";
@@ -110,7 +110,7 @@ export function AppProject({ project }: { project: AudioProject }) {
             render: () => (
               <div style={{ userSelect: "all" }}>
                 <pre>
-                  cephei v0.1.0
+                  cephei v{__APP_VERSION__}
                   <br />
                   ---
                   <br />
