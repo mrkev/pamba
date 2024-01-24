@@ -128,7 +128,7 @@ export function deleteTime<Clip extends AbstractClip<U>, U extends Pulses | Seco
     // Trim the start of the clip
     if (remStart) {
       // need to remove and re-sort clip
-      current.trimToOffsetU(end as U);
+      current.trimStartToTimelineU(end as U);
       toRemove.push(current);
       toResort.push(current);
       notifyClips.push(current);
@@ -157,7 +157,7 @@ export function deleteTime<Clip extends AbstractClip<U>, U extends Pulses | Seco
       toResort.push(second);
 
       first._setTimelineEndU(start as U);
-      second.trimToOffsetU(end as U);
+      second.trimStartToTimelineU(end as U);
       console.log("HERE");
     }
   }
@@ -216,7 +216,7 @@ export function splitClip<Clip extends AbstractClip<U>, U extends Pulses | Secon
 
   const clipAfter = clip.clone() as Clip;
 
-  clipAfter.trimToOffsetU(timelineTime as U);
+  clipAfter.trimStartToTimelineU(timelineTime as U);
   clip._setTimelineEndU(timelineTime as U);
   clips.splice(i + 1, 0, clipAfter);
 

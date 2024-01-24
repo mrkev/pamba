@@ -174,7 +174,7 @@ export async function construct(
       const obxd = await MidiInstrument.createFromUrl(
         "https://mainline.i3s.unice.fr/wam2/packages/obxd/index.js",
         wamHostGroupId,
-        liveAudioContext,
+        liveAudioContext(),
       );
       return MidiTrack.createWithInstrument(obxd, name, clips);
     }
@@ -184,7 +184,7 @@ export async function construct(
       return new AudioProject(tracks, projectId, projectName, tempo);
     }
     case "FaustAudioEffect": {
-      const effect = await FaustAudioEffect.create(liveAudioContext, rep.effectId, rep.params);
+      const effect = await FaustAudioEffect.create(liveAudioContext(), rep.effectId, rep.params);
       if (effect == null) {
         throw new Error(`Could not initialize effect ${rep.effectId}`);
       }
@@ -194,7 +194,7 @@ export async function construct(
       const { pluginURL, state } = rep;
       const [wamHostGroupId] = nullthrows(appEnvironment.wamHostGroup.get(), "wam host not initialized yet!");
       const pambaWamNode = nullthrows(
-        await PambaWamNode.fromURL(pluginURL, wamHostGroupId, liveAudioContext),
+        await PambaWamNode.fromURL(pluginURL, wamHostGroupId, liveAudioContext()),
         "could not create PambaWamNode",
       );
       await pambaWamNode.setState(state);

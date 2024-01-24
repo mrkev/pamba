@@ -8,7 +8,7 @@ export class PBGainNode extends DSPNode<AudioNode> {
   readonly node: GainNode;
   readonly gain: AudioParam;
 
-  constructor(gainNode: GainNode = new GainNode(liveAudioContext)) {
+  constructor(gainNode: GainNode = new GainNode(liveAudioContext())) {
     super();
     this.node = gainNode;
     this.gain = this.node.gain;

@@ -164,7 +164,7 @@ export class AudioProject {
 
   static async addMidiTrack(project: AudioProject, track?: MidiTrack) {
     const wamHostGroupId = nullthrows(appEnvironment.wamHostGroup.get())[0];
-    const obxd = await MidiInstrument.createFromUrl(SYNTH_101_URL, wamHostGroupId, liveAudioContext);
+    const obxd = await MidiInstrument.createFromUrl(SYNTH_101_URL, wamHostGroupId, liveAudioContext());
     const newTrack = track ?? (await MidiTrack.createWithInstrument(obxd, "midi track"));
     project.allTracks.unshift(newTrack);
     return newTrack;

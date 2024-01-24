@@ -110,7 +110,7 @@ export class MidiTrack extends ProjectTrack<MidiClip> {
     const [groupId] = nullthrows(appEnvironment.wamHostGroup.get());
     const pianoRollPlugin = nullthrows(appEnvironment.wamPlugins.get(PIANO_ROLL_PLUGIN_URL), "Piano Roll not found!");
     // const pianoRoll = await pianoRollPlugin.import.createInstance(groupId, liveAudioContext);
-    const pianoRoll = await PianoRollModule.createInstance<PianoRollNode>(groupId, liveAudioContext);
+    const pianoRoll = await PianoRollModule.createInstance<PianoRollNode>(groupId, liveAudioContext());
     await (pianoRoll as PianoRollModule).sequencer.setState(SAMPLE_STATE);
 
     // const pianoRollDom = await pianoRoll.createGui();

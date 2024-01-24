@@ -1,22 +1,21 @@
-import { SString, Struct, StructProps } from "structured-state";
-import { LIVE_SAMPLE_RATE } from "../constants";
+import * as s from "structured-state";
+import { SArray, SString, Struct, StructProps } from "structured-state";
+import { liveAudioContext } from "../constants";
 import { AbstractClip, Pulses } from "../lib/BaseClip";
 import { AudioProject } from "../lib/project/AudioProject";
-import { SArray } from "structured-state";
 import { MutationHashable } from "../lib/state/MutationHashable";
 import { Subbable, notify } from "../lib/state/Subbable";
 import { nullthrows } from "../utils/nullthrows";
+import { mutable } from "../utils/types";
 import { PPQN } from "../wam/pianorollme/MIDIConfiguration";
 import { MidiTrack } from "./MidiTrack";
 import type { Note } from "./SharedMidiTypes";
-import { mutable } from "../utils/types";
-import * as s from "structured-state";
 
 export const SECS_IN_MIN = 60;
 
 export function pulsesToFr(pulses: number, bpm: number) {
   // TODO: not a constant sample rate
-  const k = (LIVE_SAMPLE_RATE * SECS_IN_MIN) / PPQN;
+  const k = (liveAudioContext().sampleRate * SECS_IN_MIN) / PPQN;
   return (k * pulses) / bpm;
 }
 
@@ -103,7 +102,7 @@ export class MidiClip extends Struct<MidiClip> implements Subbable<MidiClip>, Mu
     this.lengthPulses = (newEnd - this._startOffsetPulses) as Pulses;
   }
 
-  trimToOffsetU(timePulses: number) {
+  trimStartToTimelineU(timePulses: number) {
     if (timePulses < this._startOffsetPulses) {
       return;
     }

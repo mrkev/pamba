@@ -1,12 +1,12 @@
 import { SArray } from "structured-state";
 import { describe, expect, it } from "vitest";
 import { nullthrows } from "../../utils/nullthrows";
-import { BaseClip } from "../BaseClip";
+import { BaseClip, secs } from "../BaseClip";
 import { addClip, assertClipInvariants, deleteTime, printClips, pushClip, removeClip, splitClip } from "../BaseClipFn";
 
 function bclip(startOffset: number, endOffset: number): BaseClip {
   const result = BaseClip.of(startOffset, endOffset - startOffset, 0, endOffset - startOffset);
-  result.timelineStartSec = startOffset;
+  result.timelineStartSec = secs(startOffset);
   return result;
 }
 

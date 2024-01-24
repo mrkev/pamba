@@ -1,4 +1,4 @@
-import { SArray, SPrimitive, SSchemaArray, Struct } from "structured-state";
+import { SArray, SPrimitive, SSchemaArray } from "structured-state";
 import { liveAudioContext } from "../constants";
 import { DSPNode } from "../dsp/DSPNode";
 import { EffectID } from "../dsp/FAUST_EFFECTS";
@@ -175,7 +175,7 @@ export abstract class ProjectTrack<T extends AbstractClip<any>> {
   //////////////////// EFFECTS //////////////////////
 
   async addEffect(effectId: EffectID) {
-    const effect = await FaustAudioEffect.create(liveAudioContext, effectId);
+    const effect = await FaustAudioEffect.create(liveAudioContext(), effectId);
     if (effect == null) {
       return;
     }
@@ -184,7 +184,7 @@ export abstract class ProjectTrack<T extends AbstractClip<any>> {
 
   async addWAM(url: string) {
     const [hostGroupId] = nullthrows(appEnvironment.wamHostGroup.get());
-    const module = await PambaWamNode.fromURL(url, hostGroupId, liveAudioContext);
+    const module = await PambaWamNode.fromURL(url, hostGroupId, liveAudioContext());
     if (module == null) {
       console.error("Error: NO MODULE");
       return;

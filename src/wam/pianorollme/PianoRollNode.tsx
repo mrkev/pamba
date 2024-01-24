@@ -1,5 +1,5 @@
-import { WamEventMap, WamTransportData } from "@webaudiomodules/api";
-import { WebAudioModule, WamNode } from "../../../packages/sdk/dist/index";
+import { WamEventMap } from "@webaudiomodules/api";
+import { WamNode, WebAudioModule } from "../../../packages/sdk/dist/index";
 // import { h, render } from "preact";
 
 import { PatternDelegate } from "wam-extensions";
@@ -13,6 +13,12 @@ import { Clip } from "./PianoRollClip";
 // import { insertStyle } from "../../shared/insertStyle";
 
 // import { MIDIConfiguration } from "./MIDIConfiguration";
+import { NoteDefinition } from "wam-extensions";
+import { PianoRollProcessorMessage, SimpleMidiClip } from "../../midi/SharedMidiTypes";
+import { ignorePromise } from "../../utils/ignorePromise";
+import { MIDIConfiguration } from "./MIDIConfiguration";
+import { NoteCanvasRenderState, NoteCanvasRenderer } from "./NoteCanvasRenderer";
+import { ClipState } from "./PianoRollClip";
 import PianoRollProcessorUrl from "./PianoRollProcessor?url";
 import DescriptorUrl from "./descriptor.json?url";
 
@@ -269,12 +275,6 @@ export class PianoRollModule extends WebAudioModule<PianoRollNode> {
     window.WAMExtensions.patterns.setPatternDelegate(this.instanceId, patternDelegate);
   }
 }
-import { ClipState } from "./PianoRollClip";
-import { NoteDefinition } from "wam-extensions";
-import { MIDIConfiguration } from "./MIDIConfiguration";
-import { ignorePromise } from "../../utils/ignorePromise";
-import { NoteCanvasRenderState, NoteCanvasRenderer } from "./NoteCanvasRenderer";
-import { PianoRollProcessorMessage, SimpleMidiClip } from "../../midi/SharedMidiTypes";
 
 export type MIDIEvent = Uint8Array;
 export type ScheduledMIDIEvent = {

@@ -1,8 +1,20 @@
-import { describe, expect, it } from "vitest";
+import "./mockWebAudio";
 
-import { BaseClip } from "../BaseClip";
+import { AudioBuffer } from "standardized-audio-context-mock";
+import { describe, expect, it } from "vitest";
+import { AudioClip } from "../AudioClip";
+import { BaseClip, secs } from "../BaseClip";
 
 function clip(startOffset: number, endOffset: number) {
+  const buffer = new AudioBuffer({ length: 44100 * 15, sampleRate: 44100 });
+  return AudioClip.fromBuffer(buffer, "url", "foo", {
+    bufferOffset: 0,
+    timelineStartSec: startOffset,
+    clipLengthSec: endOffset - startOffset,
+  });
+}
+
+function bclip(startOffset: number, endOffset: number) {
   const result = BaseClip.of(startOffset, endOffset, 0, endOffset - startOffset);
   // result.startOffsetSec = startOffset;
   return result;
@@ -11,7 +23,7 @@ function clip(startOffset: number, endOffset: number) {
 describe("timelineStartSec", () => {
   it("changing timelineStartSec moves the clip", () => {
     const foo = clip(0, 1);
-    foo.timelineStartSec = 10;
+    foo.timelineStartSec = secs(10);
 
     expect(foo.timelineStartSec).toBe(10);
     expect(foo.timelineEndSec).toBe(11);

@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { nullthrows } from "../utils/nullthrows";
+import { AudioClip } from "./AudioClip";
+import { AudioRenderer } from "./AudioRenderer";
+import { AudioTrack } from "./AudioTrack";
+import { secs } from "./BaseClip";
+import { AudioProject } from "./project/AudioProject";
 import { LinkedMap } from "./state/LinkedMap";
 import { SPrimitive } from "./state/LinkedState";
-import { AudioClip } from "./AudioClip";
-import { AudioTrack } from "./AudioTrack";
-import { AudioProject } from "./project/AudioProject";
-import { AudioRenderer } from "./AudioRenderer";
 import { ignorePromise } from "./state/Subbable";
 
 function useMediaRecorder(loadClip: (url: string, name?: string) => void) {
@@ -55,7 +56,7 @@ export class AudioRecorder {
       console.log("LOAD CLIP", this.project.cursorPos.get());
       // load clip
       const clip = await AudioClip.fromURL(url, name);
-      clip.timelineStartSec = this.project.cursorPos.get();
+      clip.timelineStartSec = secs(this.project.cursorPos.get());
 
       const armedTrack = this.project.armedTrack.get();
       if (armedTrack == null) {

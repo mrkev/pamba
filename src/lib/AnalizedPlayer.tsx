@@ -1,5 +1,5 @@
 import { SPrimitive } from "structured-state";
-import { liveAudioContext, sampleSize } from "../constants";
+import { liveAudioContext as liveAudioContextFn, sampleSize } from "../constants";
 import { MidiTrack } from "../midi/MidiTrack";
 // import SharedBufferWorkletNode from "./lib/shared-buffer-worklet-node";
 import { AudioTrack } from "./AudioTrack";
@@ -13,6 +13,8 @@ import { OscilloscopeNode } from "./OscilloscopeNode";
 // sbwNode.onError = (errorData) => {
 //   logger.post('[ERROR] ' + errorData.detail);
 // };
+
+const liveAudioContext = liveAudioContextFn();
 
 export class AnalizedPlayer {
   private readonly oscilloscope = new OscilloscopeNode();

@@ -11,8 +11,8 @@ export class OscilloscopeNode extends DSPNode {
   }
   override effectId: string = "OscilloscopeNode";
   private readonly amplitudeArray: Uint8Array = new Uint8Array();
-  private readonly analyserNode = liveAudioContext.createAnalyser();
-  private readonly javascriptNode = liveAudioContext.createScriptProcessor(sampleSize, 1, 1);
+  private readonly analyserNode = liveAudioContext().createAnalyser();
+  private readonly javascriptNode = liveAudioContext().createScriptProcessor(sampleSize, 1, 1);
   public canvasCtx: CanvasRenderingContext2D | null = null;
 
   public override inputNode(): AudioNode {

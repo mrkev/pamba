@@ -7,6 +7,7 @@ import { MidiClip, pulsesToSec } from "../../midi/MidiClip";
 import { SPrimitive } from "../state/LinkedState";
 import { AudioProject } from "./AudioProject";
 import { exhaustive } from "../state/Subbable";
+import { secs } from "../BaseClip";
 
 export type ClipboardState =
   | {
@@ -48,7 +49,7 @@ export function doPaste(project: AudioProject) {
 
           if (track instanceof AudioTrack && clip instanceof AudioClip) {
             const clone = clip.clone();
-            clone.timelineStartSec = project.cursorPos.get();
+            clone.timelineStartSec = secs(project.cursorPos.get());
 
             track.addClip(project, clone);
             if (lastOffset < clone.timelineEndSec) {

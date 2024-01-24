@@ -4,9 +4,9 @@ import { liveAudioContext } from "./constants";
 // import "./font.scss";
 import "./index.css";
 import { appEnvironment } from "./lib/AppEnvironment";
+import { App } from "./ui/App";
 import { ignorePromise } from "./utils/ignorePromise";
 import { nullthrows } from "./utils/nullthrows";
-import { App } from "./ui/App";
 
 async function init() {
   const root = createRoot(nullthrows(document.getElementById("root")));
@@ -18,7 +18,7 @@ async function init() {
 
   try {
     await wait(1);
-    await appEnvironment.initAsync(liveAudioContext);
+    await appEnvironment.initAsync(liveAudioContext());
   } catch (e) {
     console.trace(e);
   }

@@ -2,6 +2,7 @@ import { MidiClip, secsToPulses } from "../midi/MidiClip";
 import { getOneTickLen } from "../ui/Axis";
 import { returnClosest, stepNumber } from "../utils/math";
 import { AudioClip } from "./AudioClip";
+import { secs } from "./BaseClip";
 import { AudioProject } from "./project/AudioProject";
 
 export function clipMoveSec(
@@ -12,7 +13,7 @@ export function clipMoveSec(
   snap: boolean,
 ) {
   if (!snap) {
-    clip.timelineStartSec = newOffsetSec;
+    clip.timelineStartSec = secs(newOffsetSec);
     clip._notifyChange();
   } else {
     const tempo = project.tempo.get();
@@ -20,7 +21,7 @@ export function clipMoveSec(
     const steppedToTick = stepNumber(newOffsetSec, tickBeatLength);
     const steppedToOriginalStart = stepNumber(newOffsetSec, tickBeatLength, originalStartOffsetSec);
     const result = returnClosest(newOffsetSec, steppedToTick, steppedToOriginalStart);
-    clip.timelineStartSec = result;
+    clip.timelineStartSec = secs(result);
     clip._notifyChange();
   }
 }

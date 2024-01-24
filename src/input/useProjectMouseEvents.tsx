@@ -13,6 +13,7 @@ import { pressedState } from "../pressedState";
 import { useDocumentEventListener, useEventListener } from "../ui/useEventListener";
 import { exhaustive } from "../utils/exhaustive";
 import { clamp } from "../utils/math";
+import { secs } from "../lib/BaseClip";
 
 export function timelineSecs(e: MouseEvent, projectDiv: HTMLDivElement, project: AudioProject) {
   const viewportStartPx = project.viewportStartPx.get();
@@ -324,7 +325,7 @@ export function useTimelineMouseEvents(
                 // and also prevent it from extending beyond its original length
                 pressed.clip.bufferLength - pressed.clip.bufferOffset,
               );
-              pressed.clip.clipLengthSec = newClipEnd;
+              pressed.clip.clipLengthSec = secs(newClipEnd);
             } else if (pressed.from === "start") {
               const newBufferOffset = clamp(
                 // let's not allow extending the beginning back before 0
@@ -346,9 +347,9 @@ export function useTimelineMouseEvents(
                 // since trimming from start, max is going back all the way to zero
                 pressed.originalClipLength + pressed.originalBufferOffset,
               );
-              pressed.clip.bufferOffset = newBufferOffset;
-              pressed.clip.timelineStartSec = newTimelineStartSec;
-              pressed.clip.clipLengthSec = newClipLength;
+              pressed.clip.bufferOffset = secs(newBufferOffset);
+              pressed.clip.timelineStartSec = secs(newTimelineStartSec);
+              pressed.clip.clipLengthSec = secs(newClipLength);
             } else {
               exhaustive(pressed.from);
             }

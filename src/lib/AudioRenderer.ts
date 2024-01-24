@@ -13,8 +13,8 @@ import { SPrimitive } from "./state/LinkedState";
 function getOfflineAudioContext(lenSec: number) {
   return new OfflineAudioContext({
     numberOfChannels: 2,
-    length: liveAudioContext.sampleRate * lenSec,
-    sampleRate: liveAudioContext.sampleRate,
+    length: liveAudioContext().sampleRate * lenSec,
+    sampleRate: liveAudioContext().sampleRate,
   });
 }
 

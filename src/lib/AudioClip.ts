@@ -3,10 +3,9 @@ import { staticAudioContext } from "../constants";
 import { SAudioClip } from "../data/serializable";
 import { nullthrows } from "../utils/nullthrows";
 import { dataURLForWaveform } from "../utils/waveform";
-import { AbstractClip, BaseClip, Seconds } from "./BaseClip";
+import { AbstractClip, BaseClip, Seconds, secs } from "./BaseClip";
 import { SharedAudioBuffer } from "./SharedAudioBuffer";
 import { SOUND_LIB_FOR_HISTORY, loadSound } from "./loadSound";
-
 import { MutationHashable } from "./state/MutationHashable";
 import { Subbable } from "./state/Subbable";
 
@@ -27,9 +26,9 @@ export class AudioClip
   implements Subbable<AudioClip>, MutationHashable, AbstractClip<Seconds>, Structured<SAudioClip>
 {
   // AudioClip
-  readonly unit = "sec";
   readonly name: SPrimitive<string>;
   readonly buffer: SharedAudioBuffer;
+  readonly dimensions: BaseClip;
 
   readonly numberOfChannels: number;
   readonly bufferURL: string;
@@ -56,9 +55,9 @@ export class AudioClip
     this.name.set(json.name);
     // note: can't change bufferURL, length. They're readonly to the audio buffer. Should be ok
     // cause audio buffer never changes, and all clips that replace this one will be the same buffer
-    this.bufferOffset = json.bufferOffset;
-    this.timelineStartSec = json.timelineStartSec;
-    this.clipLengthSec = json.clipLengthSec;
+    this.bufferOffset = secs(json.bufferOffset);
+    this.timelineStartSec = secs(json.timelineStartSec);
+    this.clipLengthSec = secs(json.clipLengthSec);
   }
 
   // NOTE: override construction
@@ -100,6 +99,13 @@ export class AudioClip
     this.name = SPrimitive.of(name);
     this.bufferURL = bufferURL;
     this.sampleRate = buffer.sampleRate;
+    // TODO: Place BaseClip based on dimension
+    this.dimensions = new BaseClip({
+      bufferLength: buffer.duration,
+      bufferOffset,
+      timelineStart: timelineStartSec,
+      clipLengthSec,
+    });
     console.log("CREATED AUDIO", this._id);
   }
 
@@ -108,7 +114,19 @@ export class AudioClip
     name?: string,
     dimensions?: { bufferOffset: number; timelineStartSec: number; clipLengthSec: number },
   ) {
-    const buffer = await loadSound(staticAudioContext, url);
+    const buffer = await loadSound(staticAudioContext(), url);
+    const bufferOffset = dimensions?.bufferOffset ?? 0;
+    const timelineStartSec = dimensions?.timelineStartSec ?? 0;
+    const clipLengthSec = dimensions?.clipLengthSec ?? buffer.length / buffer.sampleRate;
+    return new AudioClip(buffer, name || "untitled", url, bufferOffset, timelineStartSec, clipLengthSec);
+  }
+
+  static fromBuffer(
+    buffer: AudioBuffer,
+    url: string, // necessary to serialize
+    name?: string,
+    dimensions?: { bufferOffset: number; timelineStartSec: number; clipLengthSec: number },
+  ) {
     const bufferOffset = dimensions?.bufferOffset ?? 0;
     const timelineStartSec = dimensions?.timelineStartSec ?? 0;
     const clipLengthSec = dimensions?.clipLengthSec ?? buffer.length / buffer.sampleRate;
@@ -146,6 +164,14 @@ export class AudioClip
     }", cl:${this.clipLengthSec.toFixed(2)} ]`;
   }
 
+  public trimStartAddingTime(addedTime: number) {
+    this.featuredMutation(() => {
+      this.timelineStartSec = (this.timelineStartSec + addedTime) as Seconds;
+      this.bufferOffset = (this.bufferOffset + addedTime) as Seconds;
+      this.clipLengthSec = (this.clipLengthSec - addedTime) as Seconds;
+    });
+  }
+
   // Frames units
 
   private secToFr(sec: number): number {
@@ -163,11 +189,11 @@ export class AudioClip
   // Offset relates to the clip in the timeline
   // Pos referes to the position the audio-clip plays in an audio file
   get startOffsetFr() {
-    return this.secToFr(this._timelineStartSec);
+    return this.secToFr(this.timelineStartSec);
   }
 
   set startOffsetFr(frs: number) {
-    this._timelineStartSec = this.frToSec(frs);
+    this.timelineStartSec = this.frToSec(frs);
   }
 
   // on the timeline, the x position where + width (duration)
@@ -176,7 +202,7 @@ export class AudioClip
   }
 
   get trimStartFr() {
-    return this.secToFr(this._bufferOffset);
+    return this.secToFr(this.bufferOffset);
   }
 
   get durationFr() {

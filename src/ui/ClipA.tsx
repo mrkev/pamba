@@ -13,6 +13,7 @@ import { useLinkedState } from "../lib/state/LinkedState";
 import { pressedState } from "../pressedState";
 import { exhaustive } from "../utils/exhaustive";
 import { useEventListener } from "./useEventListener";
+import { secs } from "../lib/BaseClip";
 // import { dataWaveformToCanvas } from "../lib/waveformAsync";
 
 export function ClipA({
@@ -151,7 +152,7 @@ export function ClipA({
       case "trimEnd": {
         const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
         const secsFromStartPos = project.viewport.pxToSecs(pxFromStartOfClip);
-        clip.clipLengthSec = secsFromStartPos;
+        clip.clipLengthSec = secs(secsFromStartPos);
         clip._notifyChange();
         break;
       }
