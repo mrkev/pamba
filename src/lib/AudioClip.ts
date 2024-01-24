@@ -1,9 +1,9 @@
-import { SPrimitive } from "structured-state";
+import { SPrimitive, Structured } from "structured-state";
 import { staticAudioContext } from "../constants";
 import { SAudioClip } from "../data/serializable";
 import { nullthrows } from "../utils/nullthrows";
 import { dataURLForWaveform } from "../utils/waveform";
-import { AbstractClip, BaseClip, Seconds, secs } from "./BaseClip";
+import { AbstractClip, Seconds, secs } from "./AbstractClip";
 import { SharedAudioBuffer } from "./SharedAudioBuffer";
 import { SOUND_LIB_FOR_HISTORY, loadSound } from "./loadSound";
 import { MutationHashable } from "./state/MutationHashable";
@@ -14,30 +14,35 @@ class AudioViewport {
   readonly scrollLeft = SPrimitive.of(0);
 }
 
-interface Structured<S> {
-  _simplify(): S;
-  _replace(json: S): void;
-  // _construct(json: S)
-}
-
-// A clip of audio, this has _hash and _subscriptors from BaseClip extending Struct
-export class AudioClip
-  extends BaseClip
-  implements Subbable<AudioClip>, MutationHashable, AbstractClip<Seconds>, Structured<SAudioClip>
-{
+// A clip of Audio. Basic topology:
+//
+//                        [~~~|====== clip ========|~~~]
+// bufferLength:          +----------------------------+
+// bufferOffset:          +---+
+// +--timelineStartSec--------+
+// clipLength                 +--------------------+
+// +--timelineEndSec-------------------------------+
+// trimEndSec:            +------------------------+
+// trimStartSec:          +---+
+export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implements AbstractClip<Seconds> {
   // AudioClip
   readonly name: SPrimitive<string>;
   readonly buffer: SharedAudioBuffer;
-  readonly dimensions: BaseClip;
-
   readonly numberOfChannels: number;
   readonly bufferURL: string;
   readonly sampleRate: number; // how many frames per second
 
   readonly detailedViewport = new AudioViewport();
+  readonly unit = "sec";
 
-  // Struct: override simplification
-  _simplify(): SAudioClip {
+  // These properties represent media that has a certain length (in frames), but has
+  // been trimmed to be of another length.
+  readonly bufferLength: Seconds; // seconds, whole buffer
+  public timelineStartSec: Seconds; // on the timeline, the x position
+  public clipLengthSec: Seconds; // TODO: incorporate
+  public bufferOffset: Seconds;
+
+  override serialize(): SAudioClip {
     const { name, bufferURL } = this;
     const result: SAudioClip = {
       kind: "AudioClip",
@@ -50,8 +55,7 @@ export class AudioClip
     return result;
   }
 
-  // Struct: override replacement
-  _replace(json: SAudioClip) {
+  override replace(json: SAudioClip): void {
     this.name.set(json.name);
     // note: can't change bufferURL, length. They're readonly to the audio buffer. Should be ok
     // cause audio buffer never changes, and all clips that replace this one will be the same buffer
@@ -60,10 +64,10 @@ export class AudioClip
     this.clipLengthSec = secs(json.clipLengthSec);
   }
 
-  // NOTE: override construction
-  static _construct(json: SAudioClip) {
+  static construct(json: SAudioClip): AudioClip {
     const buffer = nullthrows(SOUND_LIB_FOR_HISTORY.get(json.bufferURL));
-    return new AudioClip(
+    return Structured.create(
+      AudioClip,
       buffer,
       json.name,
       json.bufferURL,
@@ -78,7 +82,7 @@ export class AudioClip
   // but lets memoize the last size used for perf. shouldn't change.
   private memodWaveformDataURL: Map<string, { width: number; height: number; data: string }> = new Map();
 
-  private constructor(
+  constructor(
     buffer: AudioBuffer,
     name: string,
     bufferURL: string,
@@ -86,26 +90,20 @@ export class AudioClip
     timelineStartSec: number,
     clipLengthSec: number,
   ) {
+    super();
     // todo, should convert buffer.length to seconds myself? Are buffer.duration
     // and buffer.length always congruent?
-    super({
-      bufferLength: buffer.duration,
-      bufferOffset,
-      timelineStart: timelineStartSec,
-      clipLengthSec,
-    });
+    // By default, there is no trim and the clip has offset 0
+    this.bufferLength = secs(buffer.duration);
+    this.bufferOffset = secs(bufferOffset);
+    this.timelineStartSec = secs(timelineStartSec);
+    this.clipLengthSec = secs(clipLengthSec);
+
     this.buffer = new SharedAudioBuffer(buffer);
     this.numberOfChannels = buffer.numberOfChannels;
     this.name = SPrimitive.of(name);
     this.bufferURL = bufferURL;
     this.sampleRate = buffer.sampleRate;
-    // TODO: Place BaseClip based on dimension
-    this.dimensions = new BaseClip({
-      bufferLength: buffer.duration,
-      bufferOffset,
-      timelineStart: timelineStartSec,
-      clipLengthSec,
-    });
     console.log("CREATED AUDIO", this._id);
   }
 
@@ -118,7 +116,7 @@ export class AudioClip
     const bufferOffset = dimensions?.bufferOffset ?? 0;
     const timelineStartSec = dimensions?.timelineStartSec ?? 0;
     const clipLengthSec = dimensions?.clipLengthSec ?? buffer.length / buffer.sampleRate;
-    return new AudioClip(buffer, name || "untitled", url, bufferOffset, timelineStartSec, clipLengthSec);
+    return Structured.create(AudioClip, buffer, name || "untitled", url, bufferOffset, timelineStartSec, clipLengthSec);
   }
 
   static fromBuffer(
@@ -130,11 +128,12 @@ export class AudioClip
     const bufferOffset = dimensions?.bufferOffset ?? 0;
     const timelineStartSec = dimensions?.timelineStartSec ?? 0;
     const clipLengthSec = dimensions?.clipLengthSec ?? buffer.length / buffer.sampleRate;
-    return new AudioClip(buffer, name || "untitled", url, bufferOffset, timelineStartSec, clipLengthSec);
+    return Structured.create(AudioClip, buffer, name || "untitled", url, bufferOffset, timelineStartSec, clipLengthSec);
   }
 
-  override clone(): AudioClip {
-    const newClip = new AudioClip(
+  clone(): AudioClip {
+    const newClip = Structured.create(
+      AudioClip,
       this.buffer,
       this.name.get(),
       this.bufferURL,
@@ -172,6 +171,62 @@ export class AudioClip
     });
   }
 
+  get timelineEndSec() {
+    return this.timelineStartSec + this.clipLengthSec;
+  }
+
+  set timelineEndSec(newEnd: number) {
+    const newLen = newEnd - this.timelineStartSec;
+
+    if (newLen <= 0) {
+      throw new Error("New clip length can't be <= zero");
+    }
+
+    //
+    //                  |~~~~[        clip       ]~~~~~~~~~~|
+    // >--timelineStartSec---+
+    //                       >-----clipLength----+
+    // >-------------timelineEndSec--------------+
+    //                  >-BO-+
+    // ^0:00
+
+    if (newEnd > this.timelineStartSec + this.bufferLength - this.bufferOffset) {
+      console.log(
+        newEnd,
+        this.timelineStartSec + this.bufferLength - this.bufferOffset,
+        `${this.timelineStartSec} + ${this.bufferLength} - ${this.bufferOffset}`,
+      );
+      throw new Error("new end too long");
+      // TODO: make newEnd = this.timelineStartSec + this.lengthSec + this.bufferOffset
+    }
+    this.clipLengthSec = newLen as Seconds;
+  }
+
+  //
+  // min is 0, max is duration
+  // always < trimEndSec
+  get trimStartSec() {
+    return this.bufferOffset;
+  }
+
+  //
+  // min is 0, max is duration.
+  // always is > trimStartSec
+  get trimEndSec() {
+    return this.clipLengthSec - this.bufferOffset;
+  }
+
+  set trimEndSec(s: number) {
+    let trimEnd = s;
+    if (trimEnd > this.bufferLength + this.bufferOffset) {
+      trimEnd = this.bufferLength + this.bufferOffset;
+    } else if (s < 0) {
+      throw new Error("Can't set trimEndSec to be less than 0");
+    }
+
+    this.timelineEndSec = this.bufferTimelineStartSec() + trimEnd;
+  }
+
   // Frames units
 
   private secToFr(sec: number): number {
@@ -207,5 +262,54 @@ export class AudioClip
 
   get durationFr() {
     return this.secToFr(this.clipLengthSec);
+  }
+
+  // interface AbstractClip
+
+  get _timelineStartU(): Seconds {
+    return this.timelineStartSec;
+  }
+
+  _setTimelineStartU(num: Seconds): void {
+    this.timelineStartSec = num;
+  }
+
+  get _timelineEndU(): Seconds {
+    return this.timelineEndSec as Seconds;
+  }
+
+  _setTimelineEndU(num: number): void {
+    this.timelineEndSec = num;
+  }
+
+  trimStartToTimelineU(timeSec: number): void {
+    return this.trimStartToTimelineSec(timeSec);
+  }
+
+  // Trim start to time.
+  private trimStartToTimelineSec(newTimelineSec: number): void {
+    if (newTimelineSec < this.bufferTimelineStartSec()) {
+      // can't grow back past beggining of clip audio buffer
+      return;
+    }
+
+    if (newTimelineSec > this.bufferTimelineEndSec()) {
+      throw new Error(`trimming past end time: ${newTimelineSec} > ${this.bufferTimelineEndSec()}`);
+    }
+
+    const delta = newTimelineSec - this.timelineStartSec;
+    this.timelineStartSec = newTimelineSec as Seconds;
+    this.bufferOffset = (this.bufferOffset + delta) as Seconds;
+    this.clipLengthSec = (this.clipLengthSec - delta) as Seconds;
+  }
+
+  // Buffer
+
+  private bufferTimelineStartSec() {
+    return this.timelineStartSec - this.bufferOffset;
+  }
+
+  private bufferTimelineEndSec() {
+    return this.timelineStartSec - this.bufferOffset + this.bufferLength;
   }
 }

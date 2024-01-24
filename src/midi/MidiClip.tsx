@@ -1,7 +1,7 @@
 import * as s from "structured-state";
 import { SArray, SString, Struct, StructProps } from "structured-state";
 import { liveAudioContext } from "../constants";
-import { AbstractClip, Pulses } from "../lib/BaseClip";
+import { AbstractClip, Pulses } from "../lib/AbstractClip";
 import { AudioProject } from "../lib/project/AudioProject";
 import { MutationHashable } from "../lib/state/MutationHashable";
 import { Subbable, notify } from "../lib/state/Subbable";

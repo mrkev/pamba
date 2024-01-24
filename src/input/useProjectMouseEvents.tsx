@@ -13,7 +13,7 @@ import { pressedState } from "../pressedState";
 import { useDocumentEventListener, useEventListener } from "../ui/useEventListener";
 import { exhaustive } from "../utils/exhaustive";
 import { clamp } from "../utils/math";
-import { secs } from "../lib/BaseClip";
+import { secs } from "../lib/AbstractClip";
 
 export function timelineSecs(e: MouseEvent, projectDiv: HTMLDivElement, project: AudioProject) {
   const viewportStartPx = project.viewportStartPx.get();

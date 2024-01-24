@@ -2,7 +2,7 @@ import { MidiClip, secsToPulses } from "../midi/MidiClip";
 import { getOneTickLen } from "../ui/Axis";
 import { returnClosest, stepNumber } from "../utils/math";
 import { AudioClip } from "./AudioClip";
-import { secs } from "./BaseClip";
+import { secs } from "./AbstractClip";
 import { AudioProject } from "./project/AudioProject";
 
 export function clipMoveSec(

@@ -1,16 +1,35 @@
+import "./mockWebAudio";
+
 import { SArray } from "structured-state";
 import { describe, expect, it } from "vitest";
 import { nullthrows } from "../../utils/nullthrows";
-import { BaseClip, secs } from "../BaseClip";
-import { addClip, assertClipInvariants, deleteTime, printClips, pushClip, removeClip, splitClip } from "../BaseClipFn";
+import {
+  addClip,
+  assertClipInvariants,
+  deleteTime,
+  printClips,
+  pushClip,
+  removeClip,
+  splitClip,
+} from "../AbstractClip";
+import { AudioClip } from "../AudioClip";
 
-function bclip(startOffset: number, endOffset: number): BaseClip {
-  const result = BaseClip.of(startOffset, endOffset - startOffset, 0, endOffset - startOffset);
-  result.timelineStartSec = secs(startOffset);
-  return result;
+function bclip(startOffset: number, endOffset: number) {
+  const buffer = new AudioBuffer({ length: 44100 * 15, sampleRate: 44100 });
+  return AudioClip.fromBuffer(buffer, "url", "foo", {
+    bufferOffset: 0,
+    timelineStartSec: startOffset,
+    clipLengthSec: endOffset - startOffset,
+  });
 }
 
-function clips(clips: BaseClip[]) {
+// function clip(startOffset: number, endOffset: number): BaseClip {
+//   const result = BaseClip.of(startOffset, endOffset - startOffset, 0, endOffset - startOffset);
+//   result.timelineStartSec = secs(startOffset);
+//   return result;
+// }
+
+function clips(clips: AudioClip[]) {
   return SArray.create(clips);
 }
 

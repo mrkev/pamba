@@ -1,4 +1,4 @@
-import { AudioContext, AudioWorkletNode } from "standardized-audio-context-mock";
+import { AudioContext, AudioWorkletNode, AudioBuffer } from "standardized-audio-context-mock";
 import { vi } from "vitest";
 
 const AudioContextMock = vi.fn(() => {
@@ -18,3 +18,4 @@ const AudioWorkletNodeMock = vi.fn(() => {
 
 vi.stubGlobal("AudioWorkletNode", AudioWorkletNodeMock);
 vi.stubGlobal("AudioContext", AudioContextMock);
+vi.stubGlobal("AudioBuffer", AudioBuffer);

@@ -7,7 +7,7 @@ import { MidiClip, pulsesToSec } from "../../midi/MidiClip";
 import { SPrimitive } from "../state/LinkedState";
 import { AudioProject } from "./AudioProject";
 import { exhaustive } from "../state/Subbable";
-import { secs } from "../BaseClip";
+import { secs } from "../AbstractClip";
 
 export type ClipboardState =
   | {

@@ -13,7 +13,7 @@ import { useLinkedState } from "../lib/state/LinkedState";
 import { pressedState } from "../pressedState";
 import { exhaustive } from "../utils/exhaustive";
 import { useEventListener } from "./useEventListener";
-import { secs } from "../lib/BaseClip";
+import { secs } from "../lib/AbstractClip";
 // import { dataWaveformToCanvas } from "../lib/waveformAsync";
 
 export function ClipA({

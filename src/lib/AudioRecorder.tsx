@@ -3,7 +3,7 @@ import { nullthrows } from "../utils/nullthrows";
 import { AudioClip } from "./AudioClip";
 import { AudioRenderer } from "./AudioRenderer";
 import { AudioTrack } from "./AudioTrack";
-import { secs } from "./BaseClip";
+import { secs } from "./AbstractClip";
 import { AudioProject } from "./project/AudioProject";
 import { LinkedMap } from "./state/LinkedMap";
 import { SPrimitive } from "./state/LinkedState";

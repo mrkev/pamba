@@ -3,7 +3,7 @@ import "./mockWebAudio";
 import { AudioBuffer } from "standardized-audio-context-mock";
 import { describe, expect, it } from "vitest";
 import { AudioClip } from "../AudioClip";
-import { BaseClip, secs } from "../BaseClip";
+import { secs } from "../AbstractClip";
 
 function clip(startOffset: number, endOffset: number) {
   const buffer = new AudioBuffer({ length: 44100 * 15, sampleRate: 44100 });
@@ -12,12 +12,6 @@ function clip(startOffset: number, endOffset: number) {
     timelineStartSec: startOffset,
     clipLengthSec: endOffset - startOffset,
   });
-}
-
-function bclip(startOffset: number, endOffset: number) {
-  const result = BaseClip.of(startOffset, endOffset, 0, endOffset - startOffset);
-  // result.startOffsetSec = startOffset;
-  return result;
 }
 
 describe("timelineStartSec", () => {

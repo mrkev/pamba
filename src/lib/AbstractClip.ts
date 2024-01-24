@@ -1,6 +1,5 @@
 import { SArray } from "structured-state";
 import { nullthrows } from "../utils/nullthrows";
-import { AbstractClip, Pulses, Seconds } from "./BaseClip";
 
 export function printClips(clips: SArray<AbstractClip<any>>) {
   return clips.map((c) => c.toString()).join("\n");
@@ -288,4 +287,29 @@ export function moveClip<Clip extends AbstractClip<U>, U extends Pulses | Second
 
   assertClipInvariants(clips);
   return clips;
+}
+declare const UNIT_SECOND: unique symbol;
+export type Seconds = number & { [UNIT_SECOND]: never };
+
+declare const UNIT_PULSE: unique symbol;
+export type Pulses = number & { [UNIT_PULSE]: never };
+
+export function secs(num: number) {
+  return num as Seconds;
+}
+
+export function secsAsNum(num: Seconds) {
+  return num as number;
+}
+// rn mostly used for invariants
+
+export interface AbstractClip<U extends Seconds | Pulses> {
+  get _timelineStartU(): U;
+  _setTimelineStartU(num: U): void;
+
+  get _timelineEndU(): U;
+  _setTimelineEndU(num: U): void;
+
+  trimStartToTimelineU(offset: U): void;
+  clone(): AbstractClip<U>;
 }
