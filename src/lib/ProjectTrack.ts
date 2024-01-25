@@ -3,12 +3,15 @@ import { AbstractClip, addClip, deleteTime, pushClip, removeClip, splitClip } fr
 import { ProjectTrackDSP } from "./ProjectTrackDSP";
 import { AudioContextInfo } from "./initAudioContext";
 import type { AudioProject } from "./project/AudioProject";
+import { AudioTrack } from "./AudioTrack";
+import { MidiTrack } from "../midi/MidiTrack";
 
 // TODO: move these things out of the abstract class
 export interface StandardTrack<T extends AbstractClip<any>> {
   readonly dsp: ProjectTrackDSP<T>;
   readonly name: SPrimitive<string>;
   readonly height: SPrimitive<number>;
+  readonly clips: SSchemaArray<T>;
 
   prepareForPlayback(context: AudioContext): void;
   prepareForBounce(context: OfflineAudioContext, offlineContextInfo: AudioContextInfo): Promise<AudioNode>;
@@ -27,19 +30,19 @@ export abstract class ProjectTrack<T extends AbstractClip<any>> {
 
   //////////// CLIPS ////////////
 
-  addClip(project: AudioProject, newClip: T): void {
-    if (!project.canEditTrack(project, this)) {
+  static addClip<T extends AbstractClip<any>>(project: AudioProject, track: StandardTrack<T>, newClip: T): void {
+    if (!project.canEditTrack(project, track)) {
       return;
     }
-    addClip(newClip, this.clips);
+    addClip(newClip, track.clips);
   }
 
   // Adds a clip right after the last clip
-  pushClip(project: AudioProject, newClip: T): void {
-    if (!project.canEditTrack(project, this)) {
+  static pushClip<T extends AbstractClip<any>>(project: AudioProject, track: StandardTrack<T>, newClip: T): void {
+    if (!project.canEditTrack(project, track)) {
       return;
     }
-    pushClip(newClip, this.clips);
+    pushClip(newClip, track.clips);
   }
 
   // // TODO: UNUSED
@@ -48,38 +51,48 @@ export abstract class ProjectTrack<T extends AbstractClip<any>> {
   //   // this.clips._setRaw(clips as any);
   // }
 
-  removeClip(project: AudioProject, clip: T): void {
-    if (!project.canEditTrack(project, this)) {
+  static removeClip<T extends AbstractClip<any>>(project: AudioProject, track: StandardTrack<T>, clip: T): void {
+    if (!project.canEditTrack(project, track)) {
       return;
     }
-    removeClip(clip, this.clips);
+    removeClip(clip, track.clips);
   }
 
-  deleteTime(project: AudioProject, start: number, end: number): void {
-    if (!project.canEditTrack(project, this)) {
+  static deleteTime<T extends AbstractClip<any>>(
+    project: AudioProject,
+    track: StandardTrack<T>,
+    start: number,
+    end: number,
+  ): void {
+    if (!project.canEditTrack(project, track)) {
       return;
     }
 
     console.log("AT deleteTime");
-    const notifyClips = deleteTime(start, end, this.clips);
+    const notifyClips = deleteTime(start, end, track.clips);
     notifyClips.forEach((clip) => {
       console.log("clip", clip);
       clip._notifyChange();
     });
   }
 
-  splitClip(project: AudioProject, clip: T, offset: number): void {
-    if (!project.canEditTrack(project, this)) {
+  static splitClip<T extends AbstractClip<any>>(
+    project: AudioProject,
+    track: StandardTrack<T>,
+    clip: T,
+    offset: number,
+  ): void {
+    if (!project.canEditTrack(project, track)) {
       return;
     }
 
-    splitClip(clip, offset, this.clips);
+    splitClip(clip, offset, track.clips);
   }
 
   /////////////// DEBUGGING /////////////////
 
-  toString() {
-    return this.clips
+  static toString<T extends AbstractClip<any>>(track: StandardTrack<T> | AudioTrack | MidiTrack) {
+    return track.clips
       ._getRaw()
       .map((c) => c.toString())
       .join("\n");

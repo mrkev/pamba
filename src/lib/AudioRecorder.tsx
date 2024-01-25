@@ -8,6 +8,7 @@ import { AudioProject } from "./project/AudioProject";
 import { LinkedMap } from "./state/LinkedMap";
 import { SPrimitive } from "./state/LinkedState";
 import { ignorePromise } from "./state/Subbable";
+import { ProjectTrack } from "./ProjectTrack";
 
 function useMediaRecorder(loadClip: (url: string, name?: string) => void) {
   const [mediaRecorder, setMediaRecorder] = useState<null | MediaRecorder>(null);
@@ -63,7 +64,7 @@ export class AudioRecorder {
         const newTrack = AudioTrack.fromClip(this.project, clip);
         AudioProject.addAudioTrack(this.project, this.renderer.analizedPlayer, newTrack);
       } else if (armedTrack instanceof AudioTrack) {
-        armedTrack.addClip(this.project, clip);
+        ProjectTrack.addClip(this.project, armedTrack, clip);
       }
     } catch (e) {
       console.trace(e);

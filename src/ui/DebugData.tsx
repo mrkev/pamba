@@ -6,6 +6,7 @@ import { useLinkedState } from "../lib/state/LinkedState";
 import { pressedState } from "../pressedState";
 import { exhaustive } from "../utils/exhaustive";
 import { useLocalStorage } from "./useLocalStorage";
+import { ProjectTrack } from "../lib/ProjectTrack";
 
 export function stringOfSelected(sel: PrimarySelectionState | null): string {
   if (!sel) {
@@ -23,7 +24,7 @@ export function stringOfSelected(sel: PrimarySelectionState | null): string {
     case "tracks":
       return JSON.stringify({
         ...sel,
-        tracks: sel.tracks.map((track) => track.toString()),
+        tracks: sel.tracks.map((track) => ProjectTrack.toString(track)),
       });
 
     case "effects":
@@ -62,7 +63,7 @@ export function DebugData({ project }: { project: AudioProject }) {
 
   const allState = tracks
     .map((track, i) => {
-      return `Track ${i}:\n${track.toString()}\n`;
+      return `Track ${i}:\n${ProjectTrack.toString(track)}\n`;
     })
     .join("\n");
 
@@ -117,7 +118,7 @@ export function DebugContent({ project }: { project: AudioProject }) {
 
   const allState = tracks
     .map((track, i) => {
-      return `Track ${i}:\n${track.toString()}\n`;
+      return `Track ${i}:\n${ProjectTrack.toString(track)}\n`;
     })
     .join("\n");
 

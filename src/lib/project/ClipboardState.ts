@@ -8,6 +8,7 @@ import { SPrimitive } from "../state/LinkedState";
 import { AudioProject } from "./AudioProject";
 import { exhaustive } from "../state/Subbable";
 import { secs } from "../AbstractClip";
+import { ProjectTrack } from "../ProjectTrack";
 
 export type ClipboardState =
   | {
@@ -39,7 +40,7 @@ export function doPaste(project: AudioProject) {
           if (track instanceof MidiTrack && clip instanceof MidiClip) {
             const clone = clip.clone();
             clone.startOffsetPulses = project.viewport.secsToPulses(project.cursorPos.get());
-            track.addClip(project, clone);
+            ProjectTrack.addClip(project, track, clone);
             const endOffsetSec = pulsesToSec(clone._timelineEndU, project.tempo.get());
             if (lastOffset < endOffsetSec) {
               lastOffset = endOffsetSec;
@@ -51,7 +52,7 @@ export function doPaste(project: AudioProject) {
             const clone = clip.clone();
             clone.timelineStartSec = secs(project.cursorPos.get());
 
-            track.addClip(project, clone);
+            ProjectTrack.addClip(project, track, clone);
             if (lastOffset < clone.timelineEndSec) {
               lastOffset = clone.timelineEndSec;
             }

@@ -1,7 +1,7 @@
 import { AudioClip } from "./lib/AudioClip";
 import { AudioTrack } from "./lib/AudioTrack";
 
-export function jsonifyState(val: unknown): any {
+function jsonifyState(val: unknown): any {
   if (typeof val === "number" || typeof val === "string" || typeof val === "undefined") {
     return val;
   }
@@ -18,7 +18,8 @@ export function jsonifyState(val: unknown): any {
     const res: Record<string, any> = {};
     switch (val.constructor) {
       case AudioClip:
-      case AudioTrack:
+        // TODO: unused
+        // case AudioTrack:
         res.__constructor = val.constructor.name;
         break;
       case Object:

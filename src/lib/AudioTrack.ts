@@ -120,7 +120,7 @@ export class AudioTrack extends ProjectTrack<AudioClip> implements StandardTrack
   // New track with a single clip
   static fromClip(project: AudioProject, clip: AudioClip) {
     const track = AudioTrack.create();
-    track.addClip(project, clip);
+    ProjectTrack.addClip(project, track, clip);
     return track;
   }
 

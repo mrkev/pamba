@@ -14,6 +14,7 @@ import { useDocumentEventListener, useEventListener } from "../ui/useEventListen
 import { exhaustive } from "../utils/exhaustive";
 import { clamp } from "../utils/math";
 import { secs } from "../lib/AbstractClip";
+import { ProjectTrack } from "../lib/ProjectTrack";
 
 export function timelineSecs(e: MouseEvent, projectDiv: HTMLDivElement, project: AudioProject) {
   const viewportStartPx = project.viewportStartPx.get();
@@ -147,9 +148,14 @@ export function useTimelineMouseEvents(
               pressed.originalTrack instanceof AudioTrack &&
               pressed.clip instanceof AudioClip
             ) {
-              pressed.track.deleteTime(project, pressed.clip.timelineStartSec, pressed.clip.timelineEndSec);
-              pressed.track.addClip(project, pressed.clip);
-              pressed.originalTrack.removeClip(project, pressed.clip);
+              ProjectTrack.deleteTime(
+                project,
+                pressed.track,
+                pressed.clip.timelineStartSec,
+                pressed.clip.timelineEndSec,
+              );
+              ProjectTrack.addClip(project, pressed.track, pressed.clip);
+              ProjectTrack.removeClip(project, pressed.originalTrack, pressed.clip);
             }
 
             if (
@@ -157,9 +163,14 @@ export function useTimelineMouseEvents(
               pressed.originalTrack instanceof MidiTrack &&
               pressed.clip instanceof MidiClip
             ) {
-              pressed.track.deleteTime(project, pressed.clip.startOffsetPulses, pressed.clip._timelineEndU);
-              pressed.originalTrack.removeClip(project, pressed.clip);
-              pressed.track.addClip(project, pressed.clip);
+              ProjectTrack.deleteTime(
+                project,
+                pressed.track,
+                pressed.clip.startOffsetPulses,
+                pressed.clip._timelineEndU,
+              );
+              ProjectTrack.removeClip(project, pressed.originalTrack, pressed.clip);
+              ProjectTrack.addClip(project, pressed.track, pressed.clip);
             }
 
             console.warn("mouseup: moving_clip: can't operate");

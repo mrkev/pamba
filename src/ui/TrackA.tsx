@@ -18,6 +18,7 @@ import { ClipInvalid } from "./ClipInvalid";
 import { CursorSelection } from "./CursorSelection";
 import { EffectRack } from "./EffectRack";
 import { secs } from "../lib/AbstractClip";
+import { ProjectTrack } from "../lib/ProjectTrack";
 
 function clientXToTrackX(trackElem: HTMLDivElement | null, clientX: number) {
   if (trackElem == null) {
@@ -68,7 +69,7 @@ const loadAudioClipIntoTrack = async (
     // load clip
     const clip = await AudioClip.fromURL(url, name);
     clip.timelineStartSec = secs(startOffsetSec);
-    track.addClip(project, clip);
+    ProjectTrack.addClip(project, track, clip);
   } catch (e) {
     console.trace(e);
     return;

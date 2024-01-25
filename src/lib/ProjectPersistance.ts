@@ -2,6 +2,7 @@ import { LocalFilesystem } from "../data/localFilesystem";
 import { construct } from "../data/serializable";
 import { appEnvironment } from "./AppEnvironment";
 import { AudioClip } from "./AudioClip";
+import { ProjectTrack } from "./ProjectTrack";
 import { AudioProject } from "./project/AudioProject";
 import { isRecord } from "./schema/schema";
 
@@ -70,11 +71,11 @@ export class ProjectPersistance {
   static async sampleProject(): Promise<AudioProject> {
     const project = AudioProject.create();
     const bass = AudioProject.addAudioTrack(project);
-    bass.addClip(project, await AudioClip.fromURL("bassguitar.mp3"));
+    ProjectTrack.addClip(project, bass, await AudioClip.fromURL("bassguitar.mp3"));
     const drums = AudioProject.addAudioTrack(project);
-    drums.addClip(project, await AudioClip.fromURL("drums.mp3"));
+    ProjectTrack.addClip(project, drums, await AudioClip.fromURL("drums.mp3"));
     const clav = AudioProject.addAudioTrack(project);
-    clav.addClip(project, await AudioClip.fromURL("clav.mp3"));
+    ProjectTrack.addClip(project, clav, await AudioClip.fromURL("clav.mp3"));
     project.projectName.set("sample project");
     return project;
   }

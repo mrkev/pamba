@@ -25,7 +25,7 @@ import { AudioStorage } from "./AudioStorage";
 import { clipboard } from "./ClipboardState";
 import { ProjectViewportUtil } from "./ProjectViewportUtil";
 import { PrimarySelectionState } from "./SelectionState";
-import { ProjectTrack } from "../ProjectTrack";
+import { ProjectTrack, StandardTrack } from "../ProjectTrack";
 
 /**
  * TODO:
@@ -65,7 +65,7 @@ export class AudioProject {
   readonly allTracks: SArray<AudioTrack | MidiTrack>;
   readonly solodTracks = LinkedSet.create<AudioTrack | MidiTrack>(); // TODO: single track kind?
   readonly dspExpandedTracks = LinkedSet.create<AudioTrack | MidiTrack>();
-  readonly lockedTracks = LinkedSet.create<AudioTrack | MidiTrack | ProjectTrack<any>>();
+  readonly lockedTracks = LinkedSet.create<AudioTrack | MidiTrack | ProjectTrack<any> | StandardTrack<any>>();
   // much like live, there's always an active track. Logic is a great model since
   // the active track is clearly discernable in spite of multi-track selection.
   readonly activeTrack = SPrimitive.of<AudioTrack | MidiTrack | null>(null);
@@ -136,7 +136,7 @@ export class AudioProject {
     return new this([], id, "untitled", DEFAULT_TEMPO);
   }
 
-  public canEditTrack(project: AudioProject, track: MidiTrack | AudioTrack | ProjectTrack<any>) {
+  public canEditTrack(project: AudioProject, track: MidiTrack | AudioTrack | ProjectTrack<any> | StandardTrack<any>) {
     return !project.lockedTracks.has(track); // todo: also check if audio is playing
   }
 
@@ -213,7 +213,7 @@ export class AudioProject {
   static removeAudioClip(project: AudioProject, track: AudioTrack, clip: AudioClip): void {
     const selected = project.selected.get();
     if (track instanceof AudioTrack) {
-      track.removeClip(project, clip);
+      ProjectTrack.removeClip(project, track, clip);
     }
     if (selected && selected.status === "clips") {
       project.selected.set({
@@ -225,7 +225,7 @@ export class AudioProject {
 
   static removeMidiClip(project: AudioProject, track: MidiTrack, clip: MidiClip): void {
     const selected = project.selected.get();
-    track.removeClip(project, clip);
+    ProjectTrack.removeClip(project, track, clip);
     if (selected && selected.status === "clips") {
       project.selected.set({
         ...selected,
@@ -321,11 +321,12 @@ export class ProjectSelection {
           if (track instanceof AudioTrack) {
             // TODO: move history.record(...) up to the command level as possible
             history.record(() => {
-              track.deleteTime(project, selected.startS, selected.endS);
+              ProjectTrack.deleteTime(project, track, selected.startS, selected.endS);
             });
           } else if (track instanceof MidiTrack) {
-            track.deleteTime(
+            ProjectTrack.deleteTime(
               project,
+              track,
               project.viewport.secsToPulses(selected.startS),
               project.viewport.secsToPulses(selected.endS),
             );
@@ -389,9 +390,9 @@ function deleteTime(project: AudioProject, track: MidiTrack | AudioTrack, startS
   }
 
   if (track instanceof MidiTrack) {
-    track.deleteTime(project, project.viewport.secsToPulses(startS), project.viewport.secsToPulses(endS));
+    ProjectTrack.deleteTime(project, track, project.viewport.secsToPulses(startS), project.viewport.secsToPulses(endS));
   }
   if (track instanceof AudioTrack) {
-    track.deleteTime(project, startS, endS);
+    ProjectTrack.deleteTime(project, track, startS, endS);
   }
 }

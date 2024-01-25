@@ -20,6 +20,7 @@ import { ListEntry, UtilityDataList } from "./UtilityList";
 import { closeProject } from "./header/ToolHeader";
 import { UtilityMenu } from "./UtilityMenu";
 import { doConfirm } from "./ConfirmDialog";
+import { ProjectTrack } from "../lib/ProjectTrack";
 
 const STATIC_AUDIO_FILES = ["drums.mp3", "clav.mp3", "bassguitar.mp3", "horns.mp3", "leadguitar.mp3"];
 
@@ -63,7 +64,7 @@ export function Library({
 
         const activeTrack = project.activeTrack.get();
         if (activeTrack !== null && activeTrack instanceof AudioTrack) {
-          activeTrack.pushClip(project, clip);
+          ProjectTrack.pushClip(project, activeTrack, clip);
           return;
         }
 

@@ -14,6 +14,7 @@ import { pressedState } from "../pressedState";
 import { exhaustive } from "../utils/exhaustive";
 import { useEventListener } from "./useEventListener";
 import { secs } from "../lib/AbstractClip";
+import { ProjectTrack } from "../lib/ProjectTrack";
 // import { dataWaveformToCanvas } from "../lib/waveformAsync";
 
 export function ClipA({
@@ -138,7 +139,7 @@ export function ClipA({
         const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
         const secFromStartOfClip = project.viewport.pxToSecs(pxFromStartOfClip);
         const secFromTimelineStart = clip.timelineStartSec + secFromStartOfClip;
-        track.splitClip(project, clip, secFromTimelineStart);
+        ProjectTrack.splitClip(project, track, clip, secFromTimelineStart);
         break;
       case "trimStart": {
         const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;

@@ -11,6 +11,7 @@ import { mutable } from "../utils/types";
 import { PPQN } from "../wam/pianorollme/MIDIConfiguration";
 import { MidiTrack } from "./MidiTrack";
 import type { Note } from "./SharedMidiTypes";
+import { ProjectTrack } from "../lib/ProjectTrack";
 
 export const SECS_IN_MIN = 60;
 
@@ -167,5 +168,5 @@ export function createEmptyMidiClipInTrack(project: AudioProject, track: MidiTra
   const startPulses = project.viewport.secsToPulses(startS);
   const length = project.viewport.secsToPulses(endS - startS);
   const clip = MidiClip.of("new clip", startPulses, length, []);
-  track.addClip(project, clip);
+  ProjectTrack.addClip(project, track, clip);
 }
