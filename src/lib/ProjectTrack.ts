@@ -5,19 +5,18 @@ import { EffectID } from "../dsp/FAUST_EFFECTS";
 import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
 import { nullthrows } from "../utils/nullthrows";
 import { PambaWamNode } from "../wam/PambaWamNode";
+import { AbstractClip, Seconds, addClip, deleteTime, pushClip, removeClip, splitClip } from "./AbstractClip";
 import { appEnvironment } from "./AppEnvironment";
 import { AudioClip } from "./AudioClip";
-import { AbstractClip, Seconds } from "./AbstractClip";
-import { addClip, deleteTime, pushClip, removeClip, splitClip } from "./AbstractClip";
 import { connectSerialNodes } from "./connectSerialNodes";
 import { AudioContextInfo } from "./initAudioContext";
 import { PBGainNode } from "./offlineNodes";
 import type { AudioProject } from "./project/AudioProject";
 
-class ProjectTrackNode<T extends AbstractClip<any>> extends DSPNode<null> {
+export class ProjectTrackDSP<T extends AbstractClip<any>> extends DSPNode<null> {
   override readonly effectId = "builtin:ProjectTrackNode";
   override name: string | SPrimitive<string>;
-  constructor(private readonly track: ProjectTrack<T>) {
+  constructor(private readonly track: StandardTrack<T>) {
     super();
     this.name = track.name;
   }
@@ -35,17 +34,52 @@ class ProjectTrackNode<T extends AbstractClip<any>> extends DSPNode<null> {
   }
 }
 
-export abstract class ProjectTrack<T extends AbstractClip<any>> {
-  public readonly name: SPrimitive<string>;
-  public readonly height: SPrimitive<number>;
-  public readonly node: ProjectTrackNode<T>;
+// TODO: move these things out of the abstract class
+export interface StandardTrack<T extends AbstractClip<any>> {
+  readonly node: ProjectTrackDSP<T>;
+  // The "volume" of the track
+  readonly gainNode: PBGainNode;
+  // Hidden gain node, just for solo-ing tracks.
+  readonly _hiddenGainNode: PBGainNode;
+  readonly name: SPrimitive<string>;
+  readonly height: SPrimitive<number>;
 
-  abstract prepareForPlayback(context: AudioContext): void;
-  abstract prepareForBounce(context: OfflineAudioContext, offlineContextInfo: AudioContextInfo): Promise<AudioNode>;
+  prepareForPlayback(context: AudioContext): void;
+  prepareForBounce(context: OfflineAudioContext, offlineContextInfo: AudioContextInfo): Promise<AudioNode>;
 
   // NOTE: needs to be called right after .prepareForPlayback
-  abstract startPlayback(tempo: number, context: BaseAudioContext, offset?: number): void;
-  abstract stopPlayback(context: BaseAudioContext): void;
+  startPlayback(tempo: number, context: BaseAudioContext, offset?: number): void;
+  stopPlayback(context: BaseAudioContext): void;
+}
+
+export class Track {
+  // todo: move to track node?
+  static getCurrentGain(track: StandardTrack<any>): AudioParam {
+    return track.gainNode.gain;
+  }
+
+  // todo: move to track node?
+  static setGain(track: StandardTrack<any>, val: number): void {
+    track.gainNode.gain.value = val;
+  }
+
+  // todo: move to track node?
+  // to be used only when solo-ing
+  static _hidden_setIsMutedByApplication(track: StandardTrack<any>, muted: boolean) {
+    if (muted) {
+      track._hiddenGainNode.gain.value = 0;
+      return;
+    }
+    track._hiddenGainNode.gain.value = 1;
+  }
+}
+
+export abstract class ProjectTrack<T extends AbstractClip<any>> {
+  public readonly height: SPrimitive<number>;
+  // The "volume" of the track
+  public readonly gainNode: PBGainNode;
+  // Hidden gain node, just for solo-ing tracks.
+  public readonly _hiddenGainNode: PBGainNode;
 
   // A track is a collection of non-overalping clips.
   // Invariants:
@@ -55,38 +89,15 @@ export abstract class ProjectTrack<T extends AbstractClip<any>> {
 
   // DSP
   public readonly effects: SArray<FaustAudioEffect | PambaWamNode>;
-  // The "volume" of the track
-  public readonly gainNode: PBGainNode;
-  // Hidden gain node, just for solo-ing tracks.
-  public readonly _hiddenGainNode: PBGainNode;
-
-  getCurrentGain(): AudioParam {
-    return this.gainNode.gain;
-  }
-
-  setGain(val: number): void {
-    this.gainNode.gain.value = val;
-  }
-
-  // to be used only when solo-ing
-  _hidden_setIsMutedByApplication(muted: boolean) {
-    if (muted) {
-      this._hiddenGainNode.gain.value = 0;
-      return;
-    }
-    this._hiddenGainNode.gain.value = 1;
-  }
 
   constructor(name: string, effects: (FaustAudioEffect | PambaWamNode)[], height: number) {
-    this.name = SPrimitive.of(name);
     this.effects = SArray.create(effects);
     this.height = SPrimitive.of<number>(height);
     this.gainNode = new PBGainNode();
     this._hiddenGainNode = new PBGainNode();
-    this.node = new ProjectTrackNode(this);
   }
 
-  public connectToDSPForPlayback(source: AudioNode): void {
+  connectToDSPForPlayback(source: AudioNode): void {
     // We need to keep a reference to our source node for play/pause
 
     const effectNodes = this.effects._getRaw();
@@ -99,7 +110,7 @@ export abstract class ProjectTrack<T extends AbstractClip<any>> {
     ]);
   }
 
-  public disconnectDSPAfterPlayback(source: AudioNode): void {
+  disconnectDSPAfterPlayback(source: AudioNode): void {
     const chain = [
       // foo
       source,
@@ -121,9 +132,7 @@ export abstract class ProjectTrack<T extends AbstractClip<any>> {
     if (!project.canEditTrack(project, this)) {
       return;
     }
-
     addClip(newClip, this.clips);
-    // this.clips._setRaw(clips);
   }
 
   // Adds a clip right after the last clip
@@ -131,9 +140,7 @@ export abstract class ProjectTrack<T extends AbstractClip<any>> {
     if (!project.canEditTrack(project, this)) {
       return;
     }
-
     pushClip(newClip, this.clips);
-    // this.clips._setRaw(clips as any);
   }
 
   // // TODO: UNUSED
@@ -146,9 +153,7 @@ export abstract class ProjectTrack<T extends AbstractClip<any>> {
     if (!project.canEditTrack(project, this)) {
       return;
     }
-
     removeClip(clip, this.clips);
-    // this.clips._setRaw(clips);
   }
 
   deleteTime(project: AudioProject, start: number, end: number): void {

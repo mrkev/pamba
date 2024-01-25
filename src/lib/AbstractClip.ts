@@ -157,7 +157,7 @@ export function deleteTime<Clip extends AbstractClip<U>, U extends Pulses | Seco
 
       first._setTimelineEndU(start as U);
       second.trimStartToTimelineU(end as U);
-      console.log("HERE");
+      // console.log("HERE");
     }
   }
 

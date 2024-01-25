@@ -1,4 +1,5 @@
 import * as s from "structured-state";
+import { SPrimitive } from "structured-state";
 import { SSchemaArray } from "structured-state";
 import { CLIP_HEIGHT } from "../constants";
 import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
@@ -6,13 +7,15 @@ import { MidiTrack } from "../midi/MidiTrack";
 import { mixDown } from "../mixDown";
 import { PambaWamNode } from "../wam/PambaWamNode";
 import { AudioClip } from "./AudioClip";
-import { ProjectTrack } from "./ProjectTrack";
+import { ProjectTrack, ProjectTrackDSP, StandardTrack } from "./ProjectTrack";
 import { TrackThread } from "./TrackThread";
 import { connectSerialNodes } from "./connectSerialNodes";
 import { AudioContextInfo } from "./initAudioContext";
 import { AudioProject } from "./project/AudioProject";
 
-export class AudioTrack extends ProjectTrack<AudioClip> {
+export class AudioTrack extends ProjectTrack<AudioClip> implements StandardTrack<AudioClip> {
+  public readonly name: SPrimitive<string>;
+  public readonly node: ProjectTrackDSP<AudioClip>;
   public override clips: SSchemaArray<AudioClip>;
 
   // For background processing
@@ -25,6 +28,8 @@ export class AudioTrack extends ProjectTrack<AudioClip> {
     super(name, effects, height);
     this.clips = s.arrayOf([AudioClip as any], clips);
     this.playingSource = null;
+    this.node = new ProjectTrackDSP(this);
+    this.name = SPrimitive.of(name);
   }
 
   static create(props?: {
@@ -48,14 +53,14 @@ export class AudioTrack extends ProjectTrack<AudioClip> {
   // [ _Hidden Gain Node (for soloing)]
   //        V
   // [ Out Node ]
-  override prepareForPlayback(context: AudioContext): void {
+  prepareForPlayback(context: AudioContext): void {
     // We need to keep a reference to our source node for play/pause
     this.playingSource = this.getSourceNode(context);
     this.connectToDSPForPlayback(this.playingSource);
   }
 
   // NOTE: needs to be called right after .prepareForPlayback
-  override startPlayback(tempo: number, context: BaseAudioContext, offset?: number) {
+  startPlayback(tempo: number, context: BaseAudioContext, offset?: number) {
     if (!this.playingSource) {
       throw new Error("Track is not ready for playback!");
     }

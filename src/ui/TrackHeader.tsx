@@ -14,6 +14,7 @@ import { pressedState } from "../pressedState";
 import { RenamableLabel } from "./RenamableLabel";
 import { UtilityToggle } from "./UtilityToggle";
 import { UtilitySlider, utility } from "./utility";
+import { Track } from "../lib/ProjectTrack";
 
 export const TrackHeader = React.memo(function TrackHeader({
   track,
@@ -28,7 +29,7 @@ export const TrackHeader = React.memo(function TrackHeader({
   player: AnalizedPlayer;
 }) {
   const styles = useStyles();
-  const [gain, setGain] = useState<number>(track.getCurrentGain().value);
+  const [gain, setGain] = useState<number>(Track.getCurrentGain(track).value);
   const [muted, setMuted] = useState<boolean>(false);
   const [dspExpandedTracks] = useLinkedSet(project.dspExpandedTracks);
   const [solodTracks] = useLinkedSet(project.solodTracks);
@@ -120,9 +121,9 @@ export const TrackHeader = React.memo(function TrackHeader({
 
               for (const track of project.allTracks._getRaw()) {
                 if (solodTracks.size === 0 || solodTracks.has(track)) {
-                  track._hidden_setIsMutedByApplication(false);
+                  Track._hidden_setIsMutedByApplication(track, false);
                 } else {
-                  track._hidden_setIsMutedByApplication(true);
+                  Track._hidden_setIsMutedByApplication(track, true);
                 }
               }
               e.stopPropagation();
@@ -138,9 +139,9 @@ export const TrackHeader = React.memo(function TrackHeader({
             onClick={function (e) {
               setMuted((prev) => {
                 if (!prev) {
-                  track.setGain(0);
+                  Track.setGain(track, 0);
                 } else {
-                  track.setGain(gain);
+                  Track.setGain(track, gain);
                 }
                 return !prev;
               });
@@ -163,7 +164,7 @@ export const TrackHeader = React.memo(function TrackHeader({
             }}
             onChange={function (val: number): void {
               setGain(val);
-              track.setGain(val);
+              Track.setGain(track, val);
             }}
           />
           {/* <input

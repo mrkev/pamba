@@ -6,8 +6,6 @@ import { dataURLForWaveform } from "../utils/waveform";
 import { AbstractClip, Seconds, secs } from "./AbstractClip";
 import { SharedAudioBuffer } from "./SharedAudioBuffer";
 import { SOUND_LIB_FOR_HISTORY, loadSound } from "./loadSound";
-import { MutationHashable } from "./state/MutationHashable";
-import { Subbable } from "./state/Subbable";
 
 class AudioViewport {
   readonly pxPerSec = SPrimitive.of(10);
@@ -104,7 +102,6 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
     this.name = SPrimitive.of(name);
     this.bufferURL = bufferURL;
     this.sampleRate = buffer.sampleRate;
-    console.log("CREATED AUDIO", this._id);
   }
 
   static async fromURL(

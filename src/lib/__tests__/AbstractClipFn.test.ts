@@ -71,9 +71,9 @@ describe("deleteTime", () => {
 
   it("deletes narrow", () => {
     const all = clips([bclip(0, 3)]);
-    console.log(printClips(all), "\n");
+    // console.log(printClips(all), "\n");
     deleteTime(1, 2, all);
-    console.log(printClips(all));
+    // console.log(printClips(all));
 
     expect(all.length).toBe(2);
     expect(all.at(0)?.timelineStartSec).toBe(0);

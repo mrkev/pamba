@@ -1,8 +1,8 @@
 import type { WebAudioModule } from "@webaudiomodules/api";
-import { SSchemaArray, arrayOf } from "structured-state";
+import { SPrimitive, SSchemaArray, arrayOf } from "structured-state";
 import { CLIP_HEIGHT, PIANO_ROLL_PLUGIN_URL, SECS_IN_MINUTE, TIME_SIGNATURE, liveAudioContext } from "../constants";
 import { appEnvironment } from "../lib/AppEnvironment";
-import { ProjectTrack } from "../lib/ProjectTrack";
+import { ProjectTrack, ProjectTrackDSP, StandardTrack } from "../lib/ProjectTrack";
 import { connectSerialNodes } from "../lib/connectSerialNodes";
 import { nullthrows } from "../utils/nullthrows";
 import { PianoRollModule, PianoRollNode } from "../wam/pianorollme/PianoRollNode";
@@ -69,7 +69,10 @@ const SAMPLE_STATE = {
   },
 };
 
-export class MidiTrack extends ProjectTrack<MidiClip> {
+export class MidiTrack extends ProjectTrack<MidiClip> implements StandardTrack<MidiClip> {
+  public readonly node: ProjectTrackDSP<MidiClip>;
+  public readonly name: SPrimitive<string>;
+
   public override clips: SSchemaArray<MidiClip>;
   // todo: instrument can be empty?
   instrument: MidiInstrument;
@@ -90,6 +93,8 @@ export class MidiTrack extends ProjectTrack<MidiClip> {
     this.playingSource = null;
     this.pianoRoll = pianoRoll as any;
     this.instrument = instrument;
+    this.node = new ProjectTrackDSP(this);
+    this.name = SPrimitive.of(name);
 
     // gain.connect(liveAudioContext.destination);
     instrument.module.audioNode.connect(pianoRoll.audioNode);
@@ -117,7 +122,7 @@ export class MidiTrack extends ProjectTrack<MidiClip> {
     return new MidiTrack(name, pianoRoll as any, instrument, clips ?? []);
   }
 
-  override prepareForPlayback(context: AudioContext): void {
+  prepareForPlayback(context: AudioContext): void {
     this.playingSource = this.pianoRoll;
     // send clips to processor
     // should already be in ascending order of startOffsetPulses
@@ -134,7 +139,7 @@ export class MidiTrack extends ProjectTrack<MidiClip> {
     this.connectToDSPForPlayback(this.instrument.module.audioNode);
   }
 
-  override async prepareForBounce(
+  async prepareForBounce(
     context: OfflineAudioContext,
     offlineContextInfo: Readonly<{ wamHostGroup: [id: string, key: string] }>,
   ): Promise<AudioNode> {
@@ -175,7 +180,7 @@ export class MidiTrack extends ProjectTrack<MidiClip> {
     return _hiddenGainNode.outputNode();
   }
 
-  override startPlayback(bpm: number, context: BaseAudioContext, offsetSec: number): void {
+  startPlayback(bpm: number, context: BaseAudioContext, offsetSec: number): void {
     if (this.playingSource == null) {
       throw new Error("Track not ready for playback!");
     }
@@ -198,7 +203,7 @@ export class MidiTrack extends ProjectTrack<MidiClip> {
     });
   }
 
-  override stopPlayback(context: BaseAudioContext): void {
+  stopPlayback(context: BaseAudioContext): void {
     if (this.playingSource == null) {
       console.warn("Stopping but no playingSource on track", this);
       return;
