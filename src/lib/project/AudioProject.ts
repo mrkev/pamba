@@ -65,7 +65,7 @@ export class AudioProject {
   readonly allTracks: SArray<AudioTrack | MidiTrack>;
   readonly solodTracks = LinkedSet.create<AudioTrack | MidiTrack>(); // TODO: single track kind?
   readonly dspExpandedTracks = LinkedSet.create<AudioTrack | MidiTrack>();
-  readonly lockedTracks = LinkedSet.create<AudioTrack | MidiTrack | ProjectTrack<any> | StandardTrack<any>>();
+  readonly lockedTracks = LinkedSet.create<AudioTrack | MidiTrack | StandardTrack<any>>();
   // much like live, there's always an active track. Logic is a great model since
   // the active track is clearly discernable in spite of multi-track selection.
   readonly activeTrack = SPrimitive.of<AudioTrack | MidiTrack | null>(null);
@@ -136,7 +136,7 @@ export class AudioProject {
     return new this([], id, "untitled", DEFAULT_TEMPO);
   }
 
-  public canEditTrack(project: AudioProject, track: MidiTrack | AudioTrack | ProjectTrack<any> | StandardTrack<any>) {
+  public canEditTrack(project: AudioProject, track: MidiTrack | AudioTrack | StandardTrack<any>) {
     return !project.lockedTracks.has(track); // todo: also check if audio is playing
   }
 

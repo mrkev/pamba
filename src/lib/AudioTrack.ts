@@ -14,11 +14,11 @@ import { connectSerialNodes } from "./connectSerialNodes";
 import { AudioContextInfo } from "./initAudioContext";
 import { AudioProject } from "./project/AudioProject";
 
-export class AudioTrack extends ProjectTrack<AudioClip> implements StandardTrack<AudioClip> {
+export class AudioTrack implements StandardTrack<AudioClip> {
   public readonly name: SPrimitive<string>;
   public readonly dsp: ProjectTrackDSP<AudioClip>;
-  public override clips: SSchemaArray<AudioClip>;
-  readonly height: SPrimitive<number>;
+  public readonly clips: SSchemaArray<AudioClip>;
+  public readonly height: SPrimitive<number>;
 
   // For background processing
   private thread_UNUSED = new TrackThread();
@@ -27,7 +27,6 @@ export class AudioTrack extends ProjectTrack<AudioClip> implements StandardTrack
   private playingSource: AudioBufferSourceNode | null;
 
   private constructor(name: string, clips: AudioClip[], effects: (FaustAudioEffect | PambaWamNode)[], height: number) {
-    super();
     this.clips = s.arrayOf([AudioClip as any], clips);
     this.playingSource = null;
     this.dsp = new ProjectTrackDSP(this, effects);

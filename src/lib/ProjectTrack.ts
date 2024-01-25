@@ -11,6 +11,10 @@ export interface StandardTrack<T extends AbstractClip<any>> {
   readonly dsp: ProjectTrackDSP<T>;
   readonly name: SPrimitive<string>;
   readonly height: SPrimitive<number>;
+  // A track is a collection of non-overalping clips.
+  // Invariants:
+  // - Sorted by start time.
+  // - Non-overlapping clips.
   readonly clips: SSchemaArray<T>;
 
   prepareForPlayback(context: AudioContext): void;
@@ -21,13 +25,7 @@ export interface StandardTrack<T extends AbstractClip<any>> {
   stopPlayback(context: BaseAudioContext): void;
 }
 
-export abstract class ProjectTrack<T extends AbstractClip<any>> {
-  // A track is a collection of non-overalping clips.
-  // Invariants:
-  // - Sorted by start time.
-  // - Non-overlapping clips.
-  public abstract readonly clips: SSchemaArray<T>;
-
+export class ProjectTrack {
   //////////// CLIPS ////////////
 
   static addClip<T extends AbstractClip<any>>(project: AudioProject, track: StandardTrack<T>, newClip: T): void {

@@ -70,12 +70,12 @@ const SAMPLE_STATE = {
   },
 };
 
-export class MidiTrack extends ProjectTrack<MidiClip> implements StandardTrack<MidiClip> {
+export class MidiTrack implements StandardTrack<MidiClip> {
   public readonly dsp: ProjectTrackDSP<MidiClip>;
   public readonly name: SPrimitive<string>;
   readonly height: SPrimitive<number>;
 
-  public override clips: SSchemaArray<MidiClip>;
+  public readonly clips: SSchemaArray<MidiClip>;
   // todo: instrument can be empty?
   instrument: MidiInstrument;
   pianoRoll: PianoRollModule;
@@ -90,7 +90,6 @@ export class MidiTrack extends ProjectTrack<MidiClip> implements StandardTrack<M
     instrument: MidiInstrument,
     clips: MidiClip[],
   ) {
-    super();
     this.clips = arrayOf([MidiClip as any], clips);
     this.playingSource = null;
     this.pianoRoll = pianoRoll as any;
@@ -225,12 +224,5 @@ export class MidiTrack extends ProjectTrack<MidiClip> implements StandardTrack<M
         tempo: 120, // todo: tempo
       },
     });
-  }
-
-  override toString() {
-    return this.clips
-      ._getRaw()
-      .map((c) => c.toString())
-      .join("\n");
   }
 }
