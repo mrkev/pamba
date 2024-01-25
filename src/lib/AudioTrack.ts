@@ -15,7 +15,7 @@ import { AudioProject } from "./project/AudioProject";
 
 export class AudioTrack extends ProjectTrack<AudioClip> implements StandardTrack<AudioClip> {
   public readonly name: SPrimitive<string>;
-  public readonly node: ProjectTrackDSP<AudioClip>;
+  public readonly dsp: ProjectTrackDSP<AudioClip>;
   public override clips: SSchemaArray<AudioClip>;
 
   // For background processing
@@ -25,10 +25,10 @@ export class AudioTrack extends ProjectTrack<AudioClip> implements StandardTrack
   private playingSource: AudioBufferSourceNode | null;
 
   private constructor(name: string, clips: AudioClip[], effects: (FaustAudioEffect | PambaWamNode)[], height: number) {
-    super(name, effects, height);
+    super(height);
     this.clips = s.arrayOf([AudioClip as any], clips);
     this.playingSource = null;
-    this.node = new ProjectTrackDSP(this);
+    this.dsp = new ProjectTrackDSP(this, effects);
     this.name = SPrimitive.of(name);
   }
 
@@ -56,7 +56,7 @@ export class AudioTrack extends ProjectTrack<AudioClip> implements StandardTrack
   prepareForPlayback(context: AudioContext): void {
     // We need to keep a reference to our source node for play/pause
     this.playingSource = this.getSourceNode(context);
-    this.connectToDSPForPlayback(this.playingSource);
+    this.dsp.connectToDSPForPlayback(this.playingSource);
   }
 
   // NOTE: needs to be called right after .prepareForPlayback
@@ -71,7 +71,7 @@ export class AudioTrack extends ProjectTrack<AudioClip> implements StandardTrack
     this.playingSource = this.getSourceNode(context);
 
     const effectNodes = await Promise.all(
-      this.effects._getRaw().map(async (effect) => {
+      this.dsp.effects._getRaw().map(async (effect) => {
         const nextEffect = await effect.cloneToOfflineContext(context, offlineContextInfo);
         if (nextEffect == null) {
           throw new Error(`Failed to prepare ${effect.effectId} for bounce!`);
@@ -100,7 +100,7 @@ export class AudioTrack extends ProjectTrack<AudioClip> implements StandardTrack
     }
 
     this.playingSource.stop(0);
-    this.disconnectDSPAfterPlayback(this.playingSource);
+    this.dsp.disconnectDSPAfterPlayback(this.playingSource);
   }
 
   // TODO: I think I can keep 'trackBuffer' between plays
@@ -124,7 +124,7 @@ export class AudioTrack extends ProjectTrack<AudioClip> implements StandardTrack
   ///////////// statics
 
   static removeEffect(track: AudioTrack | MidiTrack, effect: FaustAudioEffect | PambaWamNode) {
-    track.effects.remove(effect);
+    track.dsp.effects.remove(effect);
     effect.destroy();
   }
 

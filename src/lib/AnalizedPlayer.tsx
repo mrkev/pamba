@@ -102,7 +102,7 @@ export class AnalizedPlayer {
     // sync as possible
     for (let track of tracks) {
       track.prepareForPlayback(liveAudioContext);
-      track.node.connect(this.mixDownNode);
+      track.dsp.connect(this.mixDownNode);
     }
     for (let track of tracks) {
       track.startPlayback(tempo, liveAudioContext, cursorPos);
@@ -121,7 +121,7 @@ export class AnalizedPlayer {
       // TODO: mke playing tracks and isAudioPlaying the same state
       throw new Error("No tracks playing");
     }
-    track.node.connect(this.mixDownNode);
+    track.dsp.connect(this.mixDownNode);
     this.playingTracks = this.playingTracks.concat(track);
     const LATENCY = 10;
     track.prepareForPlayback(liveAudioContext);
@@ -148,7 +148,7 @@ export class AnalizedPlayer {
     }
     for (let track of this.playingTracks) {
       track.stopPlayback(liveAudioContext);
-      track.node.disconnect(this.mixDownNode);
+      track.dsp.disconnect(this.mixDownNode);
     }
     this.isAudioPlaying = false;
     this.playbackTimeNode.disconnect(liveAudioContext.destination);

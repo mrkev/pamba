@@ -70,7 +70,7 @@ const SAMPLE_STATE = {
 };
 
 export class MidiTrack extends ProjectTrack<MidiClip> implements StandardTrack<MidiClip> {
-  public readonly node: ProjectTrackDSP<MidiClip>;
+  public readonly dsp: ProjectTrackDSP<MidiClip>;
   public readonly name: SPrimitive<string>;
 
   public override clips: SSchemaArray<MidiClip>;
@@ -88,12 +88,12 @@ export class MidiTrack extends ProjectTrack<MidiClip> implements StandardTrack<M
     instrument: MidiInstrument,
     clips: MidiClip[],
   ) {
-    super(name, [], CLIP_HEIGHT);
+    super(CLIP_HEIGHT);
     this.clips = arrayOf([MidiClip], clips);
     this.playingSource = null;
     this.pianoRoll = pianoRoll as any;
     this.instrument = instrument;
-    this.node = new ProjectTrackDSP(this);
+    this.dsp = new ProjectTrackDSP(this, []);
     this.name = SPrimitive.of(name);
 
     // gain.connect(liveAudioContext.destination);
@@ -136,7 +136,7 @@ export class MidiTrack extends ProjectTrack<MidiClip> implements StandardTrack<M
     }
     this.pianoRoll.sendClipsForPlayback(simpleClips);
     // connect effect chain
-    this.connectToDSPForPlayback(this.instrument.module.audioNode);
+    this.dsp.connectToDSPForPlayback(this.instrument.module.audioNode);
   }
 
   async prepareForBounce(
@@ -158,7 +158,7 @@ export class MidiTrack extends ProjectTrack<MidiClip> implements StandardTrack<M
     this.playingSource = pianoRoll as any;
 
     const effectNodes = await Promise.all(
-      this.effects._getRaw().map(async (effect) => {
+      this.dsp.effects._getRaw().map(async (effect) => {
         const nextEffect = await effect.cloneToOfflineContext(context, offlineContextInfo);
         if (nextEffect == null) {
           throw new Error(`Failed to prepare ${effect.effectId} for bounce!`);

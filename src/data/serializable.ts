@@ -98,7 +98,7 @@ export async function serializable(
     return {
       kind: "AudioTrack",
       clips: await Promise.all(obj.clips._getRaw().map((clip) => serializable(clip))),
-      effects: await Promise.all(obj.effects._getRaw().map((effect) => serializable(effect))),
+      effects: await Promise.all(obj.dsp.effects._getRaw().map((effect) => serializable(effect))),
       height: obj.height.get(),
       name: obj.name.get(),
     };

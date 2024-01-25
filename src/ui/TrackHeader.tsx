@@ -14,7 +14,6 @@ import { pressedState } from "../pressedState";
 import { RenamableLabel } from "./RenamableLabel";
 import { UtilityToggle } from "./UtilityToggle";
 import { UtilitySlider, utility } from "./utility";
-import { Track } from "../lib/ProjectTrack";
 
 export const TrackHeader = React.memo(function TrackHeader({
   track,
@@ -29,12 +28,12 @@ export const TrackHeader = React.memo(function TrackHeader({
   player: AnalizedPlayer;
 }) {
   const styles = useStyles();
-  const [gain, setGain] = useState<number>(Track.getCurrentGain(track).value);
+  const [gain, setGain] = useState<number>(track.dsp.getCurrentGain().value);
   const [muted, setMuted] = useState<boolean>(false);
   const [dspExpandedTracks] = useLinkedSet(project.dspExpandedTracks);
   const [solodTracks] = useLinkedSet(project.solodTracks);
   const [lockedTracks] = useLinkedSet(project.lockedTracks);
-  const trackEffects = useContainer(track.effects);
+  const trackEffects = useContainer(track.dsp.effects);
   const [trackName, setTrackName] = usePrimitive(track.name);
   const [height] = usePrimitive(track.height);
   const [selected] = useLinkedState(project.selected);
@@ -121,9 +120,9 @@ export const TrackHeader = React.memo(function TrackHeader({
 
               for (const track of project.allTracks._getRaw()) {
                 if (solodTracks.size === 0 || solodTracks.has(track)) {
-                  Track._hidden_setIsMutedByApplication(track, false);
+                  track.dsp._hidden_setIsMutedByApplication(false);
                 } else {
-                  Track._hidden_setIsMutedByApplication(track, true);
+                  track.dsp._hidden_setIsMutedByApplication(true);
                 }
               }
               e.stopPropagation();
@@ -139,9 +138,9 @@ export const TrackHeader = React.memo(function TrackHeader({
             onClick={function (e) {
               setMuted((prev) => {
                 if (!prev) {
-                  Track.setGain(track, 0);
+                  track.dsp.setGain(0);
                 } else {
-                  Track.setGain(track, gain);
+                  track.dsp.setGain(gain);
                 }
                 return !prev;
               });
@@ -164,7 +163,7 @@ export const TrackHeader = React.memo(function TrackHeader({
             }}
             onChange={function (val: number): void {
               setGain(val);
-              Track.setGain(track, val);
+              track.dsp.setGain(val);
             }}
           />
           {/* <input
@@ -266,7 +265,7 @@ export const TrackHeader = React.memo(function TrackHeader({
           >
             {appEnvironment.faustEffects.map((effect) => {
               return (
-                <option key={effect} onDoubleClick={async () => track.addEffect(effect)}>
+                <option key={effect} onDoubleClick={async () => track.dsp.addEffect(effect)}>
                   {effect.toLocaleLowerCase()}
                 </option>
               );
@@ -274,7 +273,7 @@ export const TrackHeader = React.memo(function TrackHeader({
 
             {appEnvironment.wamPlugins.map((value, key) => {
               return (
-                <option key={key} disabled={value.kind !== "a-a"} onDoubleClick={async () => track.addWAM(key)}>
+                <option key={key} disabled={value.kind !== "a-a"} onDoubleClick={async () => track.dsp.addWAM(key)}>
                   {value.descriptor.name.replace(/^WebAudioModule\_/, "").replace(/Plugin$/, "")}
                 </option>
               );

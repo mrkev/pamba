@@ -14,11 +14,18 @@ import { PBGainNode } from "./offlineNodes";
 import type { AudioProject } from "./project/AudioProject";
 
 export class ProjectTrackDSP<T extends AbstractClip<any>> extends DSPNode<null> {
+  // DSP
+  public readonly effects: SArray<FaustAudioEffect | PambaWamNode>;
+
   override readonly effectId = "builtin:ProjectTrackNode";
   override name: string | SPrimitive<string>;
-  constructor(private readonly track: StandardTrack<T>) {
+  constructor(
+    private readonly track: StandardTrack<T>,
+    effects: (FaustAudioEffect | PambaWamNode)[],
+  ) {
     super();
     this.name = track.name;
+    this.effects = SArray.create(effects);
   }
 
   override inputNode(): null {
@@ -32,11 +39,81 @@ export class ProjectTrackDSP<T extends AbstractClip<any>> extends DSPNode<null> 
   override cloneToOfflineContext(_context: OfflineAudioContext): Promise<DSPNode<AudioNode> | null> {
     throw new Error("AudioTrack: DSPNode: can't cloneToOfflineContext.");
   }
+
+  connectToDSPForPlayback(source: AudioNode): void {
+    // We need to keep a reference to our source node for play/pause
+
+    const effectNodes = this.effects._getRaw();
+    connectSerialNodes([
+      ///
+      source,
+      ...effectNodes,
+      this.track.gainNode,
+      this.track._hiddenGainNode.node,
+    ]);
+  }
+
+  disconnectDSPAfterPlayback(source: AudioNode): void {
+    const chain = [
+      // foo
+      source,
+      ...this.effects._getRaw(),
+      this.track.gainNode,
+      this.track._hiddenGainNode.node,
+    ];
+
+    for (let i = 0; i < chain.length - 1; i++) {
+      const currentNode = chain[i];
+      const nextNode = chain[i + 1];
+      currentNode.disconnect(nextNode);
+    }
+  }
+
+  ////////////////////// GAIN ///////////////////////
+
+  getCurrentGain(): AudioParam {
+    return this.track.gainNode.gain;
+  }
+
+  setGain(val: number): void {
+    this.track.gainNode.gain.value = val;
+  }
+
+  ////////////////////// SOLO ///////////////////////
+
+  // to be used only when solo-ing
+  _hidden_setIsMutedByApplication(muted: boolean) {
+    if (muted) {
+      this.track._hiddenGainNode.gain.value = 0;
+      return;
+    }
+    this.track._hiddenGainNode.gain.value = 1;
+  }
+
+  //////////////////// EFFECTS //////////////////////
+
+  async addEffect(effectId: EffectID) {
+    const effect = await FaustAudioEffect.create(liveAudioContext(), effectId);
+    if (effect == null) {
+      return;
+    }
+    this.effects.push(effect);
+  }
+
+  async addWAM(url: string) {
+    const [hostGroupId] = nullthrows(appEnvironment.wamHostGroup.get());
+    const module = await PambaWamNode.fromURL(url, hostGroupId, liveAudioContext());
+    if (module == null) {
+      console.error("Error: NO MODULE");
+      return;
+    }
+    this.effects.push(module);
+  }
 }
 
 // TODO: move these things out of the abstract class
 export interface StandardTrack<T extends AbstractClip<any>> {
-  readonly node: ProjectTrackDSP<T>;
+  readonly dsp: ProjectTrackDSP<T>;
   // The "volume" of the track
   readonly gainNode: PBGainNode;
   // Hidden gain node, just for solo-ing tracks.
@@ -52,28 +129,6 @@ export interface StandardTrack<T extends AbstractClip<any>> {
   stopPlayback(context: BaseAudioContext): void;
 }
 
-export class Track {
-  // todo: move to track node?
-  static getCurrentGain(track: StandardTrack<any>): AudioParam {
-    return track.gainNode.gain;
-  }
-
-  // todo: move to track node?
-  static setGain(track: StandardTrack<any>, val: number): void {
-    track.gainNode.gain.value = val;
-  }
-
-  // todo: move to track node?
-  // to be used only when solo-ing
-  static _hidden_setIsMutedByApplication(track: StandardTrack<any>, muted: boolean) {
-    if (muted) {
-      track._hiddenGainNode.gain.value = 0;
-      return;
-    }
-    track._hiddenGainNode.gain.value = 1;
-  }
-}
-
 export abstract class ProjectTrack<T extends AbstractClip<any>> {
   public readonly height: SPrimitive<number>;
   // The "volume" of the track
@@ -87,43 +142,10 @@ export abstract class ProjectTrack<T extends AbstractClip<any>> {
   // - Non-overlapping clips.
   public abstract readonly clips: SSchemaArray<any>; // TODO: <T>, not there cause midi clip isn't ready
 
-  // DSP
-  public readonly effects: SArray<FaustAudioEffect | PambaWamNode>;
-
-  constructor(name: string, effects: (FaustAudioEffect | PambaWamNode)[], height: number) {
-    this.effects = SArray.create(effects);
+  constructor(height: number) {
     this.height = SPrimitive.of<number>(height);
     this.gainNode = new PBGainNode();
     this._hiddenGainNode = new PBGainNode();
-  }
-
-  connectToDSPForPlayback(source: AudioNode): void {
-    // We need to keep a reference to our source node for play/pause
-
-    const effectNodes = this.effects._getRaw();
-    connectSerialNodes([
-      ///
-      source,
-      ...effectNodes,
-      this.gainNode,
-      this._hiddenGainNode.node,
-    ]);
-  }
-
-  disconnectDSPAfterPlayback(source: AudioNode): void {
-    const chain = [
-      // foo
-      source,
-      ...this.effects._getRaw(),
-      this.gainNode,
-      this._hiddenGainNode.node,
-    ];
-
-    for (let i = 0; i < chain.length - 1; i++) {
-      const currentNode = chain[i];
-      const nextNode = chain[i + 1];
-      currentNode.disconnect(nextNode);
-    }
   }
 
   //////////// CLIPS ////////////
@@ -175,26 +197,6 @@ export abstract class ProjectTrack<T extends AbstractClip<any>> {
     }
 
     splitClip(clip, offset, this.clips);
-  }
-
-  //////////////////// EFFECTS //////////////////////
-
-  async addEffect(effectId: EffectID) {
-    const effect = await FaustAudioEffect.create(liveAudioContext(), effectId);
-    if (effect == null) {
-      return;
-    }
-    this.effects.push(effect);
-  }
-
-  async addWAM(url: string) {
-    const [hostGroupId] = nullthrows(appEnvironment.wamHostGroup.get());
-    const module = await PambaWamNode.fromURL(url, hostGroupId, liveAudioContext());
-    if (module == null) {
-      console.error("Error: NO MODULE");
-      return;
-    }
-    this.effects.push(module);
   }
 
   /////////////// DEBUGGING /////////////////
