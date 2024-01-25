@@ -213,7 +213,8 @@ export function ClipA({
           value={name}
           setValue={console.log}
         />{" "} */}
-        {clip.toString()}
+        {/* {clip.toString()} */}
+        {name}
       </div>
       {editable && <div className={styles.resizerStart} onMouseDownCapture={(e) => onMouseDownToResize(e, "start")} />}
       {editable && <div className={styles.resizerEnd} onMouseDownCapture={(e) => onMouseDownToResize(e, "end")} />}

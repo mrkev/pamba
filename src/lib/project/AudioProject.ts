@@ -149,7 +149,7 @@ export class AudioProject {
     track?: AudioTrack,
     position: "top" | "bottom" = "top",
   ) {
-    const newTrack = track ?? AudioTrack.create();
+    const newTrack = track ?? AudioTrack.of();
     if (position === "top") {
       project.allTracks.unshift(newTrack);
     } else {

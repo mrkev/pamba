@@ -1,4 +1,5 @@
 import * as s from "structured-state";
+import { Structured } from "structured-state";
 import { SPrimitive } from "structured-state";
 import { SSchemaArray } from "structured-state";
 import { CLIP_HEIGHT } from "../constants";
@@ -13,8 +14,9 @@ import { TrackThread } from "./TrackThread";
 import { connectSerialNodes } from "./connectSerialNodes";
 import { AudioContextInfo } from "./initAudioContext";
 import { AudioProject } from "./project/AudioProject";
+import { SAudioTrack } from "../data/serializable";
 
-export class AudioTrack implements StandardTrack<AudioClip> {
+export class AudioTrack extends Structured<SAudioTrack, typeof AudioTrack> implements StandardTrack<AudioClip> {
   public readonly name: SPrimitive<string>;
   public readonly dsp: ProjectTrackDSP<AudioClip>;
   public readonly clips: SSchemaArray<AudioClip>;
@@ -26,7 +28,31 @@ export class AudioTrack implements StandardTrack<AudioClip> {
   // if audo is playing, this is the soruce with the playing buffer
   private playingSource: AudioBufferSourceNode | null;
 
-  private constructor(name: string, clips: AudioClip[], effects: (FaustAudioEffect | PambaWamNode)[], height: number) {
+  override serialize(): SAudioTrack {
+    return {
+      kind: "AudioTrack",
+      clips: this.clips._getRaw().map((clip) => clip.serialize()),
+      // TODO: async serialize
+      // effects: await Promise.all(obj.dsp.effects._getRaw().map((effect) => serializable(effect))),
+      effects: [],
+      height: this.height.get(),
+      name: this.name.get(),
+    };
+  }
+  override replace(json: SAudioTrack): void {
+    throw new Error("Method not implemented.");
+  }
+
+  static construct(json: SAudioTrack): AudioTrack {
+    const { name, clips: sClips, effects: sEffects, height } = json;
+    const clips = sClips.map((clip) => AudioClip.construct(clip));
+    // TODO: effects
+    // const effects = await Promise.all(sEffects.map((effect) => construct(effect)));
+    return AudioTrack.of({ name, clips, effects: [], height });
+  }
+
+  constructor(name: string, clips: AudioClip[], effects: (FaustAudioEffect | PambaWamNode)[], height: number) {
+    super();
     this.clips = s.arrayOf([AudioClip as any], clips);
     this.playingSource = null;
     this.dsp = new ProjectTrackDSP(this, effects);
@@ -34,13 +60,19 @@ export class AudioTrack implements StandardTrack<AudioClip> {
     this.height = SPrimitive.of<number>(height);
   }
 
-  static create(props?: {
+  static of(props?: {
     name?: string;
     clips?: AudioClip[];
     effects?: (FaustAudioEffect | PambaWamNode)[];
     height?: number;
   }) {
-    return new this(props?.name ?? "Audio", props?.clips ?? [], props?.effects ?? [], props?.height ?? CLIP_HEIGHT);
+    return Structured.create(
+      AudioTrack,
+      props?.name ?? "Audio",
+      props?.clips ?? [],
+      props?.effects ?? [],
+      props?.height ?? CLIP_HEIGHT,
+    );
   }
 
   //////////// Playback ////////////
@@ -118,7 +150,7 @@ export class AudioTrack implements StandardTrack<AudioClip> {
 
   // New track with a single clip
   static fromClip(project: AudioProject, clip: AudioClip) {
-    const track = AudioTrack.create();
+    const track = AudioTrack.of();
     ProjectTrack.addClip(project, track, clip);
     return track;
   }

@@ -1,3 +1,4 @@
+import hljs from "highlight.js";
 import { debugOut, useContainer } from "structured-state";
 import { AudioProject } from "../lib/project/AudioProject";
 import { PrimarySelectionState } from "../lib/project/SelectionState";
@@ -122,6 +123,12 @@ export function DebugContent({ project }: { project: AudioProject }) {
     })
     .join("\n");
 
+  const value =
+    " ## Track Structure<br /><br />" +
+    hljs.highlight(debugOut(tracks, 0, false), {
+      language: "javascript",
+    }).value;
+
   return (
     <>
       <pre
@@ -130,23 +137,19 @@ export function DebugContent({ project }: { project: AudioProject }) {
           background: "#222",
           margin: "0px 4px",
           textAlign: "left",
-          width: 300,
+          width: 400,
           fontSize: 12,
           userSelect: "text",
         }}
-      >
-        ## Track Structure
-        <br />
-        <br />
-        {debugOut(tracks, 0, false)}
-      </pre>
+        dangerouslySetInnerHTML={{ __html: value }}
+      ></pre>
       <div style={{ overflow: "scroll", background: "#222", flexGrow: 1 }}>
         <pre>
-          |{viewportStartPx}px -{projectDivWidth}-
-        </pre>
-        <div>
+          Viewport: |{viewportStartPx}px -{projectDivWidth}-<br />
           Cursor: {cursorPos} {selectionWidth} <br />
           Cursor Tracks: {[...cursorTracks.values()].map((track) => `${track.name.get()}`)}
+        </pre>
+        <div>
           <hr></hr>
           <br />
           Selected: {stringOfSelected(selected)}
@@ -167,7 +170,19 @@ export function DebugContent({ project }: { project: AudioProject }) {
           maxHeight: "100%",
         }}
       >
-        <pre>{allState}</pre>
+        <pre
+          style={{
+            overflow: "scroll",
+            background: "#222",
+            margin: "0px 4px",
+            textAlign: "left",
+            width: 400,
+            fontSize: 12,
+            userSelect: "text",
+          }}
+        >
+          {allState}
+        </pre>
       </div>
     </>
   );

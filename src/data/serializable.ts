@@ -164,7 +164,7 @@ export async function construct(
       const { name, clips: sClips, effects: sEffects, height } = rep;
       const clips = await Promise.all(sClips.map((clip) => construct(clip)));
       const effects = await Promise.all(sEffects.map((effect) => construct(effect)));
-      return AudioTrack.create({ name, clips, effects, height });
+      return AudioTrack.of({ name, clips, effects, height });
     }
 
     case "MidiTrack": {
