@@ -91,7 +91,7 @@ export class MidiTrack extends ProjectTrack<MidiClip> implements StandardTrack<M
     clips: MidiClip[],
   ) {
     super();
-    this.clips = arrayOf([MidiClip], clips);
+    this.clips = arrayOf([MidiClip as any], clips);
     this.playingSource = null;
     this.pianoRoll = pianoRoll as any;
     this.instrument = instrument;
@@ -107,7 +107,7 @@ export class MidiTrack extends ProjectTrack<MidiClip> implements StandardTrack<M
   }
 
   public createSampleMidiClip() {
-    const newClip = MidiClip.create("new midi clip", 0, 96, []);
+    const newClip = MidiClip.of("new midi clip", 0, 96, []);
     for (const note of SAMPLE_STATE.clips.default.notes) {
       newClip.addNote(note.tick, note.number, note.duration, note.velocity);
     }

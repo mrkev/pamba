@@ -1,9 +1,8 @@
 import { SPrimitive, SSchemaArray } from "structured-state";
-import { AbstractClip, Seconds, addClip, deleteTime, pushClip, removeClip, splitClip } from "./AbstractClip";
-import { AudioClip } from "./AudioClip";
+import { AbstractClip, addClip, deleteTime, pushClip, removeClip, splitClip } from "./AbstractClip";
+import { ProjectTrackDSP } from "./ProjectTrackDSP";
 import { AudioContextInfo } from "./initAudioContext";
 import type { AudioProject } from "./project/AudioProject";
-import { ProjectTrackDSP } from "./ProjectTrackDSP";
 
 // TODO: move these things out of the abstract class
 export interface StandardTrack<T extends AbstractClip<any>> {
@@ -24,7 +23,7 @@ export abstract class ProjectTrack<T extends AbstractClip<any>> {
   // Invariants:
   // - Sorted by start time.
   // - Non-overlapping clips.
-  public abstract readonly clips: SSchemaArray<any>; // TODO: <T>, not there cause midi clip isn't ready
+  public abstract readonly clips: SSchemaArray<T>;
 
   //////////// CLIPS ////////////
 
@@ -62,7 +61,7 @@ export abstract class ProjectTrack<T extends AbstractClip<any>> {
     }
 
     console.log("AT deleteTime");
-    const notifyClips = deleteTime<AudioClip, Seconds>(start, end, this.clips);
+    const notifyClips = deleteTime(start, end, this.clips);
     notifyClips.forEach((clip) => {
       console.log("clip", clip);
       clip._notifyChange();

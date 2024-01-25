@@ -40,6 +40,11 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
   public clipLengthSec: Seconds; // TODO: incorporate
   public bufferOffset: Seconds;
 
+  gainAutomation: Array<{ time: number; value: number }> = [{ time: 0, value: 1 }];
+  // Let's not pre-compute this since we don't know the acutal dimensions
+  // but lets memoize the last size used for perf. shouldn't change.
+  private memodWaveformDataURL: Map<string, { width: number; height: number; data: string }> = new Map();
+
   override serialize(): SAudioClip {
     const { name, bufferURL } = this;
     const result: SAudioClip = {
@@ -74,11 +79,6 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
       json.clipLengthSec,
     );
   }
-
-  gainAutomation: Array<{ time: number; value: number }> = [{ time: 0, value: 1 }];
-  // Let's not pre-compute this since we don't know the acutal dimensions
-  // but lets memoize the last size used for perf. shouldn't change.
-  private memodWaveformDataURL: Map<string, { width: number; height: number; data: string }> = new Map();
 
   constructor(
     buffer: AudioBuffer,

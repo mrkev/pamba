@@ -158,7 +158,7 @@ export async function construct(
     case "MidiClip": {
       const { name, startOffsetPulses, lengthPulses, notes } = rep;
       // TODO: `create` creates a new ID for this clip. think about implications
-      return s.create(MidiClip, { name: name, startOffsetPulses, lengthPulses, notes: mutable(notes) });
+      return MidiClip.of(name, startOffsetPulses, lengthPulses, mutable(notes));
     }
     case "AudioTrack": {
       const { name, clips: sClips, effects: sEffects, height } = rep;

@@ -1,6 +1,7 @@
 import * as s from "structured-state";
-import { SArray, SString, Struct, StructProps } from "structured-state";
+import { SArray, SString } from "structured-state";
 import { liveAudioContext } from "../constants";
+import { SMidiClip } from "../data/serializable";
 import { AbstractClip, Pulses } from "../lib/AbstractClip";
 import { AudioProject } from "../lib/project/AudioProject";
 import { MutationHashable } from "../lib/state/MutationHashable";
@@ -27,7 +28,27 @@ export function secsToPulses(secs: number, bpm: number) {
   return Math.floor((secs * PPQN * bpm) / SECS_IN_MIN);
 }
 
-export class MidiClip extends Struct<MidiClip> implements Subbable<MidiClip>, MutationHashable, AbstractClip<Pulses> {
+export class MidiClip
+  extends s.Structured<SMidiClip, typeof MidiClip>
+  implements Subbable<MidiClip>, MutationHashable, AbstractClip<Pulses>
+{
+  override serialize(): Readonly<{
+    kind: "MidiClip";
+    name: string;
+    startOffsetPulses: number;
+    lengthPulses: number;
+    notes: readonly Note[];
+  }> {
+    throw new Error("Method not implemented.");
+  }
+  override replace(_json: SMidiClip): void {
+    throw new Error("Method not implemented.");
+  }
+
+  static construct(_json: SMidiClip): MidiClip {
+    throw new Error("Method not implemented.");
+  }
+
   // AbstractClip
   readonly unit = "pulse";
 
@@ -38,18 +59,16 @@ export class MidiClip extends Struct<MidiClip> implements Subbable<MidiClip>, Mu
   public lengthPulses: Pulses;
   private _startOffsetPulses: Pulses;
 
-  static create(name: string, startOffsetPulses: number, lengthPulses: number, notes: Note[]) {
-    return s.create(MidiClip, { name, startOffsetPulses, lengthPulses, notes });
+  static of(name: string, startOffsetPulses: number, lengthPulses: number, notes: Note[]) {
+    return s.Structured.create(MidiClip, name, startOffsetPulses, lengthPulses, notes);
   }
 
-  constructor(
-    props: StructProps<MidiClip, { name: string; startOffsetPulses: number; lengthPulses: number; notes: Note[] }>,
-  ) {
-    super(props);
-    this.name = SString.create(props.name);
-    this.notes = SArray.create(props.notes);
-    this.lengthPulses = props.lengthPulses as Pulses;
-    this._startOffsetPulses = props.startOffsetPulses as Pulses;
+  constructor(name: string, startOffsetPulses: number, lengthPulses: number, notes: Note[]) {
+    super();
+    this.name = SString.create(name);
+    this.notes = SArray.create(notes);
+    this.lengthPulses = lengthPulses as Pulses;
+    this._startOffsetPulses = startOffsetPulses as Pulses;
   }
 
   addNote(tick: number, num: number, duration: number, velocity: number) {
@@ -119,12 +138,12 @@ export class MidiClip extends Struct<MidiClip> implements Subbable<MidiClip>, Mu
   }
 
   clone(): MidiClip {
-    const newClip = new MidiClip({
-      name: this.name.get(),
-      startOffsetPulses: this._startOffsetPulses,
-      lengthPulses: this.lengthPulses,
-      notes: mutable(this.notes._getRaw()),
-    });
+    const newClip = new MidiClip(
+      this.name.get(),
+      this._startOffsetPulses,
+      this.lengthPulses,
+      mutable(this.notes._getRaw()),
+    );
     return newClip;
   }
 
@@ -147,6 +166,6 @@ function addOrderedNote(la: SArray<Note>, note: Note) {
 export function createEmptyMidiClipInTrack(project: AudioProject, track: MidiTrack, startS: number, endS: number) {
   const startPulses = project.viewport.secsToPulses(startS);
   const length = project.viewport.secsToPulses(endS - startS);
-  const clip = MidiClip.create("new clip", startPulses, length, []);
+  const clip = MidiClip.of("new clip", startPulses, length, []);
   track.addClip(project, clip);
 }

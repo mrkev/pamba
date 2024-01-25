@@ -1,4 +1,4 @@
-import { SArray } from "structured-state";
+import { SArray, Structured } from "structured-state";
 import { nullthrows } from "../utils/nullthrows";
 
 export function printClips(clips: SArray<AbstractClip<any>>) {
@@ -303,7 +303,7 @@ export function secsAsNum(num: Seconds) {
 }
 // rn mostly used for invariants
 
-export interface AbstractClip<U extends Seconds | Pulses> {
+export interface AbstractClip<U extends Seconds | Pulses> extends Structured<any, any> {
   get _timelineStartU(): U;
   _setTimelineStartU(num: U): void;
 
