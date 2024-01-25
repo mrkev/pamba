@@ -91,6 +91,11 @@ export function App(): React.ReactElement {
             Continue
           </button>
         )}
+        <br />
+        <details>
+          <summary>Changelog</summary>
+          {changelog}
+        </details>
       </pre>
     );
   } else {
@@ -115,3 +120,13 @@ export function App(): React.ReactElement {
     );
   }
 }
+
+const changelog = `
+v0.1.2
+- added changelog. warning: it will be of dubious quality
+- can undo clip name change
+- data structure changes
+
+v0.1.1
+- added Faust effect: pitch_shifter
+`;

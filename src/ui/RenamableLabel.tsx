@@ -111,11 +111,11 @@ export function RenamableLabel({
           onBlur={() => setIsRenaming(false)}
         />
       ) : (
-        <>
+        <span style={{ display: "flex", flexDirection: "row", alignItems: "baseline", gap: "0.25ch" }}>
           {value}{" "}
           {showEdit && (
             <i
-              style={{ cursor: "pointer" }}
+              style={{ cursor: "pointer", marginLeft: "1ch" }}
               className="ri-edit-line"
               onClick={() => {
                 if (disabled) {
@@ -125,7 +125,7 @@ export function RenamableLabel({
               }}
             ></i>
           )}
-        </>
+        </span>
       )}
     </span>
   );

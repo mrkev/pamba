@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 import { createUseStyles } from "react-jss";
-import { usePrimitive } from "structured-state";
+import { history, usePrimitive } from "structured-state";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioProject } from "../lib/project/AudioProject";
@@ -178,7 +178,9 @@ export function AudioClipEditor({
             }}
             value={name}
             setValue={(value) => {
-              clip.name.set(value);
+              history.record(() => {
+                clip.name.set(value);
+              });
             }}
             showEditButton
           />

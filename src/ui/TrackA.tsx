@@ -202,6 +202,7 @@ export function TrackA({
             track,
             originalHeight: height,
           });
+          e.stopPropagation();
         }}
       ></div>
     </>

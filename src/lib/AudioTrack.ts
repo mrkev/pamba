@@ -1,8 +1,7 @@
 import * as s from "structured-state";
-import { Structured } from "structured-state";
-import { SPrimitive } from "structured-state";
-import { SSchemaArray } from "structured-state";
+import { SPrimitive, SSchemaArray, Structured } from "structured-state";
 import { CLIP_HEIGHT } from "../constants";
+import { SAudioTrack } from "../data/serializable";
 import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
 import { MidiTrack } from "../midi/MidiTrack";
 import { mixDown } from "../mixDown";
@@ -14,7 +13,6 @@ import { TrackThread } from "./TrackThread";
 import { connectSerialNodes } from "./connectSerialNodes";
 import { AudioContextInfo } from "./initAudioContext";
 import { AudioProject } from "./project/AudioProject";
-import { SAudioTrack } from "../data/serializable";
 
 export class AudioTrack extends Structured<SAudioTrack, typeof AudioTrack> implements StandardTrack<AudioClip> {
   public readonly name: SPrimitive<string>;

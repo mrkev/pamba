@@ -30,12 +30,11 @@
 .utilitySlider {
   appearance: none;
   background: var(--control-bg-color);
-
+  cursor: ew-resize;
   &::-webkit-slider-thumb {
     width: 1px;
     appearance: none;
     height: 16px;
-    cursor: ew-resize;
     background: black;
   }
 }

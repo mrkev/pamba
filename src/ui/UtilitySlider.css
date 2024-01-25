@@ -11,10 +11,9 @@ input:focus {
   width: 1px;
   appearance: none;
   height: 16px;
-
   background: black;
 }
 
-input[type="range"] {
+/* input[type="range"] {
   cursor: inherit;
-}
+} */

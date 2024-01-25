@@ -214,7 +214,7 @@ export function ToolHeader({
           {/* <TransportControl project={project} renderer={renderer} recorder={recorder} /> */}
           <div style={{ flexGrow: 1 }}></div>
           <span title="current open project">
-            <i className="ri-file-music-line" />{" "}
+            <i className="ri-file-music-line" />
             <RenamableLabel
               style={{ padding: "0px 2px" }}
               value={projectName}
