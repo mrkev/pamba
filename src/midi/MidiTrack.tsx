@@ -2,7 +2,8 @@ import type { WebAudioModule } from "@webaudiomodules/api";
 import { SPrimitive, SSchemaArray, arrayOf } from "structured-state";
 import { CLIP_HEIGHT, PIANO_ROLL_PLUGIN_URL, SECS_IN_MINUTE, TIME_SIGNATURE, liveAudioContext } from "../constants";
 import { appEnvironment } from "../lib/AppEnvironment";
-import { ProjectTrack, ProjectTrackDSP, StandardTrack } from "../lib/ProjectTrack";
+import { ProjectTrack, StandardTrack } from "../lib/ProjectTrack";
+import { ProjectTrackDSP } from "../lib/ProjectTrackDSP";
 import { connectSerialNodes } from "../lib/connectSerialNodes";
 import { nullthrows } from "../utils/nullthrows";
 import { PianoRollModule, PianoRollNode } from "../wam/pianorollme/PianoRollNode";
@@ -72,6 +73,7 @@ const SAMPLE_STATE = {
 export class MidiTrack extends ProjectTrack<MidiClip> implements StandardTrack<MidiClip> {
   public readonly dsp: ProjectTrackDSP<MidiClip>;
   public readonly name: SPrimitive<string>;
+  readonly height: SPrimitive<number>;
 
   public override clips: SSchemaArray<MidiClip>;
   // todo: instrument can be empty?
@@ -88,13 +90,14 @@ export class MidiTrack extends ProjectTrack<MidiClip> implements StandardTrack<M
     instrument: MidiInstrument,
     clips: MidiClip[],
   ) {
-    super(CLIP_HEIGHT);
+    super();
     this.clips = arrayOf([MidiClip], clips);
     this.playingSource = null;
     this.pianoRoll = pianoRoll as any;
     this.instrument = instrument;
     this.dsp = new ProjectTrackDSP(this, []);
     this.name = SPrimitive.of(name);
+    this.height = SPrimitive.of<number>(CLIP_HEIGHT);
 
     // gain.connect(liveAudioContext.destination);
     instrument.module.audioNode.connect(pianoRoll.audioNode);
@@ -167,12 +170,12 @@ export class MidiTrack extends ProjectTrack<MidiClip> implements StandardTrack<M
       }),
     );
 
-    const _hiddenGainNode = await this._hiddenGainNode.cloneToOfflineContext(context);
+    const _hiddenGainNode = await this.dsp._hiddenGainNode.cloneToOfflineContext(context);
 
     connectSerialNodes([
       ///
       // this.playingSource,
-      await this.gainNode.cloneToOfflineContext(context),
+      await this.dsp.gainNode.cloneToOfflineContext(context),
       ...effectNodes,
       _hiddenGainNode,
     ]);

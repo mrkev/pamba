@@ -7,7 +7,8 @@ import { MidiTrack } from "../midi/MidiTrack";
 import { mixDown } from "../mixDown";
 import { PambaWamNode } from "../wam/PambaWamNode";
 import { AudioClip } from "./AudioClip";
-import { ProjectTrack, ProjectTrackDSP, StandardTrack } from "./ProjectTrack";
+import { ProjectTrack, StandardTrack } from "./ProjectTrack";
+import { ProjectTrackDSP } from "./ProjectTrackDSP";
 import { TrackThread } from "./TrackThread";
 import { connectSerialNodes } from "./connectSerialNodes";
 import { AudioContextInfo } from "./initAudioContext";
@@ -17,6 +18,7 @@ export class AudioTrack extends ProjectTrack<AudioClip> implements StandardTrack
   public readonly name: SPrimitive<string>;
   public readonly dsp: ProjectTrackDSP<AudioClip>;
   public override clips: SSchemaArray<AudioClip>;
+  readonly height: SPrimitive<number>;
 
   // For background processing
   private thread_UNUSED = new TrackThread();
@@ -25,11 +27,12 @@ export class AudioTrack extends ProjectTrack<AudioClip> implements StandardTrack
   private playingSource: AudioBufferSourceNode | null;
 
   private constructor(name: string, clips: AudioClip[], effects: (FaustAudioEffect | PambaWamNode)[], height: number) {
-    super(height);
+    super();
     this.clips = s.arrayOf([AudioClip as any], clips);
     this.playingSource = null;
     this.dsp = new ProjectTrackDSP(this, effects);
     this.name = SPrimitive.of(name);
+    this.height = SPrimitive.of<number>(height);
   }
 
   static create(props?: {
@@ -80,12 +83,12 @@ export class AudioTrack extends ProjectTrack<AudioClip> implements StandardTrack
       }),
     );
 
-    const _hiddenGainNode = await this._hiddenGainNode.cloneToOfflineContext(context);
+    const _hiddenGainNode = await this.dsp._hiddenGainNode.cloneToOfflineContext(context);
 
     connectSerialNodes([
       ///
       this.playingSource,
-      await this.gainNode.cloneToOfflineContext(context),
+      await this.dsp.gainNode.cloneToOfflineContext(context),
       ...effectNodes,
       _hiddenGainNode,
     ]);
