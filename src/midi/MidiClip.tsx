@@ -33,15 +33,16 @@ export class MidiClip
   extends s.Structured<SMidiClip, typeof MidiClip>
   implements Subbable<MidiClip>, MutationHashable, AbstractClip<Pulses>
 {
-  override serialize(): Readonly<{
-    kind: "MidiClip";
-    name: string;
-    startOffsetPulses: number;
-    lengthPulses: number;
-    notes: readonly Note[];
-  }> {
-    throw new Error("Method not implemented.");
+  override serialize(): SMidiClip {
+    return {
+      kind: "MidiClip",
+      name: this.name.get(),
+      startOffsetPulses: this.startOffsetPulses,
+      lengthPulses: this.lengthPulses,
+      notes: this.notes._getRaw(),
+    };
   }
+
   override replace(_json: SMidiClip): void {
     throw new Error("Method not implemented.");
   }

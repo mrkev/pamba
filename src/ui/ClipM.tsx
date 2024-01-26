@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback } from "react";
 import { createUseStyles } from "react-jss";
 import { useContainer, usePrimitive } from "structured-state";
 import { modifierState } from "../ModifierState";
@@ -9,6 +9,7 @@ import { MidiClip, pulsesToSec } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
 import { pressedState } from "../pressedState";
 import { RenamableLabel } from "./RenamableLabel";
+import { StandardClip } from "./StandardClip";
 
 export function ClipM({
   clip,
@@ -54,43 +55,46 @@ export function ClipM({
   //   });
   // }
 
-  function onMouseDownToMove(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
-    if (tool !== "move" || track == null) {
-      return;
-    }
-
-    pressedState.set({
-      // TODO: move clip in pulses state? or abstract unit away?
-      status: "moving_clip",
-      clientX: e.clientX,
-      clientY: e.clientY,
-      clip,
-      track,
-      originalTrack: track,
-      originalClipStartOffsetSec: pulsesToSec(clip.startOffsetPulses, bpm),
-      originalClipEndOffsetSec: pulsesToSec(clip._timelineEndU, bpm),
-      inHistory: false,
-    });
-
-    project.selected.setDyn((prev) => {
-      const selectAdd = modifierState.meta || modifierState.shift;
-      if (selectAdd && prev !== null && prev.status === "clips") {
-        prev.clips.push({ clip, track });
-        prev.test.add(clip);
-        prev.test.add(track);
-        return { ...prev };
-      } else {
-        return {
-          status: "clips",
-          clips: [{ clip, track }],
-          test: new Set([clip, track]),
-        };
+  const onMouseDownToMove = useCallback(
+    (e: MouseEvent) => {
+      if (tool !== "move" || track == null) {
+        return;
       }
-    });
 
-    project.selectionWidth.set(null);
-    e.stopPropagation();
-  }
+      pressedState.set({
+        // TODO: move clip in pulses state? or abstract unit away?
+        status: "moving_clip",
+        clientX: e.clientX,
+        clientY: e.clientY,
+        clip,
+        track,
+        originalTrack: track,
+        originalClipStartOffsetSec: pulsesToSec(clip.startOffsetPulses, bpm),
+        originalClipEndOffsetSec: pulsesToSec(clip._timelineEndU, bpm),
+        inHistory: false,
+      });
+
+      project.selected.setDyn((prev) => {
+        const selectAdd = modifierState.meta || modifierState.shift;
+        if (selectAdd && prev !== null && prev.status === "clips") {
+          prev.clips.push({ clip, track });
+          prev.test.add(clip);
+          prev.test.add(track);
+          return { ...prev };
+        } else {
+          return {
+            status: "clips",
+            clips: [{ clip, track }],
+            test: new Set([clip, track]),
+          };
+        }
+      });
+
+      project.selectionWidth.set(null);
+      e.stopPropagation();
+    },
+    [bpm, clip, project.selected, project.selectionWidth, tool, track],
+  );
 
   // function onClipClick(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
   //   const div = e.currentTarget;
@@ -113,44 +117,22 @@ export function ClipM({
   //   }
   // }
 
-  const border = isSelected ? "1px solid #114411" : "1px solid #aaddaa";
-
   return (
-    <div
-      // onClick={onClipClick}
-      className={styles.clip}
-      style={{
-        width: width,
-        left: Math.floor(project.viewport.pulsesToPx(clip.startOffsetPulses)),
-        border,
-        ...style,
-      }}
+    <StandardClip
+      clip={clip}
+      isSelected={isSelected}
+      onMouseDownToResize={function (e: React.MouseEvent<HTMLDivElement, MouseEvent>, from: "end" | "start"): void {}}
+      onMouseDownToMove={onMouseDownToMove}
+      onClipClick={() => {}}
+      width={width}
+      left={Math.floor(project.viewport.pulsesToPx(clip.startOffsetPulses))}
+      style={{}}
     >
-      <div
-        className={styles.clipHeader}
-        onMouseDown={onMouseDownToMove}
-        style={{
-          color: isSelected ? "white" : "black",
-          background: isSelected ? "#225522" : "#bbeebb",
-          borderBottom: border,
-        }}
-      >
-        {/* TODO: not working */}
-        <RenamableLabel
-          style={{
-            color: isSelected ? "white" : "black",
-            fontSize: 10,
-          }}
-          value={name}
-          setValue={(newVal) => clip.name.set(newVal)}
-        />
-      </div>
-      {/* <div className={styles.resizerStart} onMouseDown={(e) => onMouseDownToResize(e, "start")}></div>
-      <div className={styles.resizerEnd} onMouseDown={(e) => onMouseDownToResize(e, "end")}></div> */}
       {notes.length}
-    </div>
+    </StandardClip>
   );
 }
+
 const useStyles = createUseStyles({
   clip: {
     backgroundColor: "#ccffcc",
