@@ -4,7 +4,7 @@ import { MIN_TRACK_HEIGHT } from "../constants";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioTrack } from "../lib/AudioTrack";
-import { clipMovePPQN, clipMoveSec } from "../lib/clipMoveSec";
+import { clipMovePPQN, clipMoveSec, clipResizeEndSec } from "../lib/clipMoveSec";
 import { AudioProject } from "../lib/project/AudioProject";
 import { snapped } from "../lib/project/ProjectViewportUtil";
 import { MidiClip } from "../midi/MidiClip";
@@ -329,15 +329,20 @@ export function useTimelineMouseEvents(
             }
 
             if (pressed.from === "end") {
-              const newClipEnd = clamp(
-                // We can't trim a clip to end before it's beggining
-                0,
-                pressed.originalClipLength + opDeltaXSecs,
-                // and also prevent it from extending beyond its original length
-                pressed.clip.bufferLength - pressed.clip.bufferOffset,
-              );
-              pressed.clip.clipLengthSec = secs(newClipEnd);
+              const snap = e.metaKey ? !project.snapToGrid.get() : project.snapToGrid.get();
+              const newLength = pressed.originalClipLength + opDeltaXSecs;
+              clipResizeEndSec(pressed.clip, newLength, project, snap);
             } else if (pressed.from === "start") {
+              const newClipLength = clamp(
+                // zero length is minimum
+                0,
+                pressed.originalClipLength - opDeltaXSecs,
+                // since trimming from start, max is going back all the way to zero
+                pressed.originalClipLength + pressed.originalBufferOffset,
+              );
+
+              const delta = pressed.originalClipLength - newClipLength;
+
               const newBufferOffset = clamp(
                 // let's not allow extending the beginning back before 0
                 0,
@@ -346,18 +351,14 @@ export function useTimelineMouseEvents(
                 pressed.originalBufferOffset + pressed.originalClipLength,
               );
               // console.log("NBO", newBufferOffset, pressed.originalClipLength);
-              const newTimelineStartSec = clamp(
-                pressed.originalTimelineStartSec - pressed.originalBufferOffset,
-                pressed.originalTimelineStartSec + opDeltaXSecs,
-                pressed.originalTimelineStartSec + pressed.originalClipLength,
-              );
-              const newClipLength = clamp(
-                // zero length is minimum
-                0,
-                pressed.originalClipLength - opDeltaXSecs,
-                // since trimming from start, max is going back all the way to zero
-                pressed.originalClipLength + pressed.originalBufferOffset,
-              );
+              // const newTimelineStartSec = clamp(
+              //   pressed.originalTimelineStartSec - pressed.originalBufferOffset,
+              //   pressed.originalTimelineStartSec + opDeltaXSecs,
+              //   pressed.originalTimelineStartSec + pressed.originalClipLength,
+              // );
+
+              const newTimelineStartSec = pressed.originalTimelineStartSec + delta;
+
               pressed.clip.bufferOffset = secs(newBufferOffset);
               pressed.clip.timelineStartSec = secs(newTimelineStartSec);
               pressed.clip.clipLengthSec = secs(newClipLength);
