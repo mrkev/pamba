@@ -16,6 +16,7 @@ import { AnalizedPlayer } from "../AnalizedPlayer";
 import { appEnvironment } from "../AppEnvironment";
 import { AudioClip } from "../AudioClip";
 import { AudioTrack } from "../AudioTrack";
+import { ProjectTrack, StandardTrack } from "../ProjectTrack";
 import { DerivedState } from "../state/DerivedState";
 import { LinkedMap } from "../state/LinkedMap";
 import { LinkedSet } from "../state/LinkedSet";
@@ -25,7 +26,6 @@ import { AudioStorage } from "./AudioStorage";
 import { clipboard } from "./ClipboardState";
 import { ProjectViewportUtil } from "./ProjectViewportUtil";
 import { PrimarySelectionState } from "./SelectionState";
-import { ProjectTrack, StandardTrack } from "../ProjectTrack";
 
 /**
  * TODO:
@@ -361,7 +361,7 @@ export class ProjectSelection {
   }
 }
 
-export class ProjectMarkers {
+class ProjectMarkers {
   // id -> time
   readonly timeMarkers = LinkedMap.create<number, number>();
   nextTimeMarkerId = 0;

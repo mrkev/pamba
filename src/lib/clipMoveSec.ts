@@ -38,6 +38,7 @@ export function clipResizeStartSec(
   project: AudioProject,
   snap: boolean,
 ) {
+  const newClipEnd = 0; // TODO
   if (!snap) {
     clip.bufferOffset = secs(newBufferOffset);
     clip.timelineStartSec = secs(newTimelineStartSec);

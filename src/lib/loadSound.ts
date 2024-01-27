@@ -2,7 +2,7 @@
 
 import { ignorePromise } from "../utils/ignorePromise";
 import { appEnvironment } from "./AppEnvironment";
-import { fileNameOfLocalURL } from "../data/AudioPackage";
+import { fileNameOfLocalURL } from "../data/urlProtocol";
 
 // TODO: is this the best solution?
 export const SOUND_LIB_FOR_HISTORY = new Map<string, AudioBuffer>();

@@ -1,12 +1,13 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { createUseStyles } from "react-jss";
 import { LIBRARY_SEARCH_INPUT_ID } from "../constants";
+import { AudioPackage } from "../data/AudioPackage";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioRenderer } from "../lib/AudioRenderer";
 import { AudioTrack } from "../lib/AudioTrack";
-import { AudioPackage } from "../data/AudioPackage";
+import { ProjectTrack } from "../lib/ProjectTrack";
 import { AudioProject } from "../lib/project/AudioProject";
 import { useLinkedArrayMaybe } from "../lib/state/LinkedArray";
 import { useLinkedMap } from "../lib/state/LinkedMap";
@@ -15,12 +16,10 @@ import { pressedState } from "../pressedState";
 import { exhaustive } from "../utils/exhaustive";
 import { ignorePromise } from "../utils/ignorePromise";
 import { AudioFileUploadDropzone } from "./AudioFileUploadDropzone";
+import { doConfirm } from "./ConfirmDialog";
 import { UploadAudioButton } from "./UploadAudioButton";
 import { ListEntry, UtilityDataList } from "./UtilityList";
 import { closeProject } from "./header/ToolHeader";
-import { UtilityMenu } from "./UtilityMenu";
-import { doConfirm } from "./ConfirmDialog";
-import { ProjectTrack } from "../lib/ProjectTrack";
 
 const STATIC_AUDIO_FILES = ["drums.mp3", "clav.mp3", "bassguitar.mp3", "horns.mp3", "leadguitar.mp3"];
 

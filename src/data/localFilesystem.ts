@@ -1,13 +1,11 @@
-import { IAudioMetadata } from "music-metadata-browser";
 import { AudioProject } from "../lib/project/AudioProject";
-import { isRecord } from "../lib/schema/schema";
 import { LinkedMap } from "../lib/state/LinkedMap";
 import { bucketizeId } from "../utils/data";
-import { pAll, pTry, runAll } from "../utils/ignorePromise";
-import { construct, serializable } from "./serializable";
+import { pTry } from "../utils/ignorePromise";
 import { AudioPackage } from "./AudioPackage";
+import { ProjectPackage } from "./ProjectPackage";
 
-type ProjectFileIssue = { status: "not_found" } | { status: "invalid" };
+export type ProjectFileIssue = { status: "not_found" } | { status: "invalid" };
 
 // From: https://stackoverflow.com/a/39906526
 export function niceBytes(n: number) {
@@ -34,7 +32,7 @@ export function niceBytes(n: number) {
  *          - metadata.json
  *        - <audio_dir_2>
  *        - ...
- * - AudioLib
+ * - audiolib
  *  - <audio_dir_1>
  *  - <audio_dir_2>
  *
@@ -42,7 +40,7 @@ export function niceBytes(n: number) {
 
 export class LocalFilesystem {
   // id -> name, id
-  readonly _projects = LinkedMap.create<string, { name: string; id: string }>();
+  readonly _projects = LinkedMap.create<string, ProjectPackage>();
   readonly _audioLib = LinkedMap.create<string, AudioPackage>();
 
   dirExists(location: FileSystemDirectoryHandle, name: string) {
@@ -59,13 +57,13 @@ export class LocalFilesystem {
     this._audioLib._setRaw(updated);
   }
 
-  private async projectsDir() {
+  async projectsDir() {
     const opfsRoot = await navigator.storage.getDirectory();
     const projects = await opfsRoot.getDirectoryHandle("projects", { create: true });
     return projects;
   }
 
-  public async audioLibDir() {
+  async audioLibDir() {
     const opfsRoot = await navigator.storage.getDirectory();
     const audioDir = await opfsRoot.getDirectoryHandle("audiolib", { create: true });
     return audioDir;
@@ -78,87 +76,33 @@ export class LocalFilesystem {
       return { status: "not_found" } as const;
     }
 
-    // dont need metadata atm but open for good measure?
-    const [projectHandle, metadataHandle] = await pAll(
-      pTry(project.getFileHandle("AudioProject"), "invalid" as const),
-      pTry(project.getFileHandle("metadata"), "invalid" as const),
-    );
-    if (projectHandle === "invalid" || metadataHandle === "invalid") {
-      return { status: "invalid" } as const;
+    const projectPackage = await ProjectPackage.existingPackage(project);
+    if (!(projectPackage instanceof ProjectPackage)) {
+      return projectPackage;
     }
 
-    const file = await projectHandle.getFile();
-
-    try {
-      const parsed = JSON.parse(await file.text());
-      if (!isRecord(parsed)) {
-        return { status: "invalid" };
-      }
-      const constructed = await construct(parsed as any);
-      if (!(constructed instanceof AudioProject)) {
-        return { status: "invalid" };
-      }
-      return constructed;
-    } catch (e) {
-      console.error(e);
-      return { status: "invalid" };
-    }
+    return projectPackage.openProject();
   }
 
-  async getProjectSize(projectId: string) {
+  async getProjectPackage(projectId: string) {
     const projects = await this.projectsDir();
     const project = await pTry(projects.getDirectoryHandle(`${projectId}`), "not_found" as const);
     if (project === "not_found") {
       return { status: "not_found" } as const;
     }
 
-    // dont need metadata atm but open for good measure?
-    const [projectHandle, metadataHandle] = await pAll(
-      pTry(project.getFileHandle("AudioProject"), "invalid" as const),
-      pTry(project.getFileHandle("metadata"), "invalid" as const),
-    );
-    if (projectHandle === "invalid" || metadataHandle === "invalid") {
-      return { status: "invalid" } as const;
-    }
-
-    let size = (await projectHandle.getFile()).size;
-    size += (await metadataHandle.getFile()).size;
-
-    return size;
+    return ProjectPackage.existingPackage(project);
   }
 
   async saveProject(project: AudioProject) {
-    const [projects, data] = await pAll(this.projectsDir(), serializable(project));
-    const projectDir = await projects.getDirectoryHandle(`${project.projectId}`, { create: true });
-
-    const [projectHandle, metadataHandle] = await pAll(
-      projectDir.getFileHandle("AudioProject", { create: true }),
-      projectDir.getFileHandle("metadata", { create: true }),
-    );
-
-    await runAll(
-      async () => {
-        const writable = await projectHandle.createWritable();
-        await writable.write(JSON.stringify(data));
-        await writable.close();
-      },
-      async () => {
-        const writable = await metadataHandle.createWritable();
-        await writable.write(JSON.stringify({ projectName: project.projectName.get() }));
-        await writable.close();
-      },
-    );
+    const projectPackage = await ProjectPackage.saveProject(project);
 
     const existing = this._projects.get(project.projectId);
-
     if (existing && existing.name === project.projectName.get()) {
       return;
     }
 
-    this._projects.set(project.projectId, {
-      id: project.projectId,
-      name: project.projectName.get(),
-    });
+    this._projects.set(project.projectId, projectPackage);
   }
 
   async deleteProject(projectId: string) {
@@ -173,18 +117,7 @@ export class LocalFilesystem {
     return null;
   }
 
-  private async getProjectMetadata(project: FileSystemDirectoryHandle) {
-    // dont need metadata atm but open for good measure?
-    const metadataHandle = await project.getFileHandle("metadata");
-    const file = await metadataHandle.getFile();
-    const metadata = JSON.parse(await file.text());
-    if (!isRecord(metadata)) {
-      throw new Error("metadata is not a record!");
-    }
-    return metadata;
-  }
-
-  public async getAllProjects(): Promise<{ name: string; id: string }[]> {
+  public async getAllProjects(): Promise<ProjectPackage[]> {
     const opfsRoot = await navigator.storage.getDirectory();
     const projects = await opfsRoot.getDirectoryHandle("projects", { create: true });
     // https://github.com/microsoft/TypeScript-DOM-lib-generator/issues/1639\
@@ -196,8 +129,12 @@ export class LocalFilesystem {
         continue;
       }
 
-      const metadata = await this.getProjectMetadata(handle);
-      result.push({ name: (metadata.projectName ?? "untitled") as string, id, handle });
+      const projectPackage = await ProjectPackage.existingPackage(handle);
+      if (projectPackage instanceof ProjectPackage) {
+        result.push(projectPackage);
+      } else {
+        console.warn("Project", id, "returned error", result);
+      }
     }
 
     return result;
@@ -216,6 +153,47 @@ export class LocalFilesystem {
 
       const audioPackage = await AudioPackage.existingPackage(handle);
 
+      result.set(id, audioPackage);
+    }
+
+    return result;
+  }
+}
+
+/**
+ * A location in the filesystem for storing audio files
+ * either global or in the project dir
+ */
+export class AudioPackageLibraryRef {
+  constructor(public readonly location: FileSystemDirectoryHandle) {}
+
+  public async getAudioPackage(name: string) {
+    const audioPackageHandle = await pTry(this.location.getDirectoryHandle(name), "invalid" as const);
+    if (audioPackageHandle === "invalid") {
+      return "invalid";
+    }
+    return AudioPackage.existingPackage(audioPackageHandle);
+  }
+
+  public async saveAudio(file: File, name: string) {
+    // TODO: check existence to prevent override
+    const audioPackageHandle = await pTry(this.location.getDirectoryHandle(name), "invalid" as const);
+    if (audioPackageHandle === "invalid") {
+      return "invalid";
+    }
+    return AudioPackage.newUpload(file, audioPackageHandle);
+  }
+
+  public async getAllAudioLibFiles(): Promise<Map<string, AudioPackage>> {
+    // https://github.com/microsoft/TypeScript-DOM-lib-generator/issues/1639
+    const result = new Map<string, AudioPackage>();
+    for await (let [id, handle] of (this.location as any).entries()) {
+      handle as FileSystemDirectoryHandle | FileSystemFileHandle;
+      if (handle instanceof FileSystemFileHandle) {
+        continue;
+      }
+
+      const audioPackage = await AudioPackage.existingPackage(handle);
       result.set(id, audioPackage);
     }
 

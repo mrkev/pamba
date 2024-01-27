@@ -3,6 +3,8 @@ import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioProject } from "../lib/project/AudioProject";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { niceBytes } from "../data/localFilesystem";
+import { UtilityDataList } from "./UtilityList";
+import { ProjectPackage } from "../data/ProjectPackage";
 
 let STATUS_PENDING = { status: "pending" } as const;
 
@@ -24,16 +26,25 @@ function useAsync<T>(promise: Promise<T>): AsyncResult<T> {
 
 export function ProjectSettings({ project }: { project: AudioProject }) {
   const [name] = useLinkedState(project.projectName);
-  const sizeResult = useAsync(
-    useMemo(() => {
-      return appEnvironment.localFiles.getProjectSize(project.projectId);
+  const results = useAsync(
+    useMemo(async () => {
+      const projectPackage = await appEnvironment.localFiles.getProjectPackage(project.projectId);
+      if (!(projectPackage instanceof ProjectPackage)) {
+        throw new Error(projectPackage.status);
+      }
+
+      const size = await projectPackage.getProjectSize();
+      if (!(typeof size === "number")) {
+        throw new Error(size.status);
+      }
+
+      return { projectPackage, size };
     }, [project.projectId]),
   );
-  // appEnvironment.localFiles.getSize(project.projectId)
 
   return (
     <>
-      <label style={{ fontSize: "11px" }}>Project Name</label>
+      <label style={{ fontSize: "12px", fontWeight: "bold" }}>Project Name:</label>
       <input
         style={{
           border: "2px solid var(--control-bg-color)",
@@ -44,13 +55,14 @@ export function ProjectSettings({ project }: { project: AudioProject }) {
       />
       {/* <span>Tracks: 10</span>
       <span>Clips: 354</span> */}
-      {sizeResult.status === "resolved" && typeof sizeResult.value === "number" && (
-        <span>Size on Disk: {niceBytes(sizeResult.value)} + audio</span>
+      {results.status === "resolved" && (
+        <span>
+          <b>Size on Disk:</b> {niceBytes(results.value.size)} + audio
+        </span>
       )}
-      {/* TODO */}
-      <button>Bounce All</button>
-      <div className="spacer"></div>
-      <button>Delete Project</button>
+      <b style={{ fontSize: "12px" }}>Project contents:</b>
+      <UtilityDataList items={[]}></UtilityDataList>
+      <button className="utilityButton">Delete Project</button>
     </>
   );
 }

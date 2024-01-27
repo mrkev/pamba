@@ -2,16 +2,11 @@ import * as musicMetadata from "music-metadata-browser";
 import { pAll, pTry, runAll } from "../utils/ignorePromise";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { isRecord } from "../lib/nw/nwschema";
+import { localURLOfFileName } from "./urlProtocol";
 
-function localURLOfFileName(fileName: string) {
-  return `library://${fileName}`;
-}
-
-export function fileNameOfLocalURL(url: string) {
-  const result = url.match(/library:\/\/(.+)/);
-  return result == null ? null : result[1];
-}
-
+/**
+ * Represents an audio file in the virtual filesystem
+ */
 export class AudioPackage {
   readonly kind = "local" as const;
   static readonly BUFFER_FILE_NAME = "audio" as const;

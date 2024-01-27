@@ -1,3 +1,8 @@
+todo: snap resize clip to grid 
+clip editor: toggle between seconds, frames, beats units for viewing and editing
+slide audio within clip tool
+bug: reorganizing clip throws assertion error
+
 TODO:
 - Implement own panel component perhaps?
 - Implement piano roll editor area
