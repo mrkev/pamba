@@ -17,6 +17,7 @@ import { AudioRenderer } from "./AudioRenderer";
 import { AnalizedPlayer } from "./AnalizedPlayer";
 import { LocalSPrimitive } from "../ui/useLocalStorage";
 import { FAUST_EFFECTS } from "../dsp/FAUST_EFFECTS";
+import { ProjectPackage } from "../data/ProjectPackage";
 
 export type WAMAvailablePlugin = {
   // midi out, audio out, midi to audio, audio to audio
@@ -40,6 +41,7 @@ export class AppEnvironment {
   // Project
   readonly projectStatus: SPrimitive<ProjectState>;
   readonly localFiles: LocalFilesystem = new LocalFilesystem();
+  public openProjectPackage: ProjectPackage | null = null;
   // UI
   readonly openEffects: LinkedSet<DSPNode | MidiInstrument>;
   readonly activeSidePanel = LocalSPrimitive.create<"library" | "project" | "history" | "settings" | "help" | null>(
@@ -96,7 +98,7 @@ export class AppEnvironment {
       if (maybeProject == null) {
         alert("Could not open project. Clearing");
         // ProjectPersistance.clearSaved();
-        this.projectStatus.set({ status: "loaded", project: ProjectPersistance.defaultProject() });
+        this.projectStatus.set({ status: "loaded", project: ProjectPersistance.emptyProject() });
       } else {
         this.projectStatus.set({ status: "loaded", project: maybeProject });
       }

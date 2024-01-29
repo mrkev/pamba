@@ -39,11 +39,11 @@ export async function getDroppedAudioURL(audioStorage: AudioStorage | null, data
     const file = dataTransfer.files[i];
     console.log("TODO: VERIFY FILE TYPE. Parallel uploads", file);
 
-    const result = await audioStorage.uploadLocally(file);
+    const result = await audioStorage.uploadToLibrary(file);
     if (result instanceof Error) {
       throw result;
     }
-    url = result.localURL;
+    url = result.url;
   }
 
   // We can drop urls to audio from other parts of the UI

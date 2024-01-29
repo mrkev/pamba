@@ -3,7 +3,7 @@ import { isRecord } from "../lib/nw/nwschema";
 import { AudioProject } from "../lib/project/AudioProject";
 import { pAll, pTry, runAll } from "../utils/ignorePromise";
 import { AudioPackageLibraryRef, ProjectFileIssue } from "./localFilesystem";
-import { construct, serializable } from "./serializable";
+import { SAudioProject, construct, serializable } from "./serializable";
 
 type ProjectMetadata = { projectName: string };
 
@@ -22,7 +22,8 @@ type ProjectMetadata = { projectName: string };
 export class ProjectPackage {
   static readonly DOCUMENT_FILE_NAME = "AudioProject" as const;
   static readonly METADATA_FILE_NAME = "metadata" as const;
-  static readonly AUDIO_DIR_NAME = "audio" as const;
+  // https://bugs.chromium.org/p/chromium/issues/detail?id=1522410
+  static readonly AUDIO_DIR_NAME = "audiolib" as const;
 
   private constructor(
     public readonly id: string,
@@ -41,6 +42,7 @@ export class ProjectPackage {
       return { status: "invalid" } as const;
     }
 
+    appEnvironment.openProjectPackage = this;
     const file = await projectHandle.getFile();
 
     try {
@@ -55,6 +57,7 @@ export class ProjectPackage {
       return constructed;
     } catch (e) {
       console.error(e);
+      appEnvironment.openProjectPackage = null;
       return { status: "invalid" };
     }
   }
@@ -76,14 +79,17 @@ export class ProjectPackage {
 
   static async existingPackage(location: FileSystemDirectoryHandle): Promise<ProjectPackage | { status: "invalid" }> {
     const metadata = await this.getProjectMetadata(location);
-    const audioLibHandle = await pTry(location.getDirectoryHandle(ProjectPackage.AUDIO_DIR_NAME), "invalid" as const);
+    const audioLibHandle = await pTry(
+      location.getDirectoryHandle(ProjectPackage.AUDIO_DIR_NAME, { create: true }),
+      "invalid" as const,
+    );
 
     const id = location.name;
     if (metadata === "invalid" || audioLibHandle === "invalid") {
       return { status: "invalid" } as const;
     }
 
-    const projectAudioLib = new AudioPackageLibraryRef(audioLibHandle);
+    const projectAudioLib = new AudioPackageLibraryRef(audioLibHandle, "project://");
 
     return new ProjectPackage(id, (metadata.projectName ?? "untitled") as string, location, projectAudioLib);
   }
@@ -102,9 +108,9 @@ export class ProjectPackage {
     return metadata as ProjectMetadata; // TODO
   }
 
-  static async saveProject(project: AudioProject) {
-    const [projects, data] = await pAll(appEnvironment.localFiles.projectsDir(), serializable(project));
-    const projectDir = await projects.getDirectoryHandle(`${project.projectId}`, { create: true });
+  static async saveProject(projectId: string, projectName: string, data: SAudioProject) {
+    const [projects] = await pAll(appEnvironment.localFiles.projectsDir());
+    const projectDir = await projects.getDirectoryHandle(`${projectId}`, { create: true });
 
     const [projectHandle, metadataHandle, audioLibHandle] = await pAll(
       projectDir.getFileHandle(ProjectPackage.DOCUMENT_FILE_NAME, { create: true }),
@@ -120,16 +126,16 @@ export class ProjectPackage {
       },
       async () => {
         const writable = await metadataHandle.createWritable();
-        await writable.write(JSON.stringify({ projectName: project.projectName.get() }));
+        await writable.write(JSON.stringify({ projectName }));
         await writable.close();
       },
     );
 
     return new ProjectPackage(
-      project.projectId,
-      project.projectName.get(),
+      projectId,
+      projectName,
       projectDir,
-      new AudioPackageLibraryRef(audioLibHandle),
+      new AudioPackageLibraryRef(audioLibHandle, "project://"),
     );
   }
 }

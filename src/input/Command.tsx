@@ -25,6 +25,7 @@ export class Command<S extends string[] = string[]> {
   }
 
   execute(e: KeyboardEvent | null, project: AudioProject) {
+    // return result cause save command is async, and we wait on the promise
     const result = this.cb(e, project);
     this.onTrigger.forEach((cb) => {
       cb();

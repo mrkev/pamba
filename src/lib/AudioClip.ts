@@ -5,7 +5,8 @@ import { nullthrows } from "../utils/nullthrows";
 import { dataURLForWaveform } from "../utils/waveform";
 import { AbstractClip, Seconds, secs } from "./AbstractClip";
 import { SharedAudioBuffer } from "./SharedAudioBuffer";
-import { SOUND_LIB_FOR_HISTORY, loadSound } from "./loadSound";
+import { SOUND_LIB_FOR_HISTORY, loadSound, loadSoundFromAudioPackage } from "./loadSound";
+import { AudioPackage } from "../data/AudioPackage";
 
 class AudioViewport {
   readonly pxPerSec = SPrimitive.of(10);
@@ -102,6 +103,25 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
     this.name = SPrimitive.of(name);
     this.bufferURL = bufferURL;
     this.sampleRate = buffer.sampleRate;
+  }
+
+  static async fromAudioPackage(
+    audioPackage: AudioPackage,
+    dimensions?: { bufferOffset: number; timelineStartSec: number; clipLengthSec: number },
+  ) {
+    const buffer = await loadSoundFromAudioPackage(staticAudioContext(), audioPackage);
+    const bufferOffset = dimensions?.bufferOffset ?? 0;
+    const timelineStartSec = dimensions?.timelineStartSec ?? 0;
+    const clipLengthSec = dimensions?.clipLengthSec ?? buffer.length / buffer.sampleRate;
+    return Structured.create(
+      AudioClip,
+      buffer,
+      audioPackage.name || "untitled",
+      audioPackage.url,
+      bufferOffset,
+      timelineStartSec,
+      clipLengthSec,
+    );
   }
 
   static async fromURL(

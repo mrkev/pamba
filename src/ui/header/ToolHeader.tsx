@@ -48,7 +48,7 @@ function NewProjectButton({ project }: { project: AudioProject }) {
 
         appEnvironment.projectStatus.set({
           status: "loaded",
-          project: ProjectPersistance.defaultProject(),
+          project: ProjectPersistance.emptyProject(),
         });
       }}
     >

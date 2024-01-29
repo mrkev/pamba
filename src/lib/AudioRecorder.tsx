@@ -9,6 +9,9 @@ import { LinkedMap } from "./state/LinkedMap";
 import { SPrimitive } from "./state/LinkedState";
 import { ignorePromise } from "./state/Subbable";
 import { ProjectTrack } from "./ProjectTrack";
+import { appEnvironment } from "./AppEnvironment";
+import { AudioPackage } from "../data/AudioPackage";
+import { ProjectPackage } from "../data/ProjectPackage";
 
 function useMediaRecorder(loadClip: (url: string, name?: string) => void) {
   const [mediaRecorder, setMediaRecorder] = useState<null | MediaRecorder>(null);
@@ -52,11 +55,12 @@ export class AudioRecorder {
   readonly renderer: AudioRenderer;
   readonly project: AudioProject;
 
-  private async loadClip(url: string, name?: string) {
+  // TODO: project audio lib
+  private async loadClip(audioPackage: AudioPackage) {
     try {
       console.log("LOAD CLIP", this.project.cursorPos.get());
       // load clip
-      const clip = await AudioClip.fromURL(url, name);
+      const clip = await AudioClip.fromAudioPackage(audioPackage);
       clip.timelineStartSec = secs(this.project.cursorPos.get());
 
       const armedTrack = this.project.armedTrack.get();
@@ -112,14 +116,30 @@ export class AudioRecorder {
     this.mediaRecorder.ondataavailable = function (this: AudioRecorder, e: BlobEvent) {
       this.chunks.push(e.data);
     }.bind(this);
-    this.mediaRecorder.onstop = function (this: AudioRecorder) {
+    this.mediaRecorder.onstop = async function (this: AudioRecorder) {
       console.log("data available after MediaRecorder.stop() called.");
       const blob = new Blob(this.chunks, { type: "audio/ogg; codecs=opus" });
+      const file = new File([blob], "recording" + new Date().getTime(), { type: "audio/ogg; codecs=opus" });
       this.chunks = [];
-      const audioURL = window.URL.createObjectURL(blob);
+
+      const projectPackage = await appEnvironment.localFiles.getProjectPackage(this.project.projectId);
+      if (!(projectPackage instanceof ProjectPackage)) {
+        this.status.set("idle");
+        console.error("project not found");
+        return;
+      }
+
+      const audioPackage = await projectPackage.audioLibRef.saveAudio(file);
+      if (!(audioPackage instanceof AudioPackage)) {
+        this.status.set("error");
+        console.error(audioPackage);
+        return;
+      }
+      // const audioURL = window.URL.createObjectURL(blob);
       // audio.src = audioURL;
-      ignorePromise(this.loadClip(audioURL, "recording"));
+      await this.loadClip(audioPackage);
       console.log("recorder stopped");
+      this.status.set("idle");
     }.bind(this);
   }
 
@@ -141,6 +161,5 @@ export class AudioRecorder {
       return;
     }
     nullthrows(this.mediaRecorder).stop();
-    this.status.set("idle");
   }
 }

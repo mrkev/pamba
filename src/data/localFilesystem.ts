@@ -4,6 +4,7 @@ import { bucketizeId } from "../utils/data";
 import { pTry } from "../utils/ignorePromise";
 import { AudioPackage } from "./AudioPackage";
 import { ProjectPackage } from "./ProjectPackage";
+import { serializable } from "./serializable";
 
 export type ProjectFileIssue = { status: "not_found" } | { status: "invalid" };
 
@@ -95,7 +96,8 @@ export class LocalFilesystem {
   }
 
   async saveProject(project: AudioProject) {
-    const projectPackage = await ProjectPackage.saveProject(project);
+    const data = await serializable(project);
+    const projectPackage = await ProjectPackage.saveProject(project.projectId, project.projectName.get(), data);
 
     const existing = this._projects.get(project.projectId);
     if (existing && existing.name === project.projectName.get()) {
@@ -151,7 +153,7 @@ export class LocalFilesystem {
         continue;
       }
 
-      const audioPackage = await AudioPackage.existingPackage(handle);
+      const audioPackage = await AudioPackage.existingPackage(handle, "library://");
 
       result.set(id, audioPackage);
     }
@@ -165,23 +167,22 @@ export class LocalFilesystem {
  * either global or in the project dir
  */
 export class AudioPackageLibraryRef {
-  constructor(public readonly location: FileSystemDirectoryHandle) {}
+  constructor(
+    public readonly location: FileSystemDirectoryHandle,
+    public readonly kind: "library://" | "project://",
+  ) {}
 
   public async getAudioPackage(name: string) {
     const audioPackageHandle = await pTry(this.location.getDirectoryHandle(name), "invalid" as const);
     if (audioPackageHandle === "invalid") {
       return "invalid";
     }
-    return AudioPackage.existingPackage(audioPackageHandle);
+    return AudioPackage.existingPackage(audioPackageHandle, this.kind);
   }
 
-  public async saveAudio(file: File, name: string) {
-    // TODO: check existence to prevent override
-    const audioPackageHandle = await pTry(this.location.getDirectoryHandle(name), "invalid" as const);
-    if (audioPackageHandle === "invalid") {
-      return "invalid";
-    }
-    return AudioPackage.newUpload(file, audioPackageHandle);
+  public async saveAudio(file: File) {
+    // TODO: check existence to prevent override?
+    return AudioPackage.newUpload(file, this.location, this.kind);
   }
 
   public async getAllAudioLibFiles(): Promise<Map<string, AudioPackage>> {
@@ -193,7 +194,7 @@ export class AudioPackageLibraryRef {
         continue;
       }
 
-      const audioPackage = await AudioPackage.existingPackage(handle);
+      const audioPackage = await AudioPackage.existingPackage(handle, this.kind);
       result.set(id, audioPackage);
     }
 

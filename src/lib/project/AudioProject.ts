@@ -26,6 +26,7 @@ import { AudioStorage } from "./AudioStorage";
 import { clipboard } from "./ClipboardState";
 import { ProjectViewportUtil } from "./ProjectViewportUtil";
 import { PrimarySelectionState } from "./SelectionState";
+import { ProjectPackage } from "../../data/ProjectPackage";
 
 /**
  * TODO:

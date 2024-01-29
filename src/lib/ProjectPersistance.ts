@@ -1,10 +1,8 @@
 import { LocalFilesystem } from "../data/localFilesystem";
-import { construct } from "../data/serializable";
 import { appEnvironment } from "./AppEnvironment";
 import { AudioClip } from "./AudioClip";
 import { ProjectTrack } from "./ProjectTrack";
 import { AudioProject } from "./project/AudioProject";
-import { isRecord } from "./schema/schema";
 
 export class ProjectPersistance {
   static async doSave(project: AudioProject) {
@@ -38,32 +36,11 @@ export class ProjectPersistance {
     if (result instanceof AudioProject) {
       return result;
     } else {
-      return this.defaultProject();
+      return this.emptyProject();
     }
   }
 
-  async openSaved(): Promise<AudioProject | null> {
-    const data = window.localStorage.getItem("pamba.project");
-    if (data == null) {
-      return null;
-    }
-    try {
-      const parsed = JSON.parse(data);
-      if (!isRecord(parsed)) {
-        return null;
-      }
-      const constructed = await construct(parsed as any);
-      if (!(constructed instanceof AudioProject)) {
-        return null;
-      }
-      return constructed;
-    } catch (e) {
-      console.error(e);
-      return null;
-    }
-  }
-
-  static defaultProject(): AudioProject {
+  static emptyProject(): AudioProject {
     const audioProject = AudioProject.create();
     return audioProject;
   }

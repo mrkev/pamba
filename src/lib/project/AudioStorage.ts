@@ -48,8 +48,27 @@ export class AudioStorage {
     // return url;
   }
 
-  async uploadLocally(file: File, onFormatInfo?: (format: IFormat) => void): Promise<AudioPackage | Error> {
-    const audioPackage = await AudioPackage.newUpload(file, await appEnvironment.localFiles.audioLibDir());
+  async uploadToLibrary(file: File, onFormatInfo?: (format: IFormat) => void): Promise<AudioPackage | Error> {
+    const audioPackage = await AudioPackage.newUpload(
+      file,
+      await appEnvironment.localFiles.audioLibDir(),
+      "library://",
+    );
+    if (typeof audioPackage === "string") {
+      return new Error(audioPackage);
+    }
+
+    onFormatInfo?.(audioPackage.metadata.format);
+    await appEnvironment.localFiles.updateAudioLib();
+    return audioPackage;
+  }
+
+  async uploadToProject(file: File, onFormatInfo?: (format: IFormat) => void): Promise<AudioPackage | Error> {
+    const audioPackage = await AudioPackage.newUpload(
+      file,
+      await appEnvironment.localFiles.audioLibDir(),
+      "project://",
+    );
     if (typeof audioPackage === "string") {
       return new Error(audioPackage);
     }

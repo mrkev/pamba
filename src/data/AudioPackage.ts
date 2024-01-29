@@ -1,8 +1,7 @@
 import * as musicMetadata from "music-metadata-browser";
-import { pAll, pTry, runAll } from "../utils/ignorePromise";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { isRecord } from "../lib/nw/nwschema";
-import { localURLOfFileName } from "./urlProtocol";
+import { pAll, pTry, runAll } from "../utils/ignorePromise";
 
 /**
  * Represents an audio file in the virtual filesystem
@@ -16,10 +15,10 @@ export class AudioPackage {
     public readonly name: string,
     public readonly file: File,
     public readonly metadata: musicMetadata.IAudioMetadata,
-    public readonly localURL: string,
+    public readonly url: string,
   ) {}
 
-  static async existingPackage(location: FileSystemDirectoryHandle) {
+  static async existingPackage(location: FileSystemDirectoryHandle, kind: "library://" | "project://") {
     // dont need metadata atm but open for good measure?
     const [fileHandle, metadataHandle] = await pAll(
       location.getFileHandle(AudioPackage.BUFFER_FILE_NAME),
@@ -34,12 +33,14 @@ export class AudioPackage {
 
     const name = location.name;
 
-    return new AudioPackage(name, file, metadata as any, localURLOfFileName(name));
+    return new AudioPackage(name, file, metadata as any, kind + name);
   }
 
-  static async newUpload(file: File, location: FileSystemDirectoryHandle) {
+  static async newUpload(file: File, location: FileSystemDirectoryHandle, kind: "library://" | "project://") {
     // Verify type
-    switch (file.type) {
+    // note: to support the format "audio/ogg; codecs=opus"
+    // see: https://developer.mozilla.org/en-US/docs/Web/Media/Formats/codecs_parameter
+    switch (file.type.split(";")[0]) {
       // random list from https://www.thoughtco.com/audio-file-mime-types-3469485
       // TODO: check if all of these actually work
       case "audio/mpeg":
@@ -81,14 +82,16 @@ export class AudioPackage {
       return "error_creating";
     }
 
-    const [audioBuffer, metadataHandle] = await pAll(
+    const [audioBufferHandle, metadataHandle] = await pAll(
       newPackage.getFileHandle("audio", { create: true }),
       newPackage.getFileHandle("metadata", { create: true }),
     );
 
+    console.log("attempting to save");
+
     await runAll(
       async () => {
-        const writable = await audioBuffer.createWritable();
+        const writable = await audioBufferHandle.createWritable();
         await writable.write(file);
         await writable.close();
       },
@@ -99,6 +102,6 @@ export class AudioPackage {
       },
     );
 
-    return new AudioPackage(file.name, file, metadata, localURLOfFileName(file.name));
+    return new AudioPackage(file.name, file, metadata, `${kind}${file.name}`);
   }
 }

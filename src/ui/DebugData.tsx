@@ -145,6 +145,8 @@ export function DebugContent({ project }: { project: AudioProject }) {
       ></pre>
       <div style={{ overflow: "scroll", background: "#222", flexGrow: 1 }}>
         <pre>
+          Project: {project.projectId}
+          <br />
           Viewport: |{viewportStartPx}px -{projectDivWidth}-<br />
           Cursor: {cursorPos} {selectionWidth} <br />
           Cursor Tracks: {[...cursorTracks.values()].map((track) => `${track.name.get()}`)}

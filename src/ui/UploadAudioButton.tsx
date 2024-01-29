@@ -29,12 +29,12 @@ export function UploadAudioButton({
             return;
           }
           setUploadStatus("uploading");
-          const result = await audioStorage.uploadLocally(file);
+          const result = await audioStorage.uploadToLibrary(file);
           if (result instanceof Error) {
             setUploadStatus("idle");
             throw result;
           }
-          const url = result.localURL;
+          const url = result.url;
           ignorePromise(loadClip?.(url, file.name));
           setUploadStatus("idle");
         }}

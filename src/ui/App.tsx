@@ -122,6 +122,9 @@ export function App(): React.ReactElement {
 }
 
 const changelog = `
+next
+- saved recorded audio no longer crashes everything on load
+
 v0.1.2
 - added changelog. warning: it will be of dubious quality
 - can undo clip name change
