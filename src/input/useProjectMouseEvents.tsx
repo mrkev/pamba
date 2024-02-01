@@ -148,14 +148,7 @@ export function useTimelineMouseEvents(
               pressed.originalTrack instanceof AudioTrack &&
               pressed.clip instanceof AudioClip
             ) {
-              ProjectTrack.deleteTime(
-                project,
-                pressed.track,
-                pressed.clip.timelineStartSec,
-                pressed.clip.timelineEndSec,
-              );
-              ProjectTrack.addClip(project, pressed.track, pressed.clip);
-              ProjectTrack.removeClip(project, pressed.originalTrack, pressed.clip);
+              ProjectTrack.moveClip(project, pressed.clip, pressed.originalTrack, pressed.track);
             }
 
             if (

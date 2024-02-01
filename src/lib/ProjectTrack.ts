@@ -1,5 +1,5 @@
 import { SPrimitive, SSchemaArray } from "structured-state";
-import { AbstractClip, addClip, deleteTime, pushClip, removeClip, splitClip } from "./AbstractClip";
+import { AbstractClip, addClip, deleteTime, moveClip, pushClip, removeClip, splitClip } from "./AbstractClip";
 import { ProjectTrackDSP } from "./ProjectTrackDSP";
 import { AudioContextInfo } from "./initAudioContext";
 import type { AudioProject } from "./project/AudioProject";
@@ -43,11 +43,20 @@ export class ProjectTrack {
     pushClip(newClip, track.clips);
   }
 
-  // // TODO: UNUSED
-  // moveClip(clip: T): void {
-  //   moveClip(clip, this.clips);
-  //   // this.clips._setRaw(clips as any);
-  // }
+  // TODO: UNUSED
+  static moveClip<T extends AbstractClip<any>>(
+    project: AudioProject,
+    clip: T,
+    srcTrack: StandardTrack<T>,
+    destTrack: StandardTrack<T>,
+  ): void {
+    // In this order to maintain clip array invariants
+    ProjectTrack.removeClip(project, srcTrack, clip);
+    ProjectTrack.deleteTime(project, destTrack, clip._timelineStartU, clip._timelineEndU);
+    ProjectTrack.addClip(project, destTrack, clip);
+    // moveClip(clip, this.clips);
+    // this.clips._setRaw(clips as any);
+  }
 
   static removeClip<T extends AbstractClip<any>>(project: AudioProject, track: StandardTrack<T>, clip: T): void {
     if (!project.canEditTrack(project, track)) {
