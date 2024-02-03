@@ -3,17 +3,19 @@
   "version": "0.1.2",
   "private": true,
   "//notes": [
-    "js-sha256 added for faust2webaudio"
+    "js-sha256 added for faust2webaudio",
+    "previously used \"@shren/faust-ui\": \"1.1.2\","
   ],
   "dependencies": {
     "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
     "@esbuild-plugins/node-modules-polyfill": "^0.2.2",
-    "@shren/faust-ui": "1.1.2",
+    "@grame/faustwasm": "^0.0.53",
     "@shren/faustwasm": "^0.0.25",
     "@shren/typed-event-emitter": "1.1.1",
     "@types/audiobuffer-to-wav": "1.0.4",
     "@types/dom-mediacapture-record": "1.0.19",
-    "@types/node": "18.11.18",
+    "@types/emscripten": "^1.39.10",
+    "@types/node": "18.16.20",
     "@types/react": "18.2.52",
     "@types/react-dom": "18.2.18",
     "@typescript-eslint/eslint-plugin": "^6.20.0",

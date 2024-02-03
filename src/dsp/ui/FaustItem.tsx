@@ -1,6 +1,5 @@
-import { LayoutTypeMap } from "@shren/faust-ui/src/types";
 import { exhaustive } from "../../utils/exhaustive";
-import { FaustAudioEffect } from "../FaustAudioEffect";
+import { FaustAudioEffect, LayoutTypeMap } from "../FaustAudioEffect";
 import "./faust.css";
 import { FaustGroup } from "./FaustGroup";
 import { FaustSlider } from "./FaustSlider";

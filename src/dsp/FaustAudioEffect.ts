@@ -1,8 +1,28 @@
-import { LayoutTypeMap } from "@shren/faust-ui/src/types";
+import type { FaustUIGroup, FaustUIInputItem, FaustUIOutputItem } from "@grame/faustwasm";
+
 import { FaustAudioProcessorNode, ProcessorLoader } from "faust-loader-vite";
 import { LinkedMap } from "../lib/state/LinkedMap";
 import { DSPNode } from "./DSPNode";
 import { EffectID, FAUST_EFFECTS } from "./FAUST_EFFECTS";
+
+// from: https://github.com/Fr0stbyteR/faust-ui/blob/7665c7a754b4f856a5b60b7148963e263bf45e14/src/types.d.ts#L23
+export interface LayoutTypeMap {
+  vgroup: FaustUIGroup;
+  hgroup: FaustUIGroup;
+  tgroup: FaustUIGroup;
+  hbargraph: FaustUIOutputItem;
+  vbargraph: FaustUIOutputItem;
+  led: FaustUIOutputItem;
+  numerical: FaustUIOutputItem;
+  vslider: FaustUIInputItem;
+  hslider: FaustUIInputItem;
+  button: FaustUIInputItem;
+  checkbox: FaustUIInputItem;
+  nentry: FaustUIInputItem;
+  knob: FaustUIInputItem;
+  menu: FaustUIInputItem;
+  radio: FaustUIInputItem;
+}
 
 type TFaustUIItem = LayoutTypeMap[keyof LayoutTypeMap];
 
