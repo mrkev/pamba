@@ -234,14 +234,16 @@ export function AudioClipEditor({
           }}
         />
         <div style={{ position: "relative", display: "flex", flexDirection: "column", justifyContent: "stretch" }}>
-          <GPUWaveform
-            ref={waveformRef}
-            audioBuffer={clip.buffer}
-            scale={realScale}
-            offset={waveformStartFr}
-            // width={300}
-            height={50}
-          />
+          {clip.buffer != null && (
+            <GPUWaveform
+              ref={waveformRef}
+              audioBuffer={clip.buffer}
+              scale={realScale}
+              offset={waveformStartFr}
+              // width={300}
+              height={50}
+            />
+          )}
           {/* cursor div */}
           {cursorPosInClipPx > 0 &&
             cursorPosInClipPx < 1000 && ( // TODO
@@ -280,11 +282,11 @@ export function AudioClipEditor({
             style={{
               backgroundColor: "#ccffcc",
               backgroundImage: "url('" + backgroundImageData + "')",
-              backgroundSize: `${pxOfSec(clip.buffer.length / clip.buffer.sampleRate)}px 100%`,
+              backgroundSize: `${pxOfSec(clip.bufferLenSec())}px 100%`,
               backgroundPosition: `0px center`,
               backgroundRepeat: "no-repeat",
               imageRendering: "pixelated",
-              width: pxOfSec(clip.buffer.length / clip.buffer.sampleRate),
+              width: pxOfSec(clip.bufferLenSec()),
               height: "100%",
               userSelect: "none",
               color: "white",
@@ -320,7 +322,7 @@ export function AudioClipEditor({
                 position: "absolute",
                 height: "100%",
                 left: pxOfSec(clip.trimEndSec),
-                width: pxOfSec(clip.buffer.length / clip.buffer.sampleRate) - pxOfSec(clip.trimEndSec),
+                width: pxOfSec(clip.bufferLenSec()) - pxOfSec(clip.trimEndSec),
                 backdropFilter: "grayscale(100%)",
               }}
             ></div>

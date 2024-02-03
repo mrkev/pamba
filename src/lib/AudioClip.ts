@@ -1,12 +1,12 @@
 import { SPrimitive, Structured } from "structured-state";
 import { staticAudioContext } from "../constants";
+import { AudioPackage } from "../data/AudioPackage";
 import { SAudioClip } from "../data/serializable";
 import { nullthrows } from "../utils/nullthrows";
 import { dataURLForWaveform } from "../utils/waveform";
 import { AbstractClip, Seconds, secs } from "./AbstractClip";
 import { SharedAudioBuffer } from "./SharedAudioBuffer";
 import { SOUND_LIB_FOR_HISTORY, loadSound, loadSoundFromAudioPackage } from "./loadSound";
-import { AudioPackage } from "../data/AudioPackage";
 
 class AudioViewport {
   readonly pxPerSec = SPrimitive.of(10);
@@ -26,10 +26,11 @@ class AudioViewport {
 export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implements AbstractClip<Seconds> {
   // AudioClip
   readonly name: SPrimitive<string>;
-  readonly buffer: SharedAudioBuffer;
+  readonly buffer: SharedAudioBuffer | null;
   readonly numberOfChannels: number;
   readonly bufferURL: string;
   readonly sampleRate: number; // how many frames per second
+  public status: "ready" | "missing";
 
   readonly detailedViewport = new AudioViewport();
   readonly unit = "sec";
@@ -82,7 +83,7 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
   }
 
   constructor(
-    buffer: AudioBuffer,
+    buffer: AudioBuffer | "missing",
     name: string,
     bufferURL: string,
     bufferOffset: number,
@@ -90,19 +91,31 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
     clipLengthSec: number,
   ) {
     super();
-    // todo, should convert buffer.length to seconds myself? Are buffer.duration
-    // and buffer.length always congruent?
-    // By default, there is no trim and the clip has offset 0
-    this.bufferLength = secs(buffer.duration);
+    if (buffer === "missing") {
+      this.status = "missing";
+      this.bufferLength = secs(10_000); // TODO: make clip unbounded by length? serialize and star buffer length when first creating a clip?
+      // can help identify the clip too. Ie, when selecting media to replace this, verify that the numbers match.
+      // TODO
+      this.numberOfChannels = 1;
+      this.sampleRate = 48000;
+      this.buffer = null;
+    } else {
+      this.status = "ready";
+      // todo, should convert buffer.length to seconds myself? Are buffer.duration
+      // and buffer.length always congruent?
+      // By default, there is no trim and the clip has offset 0
+      this.bufferLength = secs(buffer.duration);
+      this.numberOfChannels = buffer.numberOfChannels;
+      this.sampleRate = buffer.sampleRate;
+      this.buffer = new SharedAudioBuffer(buffer);
+    }
+
     this.bufferOffset = secs(bufferOffset);
     this.timelineStartSec = secs(timelineStartSec);
     this.clipLengthSec = secs(clipLengthSec);
 
-    this.buffer = new SharedAudioBuffer(buffer);
-    this.numberOfChannels = buffer.numberOfChannels;
     this.name = SPrimitive.of(name);
     this.bufferURL = bufferURL;
-    this.sampleRate = buffer.sampleRate;
   }
 
   static async fromAudioPackage(
@@ -136,6 +149,25 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
     return Structured.create(AudioClip, buffer, name || "untitled", url, bufferOffset, timelineStartSec, clipLengthSec);
   }
 
+  async fromMissingMedia(
+    url: string,
+    dimensions: { bufferOffset: number; timelineStartSec: number; clipLengthSec: number },
+    name?: string,
+  ) {
+    const bufferOffset = dimensions?.bufferOffset;
+    const timelineStartSec = dimensions?.timelineStartSec;
+    const clipLengthSec = dimensions?.clipLengthSec;
+    return Structured.create(
+      AudioClip,
+      "missing",
+      name || "untitled",
+      url,
+      bufferOffset,
+      timelineStartSec,
+      clipLengthSec,
+    );
+  }
+
   static fromBuffer(
     buffer: AudioBuffer,
     url: string, // necessary to serialize
@@ -151,7 +183,7 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
   clone(): AudioClip {
     const newClip = Structured.create(
       AudioClip,
-      this.buffer,
+      this.buffer ?? "missing",
       this.name.get(),
       this.bufferURL,
       this.bufferOffset,
@@ -328,5 +360,12 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
 
   private bufferTimelineEndSec() {
     return this.timelineStartSec - this.bufferOffset + this.bufferLength;
+  }
+
+  public bufferLenSec(): number {
+    if (this.buffer == null) {
+      return 10_000; // todo
+    }
+    return this.buffer.length / this.buffer.sampleRate;
   }
 }

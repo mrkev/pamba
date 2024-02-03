@@ -149,9 +149,7 @@ export function useTimelineMouseEvents(
               pressed.clip instanceof AudioClip
             ) {
               ProjectTrack.moveClip(project, pressed.clip, pressed.originalTrack, pressed.track);
-            }
-
-            if (
+            } else if (
               pressed.track instanceof MidiTrack &&
               pressed.originalTrack instanceof MidiTrack &&
               pressed.clip instanceof MidiClip
@@ -164,9 +162,10 @@ export function useTimelineMouseEvents(
               );
               ProjectTrack.removeClip(project, pressed.originalTrack, pressed.clip);
               ProjectTrack.addClip(project, pressed.track, pressed.clip);
+            } else {
+              console.warn("mouseup: moving_clip: can't operate");
             }
 
-            console.warn("mouseup: moving_clip: can't operate");
             pressedState.set(null);
             break;
           }

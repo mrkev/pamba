@@ -22,7 +22,7 @@ export function getImageForBuffer(width: number, height: number, buffer: AudioBu
   return image;
 }
 
-export function dataURLForWaveform(width: number, height: number, buffer: AudioBuffer): string {
+export function dataURLForWaveform(width: number, height: number, buffer: AudioBuffer | null): string {
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
@@ -32,6 +32,6 @@ export function dataURLForWaveform(width: number, height: number, buffer: AudioB
   if (!ctx) {
     throw new Error("Couldn't get context for canvas");
   }
-  drawBuffer(width, height, ctx, buffer);
+  buffer && drawBuffer(width, height, ctx, buffer);
   return canvas.toDataURL();
 }

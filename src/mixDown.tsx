@@ -27,6 +27,10 @@ export function mixDown(clipList: ReadonlyArray<AudioClip>, numberOfChannels = 2
   //first loop for buffer list
   for (let i = 0; i < clipList.length; i++) {
     const clip = clipList[i];
+    if (clip.buffer == null) {
+      // clip of missing media
+      continue;
+    }
     // second loop for each channel ie. left and right
     for (let channel = 0; channel < numberOfChannels; channel++) {
       //here we get a reference to the final mix buffer data
