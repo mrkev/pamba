@@ -88,7 +88,7 @@ export class AudioProject {
   readonly selected = SPrimitive.of<PrimarySelectionState | null>(null);
   readonly loopStart: TimelinePoint;
   readonly loopEnd: TimelinePoint;
-  readonly loopPlayback = SPrimitive.of(false);
+  readonly loopOnPlayback = SPrimitive.of(false);
 
   // the zoom level. min scale is 0.64, max is 1000
   readonly scaleFactor = SPrimitive.of(10);
@@ -114,14 +114,23 @@ export class AudioProject {
         .range([0 + startPx, 1 * factor + startPx]) as XScale,
   );
 
-  constructor(tracks: (AudioTrack | MidiTrack)[], projectId: string, projectName: string, tempo: number) {
+  constructor(
+    tracks: (AudioTrack | MidiTrack)[],
+    projectId: string,
+    projectName: string,
+    tempo: number,
+    loopStart: TimelinePoint,
+    loopEnd: TimelinePoint,
+    loopOnPlayback: boolean,
+  ) {
     this.projectId = projectId;
     this.allTracks = SArray.create(tracks);
     this.viewport = new ProjectViewportUtil(this);
     this.projectName = SPrimitive.of(projectName);
     this.tempo = SPrimitive.of(tempo);
-    this.loopStart = time(0, "pulses");
-    this.loopEnd = time(PPQN * 4, "pulses");
+    this.loopStart = loopStart;
+    this.loopEnd = loopEnd;
+    this.loopOnPlayback = SPrimitive.of(loopOnPlayback);
     // so it initializes after app environment is initialized
     setTimeout(() => ignorePromise(this.asyncInits()), 0);
   }
@@ -140,7 +149,7 @@ export class AudioProject {
 
   static create() {
     const id = ulid();
-    return new this([], id, "untitled", DEFAULT_TEMPO);
+    return new this([], id, "untitled", DEFAULT_TEMPO, time(0, "pulses"), time(PPQN * 4, "pulses"), false);
   }
 
   public canEditTrack(project: AudioProject, track: MidiTrack | AudioTrack | StandardTrack<any>) {

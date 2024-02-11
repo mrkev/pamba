@@ -4,6 +4,8 @@ import { AudioProject } from "../lib/project/AudioProject";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { pressedState } from "../pressedState";
 import { set } from "../utils/set";
+import { time } from "../lib/project/TimelinePoint";
+import { PPQN } from "../wam/pianorollme/MIDIConfiguration";
 
 export function LoopMarkers({ project }: { project: AudioProject }) {
   const styles = useStyles();
@@ -11,7 +13,7 @@ export function LoopMarkers({ project }: { project: AudioProject }) {
   const loopStart = useContainer(project.loopStart);
   const loopEnd = useContainer(project.loopEnd);
   const [selected] = useLinkedState(project.selected);
-  const [loopPlayback] = useLinkedState(project.loopPlayback);
+  const [loopPlayback] = useLinkedState(project.loopOnPlayback);
 
   // just to listen to it
   // todo: a way to subscribe to any viewport change?
@@ -41,6 +43,7 @@ export function LoopMarkers({ project }: { project: AudioProject }) {
               { original: loopStart.serialize(), point: loopStart },
               { original: loopEnd.serialize(), point: loopEnd },
             ),
+            limit: null,
           });
           e.stopPropagation();
           console.log("rect");
@@ -57,6 +60,12 @@ export function LoopMarkers({ project }: { project: AudioProject }) {
               status: "moving_timeline_points",
               clientX: e.clientX,
               points: set({ original: loopStart.serialize(), point: loopStart }),
+              limit: [
+                null,
+                time(1 * PPQN, "pulses")
+                  .subtract(loopEnd, project)
+                  .operate(Math.abs),
+              ],
             });
             e.stopPropagation();
             console.log("START");
@@ -81,6 +90,7 @@ export function LoopMarkers({ project }: { project: AudioProject }) {
               status: "moving_timeline_points",
               clientX: e.clientX,
               points: set({ original: loopEnd.serialize(), point: loopEnd }),
+              limit: [time(1 * PPQN, "pulses").add(loopStart, project), null],
             });
             e.stopPropagation();
             console.log("end");

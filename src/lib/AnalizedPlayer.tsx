@@ -111,7 +111,7 @@ export class AnalizedPlayer {
 
     this.cursorAtPlaybackStart = cursorPos;
     const loop =
-      project.loopPlayback.get() === true
+      project.loopOnPlayback.get() === true
         ? ([project.loopStart.secs(project), project.loopEnd.secs(project)] as const)
         : ([null, null] as const);
 

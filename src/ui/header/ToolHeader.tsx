@@ -118,10 +118,13 @@ export function ToolHeader({
   const [scaleFactor] = useLinkedState(project.scaleFactor);
   const [tempo] = useLinkedState(project.tempo);
   const [snapToGrid] = useLinkedState(project.snapToGrid);
-  const [loopPlayback] = useLinkedState(project.loopPlayback);
+  const [loopPlayback] = useLinkedState(project.loopOnPlayback);
   const [inputDevices] = useLinkedMap(recorder.audioInputDevices);
   const [selectedDevice] = useLinkedState(recorder.currentInput);
   const [projectName] = useLinkedState(project.projectName);
+  const [isAudioPlaying] = useLinkedState(renderer.isAudioPlaying);
+  const [recorderStatus] = useLinkedState(recorder.status);
+  const isRecording = recorderStatus === "recording";
 
   return (
     <div className={classes.headerContainer}>
@@ -169,12 +172,13 @@ export function ToolHeader({
 
           <div style={{ flexGrow: 1 }}></div>
           <UtilityToggle
-            title="activate loop section"
+            disabled={isAudioPlaying || isRecording}
+            title={loopPlayback ? "deactivate loop brace" : "activate loop brace"}
             style={{ fontSize: 18 }}
             toggled={loopPlayback}
             toggleStyle={{ background: "orange" }}
             onToggle={function (toggled: boolean): void {
-              project.loopPlayback.set(toggled);
+              project.loopOnPlayback.set(toggled);
             }}
           >
             &#x21BB;

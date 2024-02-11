@@ -4,7 +4,7 @@ import { AudioProject } from "../lib/project/AudioProject";
 import { PrimarySelectionState } from "../lib/project/SelectionState";
 import { useLinkedSet } from "../lib/state/LinkedSet";
 import { useLinkedState } from "../lib/state/LinkedState";
-import { pressedState } from "../pressedState";
+import { CursorState, pressedState } from "../pressedState";
 import { exhaustive } from "../utils/exhaustive";
 import { useLocalStorage } from "./useLocalStorage";
 import { ProjectTrack } from "../lib/ProjectTrack";
@@ -49,7 +49,7 @@ export function stringOfSelected(sel: PrimarySelectionState | null): string {
   return JSON.stringify(sel);
 }
 
-export function DebugData({ project }: { project: AudioProject }) {
+function DebugData({ project }: { project: AudioProject }) {
   const [selected] = useLinkedState(project.selected);
   const [cursorPos] = useLinkedState(project.cursorPos);
   const [selectionWidth] = useLinkedState(project.selectionWidth);
@@ -96,13 +96,23 @@ export function DebugData({ project }: { project: AudioProject }) {
         <br />
         Selected: {stringOfSelected(selected)}
         <br />
-        Pressed: {pressed?.status}
+        <pre>Pressed: {serializedPressed(pressed)}</pre>
         <br />
         Active Track: {activeTrack?.name.get()}
       </div>
       <pre>{allState}</pre>
     </details>
   );
+}
+
+function serializedPressed(pressed: CursorState | null) {
+  console.log("FOO");
+  switch (pressed?.status) {
+    case "moving_timeline_points":
+      return JSON.stringify(pressed, null, 2);
+    default:
+      return pressed?.status;
+  }
 }
 
 export function DebugContent({ project }: { project: AudioProject }) {

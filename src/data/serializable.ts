@@ -1,4 +1,3 @@
-import * as s from "structured-state";
 import { liveAudioContext } from "../constants";
 import { EffectID } from "../dsp/FAUST_EFFECTS";
 import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
@@ -6,6 +5,7 @@ import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioTrack } from "../lib/AudioTrack";
 import { AudioProject } from "../lib/project/AudioProject";
+import { STimelinePoint, TimelinePoint } from "../lib/project/TimelinePoint";
 import { MidiClip } from "../midi/MidiClip";
 import { MidiInstrument } from "../midi/MidiInstrument";
 import { MidiTrack } from "../midi/MidiTrack";
@@ -52,6 +52,9 @@ export type SAudioProject = {
   projectName: string;
   tempo: number;
   tracks: Array<SAudioTrack | SMidiTrack>;
+  loopStart: STimelinePoint;
+  loopEnd: STimelinePoint;
+  loopOnPlayback: boolean;
 };
 
 export type SFaustAudioEffect = {
@@ -119,6 +122,9 @@ export async function serializable(
       projectName: obj.projectName.get(),
       tempo: obj.tempo.get(),
       tracks: await Promise.all(obj.allTracks._getRaw().map((track) => serializable(track))),
+      loopStart: obj.loopStart.serialize(),
+      loopEnd: obj.loopEnd.serialize(),
+      loopOnPlayback: obj.loopOnPlayback.get(),
     };
   }
 
@@ -180,8 +186,16 @@ export async function construct(
     }
     case "AudioProject": {
       const tracks = await Promise.all(rep.tracks.map((clip) => construct(clip)));
-      const { projectId, projectName, tempo } = rep;
-      return new AudioProject(tracks, projectId, projectName, tempo);
+      const { projectId, projectName, tempo, loopStart, loopEnd, loopOnPlayback } = rep;
+      return new AudioProject(
+        tracks,
+        projectId,
+        projectName,
+        tempo,
+        TimelinePoint.construct(loopStart),
+        TimelinePoint.construct(loopEnd),
+        loopOnPlayback,
+      );
     }
     case "FaustAudioEffect": {
       const effect = await FaustAudioEffect.create(liveAudioContext(), rep.effectId, rep.params);

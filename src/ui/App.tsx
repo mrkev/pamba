@@ -122,8 +122,9 @@ export function App(): React.ReactElement {
 }
 
 const changelog = `
-next
+v0.1.3
 - saved recorded audio no longer crashes everything on load
+- added loop brace (breaks existing projects)
 
 v0.1.2
 - added changelog. warning: it will be of dubious quality

@@ -1,8 +1,8 @@
 import { Structured } from "structured-state";
 import { exhaustive } from "../state/Subbable";
 import { AudioProject } from "./AudioProject";
-import { pulsesToSec } from "../../midi/MidiClip";
-import { Seconds } from "../AbstractClip";
+import { pulsesToSec, secsToPulses } from "../../midi/MidiClip";
+import { Pulses, Seconds } from "../AbstractClip";
 
 type TimeUnit = "pulses" | "seconds";
 
@@ -46,6 +46,55 @@ export class TimelinePoint extends Structured<STimelinePoint, typeof TimelinePoi
       default:
         exhaustive(this.u);
     }
+  }
+
+  pulses(project: AudioProject): Pulses {
+    switch (this.u) {
+      case "seconds":
+        return secsToPulses(this.t, project.tempo.get()) as Pulses;
+      case "pulses":
+        return this.t as Pulses;
+      default:
+        exhaustive(this.u);
+    }
+  }
+
+  asUnit(u: TimeUnit, project: AudioProject) {
+    switch (u) {
+      case "seconds":
+        return this.secs(project);
+      case "pulses":
+        return this.pulses(project);
+      default:
+        exhaustive(u);
+    }
+  }
+
+  clone() {
+    return new TimelinePoint(this.t, this.u);
+  }
+
+  add(p: TimelinePoint, project: AudioProject) {
+    if (this.u === p.u) {
+      this.t += p.t;
+    } else {
+      this.t += p.asUnit(this.u, project);
+    }
+    return this;
+  }
+
+  subtract(p: TimelinePoint, project: AudioProject) {
+    if (this.u === p.u) {
+      this.t -= p.t;
+    } else {
+      this.t -= p.asUnit(this.u, project);
+    }
+    return this;
+  }
+
+  operate(op: (x: number) => number) {
+    this.t = op(this.t);
+    return this;
   }
 }
 

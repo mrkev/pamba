@@ -64,6 +64,7 @@ export type CursorState =
       status: "moving_timeline_points";
       points: Set<{ original: STimelinePoint; point: TimelinePoint }>;
       clientX: number;
+      limit: [lower: null | TimelinePoint, upper: null | TimelinePoint] | null;
     }>;
 
 export const pressedState = SPrimitive.of<CursorState | null>(null);

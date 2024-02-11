@@ -89,7 +89,7 @@ export class AudioTrack extends Structured<SAudioTrack, typeof AudioTrack> imple
     // We need to keep a reference to our source node for play/pause
     this.playingSource = this.getSourceNode(context);
     this.dsp.connectToDSPForPlayback(this.playingSource);
-    if (project.loopPlayback.get() === true) {
+    if (project.loopOnPlayback.get() === true) {
       this.playingSource.loop = true;
       this.playingSource.loopStart = project.loopStart.secs(project);
       this.playingSource.loopEnd = project.loopEnd.secs(project);

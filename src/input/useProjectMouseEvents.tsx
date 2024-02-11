@@ -385,21 +385,44 @@ export function useTimelineMouseEvents(
             // metaKey flips it
             const snap = e.metaKey ? !project.snapToGrid.get() : project.snapToGrid.get();
             const deltaX = e.clientX - pressed.clientX;
+            const lowerLim = pressed.limit?.[0] ?? null;
+            const upperLim = pressed.limit?.[1] ?? null;
 
             for (const { original, point } of pressed.points) {
               switch (point.u) {
-                case "seconds":
-                  {
-                    const deltaXSecs = project.viewport.pxToSecs(deltaX);
-                    const newOffset = Math.max(0, original.t + deltaXSecs);
-                    pointMoveSec(project, point, newOffset, snap);
+                case "seconds": {
+                  const deltaXSecs = project.viewport.pxToSecs(deltaX);
+                  let newOffsetS = Math.max(0, original.t + deltaXSecs);
+                  const lowerLimSecs = lowerLim && lowerLim.secs(project);
+                  const upperLimSecs = upperLim && upperLim.secs(project);
+                  if (lowerLimSecs != null && newOffsetS < lowerLimSecs) {
+                    newOffsetS = lowerLimSecs;
                   }
+                  if (upperLimSecs != null && newOffsetS > upperLimSecs) {
+                    newOffsetS = upperLimSecs;
+                  }
+                  pointMoveSec(project, point, newOffsetS, snap);
                   break;
+                }
+
                 case "pulses": {
                   const deltaXPulses = project.viewport.pxToPulses(deltaX);
-                  const newOffset = Math.max(0, original.t + deltaXPulses);
-                  pointMovePulses(project, point, newOffset, snap);
+                  let newOffsetP = Math.max(0, original.t + deltaXPulses);
+                  const lowerLimPulses = lowerLim && lowerLim.pulses(project);
+                  const upperLimPulses = upperLim && upperLim.pulses(project);
+                  console.log(lowerLimPulses, newOffsetP);
+                  if (lowerLimPulses != null && newOffsetP < lowerLimPulses) {
+                    newOffsetP = lowerLimPulses;
+                  }
+                  if (upperLimPulses != null && newOffsetP > upperLimPulses) {
+                    newOffsetP = upperLimPulses;
+                  }
+
+                  pointMovePulses(project, point, newOffsetP, snap);
+                  break;
                 }
+                default:
+                  exhaustive(point.u);
               }
             }
 
