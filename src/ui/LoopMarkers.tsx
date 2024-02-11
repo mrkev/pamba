@@ -1,15 +1,14 @@
 import { createUseStyles } from "react-jss";
 import { useContainer } from "structured-state";
 import { AudioProject } from "../lib/project/AudioProject";
+import { time } from "../lib/project/TimelinePoint";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { pressedState } from "../pressedState";
 import { set } from "../utils/set";
-import { time } from "../lib/project/TimelinePoint";
 import { PPQN } from "../wam/pianorollme/MIDIConfiguration";
 
 export function LoopMarkers({ project }: { project: AudioProject }) {
   const styles = useStyles();
-  const [viewportStartPx] = useLinkedState(project.viewportStartPx);
   const loopStart = useContainer(project.loopStart);
   const loopEnd = useContainer(project.loopEnd);
   const [selected] = useLinkedState(project.selected);
@@ -18,8 +17,8 @@ export function LoopMarkers({ project }: { project: AudioProject }) {
   // just to listen to it
   // todo: a way to subscribe to any viewport change?
   useLinkedState(project.scaleFactor);
-  const startX = project.viewport.pxForPulse(loopStart.t) - viewportStartPx;
-  const endX = project.viewport.pxForPulse(loopEnd.t) - viewportStartPx;
+  const startX = loopStart.px(project);
+  const endX = loopEnd.px(project);
 
   const selection = selected?.status === "loop_marker" ? selected.kind : null;
 

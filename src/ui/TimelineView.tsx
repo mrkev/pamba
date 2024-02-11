@@ -1,21 +1,21 @@
+import classNames from "classnames";
 import { useRef } from "react";
 import { createUseStyles } from "react-jss";
 import { useContainer } from "structured-state";
 import { MIN_TRACK_HEIGHT, TRACK_HEADER_WIDTH } from "../constants";
+import { documentCommands } from "../input/documentCommands";
 import { useAxisContainerMouseEvents } from "../input/useProjectMouseEvents";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import { AudioRenderer } from "../lib/AudioRenderer";
 import { AudioProject } from "../lib/project/AudioProject";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { Axis } from "./Axis";
-import { LoopMarkers } from "./LoopMarkers";
 import { CursorSelection } from "./CursorSelection";
+import { LoopMarkers } from "./LoopMarkers";
+import { ProjectView } from "./ProjectView";
 import { TrackHeader } from "./TrackHeader";
 import { UtilityMenu } from "./UtilityMenu";
-import { documentCommands } from "../input/useDocumentKeyboardEvents";
-import { ProjectView } from "./ProjectView";
 import { utility } from "./utility";
-import classNames from "classnames";
 
 export function TimelineView({
   project,

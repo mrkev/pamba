@@ -7,7 +7,7 @@ import { AudioProject } from "../../lib/project/AudioProject";
 import { useLinkedState } from "../../lib/state/LinkedState";
 import { exhaustive } from "../../utils/exhaustive";
 import { utility } from "../utility";
-import { documentCommands } from "../../input/useDocumentKeyboardEvents";
+import { documentCommands } from "../../input/documentCommands";
 
 export function TransportControl({
   project,

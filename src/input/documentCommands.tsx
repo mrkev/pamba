@@ -1,15 +1,15 @@
+import { flushSync } from "react-dom";
 import { history } from "structured-state";
+import { LIBRARY_SEARCH_INPUT_ID } from "../constants";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioRenderer } from "../lib/AudioRenderer";
 import { ProjectPersistance } from "../lib/ProjectPersistance";
 import { AudioProject, ProjectSelection } from "../lib/project/AudioProject";
 import { doPaste } from "../lib/project/ClipboardState";
-import { ignorePromise } from "../utils/ignorePromise";
-import { CommandBlock } from "./Command";
-import { LIBRARY_SEARCH_INPUT_ID } from "../constants";
-import { flushSync } from "react-dom";
 import { pressedState } from "../pressedState";
 import { exhaustive } from "../utils/exhaustive";
+import { ignorePromise } from "../utils/ignorePromise";
+import { CommandBlock } from "./Command";
 
 export const documentCommands = CommandBlock.create(["Project", "Edit", "Tools", "Playback"] as const, (command) => {
   return {
@@ -74,6 +74,45 @@ export const documentCommands = CommandBlock.create(["Project", "Edit", "Tools",
       e?.preventDefault();
     })
       .helptext("Toggle Playback")
+      .section("Playback"),
+
+    loopWithBrace: command(["KeyL", "meta"], (e, project) => {
+      const selectionState = project.selected.get();
+      if (selectionState == null) {
+        return;
+      }
+      switch (selectionState.status) {
+        case "track_time":
+        case "time": {
+          if (
+            project.loopOnPlayback.get() === true &&
+            project.loopStart.secs(project) === selectionState.startS &&
+            project.loopEnd.secs(project) === selectionState.endS
+          ) {
+            project.loopOnPlayback.set(false);
+          } else {
+            project.loopOnPlayback.set(true);
+            project.loopStart.set(selectionState.startS, "seconds");
+            project.loopEnd.set(selectionState.endS, "seconds");
+          }
+          e?.preventDefault();
+          break;
+        }
+        case "loop_marker": {
+          project.loopOnPlayback.set(!project.loopOnPlayback.get());
+          e?.preventDefault();
+          break;
+        }
+        case "clips":
+        case "effects":
+
+        case "tracks":
+          break;
+        default:
+          exhaustive(selectionState);
+      }
+    })
+      .helptext("Loop selection")
       .section("Playback"),
 
     // Clipboard

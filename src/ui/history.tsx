@@ -1,13 +1,12 @@
-import { useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { createUseStyles } from "react-jss";
 import { getGlobalState, useContainer } from "structured-state";
 import { Command } from "../input/Command";
-import { documentCommands } from "../input/useDocumentKeyboardEvents";
+import { documentCommands } from "../input/documentCommands";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioProject } from "../lib/project/AudioProject";
 import { LinkedArray } from "../lib/state/LinkedArray";
 import { UtilityDataList } from "./UtilityList";
-import React from "react";
 
 export type HistoryItem = {
   clip: AudioClip;

@@ -31,8 +31,8 @@ export class TimelinePoint extends Structured<STimelinePoint, typeof TimelinePoi
   }
 
   constructor(
-    public t: number,
-    public u: "pulses" | "seconds",
+    private t: number,
+    private u: "pulses" | "seconds",
   ) {
     super();
   }
@@ -54,6 +54,17 @@ export class TimelinePoint extends Structured<STimelinePoint, typeof TimelinePoi
         return secsToPulses(this.t, project.tempo.get()) as Pulses;
       case "pulses":
         return this.t as Pulses;
+      default:
+        exhaustive(this.u);
+    }
+  }
+
+  px(project: AudioProject) {
+    switch (this.u) {
+      case "seconds":
+        return project.viewport.pxForTime(this.t);
+      case "pulses":
+        return project.viewport.pxForPulse(this.t);
       default:
         exhaustive(this.u);
     }

@@ -1,7 +1,7 @@
 import { useCallback, useRef } from "react";
 import { createUseStyles } from "react-jss";
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from "../../constants";
-import { documentCommands } from "../../input/useDocumentKeyboardEvents";
+import { documentCommands } from "../../input/documentCommands";
 import { AnalizedPlayer } from "../../lib/AnalizedPlayer";
 import { appEnvironment } from "../../lib/AppEnvironment";
 import { AudioRecorder } from "../../lib/AudioRecorder";
