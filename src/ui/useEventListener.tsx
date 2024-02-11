@@ -24,13 +24,14 @@ type EventMap<T> = T extends Document ? DocumentEventMap : T extends HTMLElement
 export function useDocumentEventListener<K extends keyof DocumentEventMap>(
   type: K,
   listener: (this: HTMLElement, ev: EventMap<Document>[K]) => any,
+  options?: boolean | AddEventListenerOptions,
 ): void {
   useEffect(() => {
-    document.addEventListener(type, listener as any);
+    document.addEventListener(type, listener as any, options);
     return () => {
-      document.removeEventListener(type, listener as any);
+      document.removeEventListener(type, listener as any, options);
     };
-  }, [listener, type]);
+  }, [listener, options, type]);
 }
 
 export function useMousePressMove<T extends HTMLElement>(

@@ -58,15 +58,15 @@ export class ProjectViewportUtil {
     return this.secsToPx(s) - viewportStartPx;
   }
 
-  timeForPx(px: number): number {
-    const viewportStartPx = this.project.viewportStartPx.get();
-    return this.pxToSecs(px + viewportStartPx);
-  }
-
   // TODO: more direct method?
   pxForPulse(p: number) {
     const bpm = this.project.tempo.get();
-    return this.secsToPx(pulsesToSec(p, bpm));
+    return this.pxForTime(pulsesToSec(p, bpm));
+  }
+
+  timeForPx(px: number): number {
+    const viewportStartPx = this.project.viewportStartPx.get();
+    return this.pxToSecs(px + viewportStartPx);
   }
 
   // pxForBeat(b: number) {

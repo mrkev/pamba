@@ -17,7 +17,7 @@ export interface StandardTrack<T extends AbstractClip<any>> {
   // - Non-overlapping clips.
   readonly clips: SSchemaArray<T>;
 
-  prepareForPlayback(project: AudioProject, context: AudioContext): void;
+  prepareForPlayback(project: AudioProject, context: AudioContext, startingAt: number): void;
   prepareForBounce(context: OfflineAudioContext, offlineContextInfo: AudioContextInfo): Promise<AudioNode>;
 
   // NOTE: needs to be called right after .prepareForPlayback

@@ -85,11 +85,11 @@ export class AudioTrack extends Structured<SAudioTrack, typeof AudioTrack> imple
   // [ _Hidden Gain Node (for soloing)]
   //        V
   // [ Out Node ]
-  prepareForPlayback(project: AudioProject, context: AudioContext): void {
+  prepareForPlayback(project: AudioProject, context: AudioContext, startingAt: number): void {
     // We need to keep a reference to our source node for play/pause
     this.playingSource = this.getSourceNode(context);
     this.dsp.connectToDSPForPlayback(this.playingSource);
-    if (project.loopOnPlayback.get() === true) {
+    if (AudioProject.playbackWillLoop(project, startingAt)) {
       this.playingSource.loop = true;
       this.playingSource.loopStart = project.loopStart.secs(project);
       this.playingSource.loopEnd = project.loopEnd.secs(project);

@@ -4,15 +4,15 @@ todo:
 - peak meters
 
 todo: snap resize clip to grid 
-clip editor: toggle between seconds, frames, beats units for viewing and editing
-slide audio within clip tool
-bug: reorganizing clip throws assertion error
+- clip editor: toggle between seconds, frames, beats units for viewing and editing
+- slide audio within clip tool
+x bug: reorganizing clip throws assertion error
 
 TODO:
-- Implement own panel component perhaps?
-- Implement piano roll editor area
-- Move MidiDemo piano roll into new piano roll editor
-- Figure out how to save and load data, so piano roll midi lives in clips
+x Implement own panel component perhaps?
+x Implement piano roll editor area
+x Move MidiDemo piano roll into new piano roll editor
+x Figure out how to save and load data, so piano roll midi lives in clips
 
 MAYBE: 
 - Switch audio timing to be frames, for maximum precision (avoid time floats)

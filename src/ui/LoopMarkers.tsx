@@ -1,14 +1,16 @@
 import { createUseStyles } from "react-jss";
 import { useContainer } from "structured-state";
 import { AudioProject } from "../lib/project/AudioProject";
-import { time } from "../lib/project/TimelinePoint";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { pressedState } from "../pressedState";
 import { set } from "../utils/set";
+import { time } from "../lib/project/TimelinePoint";
 import { PPQN } from "../wam/pianorollme/MIDIConfiguration";
 
 export function LoopMarkers({ project }: { project: AudioProject }) {
   const styles = useStyles();
+  // for observing
+  useLinkedState(project.viewportStartPx);
   const loopStart = useContainer(project.loopStart);
   const loopEnd = useContainer(project.loopEnd);
   const [selected] = useLinkedState(project.selected);

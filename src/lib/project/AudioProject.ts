@@ -147,6 +147,12 @@ export class AudioProject {
     }
   }
 
+  static playbackWillLoop(project: AudioProject, cursorPos: number) {
+    // If cursor passed the loop already, we don't want to loop playback. WebAudio by default
+    // would play the loop as opposed to skipping it
+    return project.loopOnPlayback.get() === true && cursorPos < project.loopEnd.secs(project);
+  }
+
   static create() {
     const id = ulid();
     return new this([], id, "untitled", DEFAULT_TEMPO, time(0, "pulses"), time(PPQN * 4, "pulses"), false);

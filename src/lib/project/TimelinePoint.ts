@@ -32,7 +32,7 @@ export class TimelinePoint extends Structured<STimelinePoint, typeof TimelinePoi
 
   constructor(
     private t: number,
-    private u: "pulses" | "seconds",
+    public u: "pulses" | "seconds",
   ) {
     super();
   }

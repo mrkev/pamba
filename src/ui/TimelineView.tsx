@@ -36,10 +36,9 @@ export function TimelineView({
     <div id="container" className={classNames(classes.container, "scrollbar-track")}>
       <div ref={axisContainerRef} className={classes.axisContainer}>
         <Axis project={project} isHeader />
+        <LoopMarkers project={project} />
         <CursorSelection track={null} project={project} leftOffset={-viewportStartPx} />
         {/* <TimelineCursor project={project} isHeader /> */}
-
-        <LoopMarkers project={project} />
       </div>
       {/* 1. Track header overhang (bounce button) */}
       <div className={classes.axisSpacer}>

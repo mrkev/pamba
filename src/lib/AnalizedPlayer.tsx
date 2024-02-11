@@ -110,16 +110,15 @@ export class AnalizedPlayer {
     this.playbackTimeNode.connect(liveAudioContext.destination);
 
     this.cursorAtPlaybackStart = cursorPos;
-    const loop =
-      project.loopOnPlayback.get() === true
-        ? ([project.loopStart.secs(project), project.loopEnd.secs(project)] as const)
-        : ([null, null] as const);
+    const loop = AudioProject.playbackWillLoop(project, cursorPos)
+      ? ([project.loopStart.secs(project), project.loopEnd.secs(project)] as const)
+      : ([null, null] as const);
 
     // .prepareForPlayback can take a while, especially on slow computers,
     // so we prepare all before we acutally play to keep tracks as much in
     // sync as possible
     for (let track of tracks) {
-      track.prepareForPlayback(project, liveAudioContext);
+      track.prepareForPlayback(project, liveAudioContext, cursorPos);
       track.dsp.connect(this.mixDownNode);
     }
     for (let track of tracks) {
@@ -142,7 +141,7 @@ export class AnalizedPlayer {
     track.dsp.connect(this.mixDownNode);
     this.playingTracks = this.playingTracks.concat(track);
     const LATENCY = 10;
-    track.prepareForPlayback(project, liveAudioContext);
+    track.prepareForPlayback(project, liveAudioContext, startAt);
     track.startPlayback(tempo, liveAudioContext, startAt + LATENCY);
   }
 
