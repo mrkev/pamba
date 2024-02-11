@@ -116,7 +116,7 @@ export class AudioRenderer {
       player.stopSound();
       renderer.isAudioPlaying.set(false);
     } else {
-      player.playTracks(project.allTracks._getRaw(), project.cursorPos.get(), project.tempo.get());
+      player.playTracks(project, project.allTracks._getRaw(), project.cursorPos.get(), project.tempo.get());
       renderer.isAudioPlaying.set(true);
     }
   }
@@ -125,7 +125,7 @@ export class AudioRenderer {
     if (renderer.isAudioPlaying.get()) {
       return;
     } else {
-      player.playTracks(project.allTracks._getRaw(), project.cursorPos.get(), project.tempo.get());
+      player.playTracks(project, project.allTracks._getRaw(), project.cursorPos.get(), project.tempo.get());
       renderer.isAudioPlaying.set(true);
     }
   }

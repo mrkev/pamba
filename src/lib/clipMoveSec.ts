@@ -4,6 +4,8 @@ import { clamp, returnClosest, stepNumber } from "../utils/math";
 import { AudioClip } from "./AudioClip";
 import { secs } from "./AbstractClip";
 import { AudioProject } from "./project/AudioProject";
+import { TimelinePoint } from "./project/TimelinePoint";
+import { PPQN } from "../wam/pianorollme/MIDIConfiguration";
 
 export function clipResizeEndSec(clip: AudioClip, newLength: number, project: AudioProject, snap: boolean) {
   const newClipEnd = clamp(
@@ -98,5 +100,37 @@ export function clipMovePPQN(clip: MidiClip, newOffsetSec: number, project: Audi
     const pulses = secsToPulses(actualNewOffsetSec, bpm);
     clip.startOffsetPulses = pulses;
     clip.notifyUpdate();
+  }
+}
+
+export function pointMoveSec(
+  project: AudioProject,
+  point: TimelinePoint,
+  newOffsetSec: number,
+  snap: boolean,
+  originalStartOffsetSec?: number,
+) {
+  if (!snap) {
+    point.set(newOffsetSec);
+  } else {
+    const tempo = project.tempo.get();
+    const tickBeatLength = getOneTickLen(project, tempo);
+    let steppedToTick = stepNumber(newOffsetSec, tickBeatLength);
+    if (typeof originalStartOffsetSec === "number") {
+      steppedToTick = stepNumber(newOffsetSec, tickBeatLength, originalStartOffsetSec);
+    }
+    const result = returnClosest(newOffsetSec, steppedToTick, steppedToTick);
+    point.set(result);
+  }
+}
+
+export function pointMovePulses(project: AudioProject, point: TimelinePoint, newOffsetPulses: number, snap: boolean) {
+  // todo: snap arg to snap to larger grid, vs PPQN
+
+  if (!snap) {
+    point.set(newOffsetPulses, "pulses");
+  } else {
+    const actualNewOffsetPulses = stepNumber(newOffsetPulses, PPQN);
+    point.set(actualNewOffsetPulses, "pulses");
   }
 }

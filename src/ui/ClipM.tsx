@@ -26,7 +26,7 @@ export function ClipM({
   track: MidiTrack | null; // null if clip is being rendered for move
 }) {
   const styles = useStyles();
-  const width = project.viewport.pulsesToPx(clip.lengthPulses);
+  const width = project.viewport.pxForPulse(clip.lengthPulses);
   const [bpm] = useLinkedState(project.tempo);
   const notes = useContainer(clip.notes);
   // const startTrimmedWidth = project.viewport.secsToPx(clip.trimStartSec);
@@ -125,7 +125,7 @@ export function ClipM({
       onMouseDownToMove={onMouseDownToMove}
       onClipClick={() => {}}
       width={width}
-      left={Math.floor(project.viewport.pulsesToPx(clip.startOffsetPulses))}
+      left={Math.floor(project.viewport.pxForPulse(clip.startOffsetPulses))}
       style={{}}
     >
       {notes.length}

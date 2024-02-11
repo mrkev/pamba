@@ -8,6 +8,7 @@ import { AudioRenderer } from "../lib/AudioRenderer";
 import { AudioProject } from "../lib/project/AudioProject";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { Axis } from "./Axis";
+import { LoopMarkers } from "./LoopMarkers";
 import { CursorSelection } from "./CursorSelection";
 import { TrackHeader } from "./TrackHeader";
 import { UtilityMenu } from "./UtilityMenu";
@@ -37,6 +38,8 @@ export function TimelineView({
         <Axis project={project} isHeader />
         <CursorSelection track={null} project={project} leftOffset={-viewportStartPx} />
         {/* <TimelineCursor project={project} isHeader /> */}
+
+        <LoopMarkers project={project} />
       </div>
       {/* 1. Track header overhang (bounce button) */}
       <div className={classes.axisSpacer}>
@@ -117,7 +120,7 @@ const useStyles = createUseStyles({
     msOverflowY: "scroll",
   },
   axisSpacer: {
-    backgroundColor: "var(--backgroud)",
+    backgroundColor: "var(--background)",
     height: "29px",
     display: "flex",
     alignItems: "center",

@@ -12,6 +12,7 @@ import { MidiTrack } from "../../midi/MidiTrack";
 import { exhaustive } from "../../utils/exhaustive";
 import { nullthrows } from "../../utils/nullthrows";
 import { PambaWamNode } from "../../wam/PambaWamNode";
+import { PPQN } from "../../wam/pianorollme/MIDIConfiguration";
 import { AnalizedPlayer } from "../AnalizedPlayer";
 import { appEnvironment } from "../AppEnvironment";
 import { AudioClip } from "../AudioClip";
@@ -26,7 +27,7 @@ import { AudioStorage } from "./AudioStorage";
 import { clipboard } from "./ClipboardState";
 import { ProjectViewportUtil } from "./ProjectViewportUtil";
 import { PrimarySelectionState } from "./SelectionState";
-import { ProjectPackage } from "../../data/ProjectPackage";
+import { TimelinePoint, time } from "./TimelinePoint";
 
 /**
  * TODO:
@@ -85,6 +86,9 @@ export class AudioProject {
 
   // the selected clip(s), track(s), etc
   readonly selected = SPrimitive.of<PrimarySelectionState | null>(null);
+  readonly loopStart: TimelinePoint;
+  readonly loopEnd: TimelinePoint;
+  readonly loopPlayback = SPrimitive.of(false);
 
   // the zoom level. min scale is 0.64, max is 1000
   readonly scaleFactor = SPrimitive.of(10);
@@ -116,6 +120,8 @@ export class AudioProject {
     this.viewport = new ProjectViewportUtil(this);
     this.projectName = SPrimitive.of(projectName);
     this.tempo = SPrimitive.of(tempo);
+    this.loopStart = time(0, "pulses");
+    this.loopEnd = time(PPQN * 4, "pulses");
     // so it initializes after app environment is initialized
     setTimeout(() => ignorePromise(this.asyncInits()), 0);
   }
@@ -158,7 +164,7 @@ export class AudioProject {
     }
     if (player != null && player.isAudioPlaying) {
       console.log("ADDED TO PLAYBACK");
-      player.addTrackToPlayback(newTrack, project.cursorPos.get(), project.tempo.get());
+      player.addTrackToPlayback(project, newTrack, project.cursorPos.get(), project.tempo.get());
     }
     return newTrack;
   }
@@ -334,6 +340,10 @@ export class ProjectSelection {
           }
         }
         break;
+
+      case "loop_marker":
+        // can't delete loop markers
+        break;
       default:
         exhaustive(selected);
     }
@@ -355,6 +365,7 @@ export class ProjectSelection {
       case "effects":
       case "time":
       case "track_time":
+      case "loop_marker":
         break;
       default:
         exhaustive(selected);

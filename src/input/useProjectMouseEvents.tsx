@@ -4,7 +4,7 @@ import { MIN_TRACK_HEIGHT } from "../constants";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioTrack } from "../lib/AudioTrack";
-import { clipMovePPQN, clipMoveSec, clipResizeEndSec } from "../lib/clipMoveSec";
+import { clipMovePPQN, clipMoveSec, clipResizeEndSec, pointMovePulses, pointMoveSec } from "../lib/clipMoveSec";
 import { AudioProject } from "../lib/project/AudioProject";
 import { snapped } from "../lib/project/ProjectViewportUtil";
 import { MidiClip } from "../midi/MidiClip";
@@ -75,7 +75,7 @@ export function useTimelineMouseEvents(
     "mousedown",
     projectDivRef,
     useCallback(
-      (e) => {
+      function mouseDown(e) {
         const div = projectDivRef.current;
         if (div == null) {
           return;
@@ -129,7 +129,7 @@ export function useTimelineMouseEvents(
   useDocumentEventListener(
     "mouseup",
     useCallback(
-      (e: MouseEvent) => {
+      function mouseUp(e: MouseEvent) {
         const pressed = pressedState.get();
         if (!pressed) {
           return;
@@ -256,6 +256,10 @@ export function useTimelineMouseEvents(
 
             break;
           }
+
+          case "moving_timeline_points":
+            pressedState.set(null);
+            break;
           default:
             exhaustive(status);
         }
@@ -267,7 +271,7 @@ export function useTimelineMouseEvents(
   useDocumentEventListener(
     "mousemove",
     useCallback(
-      (e: MouseEvent) => {
+      function mouseMove(e: MouseEvent) {
         const pressed = pressedState.get();
         if (!pressed) {
           return;
@@ -371,6 +375,34 @@ export function useTimelineMouseEvents(
             project.selectionWidth.set(newWidth);
             project.selected.set(null);
             // project.selected.set({ status: "time", start: pressed.startTime, end: pressed.startTime + deltaXSecs });
+            break;
+          }
+
+          case "moving_timeline_points": {
+            // "TimelinePoint obj: num + unit", standard moving behaviour
+            // TODO: For: Markers, loop markers, clips, midi notes, etc
+
+            // metaKey flips it
+            const snap = e.metaKey ? !project.snapToGrid.get() : project.snapToGrid.get();
+            const deltaX = e.clientX - pressed.clientX;
+
+            for (const { original, point } of pressed.points) {
+              switch (point.u) {
+                case "seconds":
+                  {
+                    const deltaXSecs = project.viewport.pxToSecs(deltaX);
+                    const newOffset = Math.max(0, original.t + deltaXSecs);
+                    pointMoveSec(project, point, newOffset, snap);
+                  }
+                  break;
+                case "pulses": {
+                  const deltaXPulses = project.viewport.pxToPulses(deltaX);
+                  const newOffset = Math.max(0, original.t + deltaXPulses);
+                  pointMovePulses(project, point, newOffset, snap);
+                }
+              }
+            }
+
             break;
           }
 

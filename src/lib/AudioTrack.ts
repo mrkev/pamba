@@ -85,10 +85,18 @@ export class AudioTrack extends Structured<SAudioTrack, typeof AudioTrack> imple
   // [ _Hidden Gain Node (for soloing)]
   //        V
   // [ Out Node ]
-  prepareForPlayback(context: AudioContext): void {
+  prepareForPlayback(project: AudioProject, context: AudioContext): void {
     // We need to keep a reference to our source node for play/pause
     this.playingSource = this.getSourceNode(context);
     this.dsp.connectToDSPForPlayback(this.playingSource);
+    if (project.loopPlayback.get() === true) {
+      this.playingSource.loop = true;
+      this.playingSource.loopStart = project.loopStart.secs(project);
+      this.playingSource.loopEnd = project.loopEnd.secs(project);
+      console.log(`looping`, this.playingSource.loopStart, this.playingSource.loopEnd);
+    } else {
+      this.playingSource.loop = false;
+    }
   }
 
   // NOTE: needs to be called right after .prepareForPlayback
@@ -140,7 +148,6 @@ export class AudioTrack extends Structured<SAudioTrack, typeof AudioTrack> imple
     const trackBuffer = mixDown(this.clips._getRaw(), 2);
     const sourceNode = context.createBufferSource();
     sourceNode.buffer = trackBuffer;
-    sourceNode.loop = false;
     return sourceNode;
   }
 

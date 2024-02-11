@@ -10,6 +10,7 @@ import { PianoRollModule, PianoRollNode } from "../wam/pianorollme/PianoRollNode
 import { MidiClip } from "./MidiClip";
 import { MidiInstrument } from "./MidiInstrument";
 import type { SimpleMidiClip } from "./SharedMidiTypes";
+import { AudioProject } from "../lib/project/AudioProject";
 
 const SAMPLE_STATE = {
   clips: {
@@ -124,7 +125,7 @@ export class MidiTrack implements StandardTrack<MidiClip> {
     return new MidiTrack(name, pianoRoll as any, instrument, clips ?? []);
   }
 
-  prepareForPlayback(context: AudioContext): void {
+  prepareForPlayback(project: AudioProject, context: AudioContext): void {
     this.playingSource = this.pianoRoll;
     // send clips to processor
     // should already be in ascending order of startOffsetPulses

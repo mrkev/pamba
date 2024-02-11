@@ -1,5 +1,6 @@
 import { AudioClip } from "./lib/AudioClip";
 import { AudioTrack } from "./lib/AudioTrack";
+import { TimelinePoint, STimelinePoint } from "./lib/project/TimelinePoint";
 import { SPrimitive } from "./lib/state/LinkedState";
 import { MidiClip } from "./midi/MidiClip";
 import { MidiTrack } from "./midi/MidiTrack";
@@ -58,6 +59,11 @@ export type CursorState =
       originalHeight: number;
       clientX: number;
       clientY: number;
+    }>
+  | Readonly<{
+      status: "moving_timeline_points";
+      points: Set<{ original: STimelinePoint; point: TimelinePoint }>;
+      clientX: number;
     }>;
 
 export const pressedState = SPrimitive.of<CursorState | null>(null);

@@ -4,6 +4,8 @@ import { MidiTrack } from "../midi/MidiTrack";
 // import SharedBufferWorkletNode from "./lib/shared-buffer-worklet-node";
 import { AudioTrack } from "./AudioTrack";
 import { OscilloscopeNode } from "./OscilloscopeNode";
+import { AudioProject } from "./project/AudioProject";
+import { Seconds } from "./AbstractClip";
 
 // sbwNode.onInitialized = () => {
 //   oscillator.connect(sbwNode).connect(context.destination);
@@ -63,8 +65,19 @@ export class AnalizedPlayer {
       if (this.isAudioPlaying === true) {
         // TODO: Raf here to amortize/debounce onaudioprocess being called multiple times? ADD TO OSCILLOSCOPE????
         requestAnimationFrame(() => {
+          const [loopStart, loopEnd] = this.playingLoop;
           const timePassed = liveAudioContext.currentTime - this.CTX_PLAY_START_TIME;
-          const currentTimeInBuffer = this.cursorAtPlaybackStart + timePassed;
+          // more like, total time since playback start + cursor at playback start
+          let currentTimeInBuffer = this.cursorAtPlaybackStart + timePassed;
+          if (
+            loopStart != null &&
+            // in the loop
+            currentTimeInBuffer - loopStart > 0
+          ) {
+            const loopTime = (currentTimeInBuffer - loopStart) % (loopEnd - loopStart);
+            currentTimeInBuffer = loopStart + loopTime;
+            console.log("loop");
+          }
           this.drawPlaybackTime(currentTimeInBuffer);
           this.drawPlaybeatTime?.(currentTimeInBuffer);
           if (this.onFrame) this.onFrame(currentTimeInBuffer);
@@ -89,26 +102,31 @@ export class AnalizedPlayer {
   }
 
   playingTracks: ReadonlyArray<AudioTrack | MidiTrack> | null = null;
+  playingLoop: readonly [startS: Seconds, endS: Seconds] | readonly [null, null] = [null, null];
   // Position of the cursor; where the playback is going to start
-  playTracks(tracks: ReadonlyArray<AudioTrack | MidiTrack>, cursorPos: number, tempo: number) {
+  playTracks(project: AudioProject, tracks: ReadonlyArray<AudioTrack | MidiTrack>, cursorPos: number, tempo: number) {
     // Need to connect to dest, otherwrise audio just doesn't flow through. This adds nothing, just silence though
     this.oscilloscope.connect(liveAudioContext.destination);
     this.playbackTimeNode.connect(liveAudioContext.destination);
 
     this.cursorAtPlaybackStart = cursorPos;
+    const loop =
+      project.loopPlayback.get() === true
+        ? ([project.loopStart.secs(project), project.loopEnd.secs(project)] as const)
+        : ([null, null] as const);
 
     // .prepareForPlayback can take a while, especially on slow computers,
     // so we prepare all before we acutally play to keep tracks as much in
     // sync as possible
     for (let track of tracks) {
-      track.prepareForPlayback(liveAudioContext);
+      track.prepareForPlayback(project, liveAudioContext);
       track.dsp.connect(this.mixDownNode);
     }
     for (let track of tracks) {
       track.startPlayback(tempo, liveAudioContext, cursorPos);
     }
     this.playingTracks = tracks;
-
+    this.playingLoop = loop;
     this.CTX_PLAY_START_TIME = liveAudioContext.currentTime;
     this.isAudioPlaying = true;
   }
@@ -116,7 +134,7 @@ export class AnalizedPlayer {
   /**
    * Adds a track to playback if we're already playing all tracks.
    */
-  addTrackToPlayback(track: AudioTrack, startAt: number, tempo: number) {
+  addTrackToPlayback(project: AudioProject, track: AudioTrack, startAt: number, tempo: number) {
     if (!this.playingTracks) {
       // TODO: mke playing tracks and isAudioPlaying the same state
       throw new Error("No tracks playing");
@@ -124,7 +142,7 @@ export class AnalizedPlayer {
     track.dsp.connect(this.mixDownNode);
     this.playingTracks = this.playingTracks.concat(track);
     const LATENCY = 10;
-    track.prepareForPlayback(liveAudioContext);
+    track.prepareForPlayback(project, liveAudioContext);
     track.startPlayback(tempo, liveAudioContext, startAt + LATENCY);
   }
 

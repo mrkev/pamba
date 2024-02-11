@@ -39,6 +39,9 @@ export function stringOfSelected(sel: PrimarySelectionState | null): string {
     case "track_time":
       return JSON.stringify(sel, ["status", "startS", "endS"], 2);
 
+    case "loop_marker":
+      return JSON.stringify(sel);
+
     default:
       exhaustive(status);
   }

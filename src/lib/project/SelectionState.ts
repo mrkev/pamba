@@ -50,6 +50,10 @@ export type PrimarySelectionState =
       endS: number;
       tracks: Array<AudioTrack | MidiTrack>;
       test: Set<AudioTrack | MidiTrack>;
+    }
+  | {
+      status: "loop_marker";
+      kind: "box" | "start" | "end";
     };
 
 export type PanelSelectionState = {

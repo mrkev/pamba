@@ -9,7 +9,7 @@ body {
 }
 
 :root {
-  --backgroud: #454648;
+  --background: #454648;
   --text-on-background: white;
   --track-separator: #4e4e4e;
   --border-against-bg: #eee;
@@ -37,7 +37,7 @@ body {
 
 /* LIGHT */
 /* :root {
-  --backgroud: white;
+  --background: white;
   --text-on-background: #black;
   --track-separator: #bababa;
   --timeline-bg: #ddd;
@@ -64,7 +64,7 @@ body {
 html,
 body {
   overscroll-behavior-x: none;
-  background-color: var(--backgroud);
+  background-color: var(--background);
   color: var(--text-on-background);
 }
 

@@ -1,10 +1,10 @@
 import { SPrimitive, SSchemaArray } from "structured-state";
-import { AbstractClip, addClip, deleteTime, moveClip, pushClip, removeClip, splitClip } from "./AbstractClip";
+import { MidiTrack } from "../midi/MidiTrack";
+import { AbstractClip, addClip, deleteTime, pushClip, removeClip, splitClip } from "./AbstractClip";
+import { AudioTrack } from "./AudioTrack";
 import { ProjectTrackDSP } from "./ProjectTrackDSP";
 import { AudioContextInfo } from "./initAudioContext";
 import type { AudioProject } from "./project/AudioProject";
-import { AudioTrack } from "./AudioTrack";
-import { MidiTrack } from "../midi/MidiTrack";
 
 // TODO: move these things out of the abstract class
 export interface StandardTrack<T extends AbstractClip<any>> {
@@ -17,7 +17,7 @@ export interface StandardTrack<T extends AbstractClip<any>> {
   // - Non-overlapping clips.
   readonly clips: SSchemaArray<T>;
 
-  prepareForPlayback(context: AudioContext): void;
+  prepareForPlayback(project: AudioProject, context: AudioContext): void;
   prepareForBounce(context: OfflineAudioContext, offlineContextInfo: AudioContextInfo): Promise<AudioNode>;
 
   // NOTE: needs to be called right after .prepareForPlayback
