@@ -1,7 +1,7 @@
 import { AudioClip } from "./lib/AudioClip";
 import { AudioTrack } from "./lib/AudioTrack";
 import { TimelinePoint, STimelinePoint } from "./lib/project/TimelinePoint";
-import { SPrimitive } from "./lib/state/LinkedState";
+import { SPrimitive } from "structured-state";
 import { MidiClip } from "./midi/MidiClip";
 import { MidiTrack } from "./midi/MidiTrack";
 
@@ -19,6 +19,7 @@ export type CursorState =
       inHistory: boolean;
     }>
   | Readonly<{
+      // TODO
       status: "dragging_new_audio";
       // Original clientX/Y of event
       clientX: number;
@@ -49,6 +50,7 @@ export type CursorState =
       originalBufferOffset: number;
       originalTimelineStartSec: number;
       clip: AudioClip | MidiClip;
+      track: AudioTrack | MidiTrack;
       clientX: number;
       clientY: number;
       inHistory: boolean;

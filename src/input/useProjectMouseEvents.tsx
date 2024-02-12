@@ -177,7 +177,11 @@ export function useTimelineMouseEvents(
           }
 
           case "resizing_track":
+            pressedState.set(null);
+            break;
+
           case "resizing_clip": {
+            // TODO: delete time within clip
             pressedState.set(null);
             break;
           }

@@ -43,7 +43,7 @@ export function ClipA({
 
   function onMouseDownToResize(e: React.MouseEvent<HTMLDivElement>, from: "start" | "end") {
     e.stopPropagation();
-    if (tool !== "move") {
+    if (tool !== "move" || track == null) {
       return;
     }
 
@@ -62,6 +62,7 @@ export function ClipA({
       clientX: e.clientX,
       clientY: e.clientY,
       inHistory: false,
+      track,
     });
   }
 
@@ -129,10 +130,12 @@ export function ClipA({
       case "move":
         break;
       case "slice": // TODO: BROKEN
-        const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
-        const secFromStartOfClip = project.viewport.pxToSecs(pxFromStartOfClip);
-        const secFromTimelineStart = clip.timelineStartSec + secFromStartOfClip;
-        ProjectTrack.splitClip(project, track, clip, secFromTimelineStart);
+        history.record(() => {
+          const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
+          const secFromStartOfClip = project.viewport.pxToSecs(pxFromStartOfClip);
+          const secFromTimelineStart = clip.timelineStartSec + secFromStartOfClip;
+          ProjectTrack.splitClip(project, track, clip, secFromTimelineStart);
+        });
         break;
       case "trimStart": {
         const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;

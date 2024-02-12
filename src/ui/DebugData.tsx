@@ -1,5 +1,5 @@
 import hljs from "highlight.js";
-import { debugOut, useContainer } from "structured-state";
+import { debugOut, useContainer, usePrimitive } from "structured-state";
 import { AudioProject } from "../lib/project/AudioProject";
 import { PrimarySelectionState } from "../lib/project/SelectionState";
 import { useLinkedSet } from "../lib/state/LinkedSet";
@@ -54,7 +54,7 @@ function DebugData({ project }: { project: AudioProject }) {
   const [cursorPos] = useLinkedState(project.cursorPos);
   const [selectionWidth] = useLinkedState(project.selectionWidth);
   const tracks = useContainer(project.allTracks);
-  const [pressed] = useLinkedState(pressedState);
+  const [pressed] = usePrimitive(pressedState);
   const [activeTrack] = useLinkedState(project.activeTrack);
   const [cursorTracks] = useLinkedSet(project.cursorTracks);
   const [open, setOpen] = useLocalStorage<boolean>("debugDataOpen", false);
@@ -120,7 +120,7 @@ export function DebugContent({ project }: { project: AudioProject }) {
   const [cursorPos] = useLinkedState(project.cursorPos);
   const [selectionWidth] = useLinkedState(project.selectionWidth);
   const tracks = useContainer(project.allTracks);
-  const [pressed] = useLinkedState(pressedState);
+  const [pressed] = usePrimitive(pressedState);
   const [activeTrack] = useLinkedState(project.activeTrack);
   const [cursorTracks] = useLinkedSet(project.cursorTracks);
   const [viewportStartPx] = useLinkedState(project.viewportStartPx);

@@ -36,7 +36,7 @@ export function TrackM({
   style?: React.CSSProperties;
 }): React.ReactElement {
   const styles = useStyles();
-  const [pressed] = useLinkedState(pressedState);
+  const [pressed] = usePrimitive(pressedState);
   const [selected] = useLinkedState(project.selected);
   const clips = useContainer(track.clips);
   const [height] = usePrimitive(track.height);
