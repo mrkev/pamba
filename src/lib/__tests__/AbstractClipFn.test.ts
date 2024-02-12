@@ -7,7 +7,7 @@ import {
   addClip,
   assertClipInvariants,
   deleteTime,
-  printClips,
+  // printClips,
   pushClip,
   removeClip,
   splitClip,

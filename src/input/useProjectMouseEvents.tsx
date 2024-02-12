@@ -169,8 +169,8 @@ export function useTimelineMouseEvents(
             pressedState.set(null);
             break;
           }
-          case "dragging_new_audio": {
-            // Seems more reliable to end "dragging_new_audio" in the dragged
+          case "dragging_library_item": {
+            // Seems more reliable to end "dragging_library_item" in the dragged
             // div's onDragEnd, so we end it there instead.
             // pressedState.set(null);
             break;
@@ -306,7 +306,7 @@ export function useTimelineMouseEvents(
 
             break;
           }
-          case "dragging_new_audio": {
+          case "dragging_library_item": {
             console.log("TODO");
             break;
           }

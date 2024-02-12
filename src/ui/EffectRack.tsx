@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { createUseStyles } from "react-jss";
-import { useContainer } from "structured-state";
+import { useContainer, usePrimitive } from "structured-state";
 import { EFFECT_HEIGHT } from "../constants";
 import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
 import FaustEffectModule from "../dsp/ui/FaustEffectModule";
@@ -47,7 +47,7 @@ export const EffectRack = React.memo(function EffectRack({
   const effects = useContainer(track.dsp.effects);
   const [selected] = useLinkedState(project.selected);
   const rackRef = useRef<HTMLDivElement | null>(null);
-  const [isAudioPlaying] = useLinkedState(renderer.isAudioPlaying);
+  const [isAudioPlaying] = usePrimitive(renderer.isAudioPlaying);
 
   useEffect(() => {
     const div = rackRef.current;

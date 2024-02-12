@@ -1,7 +1,7 @@
 import classNames from "classnames";
 import React, { useCallback, useRef, useState } from "react";
 import { createUseStyles } from "react-jss";
-import { useContainer, usePrimitive } from "structured-state";
+import { history, useContainer, usePrimitive } from "structured-state";
 import { TRACK_SEPARATOR_HEIGHT } from "../constants";
 import { useTrackMouseEvents } from "../input/useTrackMouseEvents";
 import { AudioClip } from "../lib/AudioClip";
@@ -59,17 +59,18 @@ const loadAudioClipIntoTrack = async (
   url: string,
   track: AudioTrack,
   startOffsetSec: number,
-  name?: string,
+  name: string,
 ): Promise<void> => {
   try {
     if (!project.canEditTrack(project, track)) {
       return;
     }
-
-    // load clip
     const clip = await AudioClip.fromURL(url, name);
-    clip.timelineStartSec = secs(startOffsetSec);
-    ProjectTrack.addClip(project, track, clip);
+    history.record(() => {
+      // load clip
+      clip.timelineStartSec = secs(startOffsetSec);
+      ProjectTrack.addClip(project, track, clip);
+    });
   } catch (e) {
     console.trace(e);
     return;
@@ -110,13 +111,26 @@ export function TrackA({
   useTrackMouseEvents(trackRef, project, track);
 
   const onDrop = useCallback(
-    async (ev: React.DragEvent<HTMLDivElement>) => {
+    async function onDropNewAudio(ev: React.DragEvent<HTMLDivElement>) {
       ev.preventDefault();
       ev.stopPropagation();
-      const url = await getDroppedAudioURL(audioStorage, ev.dataTransfer);
+      const pressed = pressedState.get();
+      // NOTE: dropping from Finder is not handled here. Figure out where that is handled.
+      // this just seems to handle things dragged from the library right now anyway.
+      if (pressed?.status !== "dragging_library_item") {
+        console.warn("dropped something but pressed status was wrong?");
+        return;
+      }
 
+      if (pressed.libraryItem.kind !== "audio") {
+        console.warn("This should never happen");
+        return;
+      }
+
+      const url = await getDroppedAudioURL(audioStorage, ev.dataTransfer);
       if (url && url.length > 0) {
-        ignorePromise(loadAudioClipIntoTrack(project, url, track, project.viewport.pxToSecs(draggingOver ?? 0)));
+        const startOffsetSec = project.viewport.pxToSecs(draggingOver ?? 0);
+        ignorePromise(loadAudioClipIntoTrack(project, url, track, startOffsetSec, pressed.libraryItem.name));
       }
       setDraggingOver(null);
     },
@@ -160,7 +174,7 @@ export function TrackA({
         <CursorSelection track={track} project={project} />
 
         {/* RENDER DRAG DROP MARKER */}
-        {pressed && pressed.status === "dragging_new_audio" && draggingOver != null && (
+        {pressed && pressed.status === "dragging_library_item" && draggingOver != null && (
           <div
             style={{
               width: 1,

@@ -20,6 +20,7 @@ import { doConfirm } from "./ConfirmDialog";
 import { UploadAudioButton } from "./UploadAudioButton";
 import { ListEntry, UtilityDataList } from "./UtilityList";
 import { closeProject } from "./header/ToolHeader";
+import { usePrimitive } from "structured-state";
 
 const STATIC_AUDIO_FILES = ["drums.mp3", "clav.mp3", "bassguitar.mp3", "horns.mp3", "leadguitar.mp3"];
 
@@ -38,7 +39,7 @@ function useAudioLibrary(project: AudioProject, filter: string): (string | Audio
   });
 }
 
-type LibraryItem = { kind: "project"; id: string } | { kind: "audio"; url: string };
+export type LibraryItem = { kind: "project"; id: string } | { kind: "audio"; url: string; name: string };
 
 export function Library({
   project,
@@ -50,7 +51,7 @@ export function Library({
   player: AnalizedPlayer;
 }) {
   const classes = useStyles();
-  const [isAudioPlaying] = useLinkedState(renderer.isAudioPlaying);
+  const [isAudioPlaying] = usePrimitive(renderer.isAudioPlaying);
   const [libraryFilter, setLibraryFilter] = useState("");
   const audioLibrary = useAudioLibrary(project, libraryFilter);
   const [localProjects] = useLinkedMap(appEnvironment.localFiles._projects);
@@ -111,13 +112,13 @@ export function Library({
           return {
             title: url,
             icon: <i className="ri-volume-up-fill"></i>,
-            data: { kind: "audio", url },
+            data: { kind: "audio", url, name: url },
           } as const;
         } else if (audio instanceof AudioPackage) {
           return {
             title: audio.name,
             icon: <i className="ri-volume-up-fill"></i>,
-            data: { kind: "audio", url: audio.url },
+            data: { kind: "audio", url: audio.url, name: audio.name },
           } as const;
         } else {
           exhaustive(audio);
@@ -153,9 +154,8 @@ export function Library({
             ev.dataTransfer.setData("text/uri-list", item.data.url);
             ev.dataTransfer.setData("text/plain", item.data.url);
             pressedState.set({
-              status: "dragging_new_audio",
-              clientX: ev.clientX,
-              clientY: ev.clientY,
+              status: "dragging_library_item",
+              libraryItem: item.data,
             });
           }}
           onDragEnd={() => {

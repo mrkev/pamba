@@ -7,6 +7,7 @@ import { dataURLForWaveform } from "../utils/waveform";
 import { AbstractClip, Seconds, secs } from "./AbstractClip";
 import { SharedAudioBuffer } from "./SharedAudioBuffer";
 import { SOUND_LIB_FOR_HISTORY, loadSound, loadSoundFromAudioPackage } from "./loadSound";
+import { TimelinePoint, time } from "./project/TimelinePoint";
 
 class AudioViewport {
   readonly pxPerSec = SPrimitive.of(10);
@@ -38,9 +39,10 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
   // These properties represent media that has a certain length (in frames), but has
   // been trimmed to be of another length.
   readonly bufferLength: Seconds; // seconds, whole buffer
-  public timelineStartSec: Seconds; // on the timeline, the x position
   public clipLengthSec: Seconds; // TODO: incorporate
   public bufferOffset: Seconds;
+
+  public timelineStartSec: Seconds; // on the timeline, the x position
 
   gainAutomation: Array<{ time: number; value: number }> = [{ time: 0, value: 1 }];
   // Let's not pre-compute this since we don't know the acutal dimensions
@@ -62,6 +64,9 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
 
   override replace(json: SAudioClip): void {
     this.name.set(json.name);
+
+    console.log("REPLACE", this, json);
+
     // note: can't change bufferURL, length. They're readonly to the audio buffer. Should be ok
     // cause audio buffer never changes, and all clips that replace this one will be the same buffer
     this.bufferOffset = secs(json.bufferOffset);
@@ -248,7 +253,9 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
       throw new Error("new end too long");
       // TODO: make newEnd = this.timelineStartSec + this.lengthSec + this.bufferOffset
     }
-    this.clipLengthSec = newLen as Seconds;
+    this.featuredMutation(() => {
+      this.clipLengthSec = newLen as Seconds;
+    });
   }
 
   //
@@ -273,7 +280,9 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
       throw new Error("Can't set trimEndSec to be less than 0");
     }
 
-    this.timelineEndSec = this.bufferTimelineStartSec() + trimEnd;
+    this.featuredMutation(() => {
+      this.timelineEndSec = this.bufferTimelineStartSec() + trimEnd;
+    });
   }
 
   // Frames units
@@ -297,7 +306,9 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
   }
 
   set startOffsetFr(frs: number) {
-    this.timelineStartSec = this.frToSec(frs);
+    this.featuredMutation(() => {
+      this.timelineStartSec = this.frToSec(frs);
+    });
   }
 
   // on the timeline, the x position where + width (duration)
@@ -320,7 +331,9 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
   }
 
   _setTimelineStartU(num: Seconds): void {
-    this.timelineStartSec = num;
+    this.featuredMutation(() => {
+      this.timelineStartSec = num;
+    });
   }
 
   get _timelineEndU(): Seconds {
@@ -328,7 +341,9 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
   }
 
   _setTimelineEndU(num: number): void {
-    this.timelineEndSec = num;
+    this.featuredMutation(() => {
+      this.timelineEndSec = num;
+    });
   }
 
   trimStartToTimelineU(timeSec: number): void {

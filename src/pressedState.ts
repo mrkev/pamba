@@ -4,6 +4,7 @@ import { TimelinePoint, STimelinePoint } from "./lib/project/TimelinePoint";
 import { SPrimitive } from "structured-state";
 import { MidiClip } from "./midi/MidiClip";
 import { MidiTrack } from "./midi/MidiTrack";
+import { LibraryItem } from "./ui/Library";
 
 export type CursorState =
   | Readonly<{
@@ -19,11 +20,8 @@ export type CursorState =
       inHistory: boolean;
     }>
   | Readonly<{
-      // TODO
-      status: "dragging_new_audio";
-      // Original clientX/Y of event
-      clientX: number;
-      clientY: number;
+      status: "dragging_library_item";
+      libraryItem: LibraryItem;
     }>
   | Readonly<{
       status: "selecting_global_time";

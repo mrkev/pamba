@@ -207,7 +207,7 @@ export const documentCommands = CommandBlock.create(["Project", "Edit", "Tools",
           // cancelMovingClip(pressed, project);
           break;
         }
-        case "dragging_new_audio":
+        case "dragging_library_item":
         case "resizing_clip":
         case "resizing_track":
         case "selecting_global_time":

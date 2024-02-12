@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { useContainer } from "structured-state";
+import { useContainer, usePrimitive } from "structured-state";
 import { AnalizedPlayer } from "../../lib/AnalizedPlayer";
 import { AudioRecorder } from "../../lib/AudioRecorder";
 import { AudioRenderer } from "../../lib/AudioRenderer";
@@ -21,7 +21,7 @@ export function TransportControl({
   style?: React.CSSProperties;
 }) {
   const cursorCanvasRef = useRef<HTMLCanvasElement>(null);
-  const [isAudioPlaying] = useLinkedState(renderer.isAudioPlaying);
+  const [isAudioPlaying] = usePrimitive(renderer.isAudioPlaying);
   const [selectionWidth] = useLinkedState(project.selectionWidth);
   const [recorderStatus] = useLinkedState(recorder.status);
   const [cursorPos] = useLinkedState(project.cursorPos);
@@ -79,7 +79,7 @@ export function PlaybackControl({
 }) {
   const tracks = useContainer(project.allTracks);
   const [armedTrack] = useLinkedState(project.armedTrack);
-  const [isAudioPlaying] = useLinkedState(renderer.isAudioPlaying);
+  const [isAudioPlaying] = usePrimitive(renderer.isAudioPlaying);
   const [recorderStatus] = useLinkedState(recorder.status);
   const isRecording = recorderStatus === "recording";
   const isTrackArmed = armedTrack != null;

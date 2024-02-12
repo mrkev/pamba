@@ -1,17 +1,18 @@
 import * as s from "structured-state";
-import { SArray, SString } from "structured-state";
+import { SArray, SString, Structured } from "structured-state";
 import { liveAudioContext } from "../constants";
 import { SMidiClip } from "../data/serializable";
 import { AbstractClip, Pulses } from "../lib/AbstractClip";
+import { ProjectTrack } from "../lib/ProjectTrack";
 import { AudioProject } from "../lib/project/AudioProject";
+import { TimelinePoint, time } from "../lib/project/TimelinePoint";
 import { MutationHashable } from "../lib/state/MutationHashable";
-import { Subbable, notify } from "../lib/state/Subbable";
+import { notify } from "../lib/state/Subbable";
 import { nullthrows } from "../utils/nullthrows";
 import { mutable } from "../utils/types";
 import { PPQN } from "../wam/pianorollme/MIDIConfiguration";
 import { MidiTrack } from "./MidiTrack";
 import type { Note } from "./SharedMidiTypes";
-import { ProjectTrack } from "../lib/ProjectTrack";
 
 export const SECS_IN_MIN = 60;
 
@@ -29,10 +30,9 @@ export function secsToPulses(secs: number, bpm: number) {
   return Math.floor((secs * PPQN * bpm) / SECS_IN_MIN);
 }
 
-export class MidiClip
-  extends s.Structured<SMidiClip, typeof MidiClip>
-  implements Subbable<MidiClip>, MutationHashable, AbstractClip<Pulses>
-{
+export class MidiClip extends Structured<SMidiClip, typeof MidiClip> implements AbstractClip<Pulses> {
+  timelineStart: TimelinePoint;
+
   override serialize(): SMidiClip {
     return {
       kind: "MidiClip",
@@ -71,6 +71,7 @@ export class MidiClip
     this.notes = SArray.create(notes);
     this.lengthPulses = lengthPulses as Pulses;
     this._startOffsetPulses = startOffsetPulses as Pulses;
+    this.timelineStart = time(startOffsetPulses, "pulses");
   }
 
   addNote(tick: number, num: number, duration: number, velocity: number) {

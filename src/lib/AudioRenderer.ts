@@ -8,7 +8,7 @@ import { AudioClip } from "./AudioClip";
 import { AudioTrack } from "./AudioTrack";
 import { initAudioContext } from "./initAudioContext";
 import { AudioProject } from "./project/AudioProject";
-import { SPrimitive } from "./state/LinkedState";
+import { SPrimitive } from "structured-state";
 
 function getOfflineAudioContext(lenSec: number) {
   return new OfflineAudioContext({

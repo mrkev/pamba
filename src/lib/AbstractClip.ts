@@ -1,5 +1,6 @@
 import { SArray, Structured } from "structured-state";
 import { nullthrows } from "../utils/nullthrows";
+import { TimelinePoint } from "./project/TimelinePoint";
 
 export function printClips(clips: SArray<AbstractClip<any>>) {
   return clips.map((c) => c.toString()).join("\n");

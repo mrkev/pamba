@@ -27,6 +27,9 @@ export function History({ project }: { project: AudioProject }) {
             data: entry,
           };
         })}
+        onItemSelect={(item) => {
+          console.log(item.data);
+        }}
       />
     </>
   );

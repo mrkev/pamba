@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useState } from "react";
 import { useLinkedState } from "../lib/state/LinkedState";
 // import { TrackThread } from "../lib/TrackThread";
 // import { MidiDemo } from "../midi";
@@ -10,8 +10,8 @@ import { PambaWamNode } from "../wam/PambaWamNode";
 import { AppProject } from "./AppProject";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { PambaWamNodeWindowPanel } from "./PambaWamNodeWindowPanel";
-import { utility } from "./utility";
 import { useDocumentEventListener } from "./useEventListener";
+import { utility } from "./utility";
 
 // var w = new TrackThread();
 // var sab = new SharedArrayBuffer(1024);

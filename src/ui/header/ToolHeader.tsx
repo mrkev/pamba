@@ -1,5 +1,6 @@
 import { useCallback, useRef } from "react";
 import { createUseStyles } from "react-jss";
+import { usePrimitive } from "structured-state";
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from "../../constants";
 import { documentCommands } from "../../input/documentCommands";
 import { AnalizedPlayer } from "../../lib/AnalizedPlayer";
@@ -122,7 +123,7 @@ export function ToolHeader({
   const [inputDevices] = useLinkedMap(recorder.audioInputDevices);
   const [selectedDevice] = useLinkedState(recorder.currentInput);
   const [projectName] = useLinkedState(project.projectName);
-  const [isAudioPlaying] = useLinkedState(renderer.isAudioPlaying);
+  const [isAudioPlaying] = usePrimitive(renderer.isAudioPlaying);
   const [recorderStatus] = useLinkedState(recorder.status);
   const isRecording = recorderStatus === "recording";
 
