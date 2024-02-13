@@ -10,7 +10,6 @@ import { exhaustive } from "../utils/exhaustive";
 import { AudioClipEditor } from "./AudioClipEditor";
 import { MidiClipEditor } from "./MidiClipEditor";
 import { OldMidiClipEditor } from "./OldMidiClipEditor";
-import { UtilityPanel } from "./UtilityPanel";
 import { useMousePressMove } from "./useEventListener";
 
 export function BottomPanel({ project, player }: { project: AudioProject; player: AnalizedPlayer }) {

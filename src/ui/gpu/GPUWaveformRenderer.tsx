@@ -1,5 +1,11 @@
-import { nullthrows } from "../utils/nullthrows";
 import { WebGPUStatus } from "./useWebGPU";
+
+function nullthrows<T>(val: T | null | undefined, message?: string): T {
+  if (val == null) {
+    throw new Error(message || `Expected ${val} to be non nil.`);
+  }
+  return val;
+}
 
 export class GPUWaveformRenderer {
   readonly bindGroup: GPUBindGroup;
@@ -36,6 +42,8 @@ export class GPUWaveformRenderer {
       context.configure({
         device: device,
         format: canvasFormat,
+        // https://webgpufundamentals.org/webgpu/lessons/webgpu-transparency.html
+        alphaMode: "premultiplied", //by default, canvas is opaque. dont ignore alpha.
       });
 
       const encoder = device.createCommandEncoder();

@@ -7,12 +7,7 @@ import { dataURLForWaveform } from "../utils/waveform";
 import { AbstractClip, Seconds, secs } from "./AbstractClip";
 import { SharedAudioBuffer } from "./SharedAudioBuffer";
 import { SOUND_LIB_FOR_HISTORY, loadSound, loadSoundFromAudioPackage } from "./loadSound";
-import { TimelinePoint, time } from "./project/TimelinePoint";
-
-class AudioViewport {
-  readonly pxPerSec = SPrimitive.of(10);
-  readonly scrollLeft = SPrimitive.of(0);
-}
+import { AudioViewport } from "../ui/AudioViewport";
 
 // A clip of Audio. Basic topology:
 //
@@ -33,7 +28,7 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
   readonly sampleRate: number; // how many frames per second
   public status: "ready" | "missing";
 
-  readonly detailedViewport = new AudioViewport();
+  readonly detailedViewport = new AudioViewport(80, 0);
   readonly unit = "sec";
 
   // These properties represent media that has a certain length (in frames), but has

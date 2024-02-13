@@ -1,9 +1,8 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { GPUWaveformRenderer } from "./GPUWaveformRenderer";
-import { useWebGPU } from "./useWebGPU";
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { mergeRefs } from "react-merge-refs";
 import useResizeObserver from "use-resize-observer";
+import { GPUWaveformRenderer } from "./GPUWaveformRenderer";
+import { useWebGPU } from "./useWebGPU";
 
 function useWaveformRenderer(canvasRef: React.RefObject<HTMLCanvasElement>, audioBuffer: AudioBuffer) {
   const gpu = useWebGPU(canvasRef);

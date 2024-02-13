@@ -236,6 +236,7 @@ export const TrackHeader = React.memo(function TrackHeader({
             }
           }}
           toggleStyle={{ background: "black", color: "white" }}
+          title={isDspExpanded ? "hide DSP rack" : "show DSP rack"}
         >
           DSP ({trackEffects.length})
         </UtilityToggle>

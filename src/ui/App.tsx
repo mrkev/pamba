@@ -135,8 +135,10 @@ export function App(): React.ReactElement {
 }
 
 const changelog = `
-dev
+v0.1.4
 - cmd+L to loop selection
+- smoother scaling of clip in clip editor
+- clip editor playback marker lock
 
 v0.1.3
 - saved recorded audio no longer crashes everything on load

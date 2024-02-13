@@ -37,6 +37,7 @@ export function ToolSelector({ project }: { project: AudioProject }) {
         onToggle={() => {
           documentCommands.execById("moveTool", project);
         }}
+        title={"move tool"}
       >
         <i className="ri-cursor-fill"></i>
       </UtilityToggle>

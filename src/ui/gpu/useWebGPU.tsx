@@ -1,5 +1,11 @@
 import { useEffect, useState } from "react";
-import { nullthrows } from "../utils/nullthrows";
+
+function nullthrows<T>(val: T | null | undefined, message?: string): T {
+  if (val == null) {
+    throw new Error(message || `Expected ${val} to be non nil.`);
+  }
+  return val;
+}
 
 // look at: https://gist.github.com/bellbind/c686d4a01306642646ec5ae476741b42
 // for animation (interactivity)

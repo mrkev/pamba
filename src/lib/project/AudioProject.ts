@@ -90,7 +90,8 @@ export class AudioProject {
   readonly loopEnd: TimelinePoint;
   readonly loopOnPlayback = SPrimitive.of(false);
 
-  // the zoom level. min scale is 0.64, max is 1000
+  // the zoom level. min scale is 0.64, max is 1000.
+  // Px per second. Therefore, small = zoom out. big = zoom in.
   readonly scaleFactor = SPrimitive.of(10);
   // the "left" CSS position for the first second visible in the project div
   readonly viewportStartPx = SPrimitive.of(0);

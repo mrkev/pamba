@@ -1,6 +1,7 @@
 import classNames from "classnames";
 import { utility } from "./utility";
 
+// TODO make default toggle color orange
 export function UtilityToggle({
   className,
   style: styleArg,
@@ -12,6 +13,7 @@ export function UtilityToggle({
   toggleStyle?: React.CSSProperties;
   toggled: boolean;
   onToggle: (toggled: boolean) => void;
+  title: string | null;
 }) {
   const style = toggled ? { ...styleArg, ...toggleStyle } : styleArg;
   return (
