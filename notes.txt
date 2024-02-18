@@ -1,7 +1,15 @@
 todo:
 - loop clips
-- mark and loop section
 - peak meters
+- rename library items
+- files in project
+
+todo: bugs
+- Undo is pretty broken
+- Ocassionaly, clicking clips appends-to instead of replacing selection
+- Moving a clip to a locked track deletes the clip
+- Moving clips to different tracks locks them in that track
+- Opening projects might cause ticks in the timeline disappear
 
 todo: snap resize clip to grid 
 - clip editor: toggle between seconds, frames, beats units for viewing and editing
@@ -24,10 +32,8 @@ NAME:
 webdaw.app
 webdaw.pro
 
-
 notepad
 - really good midi editing
-
 
 check out:
 https://www.npmjs.com/package/audio-buffer-utils

@@ -44,6 +44,8 @@ export class LocalFilesystem {
   readonly _projects = LinkedMap.create<string, ProjectPackage>();
   readonly _audioLib = LinkedMap.create<string, AudioPackage>();
 
+  private readonly ROOT_NAME = "";
+
   dirExists(location: FileSystemDirectoryHandle, name: string) {
     return pTry(location.getDirectoryHandle(name), "not_found" as const);
   }
@@ -61,7 +63,7 @@ export class LocalFilesystem {
   async projectsDir() {
     const opfsRoot = await navigator.storage.getDirectory();
     const projects = await opfsRoot.getDirectoryHandle("projects", { create: true });
-    return projects;
+    return new FSDir(projects, [this.ROOT_NAME, "projects"]);
   }
 
   async audioLibDir() {
@@ -72,7 +74,7 @@ export class LocalFilesystem {
 
   async openProject(projectId: string): Promise<ProjectFileIssue | AudioProject> {
     const projects = await this.projectsDir();
-    const project = await pTry(projects.getDirectoryHandle(`${projectId}`), "not_found" as const);
+    const project = await projects.open("dir", projectId);
     if (project === "not_found") {
       return { status: "not_found" } as const;
     }
@@ -87,7 +89,7 @@ export class LocalFilesystem {
 
   async getProjectPackage(projectId: string) {
     const projects = await this.projectsDir();
-    const project = await pTry(projects.getDirectoryHandle(`${projectId}`), "not_found" as const);
+    const project = await projects.open("dir", projectId);
     if (project === "not_found") {
       return { status: "not_found" } as const;
     }
@@ -109,33 +111,30 @@ export class LocalFilesystem {
 
   async deleteProject(projectId: string) {
     const projects = await this.projectsDir();
-    try {
-      await projects.removeEntry(projectId, { recursive: true });
-    } catch (e) {
-      return "error";
+    const result = await projects.delete(projectId);
+    if (result === "error") {
+      return result;
     }
-
     await this.updateProjects();
     return null;
   }
 
   public async getAllProjects(): Promise<ProjectPackage[]> {
-    const opfsRoot = await navigator.storage.getDirectory();
-    const projects = await opfsRoot.getDirectoryHandle("projects", { create: true });
+    const projects = await (await this.projectsDir()).list();
     // https://github.com/microsoft/TypeScript-DOM-lib-generator/issues/1639\
 
     const result = [];
-    for await (let [id, handle] of (projects as any).entries()) {
-      handle as FileSystemDirectoryHandle | FileSystemFileHandle;
-      if (handle instanceof FileSystemFileHandle) {
+
+    for await (let child of projects) {
+      if (child instanceof FSFile) {
         continue;
       }
 
-      const projectPackage = await ProjectPackage.existingPackage(handle);
+      const projectPackage = await ProjectPackage.existingPackage(child);
       if (projectPackage instanceof ProjectPackage) {
         result.push(projectPackage);
       } else {
-        console.warn("Project", id, "returned error", result);
+        console.warn("Project", child.handle.name, "returned error", result);
       }
     }
 
@@ -162,42 +161,76 @@ export class LocalFilesystem {
   }
 }
 
-/**
- * A location in the filesystem for storing audio files
- * either global or in the project dir
- */
-export class AudioPackageLibraryRef {
+export class FSDir {
   constructor(
-    public readonly location: FileSystemDirectoryHandle,
-    public readonly kind: "library://" | "project://",
+    public readonly handle: FileSystemDirectoryHandle,
+    public readonly path: readonly string[],
   ) {}
 
-  public async getAudioPackage(name: string) {
-    const audioPackageHandle = await pTry(this.location.getDirectoryHandle(name), "invalid" as const);
-    if (audioPackageHandle === "invalid") {
-      return "invalid";
-    }
-    return AudioPackage.existingPackage(audioPackageHandle, this.kind);
-  }
-
-  public async saveAudio(file: File) {
-    // TODO: check existence to prevent override?
-    return AudioPackage.newUpload(file, this.location, this.kind);
-  }
-
-  public async getAllAudioLibFiles(): Promise<Map<string, AudioPackage>> {
+  public async list() {
+    const results = [];
     // https://github.com/microsoft/TypeScript-DOM-lib-generator/issues/1639
-    const result = new Map<string, AudioPackage>();
-    for await (let [id, handle] of (this.location as any).entries()) {
-      handle as FileSystemDirectoryHandle | FileSystemFileHandle;
-      if (handle instanceof FileSystemFileHandle) {
+    for await (let [_, child] of (this.handle as any).entries()) {
+      child as FileSystemDirectoryHandle | FileSystemFileHandle;
+
+      if (child instanceof FileSystemFileHandle) {
+        results.push(new FSFile(child, this.path.concat(this.handle.name)));
         continue;
       }
 
-      const audioPackage = await AudioPackage.existingPackage(handle, this.kind);
-      result.set(id, audioPackage);
+      if (child instanceof FileSystemDirectoryHandle) {
+        results.push(new FSDir(child, this.path.concat(this.handle.name)));
+        continue;
+      }
+
+      console.warn("FSDir: child is unknown type:", child);
+    }
+    return results;
+  }
+
+  public async delete(name: string) {
+    try {
+      await this.handle.removeEntry(name, { recursive: true });
+    } catch (e) {
+      return "error";
+    }
+    return null;
+  }
+
+  public async open(kind: "dir", name: string): Promise<FSDir | "not_found"> {
+    const result = await pTry(this.handle.getDirectoryHandle(name), "not_found" as const);
+    if (result === "not_found") {
+      return result;
     }
 
-    return result;
+    return new FSDir(result, this.path.concat(this.handle.name));
   }
+
+  public async ensure(kind: "dir", name: string): Promise<FSDir | "invalid">;
+  public async ensure(kind: "file", name: string): Promise<FSFile | "invalid">;
+  public async ensure(kind: "dir" | "file", name: string): Promise<FSDir | FSFile | "invalid"> {
+    switch (kind) {
+      case "dir": {
+        const res = await pTry(this.handle.getDirectoryHandle(name, { create: true }), "invalid" as const);
+        if (res === "invalid") {
+          return res;
+        }
+        return new FSDir(res, this.path.concat(this.handle.name));
+      }
+      case "file": {
+        const res = await pTry(this.handle.getFileHandle(name, { create: true }), "invalid" as const);
+        if (res === "invalid") {
+          return res;
+        }
+        return new FSFile(res, this.path.concat(this.handle.name));
+      }
+    }
+  }
+}
+
+export class FSFile {
+  constructor(
+    public readonly handle: FileSystemFileHandle,
+    public readonly path: readonly string[],
+  ) {}
 }

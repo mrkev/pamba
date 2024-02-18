@@ -2,8 +2,9 @@ import { appEnvironment } from "../lib/AppEnvironment";
 import { isRecord } from "../lib/nw/nwschema";
 import { AudioProject } from "../lib/project/AudioProject";
 import { pAll, pTry, runAll } from "../utils/ignorePromise";
-import { AudioPackageLibraryRef, ProjectFileIssue } from "./localFilesystem";
-import { SAudioProject, construct, serializable } from "./serializable";
+import { AudioPackageList } from "./AudioPackageList";
+import { FSDir, ProjectFileIssue } from "./localFilesystem";
+import { SAudioProject, construct } from "./serializable";
 
 type ProjectMetadata = { projectName: string };
 
@@ -29,7 +30,8 @@ export class ProjectPackage {
     public readonly id: string,
     public readonly name: string,
     public readonly location: FileSystemDirectoryHandle,
-    public readonly audioLibRef: AudioPackageLibraryRef,
+    public readonly audioLibRef: AudioPackageList,
+    public readonly path: readonly string[],
   ) {}
 
   async openProject(): Promise<ProjectFileIssue | AudioProject> {
@@ -77,21 +79,26 @@ export class ProjectPackage {
     return size;
   }
 
-  static async existingPackage(location: FileSystemDirectoryHandle): Promise<ProjectPackage | { status: "invalid" }> {
-    const metadata = await this.getProjectMetadata(location);
-    const audioLibHandle = await pTry(
-      location.getDirectoryHandle(ProjectPackage.AUDIO_DIR_NAME, { create: true }),
-      "invalid" as const,
+  async projectPackageAudioFiles() {
+    const [] = await pAll(
+      pTry(this.location.getDirectoryHandle(ProjectPackage.METADATA_FILE_NAME), "invalid" as const),
     );
+  }
+
+  static async existingPackage(projRoot: FSDir): Promise<ProjectPackage | { status: "invalid" }> {
+    const location = projRoot.handle;
+    const metadata = await this.getProjectMetadata(location);
+    const audioLibDir = await projRoot.ensure("dir", ProjectPackage.AUDIO_DIR_NAME);
 
     const id = location.name;
-    if (metadata === "invalid" || audioLibHandle === "invalid") {
+    if (metadata === "invalid" || audioLibDir === "invalid") {
       return { status: "invalid" } as const;
     }
 
-    const projectAudioLib = new AudioPackageLibraryRef(audioLibHandle, "project://");
+    const projectAudioLib = new AudioPackageList(audioLibDir, "project://");
+    const name = (metadata.projectName ?? "untitled") as string;
 
-    return new ProjectPackage(id, (metadata.projectName ?? "untitled") as string, location, projectAudioLib);
+    return new ProjectPackage(id, name, location, projectAudioLib, projRoot.path);
   }
 
   static async getProjectMetadata(project: FileSystemDirectoryHandle) {
@@ -110,13 +117,20 @@ export class ProjectPackage {
 
   static async saveProject(projectId: string, projectName: string, data: SAudioProject) {
     const [projects] = await pAll(appEnvironment.localFiles.projectsDir());
-    const projectDir = await projects.getDirectoryHandle(`${projectId}`, { create: true });
+    const projectDir = await projects.ensure("dir", projectId);
+    if (projectDir === "invalid") {
+      throw new Error("save: dir could not be ensured. invalid.");
+    }
 
-    const [projectHandle, metadataHandle, audioLibHandle] = await pAll(
-      projectDir.getFileHandle(ProjectPackage.DOCUMENT_FILE_NAME, { create: true }),
-      projectDir.getFileHandle(ProjectPackage.METADATA_FILE_NAME, { create: true }),
-      projectDir.getDirectoryHandle(ProjectPackage.AUDIO_DIR_NAME, { create: true }),
+    const [projectHandle, metadataHandle, audioLibDir] = await pAll(
+      projectDir.handle.getFileHandle(ProjectPackage.DOCUMENT_FILE_NAME, { create: true }),
+      projectDir.handle.getFileHandle(ProjectPackage.METADATA_FILE_NAME, { create: true }),
+      projectDir.ensure("dir", ProjectPackage.AUDIO_DIR_NAME),
     );
+
+    if (audioLibDir === "invalid") {
+      throw new Error("save: project audiolibdir could not be ensured. invalid.");
+    }
 
     await runAll(
       async () => {
@@ -134,8 +148,9 @@ export class ProjectPackage {
     return new ProjectPackage(
       projectId,
       projectName,
-      projectDir,
-      new AudioPackageLibraryRef(audioLibHandle, "project://"),
+      projectDir.handle,
+      new AudioPackageList(audioLibDir, "project://"),
+      projects.path.concat(projectId),
     );
   }
 }

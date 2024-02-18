@@ -64,10 +64,10 @@ export function App(): React.ReactElement {
         </ul>
         ## Known Bugs
         <ul style={{ listStyleType: "'- '", width: "56ch", whiteSpace: "normal", paddingInlineStart: "2ch" }}>
-          <li>Undo is turbo-broken.</li>
+          <li>Undo is pretty broken.</li>
           <li>Ocassionaly, clicking clips appends-to instead of replacing selection.</li>
           <li>Moving a clip to a locked track deletes the clip.</li>
-          <li>Deleting a selection of multiple clips might not delete all of them.</li>
+          <li>Moving clips to different tracks locks them in that track.</li>
           <li>Opening projects might cause ticks in the timeline disappear.</li>
           <li>
             Found any others?{" "}
