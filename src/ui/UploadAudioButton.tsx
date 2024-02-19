@@ -34,7 +34,7 @@ export function UploadAudioButton({
             setUploadStatus("idle");
             throw result;
           }
-          const url = result.url;
+          const url = result.url();
           ignorePromise(loadClip?.(url, file.name));
           setUploadStatus("idle");
         }}

@@ -79,10 +79,8 @@ export class ProjectPackage {
     return size;
   }
 
-  async projectPackageAudioFiles() {
-    const [] = await pAll(
-      pTry(this.location.getDirectoryHandle(ProjectPackage.METADATA_FILE_NAME), "invalid" as const),
-    );
+  async projectAudioFiles() {
+    return [...(await this.audioLibRef.getAllAudioLibFiles()).values()];
   }
 
   static async existingPackage(projRoot: FSDir): Promise<ProjectPackage | { status: "invalid" }> {

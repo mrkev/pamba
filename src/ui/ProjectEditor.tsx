@@ -3,12 +3,17 @@ import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioProject } from "../lib/project/AudioProject";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { niceBytes } from "../data/localFilesystem";
-import { UtilityDataList } from "./UtilityList";
+import { ListEntry, UtilityDataList } from "./UtilityList";
 import { ProjectPackage } from "../data/ProjectPackage";
+import { pAll } from "../utils/ignorePromise";
+import { AudioPackage } from "../data/AudioPackage";
 
 let STATUS_PENDING = { status: "pending" } as const;
 
-type AsyncResult<T> = { status: "rejected"; error: any } | { status: "resolved"; value: T } | { status: "pending" };
+type AsyncResult<T> =
+  | Readonly<{ status: "rejected"; error: any }>
+  | Readonly<{ status: "resolved"; value: T }>
+  | Readonly<{ status: "pending" }>;
 function useAsync<T>(promise: Promise<T>): AsyncResult<T> {
   const [result, setResult] = useState<AsyncResult<T>>(STATUS_PENDING);
 
@@ -24,7 +29,7 @@ function useAsync<T>(promise: Promise<T>): AsyncResult<T> {
   return result;
 }
 
-export function ProjectSettings({ project }: { project: AudioProject }) {
+export function ProjectEditor({ project }: { project: AudioProject }) {
   const [name] = useLinkedState(project.projectName);
   const results = useAsync(
     useMemo(async () => {
@@ -33,14 +38,25 @@ export function ProjectSettings({ project }: { project: AudioProject }) {
         throw new Error(projectPackage.status);
       }
 
-      const size = await projectPackage.getProjectSize();
+      const [size, projectAudioFiles] = await pAll(projectPackage.getProjectSize(), projectPackage.projectAudioFiles());
       if (!(typeof size === "number")) {
         throw new Error(size.status);
       }
 
-      return { projectPackage, size };
+      return { projectPackage, size, projectAudioFiles };
     }, [project.projectId]),
   );
+
+  const items: ListEntry<AudioPackage>[] = useMemo(() => {
+    return results.status !== "resolved"
+      ? ([] as ListEntry<AudioPackage>[])
+      : results.value.projectAudioFiles.map((ap) => {
+          return {
+            title: ap.name,
+            data: ap,
+          };
+        });
+  }, [results.status]);
 
   return (
     <>
@@ -61,7 +77,11 @@ export function ProjectSettings({ project }: { project: AudioProject }) {
         </span>
       )}
       <b style={{ fontSize: "12px" }}>Project contents:</b>
-      <UtilityDataList items={[]}></UtilityDataList>
+      <UtilityDataList<AudioPackage>
+        draggable={false}
+        items={items}
+        onItemSelect={(item) => console.log(item)}
+      ></UtilityDataList>
       <button className="utilityButton">Delete Project</button>
     </>
   );

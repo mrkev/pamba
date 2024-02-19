@@ -10,7 +10,7 @@ import { BottomPanel } from "./BottomPanel";
 import { DebugContent } from "./DebugData";
 import { Help, History, Settings } from "./history";
 import { Library } from "./Library";
-import { ProjectSettings } from "./ProjectSettings";
+import { ProjectEditor } from "./ProjectEditor";
 import { TimelineView } from "./TimelineView";
 import { UtilityTabbedPanel } from "./UtilityTabbedPanel";
 import { ToolHeader } from "./header/ToolHeader";
@@ -64,7 +64,7 @@ export function AppProject({ project }: { project: AudioProject }) {
             project: {
               icon: <i className="ri-file-music-line" />,
               title: "Project",
-              render: () => <ProjectSettings project={project} />,
+              render: () => <ProjectEditor project={project} />,
             },
             history: {
               icon: <i className="ri-history-line" style={{ paddingRight: 2 }}></i>,

@@ -1,6 +1,5 @@
-import { pTry } from "../utils/ignorePromise";
 import { AudioPackage } from "./AudioPackage";
-import { FSDir } from "./localFilesystem";
+import { FSDir, FSFile } from "./localFilesystem";
 
 /**
  * A location in the filesystem for storing audio files
@@ -9,33 +8,33 @@ import { FSDir } from "./localFilesystem";
 
 export class AudioPackageList {
   constructor(
-    private readonly dir: FSDir,
+    public readonly dir: FSDir,
     public readonly kind: "library://" | "project://",
   ) {}
 
   public async getAudioPackage(name: string) {
-    const audioPackageHandle = await pTry(this.dir.handle.getDirectoryHandle(name), "invalid" as const);
-    if (audioPackageHandle === "invalid") {
-      return "invalid";
+    const audioPackageDir = await this.dir.open("dir", name);
+    if (audioPackageDir === "not_found") {
+      return "not_found";
     }
-    return AudioPackage.existingPackage(audioPackageHandle, this.kind);
+    return AudioPackage.existingPackage(audioPackageDir, this.kind);
   }
 
   public async saveAudio(file: File) {
     // TODO: check existence to prevent override?
-    return AudioPackage.newUpload(file, this.dir.handle, this.kind);
+    return AudioPackage.newUpload(file, this.dir, this.kind);
   }
 
   public async getAllAudioLibFiles(): Promise<Map<string, AudioPackage>> {
+    const libPkgs = await this.dir.list();
     const result = new Map<string, AudioPackage>();
-    for await (let [id, handle] of (this.dir.handle as any).entries()) {
-      handle as FileSystemDirectoryHandle | FileSystemFileHandle;
-      if (handle instanceof FileSystemFileHandle) {
+    for await (let pkg of libPkgs) {
+      if (pkg instanceof FSFile) {
         continue;
       }
 
-      const audioPackage = await AudioPackage.existingPackage(handle, this.kind);
-      result.set(id, audioPackage);
+      const audioPackage = await AudioPackage.existingPackage(pkg, this.kind);
+      result.set(pkg.handle.name, audioPackage);
     }
 
     return result;

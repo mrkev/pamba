@@ -130,7 +130,7 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
       AudioClip,
       buffer,
       audioPackage.name || "untitled",
-      audioPackage.url,
+      audioPackage.url(),
       bufferOffset,
       timelineStartSec,
       clipLengthSec,

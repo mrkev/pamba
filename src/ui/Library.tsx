@@ -118,7 +118,7 @@ export function Library({
           return {
             title: audio.name,
             icon: <i className="ri-volume-up-fill"></i>,
-            data: { kind: "audio", url: audio.url, name: audio.name },
+            data: { kind: "audio", url: audio.url(), name: audio.name },
           } as const;
         } else {
           exhaustive(audio);

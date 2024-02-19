@@ -69,7 +69,7 @@ export class LocalFilesystem {
   async audioLibDir() {
     const opfsRoot = await navigator.storage.getDirectory();
     const audioDir = await opfsRoot.getDirectoryHandle("audiolib", { create: true });
-    return audioDir;
+    return new FSDir(audioDir, [this.ROOT_NAME, "audiolib"]);
   }
 
   async openProject(projectId: string): Promise<ProjectFileIssue | AudioProject> {
@@ -124,7 +124,6 @@ export class LocalFilesystem {
     // https://github.com/microsoft/TypeScript-DOM-lib-generator/issues/1639\
 
     const result = [];
-
     for await (let child of projects) {
       if (child instanceof FSFile) {
         continue;
@@ -142,19 +141,17 @@ export class LocalFilesystem {
   }
 
   public async getAllAudioLibFiles(): Promise<Map<string, AudioPackage>> {
-    const packages = await this.audioLibDir();
+    const packages = await (await this.audioLibDir()).list();
 
     // https://github.com/microsoft/TypeScript-DOM-lib-generator/issues/1639
     const result = new Map<string, AudioPackage>();
-    for await (let [id, handle] of (packages as any).entries()) {
-      handle as FileSystemDirectoryHandle | FileSystemFileHandle;
-      if (handle instanceof FileSystemFileHandle) {
+    for await (const child of packages) {
+      if (child instanceof FSFile) {
         continue;
       }
 
-      const audioPackage = await AudioPackage.existingPackage(handle, "library://");
-
-      result.set(id, audioPackage);
+      const audioPackage = await AudioPackage.existingPackage(child, "library://");
+      result.set(child.handle.name, audioPackage);
     }
 
     return result;
@@ -174,12 +171,12 @@ export class FSDir {
       child as FileSystemDirectoryHandle | FileSystemFileHandle;
 
       if (child instanceof FileSystemFileHandle) {
-        results.push(new FSFile(child, this.path.concat(this.handle.name)));
+        results.push(new FSFile(child, this.path.concat(child.name)));
         continue;
       }
 
       if (child instanceof FileSystemDirectoryHandle) {
-        results.push(new FSDir(child, this.path.concat(this.handle.name)));
+        results.push(new FSDir(child, this.path.concat(child.name)));
         continue;
       }
 
@@ -203,7 +200,7 @@ export class FSDir {
       return result;
     }
 
-    return new FSDir(result, this.path.concat(this.handle.name));
+    return new FSDir(result, this.path.concat(result.name));
   }
 
   public async ensure(kind: "dir", name: string): Promise<FSDir | "invalid">;
@@ -215,14 +212,14 @@ export class FSDir {
         if (res === "invalid") {
           return res;
         }
-        return new FSDir(res, this.path.concat(this.handle.name));
+        return new FSDir(res, this.path.concat(res.name));
       }
       case "file": {
         const res = await pTry(this.handle.getFileHandle(name, { create: true }), "invalid" as const);
         if (res === "invalid") {
           return res;
         }
-        return new FSFile(res, this.path.concat(this.handle.name));
+        return new FSFile(res, this.path.concat(res.name));
       }
     }
   }

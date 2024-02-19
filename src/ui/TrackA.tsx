@@ -43,7 +43,7 @@ export async function getDroppedAudioURL(audioStorage: AudioStorage | null, data
     if (result instanceof Error) {
       throw result;
     }
-    url = result.url;
+    url = result.url();
   }
 
   // We can drop urls to audio from other parts of the UI
