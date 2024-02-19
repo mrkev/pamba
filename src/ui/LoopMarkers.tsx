@@ -6,6 +6,7 @@ import { pressedState } from "../pressedState";
 import { set } from "../utils/set";
 import { time } from "../lib/project/TimelinePoint";
 import { PPQN } from "../wam/pianorollme/MIDIConfiguration";
+import classNames from "classnames";
 
 export function LoopMarkers({ project }: { project: AudioProject }) {
   const styles = useStyles();
@@ -23,14 +24,16 @@ export function LoopMarkers({ project }: { project: AudioProject }) {
   const endX = loopEnd.px(project);
 
   const selection = selected?.status === "loop_marker" ? selected.kind : null;
-
+  const shapeFill = selection === "box" ? "var(--axis-timeline-separator)" : "var(--timeline-bg)";
   return (
     <>
       <div
-        className={styles.loopRect}
+        className={classNames(styles.loopRect, loopPlayback && styles.loopRectActive)}
         style={{
-          backgroundColor: selection === "box" ? "var(--axis-timeline-separator)" : "var(--timeline-bg)",
-          borderTop: loopPlayback ? "1px solid orange" : "1px solid var(--axis-timeline-separator)",
+          backgroundColor: shapeFill,
+          borderTop: loopPlayback
+            ? "1px solid var(--axis-timeline-separator)"
+            : "1px solid var(--axis-timeline-separator)",
           cursor: "pointer",
           left: startX,
           width: endX - startX,
@@ -69,13 +72,14 @@ export function LoopMarkers({ project }: { project: AudioProject }) {
               ],
             });
             e.stopPropagation();
-            console.log("START");
           }}
         >
           <polygon
-            fill={selection === "start" ? "var(--axis-timeline-separator)" : "none"}
+            fill={selection === "start" ? "var(--axis-timeline-separator)" : shapeFill}
             stroke={selection === "box" ? "var(--control-bg-color)" : "var(--axis-timeline-separator)"}
-            points="0,0 8,5 0,10"
+            strokeWidth={1}
+            // .5s bc of the stroke
+            points="0.5,0 8,5 0.5,10"
             strokeLinejoin="bevel"
           />
         </svg>
@@ -99,8 +103,10 @@ export function LoopMarkers({ project }: { project: AudioProject }) {
         >
           <polygon
             stroke={selection === "box" ? "var(--control-bg-color)" : "var(--axis-timeline-separator)"}
-            fill={selection === "end" ? "var(--axis-timeline-separator)" : "none"}
-            points="10,0 10,10 2,5"
+            fill={selection === "end" ? "var(--axis-timeline-separator)" : shapeFill}
+            strokeWidth={1}
+            // .5s bc of the stroke
+            points="9.5,0 9.5,10 2,5"
             strokeLinejoin="bevel"
           />
         </svg>
@@ -109,11 +115,17 @@ export function LoopMarkers({ project }: { project: AudioProject }) {
   );
 }
 
+const ORANGE_TRANSPARENT = `rgb(255,165,0, 0.6)`;
+
 const useStyles = createUseStyles({
   loopRect: {
     height: "11px",
     position: "absolute",
     boxSizing: "border-box",
     bottom: 0,
+  },
+  loopRectActive: {
+    backgroundSize: "4px 4px",
+    backgroundImage: `repeating-linear-gradient(45deg, ${ORANGE_TRANSPARENT} 0, ${ORANGE_TRANSPARENT} 1.2px, rgba(0, 0, 0, 0) 0, rgba(0, 0, 0, 0) 50%)`,
   },
 });

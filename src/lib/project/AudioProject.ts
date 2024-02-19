@@ -358,7 +358,9 @@ export class ProjectSelection {
         break;
 
       case "loop_marker":
-        // can't delete loop markers
+        // can't delete loop markers, deactivate looping if active
+        project.loopOnPlayback.set(false);
+        project.selected.set(null);
         break;
       default:
         exhaustive(selected);

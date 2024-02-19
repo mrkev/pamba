@@ -4,7 +4,6 @@ import { usePrimitive } from "structured-state";
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from "../../constants";
 import { documentCommands } from "../../input/documentCommands";
 import { AnalizedPlayer } from "../../lib/AnalizedPlayer";
-import { appEnvironment } from "../../lib/AppEnvironment";
 import { AudioRecorder } from "../../lib/AudioRecorder";
 import { AudioRenderer } from "../../lib/AudioRenderer";
 import { ProjectPersistance } from "../../lib/ProjectPersistance";

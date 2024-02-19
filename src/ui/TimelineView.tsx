@@ -117,6 +117,7 @@ const useStyles = createUseStyles({
     marginRight: 1,
     paddingRight: 4,
     msOverflowY: "scroll",
+    // border: "3px solid black",
   },
   axisSpacer: {
     backgroundColor: "var(--background)",
