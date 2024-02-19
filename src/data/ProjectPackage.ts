@@ -34,7 +34,7 @@ export class ProjectPackage {
     public readonly path: readonly string[],
   ) {}
 
-  async openProject(): Promise<ProjectFileIssue | AudioProject> {
+  async readProject(): Promise<ProjectFileIssue | AudioProject> {
     // dont need metadata atm but open for good measure?
     const [projectHandle, metadataHandle] = await pAll(
       pTry(this.location.getFileHandle(ProjectPackage.DOCUMENT_FILE_NAME), "invalid" as const),
@@ -44,7 +44,6 @@ export class ProjectPackage {
       return { status: "invalid" } as const;
     }
 
-    appEnvironment.openProjectPackage = this;
     const file = await projectHandle.getFile();
 
     try {
@@ -59,7 +58,7 @@ export class ProjectPackage {
       return constructed;
     } catch (e) {
       console.error(e);
-      appEnvironment.openProjectPackage = null;
+
       return { status: "invalid" };
     }
   }

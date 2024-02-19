@@ -12,7 +12,7 @@ export class AudioPackageList {
     public readonly kind: "library://" | "project://",
   ) {}
 
-  public async getAudioPackage(name: string) {
+  public async open(name: string) {
     const audioPackageDir = await this.dir.open("dir", name);
     if (audioPackageDir === "not_found") {
       return "not_found";

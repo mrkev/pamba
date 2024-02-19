@@ -5,10 +5,18 @@ import { AudioPackage } from "./AudioPackage";
 
 export function audioSource(
   filename: string,
-): { kind: "library"; path: string } | { kind: "project"; path: string } | { kind: "remote"; url: string } {
+):
+  | { kind: "library"; path: string }
+  | { kind: "project"; path: string }
+  | { kind: "remote"; url: string }
+  | { kind: "opfs"; path: string } {
   try {
     const url = new URL(filename);
     switch (url.protocol) {
+      case "ofps:": {
+        console.log("opfspathname", url.pathname);
+        return { kind: "opfs", path: url.pathname };
+      }
       case "library:": {
         const localName = url.pathname.replace(/^\/\//, "");
         return { kind: "library", path: localName };
@@ -25,9 +33,13 @@ export function audioSource(
   }
 }
 
-export async function localAudioPackage(filename: string) {
-  const source = audioSource(filename);
+export async function localAudioPackage(url: string) {
+  const source = audioSource(url);
   switch (source.kind) {
+    case "opfs": {
+      const audioPackage = await appEnvironment.loadAudio(source.path);
+      return audioPackage;
+    }
     case "library": {
       // pathname yields //foo/bar. Remove the initial "//"
       const localName = source.path;
@@ -38,7 +50,7 @@ export async function localAudioPackage(filename: string) {
       // pathname yields //foo/bar. Remove the initial "//"
       const localName = source.path;
       const audioLibRef = nullthrows(appEnvironment.openProjectPackage?.audioLibRef, "no open audio lib from project");
-      const audioPackage = await audioLibRef.getAudioPackage(localName);
+      const audioPackage = await audioLibRef.open(localName);
       if (!(audioPackage instanceof AudioPackage)) {
         throw audioPackage;
       }

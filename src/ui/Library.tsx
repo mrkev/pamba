@@ -21,6 +21,7 @@ import { UploadAudioButton } from "./UploadAudioButton";
 import { ListEntry, UtilityDataList } from "./UtilityList";
 import { closeProject } from "./header/ToolHeader";
 import { usePrimitive } from "structured-state";
+import { ProjectPersistance } from "../lib/ProjectPersistance";
 
 const STATIC_AUDIO_FILES = ["drums.mp3", "clav.mp3", "bassguitar.mp3", "horns.mp3", "leadguitar.mp3"];
 
@@ -118,7 +119,7 @@ export function Library({
           return {
             title: audio.name,
             icon: <i className="ri-volume-up-fill"></i>,
-            data: { kind: "audio", url: audio.url(), name: audio.name },
+            data: { kind: "audio", url: audio.url().toString(), name: audio.name },
           } as const;
         } else {
           exhaustive(audio);
@@ -172,12 +173,7 @@ export function Library({
                   return;
                 }
 
-                const openedProject = await appEnvironment.localFiles.openProject(item.data.id);
-                if (!(openedProject instanceof AudioProject)) {
-                  alert(`issue opening project: ${openedProject.status}`);
-                  return;
-                }
-                appEnvironment.loadProject(openedProject);
+                await ProjectPersistance.openProject(item.data.id);
                 break;
               }
               default:

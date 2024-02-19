@@ -21,8 +21,8 @@ export class AudioPackage {
   ) {}
 
   public url() {
-    console.log(this._url, "vs", this.pkgRoot.path.join("/"));
-    return this._url;
+    // console.log(this._url, "vs", this.pkgRoot.path.join("/"));
+    return new URL(`opfs://${this.pkgRoot.path.join("/")}`);
   }
 
   static async existingPackage(pkgDir: FSDir, kind: "library://" | "project://") {

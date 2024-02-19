@@ -40,13 +40,16 @@ export function niceBytes(n: number) {
  */
 
 export class LocalFilesystem {
+  static readonly PROJECTS_DIR = "projects";
+  static readonly GLOBAL_AUDIO_LIB_DIR = "audiolib";
+
   // id -> name, id
   readonly _projects = LinkedMap.create<string, ProjectPackage>();
   readonly _audioLib = LinkedMap.create<string, AudioPackage>();
 
   private readonly ROOT_NAME = "";
 
-  dirExists(location: FileSystemDirectoryHandle, name: string) {
+  public dirExists(location: FileSystemDirectoryHandle, name: string) {
     return pTry(location.getDirectoryHandle(name), "not_found" as const);
   }
 
@@ -62,29 +65,23 @@ export class LocalFilesystem {
 
   async projectsDir() {
     const opfsRoot = await navigator.storage.getDirectory();
-    const projects = await opfsRoot.getDirectoryHandle("projects", { create: true });
-    return new FSDir(projects, [this.ROOT_NAME, "projects"]);
+    const projects = await opfsRoot.getDirectoryHandle(LocalFilesystem.PROJECTS_DIR, { create: true });
+    return new FSDir(projects, [this.ROOT_NAME, LocalFilesystem.PROJECTS_DIR]);
   }
 
   async audioLibDir() {
     const opfsRoot = await navigator.storage.getDirectory();
-    const audioDir = await opfsRoot.getDirectoryHandle("audiolib", { create: true });
-    return new FSDir(audioDir, [this.ROOT_NAME, "audiolib"]);
+    const audioDir = await opfsRoot.getDirectoryHandle(LocalFilesystem.GLOBAL_AUDIO_LIB_DIR, { create: true });
+    return new FSDir(audioDir, [this.ROOT_NAME, LocalFilesystem.GLOBAL_AUDIO_LIB_DIR]);
   }
 
-  async openProject(projectId: string): Promise<ProjectFileIssue | AudioProject> {
+  async getProject(projectId: string) {
     const projects = await this.projectsDir();
     const project = await projects.open("dir", projectId);
     if (project === "not_found") {
       return { status: "not_found" } as const;
     }
-
-    const projectPackage = await ProjectPackage.existingPackage(project);
-    if (!(projectPackage instanceof ProjectPackage)) {
-      return projectPackage;
-    }
-
-    return projectPackage.openProject();
+    return await ProjectPackage.existingPackage(project);
   }
 
   async getProjectPackage(projectId: string) {

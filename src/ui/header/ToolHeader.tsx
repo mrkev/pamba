@@ -46,11 +46,7 @@ function NewProjectButton({ project }: { project: AudioProject }) {
         if (!didClose) {
           return;
         }
-
-        appEnvironment.projectStatus.set({
-          status: "loaded",
-          project: ProjectPersistance.emptyProject(),
-        });
+        await ProjectPersistance.openEmptyProject();
       }}
     >
       new project

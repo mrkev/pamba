@@ -15,7 +15,7 @@ export async function loadSoundFromAudioPackage(
   const decoded = await audioContext.decodeAudioData(buffer);
   // document.getElementById("msg").textContent =
   //   "Audio sample download finished";
-  SOUND_LIB_FOR_HISTORY.set(audioPackage.url(), decoded);
+  SOUND_LIB_FOR_HISTORY.set(audioPackage.url().toString(), decoded);
   return decoded;
   // playSound(audioData);
 }

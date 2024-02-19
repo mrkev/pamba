@@ -1,3 +1,4 @@
+import { ProjectPackage } from "../data/ProjectPackage";
 import { LocalFilesystem } from "../data/localFilesystem";
 import { appEnvironment } from "./AppEnvironment";
 import { AudioClip } from "./AudioClip";
@@ -20,7 +21,7 @@ export class ProjectPersistance {
     return data !== null;
   }
 
-  static async openLastProject(localFiles: LocalFilesystem): Promise<AudioProject | null> {
+  static async openLastProject(localFiles: LocalFilesystem) {
     const projects = await localFiles.getAllProjects();
     if (projects.length === 0) {
       return this.sampleProject();
@@ -32,12 +33,45 @@ export class ProjectPersistance {
       id = projects[0].id;
     }
 
-    const result = await localFiles.openProject(id);
-    if (result instanceof AudioProject) {
-      return result;
+    const result = await localFiles.getProject(id);
+    if (result instanceof ProjectPackage) {
+      await this.openProject(id, false);
     } else {
-      return this.emptyProject();
+      await this.openEmptyProject();
     }
+  }
+
+  public static async openEmptyProject() {
+    if (appEnvironment.projectStatus.get().status === "loading") {
+      console.warn("Aleady loading a project");
+      return;
+    }
+
+    appEnvironment.projectStatus.set({ status: "loaded", project: ProjectPersistance.emptyProject() });
+    appEnvironment.projectPacakge.set(null);
+  }
+
+  public static async openProject(projectId: string, skipIfLoading: boolean = true) {
+    if (skipIfLoading && appEnvironment.projectStatus.get().status === "loading") {
+      console.warn("Aleady loading a project");
+      return;
+    }
+    console.log("NOW OPENING PROJECT");
+
+    const projectPackage = await appEnvironment.localFiles.getProject(projectId);
+    if (!(projectPackage instanceof ProjectPackage)) {
+      alert(`issue opening project: ${projectPackage.status}`);
+      return;
+    }
+
+    const project = await projectPackage.readProject();
+    if (!(project instanceof AudioProject)) {
+      alert(`issue opening project: ${project.status}`);
+      return;
+    }
+
+    appEnvironment.projectStatus.set({ status: "loaded", project: project });
+    appEnvironment.projectPacakge.set(projectPackage);
   }
 
   static emptyProject(): AudioProject {
