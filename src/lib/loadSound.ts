@@ -25,22 +25,8 @@ export async function loadSound(audioContext: AudioContext, url: string): Promis
   const audioPackage = await localAudioPackage(url);
 
   if (audioPackage != null) {
-    const buffer = await audioPackage.file.arrayBuffer();
-    return new Promise((res, rej) => {
-      ignorePromise(
-        audioContext.decodeAudioData(
-          buffer,
-          function (buffer) {
-            // document.getElementById("msg").textContent =
-            //   "Audio sample download finished";
-            SOUND_LIB_FOR_HISTORY.set(url, buffer);
-            res(buffer);
-            // playSound(audioData);
-          },
-          rej,
-        ),
-      );
-    });
+    const buffer = await loadSoundFromAudioPackage(audioContext, audioPackage);
+    return buffer;
   }
 
   return new Promise(function (res, onError) {

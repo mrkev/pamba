@@ -31,11 +31,11 @@ function useAsync<T>(promise: Promise<T>): AsyncResult<T> {
 
 export function ProjectEditor({ project }: { project: AudioProject }) {
   const [name] = useLinkedState(project.projectName);
+  const [projectPackage] = useLinkedState(appEnvironment.projectPacakge);
   const results = useAsync(
     useMemo(async () => {
-      const projectPackage = await appEnvironment.localFiles.getProjectPackage(project.projectId);
-      if (!(projectPackage instanceof ProjectPackage)) {
-        throw new Error(projectPackage.status);
+      if (projectPackage == null) {
+        return null;
       }
 
       const [size, projectAudioFiles] = await pAll(projectPackage.getProjectSize(), projectPackage.projectAudioFiles());
@@ -43,12 +43,12 @@ export function ProjectEditor({ project }: { project: AudioProject }) {
         throw new Error(size.status);
       }
 
-      return { projectPackage, size, projectAudioFiles };
-    }, [project.projectId]),
+      return { size, projectAudioFiles };
+    }, [projectPackage]),
   );
 
   const items: ListEntry<AudioPackage>[] = useMemo(() => {
-    return results.status !== "resolved"
+    return results.status !== "resolved" || results.value == null
       ? ([] as ListEntry<AudioPackage>[])
       : results.value.projectAudioFiles.map((ap) => {
           return {
@@ -69,15 +69,17 @@ export function ProjectEditor({ project }: { project: AudioProject }) {
         value={name}
         onChange={(e) => project.projectName.set(e.target.value)}
       />
+      {results.status === "resolved" && results.value == null && <i>Save project to see persisted data</i>}
       {/* <span>Tracks: 10</span>
       <span>Clips: 354</span> */}
-      {results.status === "resolved" && (
+      {results.status === "resolved" && results.value != null && (
         <span>
           <b>Size on Disk:</b> {niceBytes(results.value.size)} + audio
         </span>
       )}
       <b style={{ fontSize: "12px" }}>Project contents:</b>
       <UtilityDataList<AudioPackage>
+        disabled={results.status !== "resolved" || results.value == null}
         draggable={false}
         items={items}
         onItemSelect={(item) => console.log(item)}

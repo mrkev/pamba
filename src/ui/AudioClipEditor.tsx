@@ -191,7 +191,6 @@ export function AudioClipEditor({
             }}
             showEditButton
           />
-          U
         </div>
         <div
           style={{

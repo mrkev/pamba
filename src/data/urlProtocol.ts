@@ -13,7 +13,7 @@ export function audioSource(
   try {
     const url = new URL(filename);
     switch (url.protocol) {
-      case "ofps:": {
+      case "opfs:": {
         console.log("opfspathname", url.pathname);
         return { kind: "opfs", path: url.pathname };
       }

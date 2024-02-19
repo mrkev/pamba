@@ -90,7 +90,6 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
     timelineStartSec: number,
     clipLengthSec: number,
   ) {
-    console.log("AC:", bufferURL);
     super();
     if (buffer === "missing") {
       this.status = "missing";
