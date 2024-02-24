@@ -37,6 +37,7 @@ export class PackageLibrary<P> {
     return [...this.state.values()];
   }
 
+  // TODO: use state instead?
   async getPackage(id: string) {
     const pkg = await (await this.dir()).open("dir", id);
     if (pkg === "not_found") {

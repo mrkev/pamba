@@ -89,11 +89,13 @@ export function Help({ project }: { project: AudioProject }) {
           return (
             <React.Fragment key={slabel}>
               <span style={{ margin: "6px 0px 2px 0px", fontWeight: "bold" }}>{s == null ? "Other" : s}</span>
-
               {cs.map((c, i) => c.label != null && <KeyboardCommandHelp key={i} command={c} />)}
             </React.Fragment>
           );
         })}
+        <span>
+          Hold <Key str={"meta"} /> when selecting, cutting or clicking to toggle "snap to grid"
+        </span>
       </div>
     </>
   );
@@ -133,24 +135,30 @@ function KeyboardCommandHelp({ command }: { command: Command }) {
         </b>
         <span>
           {keys.map((x, i) => (
-            <kbd title={x} key={i}>
-              {x === "meta"
-                ? "\u2318"
-                : x === "alt"
-                ? "\u2325"
-                : x === "ctrl"
-                ? "\u2303"
-                : x === "shift"
-                ? "\u21EA"
-                : x === "Period"
-                ? "."
-                : x.replace(/^Key/, "")}
-            </kbd>
+            <Key str={x} key={i}></Key>
           ))}
         </span>
       </span>
       {command.description && <span style={{ fontSize: 11 }}>{command.description}</span>}
     </div>
+  );
+}
+
+function Key({ str }: { str: string }) {
+  return (
+    <kbd title={str}>
+      {str === "meta"
+        ? "\u2318"
+        : str === "alt"
+        ? "\u2325"
+        : str === "ctrl"
+        ? "\u2303"
+        : str === "shift"
+        ? "\u21EA"
+        : str === "Period"
+        ? "."
+        : str.replace(/^Key/, "")}
+    </kbd>
   );
 }
 

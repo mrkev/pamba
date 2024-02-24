@@ -1,11 +1,11 @@
 import { StorageReference, listAll, ref } from "firebase/storage";
 import type { IFormat } from "music-metadata";
 import { useMemo } from "react";
+import { AudioPackage } from "../../data/AudioPackage";
 import { AsyncResultStatus, useAsyncResult } from "../../ui/useAsyncResult";
 import { appEnvironment } from "../AppEnvironment";
 import { LinkedArray } from "../state/LinkedArray";
 import type { AudioProject } from "./AudioProject";
-import { AudioPackage } from "../../data/AudioPackage";
 
 export class AudioStorage {
   readonly remoteFiles: LinkedArray<string>;
@@ -49,34 +49,36 @@ export class AudioStorage {
   }
 
   async uploadToLibrary(file: File, onFormatInfo?: (format: IFormat) => void): Promise<AudioPackage | Error> {
-    const audioPackage = await AudioPackage.newUpload(
-      file,
-      await appEnvironment.localFiles.audioLibDir(),
-      "library://",
-    );
+    const audioPackage = await AudioPackage.newUpload(file, await appEnvironment.localFiles.audioLib.dir());
     if (typeof audioPackage === "string") {
       return new Error(audioPackage);
     }
 
     onFormatInfo?.(audioPackage.metadata.format);
     // TODO: remove need to _initState()
-    await appEnvironment.localFiles.audioLib2._initState();
+    await appEnvironment.localFiles.audioLib._initState();
     return audioPackage;
   }
 
   async uploadToProject(file: File, onFormatInfo?: (format: IFormat) => void): Promise<AudioPackage | Error> {
-    const audioPackage = await AudioPackage.newUpload(
-      file,
-      await appEnvironment.localFiles.audioLibDir(),
-      "project://",
-    );
+    const projectPackage = appEnvironment.projectPacakge.get();
+    if (projectPackage == null) {
+      // TODOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOoo
+      // TODO: what to do with unsaved files? Always create package for project, just auto-delete if user hasn't saved.
+      throw new Error("No open project package to save to");
+    }
+
+    const audioLib = await projectPackage.localAudioLib();
+
+    const audioPackage = await AudioPackage.newUpload(file, await audioLib.dir());
     if (typeof audioPackage === "string") {
       return new Error(audioPackage);
     }
 
     onFormatInfo?.(audioPackage.metadata.format);
     // TODO: remove need to _initState()
-    // await appEnvironment.localFiles.updateAudioLib();
+    await audioLib._initState();
+
     return audioPackage;
   }
 }

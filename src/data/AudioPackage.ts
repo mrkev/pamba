@@ -15,16 +15,14 @@ export class AudioPackage {
     public readonly name: string,
     public readonly file: File,
     public readonly metadata: musicMetadata.IAudioMetadata,
-    private readonly _url: string,
     public readonly pkgRoot: FSDir,
   ) {}
 
   public url() {
-    // console.log(this._url, "vs", this.pkgRoot.path.join("/"));
     return new URL(`opfs:${this.pkgRoot.path.join("/")}`);
   }
 
-  static async existingPackage(pkgDir: FSDir, kind: "library://" | "project://") {
+  static async existingPackage(pkgDir: FSDir) {
     // dont need metadata atm but open for good measure?
     const [fileHandle, metadataHandle] = await pAll(
       pTry(pkgDir.handle.getFileHandle(AudioPackage.BUFFER_FILE_NAME), "error" as const),
@@ -43,10 +41,10 @@ export class AudioPackage {
 
     const name = pkgDir.handle.name;
 
-    return new AudioPackage(name, file, metadata as any, kind + name, pkgDir);
+    return new AudioPackage(name, file, metadata as any, pkgDir);
   }
 
-  static async newUpload(file: File, dir: FSDir, kind: "library://" | "project://") {
+  static async newUpload(file: File, dir: FSDir) {
     // Verify type
     // note: to support the format "audio/ogg; codecs=opus"
     // see: https://developer.mozilla.org/en-US/docs/Web/Media/Formats/codecs_parameter
@@ -110,6 +108,6 @@ export class AudioPackage {
       },
     );
 
-    return new AudioPackage(file.name, file, metadata, `${kind}${file.name}`, newPackage);
+    return new AudioPackage(file.name, file, metadata, newPackage);
   }
 }

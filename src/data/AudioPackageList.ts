@@ -7,22 +7,19 @@ import { FSDir, FSFile } from "./FSDir";
  */
 
 export class AudioPackageList {
-  constructor(
-    public readonly dir: FSDir,
-    public readonly kind: "library://" | "project://",
-  ) {}
+  constructor(public readonly dir: FSDir) {}
 
   public async open(name: string) {
     const audioPackageDir = await this.dir.open("dir", name);
     if (audioPackageDir === "not_found") {
       return "not_found";
     }
-    return AudioPackage.existingPackage(audioPackageDir, this.kind);
+    return AudioPackage.existingPackage(audioPackageDir);
   }
 
   public async saveAudio(file: File) {
     // TODO: check existence to prevent override?
-    return AudioPackage.newUpload(file, this.dir, this.kind);
+    return AudioPackage.newUpload(file, this.dir);
   }
 
   public async getAllAudioLibFiles(): Promise<Map<string, AudioPackage>> {
@@ -33,7 +30,7 @@ export class AudioPackageList {
         continue;
       }
 
-      const audioPackage = await AudioPackage.existingPackage(pkg, this.kind);
+      const audioPackage = await AudioPackage.existingPackage(pkg);
       result.set(pkg.handle.name, audioPackage);
     }
 

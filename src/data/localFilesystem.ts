@@ -27,9 +27,9 @@ export class LocalFilesystem {
   static readonly GLOBAL_AUDIO_LIB_DIR = "audiolib";
 
   // audio
-  readonly audioLib2 = new PackageLibrary<AudioPackage>(
+  readonly audioLib = new PackageLibrary<AudioPackage>(
     [LocalFilesystem.ROOT_NAME, LocalFilesystem.GLOBAL_AUDIO_LIB_DIR],
-    async (dir) => await AudioPackage.existingPackage(dir, "library://"),
+    async (dir) => await AudioPackage.existingPackage(dir),
   );
 
   // projects
@@ -37,10 +37,6 @@ export class LocalFilesystem {
     [LocalFilesystem.ROOT_NAME, LocalFilesystem.PROJECTS_DIR],
     async (dir) => await ProjectPackage.existingPackage(dir),
   );
-
-  async audioLibDir() {
-    return await this.audioLib2.dir();
-  }
 
   async saveProject(project: AudioProject) {
     const data = await serializable(project);

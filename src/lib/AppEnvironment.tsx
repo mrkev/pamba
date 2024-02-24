@@ -40,11 +40,11 @@ export class AppEnvironment {
   readonly wamPlugins = LinkedMap.create<string, WAMAvailablePlugin>(new Map());
   readonly wamStatus = SPrimitive.of<"loading" | "ready">("loading");
   readonly faustEffects = Object.keys(FAUST_EFFECTS) as (keyof typeof FAUST_EFFECTS)[];
+  // FS
+  readonly localFiles: LocalFilesystem = new LocalFilesystem();
   // Project
   readonly projectStatus: SPrimitive<ProjectState>;
   readonly projectPacakge: SPrimitive<ProjectPackage | null>; // null if never saved
-  readonly localFiles: LocalFilesystem = new LocalFilesystem();
-  public openProjectPackage: ProjectPackage | null = null;
   // UI
   readonly openEffects: LinkedSet<DSPNode | MidiInstrument>;
   readonly activeSidePanel = LocalSPrimitive.create<"library" | "project" | "history" | "settings" | "help" | null>(
@@ -91,7 +91,7 @@ export class AppEnvironment {
     this.renderer = new AudioRenderer(new AnalizedPlayer());
 
     await this.localFiles.projectLib._initState();
-    await this.localFiles.audioLib2._initState();
+    await this.localFiles.audioLib._initState();
     // once plugins have been loaded, so they're available to the project
     if (this.projectStatus.get().status === "loading") {
       await ProjectPersistance.openLastProject(this.localFiles);
@@ -112,12 +112,12 @@ export class AppEnvironment {
     if (globalMatch != null) {
       const [_, audioName] = globalMatch;
 
-      const audioLib = await this.localFiles.audioLibDir();
+      const audioLib = await this.localFiles.audioLib.dir();
       const audioPackageDir = await audioLib.open("dir", audioName);
       if (audioPackageDir === "not_found") {
         throw new Error(`didn't find audio in audiolib ${path}`);
       }
-      return AudioPackage.existingPackage(audioPackageDir, "library://");
+      return AudioPackage.existingPackage(audioPackageDir);
     }
 
     throw new Error("Invalid audio path " + path);

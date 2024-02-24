@@ -2,8 +2,10 @@ import { appEnvironment } from "../lib/AppEnvironment";
 import { isRecord } from "../lib/nw/nwschema";
 import { AudioProject } from "../lib/project/AudioProject";
 import { pAll, pTry, runAll } from "../utils/ignorePromise";
+import { AudioPackage } from "./AudioPackage";
 import { AudioPackageList } from "./AudioPackageList";
 import { FSDir } from "./FSDir";
+import { PackageLibrary } from "./PackageLibrary";
 import { SAudioProject, construct } from "./serializable";
 
 type ProjectMetadata = { projectName: string };
@@ -26,19 +28,20 @@ export class ProjectPackage {
   // https://bugs.chromium.org/p/chromium/issues/detail?id=1522410
   static readonly AUDIO_DIR_NAME = "audiolib" as const;
 
+  private _localAudioLib: PackageLibrary<AudioPackage> | null = null;
+
   private constructor(
     public readonly id: string,
     public readonly name: string,
-    public readonly location: FileSystemDirectoryHandle,
     public readonly audioLibRef: AudioPackageList,
-    public readonly path: readonly string[],
+    private readonly pkgDir: FSDir,
   ) {}
 
   async readProject() {
     // dont need metadata atm but open for good measure?
     const [projectHandle, metadataHandle] = await pAll(
-      pTry(this.location.getFileHandle(ProjectPackage.DOCUMENT_FILE_NAME), "invalid" as const),
-      pTry(this.location.getFileHandle(ProjectPackage.METADATA_FILE_NAME), "invalid" as const),
+      pTry(this.pkgDir.handle.getFileHandle(ProjectPackage.DOCUMENT_FILE_NAME), "invalid" as const),
+      pTry(this.pkgDir.handle.getFileHandle(ProjectPackage.METADATA_FILE_NAME), "invalid" as const),
     );
     if (projectHandle === "invalid" || metadataHandle === "invalid") {
       return { status: "invalid" } as const;
@@ -65,8 +68,8 @@ export class ProjectPackage {
 
   async getProjectSize() {
     const [projectHandle, metadataHandle] = await pAll(
-      pTry(this.location.getFileHandle(ProjectPackage.DOCUMENT_FILE_NAME), "invalid" as const),
-      pTry(this.location.getFileHandle(ProjectPackage.METADATA_FILE_NAME), "invalid" as const),
+      pTry(this.pkgDir.handle.getFileHandle(ProjectPackage.DOCUMENT_FILE_NAME), "invalid" as const),
+      pTry(this.pkgDir.handle.getFileHandle(ProjectPackage.METADATA_FILE_NAME), "invalid" as const),
     );
     if (projectHandle === "invalid" || metadataHandle === "invalid") {
       return { status: "invalid" } as const;
@@ -78,6 +81,22 @@ export class ProjectPackage {
     return size;
   }
 
+  async localAudioLib(): Promise<PackageLibrary<AudioPackage>> {
+    if (this._localAudioLib != null) {
+      return this._localAudioLib;
+    }
+
+    const audioLibDir = await this.pkgDir.ensure("dir", ProjectPackage.AUDIO_DIR_NAME);
+    if (typeof audioLibDir === "string") {
+      throw new Error("Error: can't find or create local audio lib");
+    }
+    const lib = new PackageLibrary(audioLibDir.path, async (dir) => await AudioPackage.existingPackage(dir));
+    await lib._initState();
+    this._localAudioLib = lib;
+    return lib;
+  }
+
+  // TODO: remove
   async projectAudioFiles() {
     return [...(await this.audioLibRef.getAllAudioLibFiles()).values()];
   }
@@ -92,10 +111,10 @@ export class ProjectPackage {
       return "invalid";
     }
 
-    const projectAudioLib = new AudioPackageList(audioLibDir, "project://");
+    const projectAudioLib = new AudioPackageList(audioLibDir);
     const name = (metadata.projectName ?? "untitled") as string;
 
-    return new ProjectPackage(id, name, location, projectAudioLib, projRoot.path);
+    return new ProjectPackage(id, name, projectAudioLib, projRoot);
   }
 
   static async getProjectMetadata(project: FileSystemDirectoryHandle) {
@@ -143,12 +162,6 @@ export class ProjectPackage {
       },
     );
 
-    return new ProjectPackage(
-      projectId,
-      projectName,
-      projectDir.handle,
-      new AudioPackageList(audioLibDir, "project://"),
-      projects.path.concat(projectId),
-    );
+    return new ProjectPackage(projectId, projectName, new AudioPackageList(audioLibDir), projectDir);
   }
 }

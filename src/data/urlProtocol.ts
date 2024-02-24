@@ -43,13 +43,16 @@ export async function localAudioPackage(url: string) {
     case "library": {
       // pathname yields //foo/bar. Remove the initial "//"
       const localName = source.path;
-      const audioPackage = await appEnvironment.localFiles.audioLib2.getPackage(localName);
+      const audioPackage = await appEnvironment.localFiles.audioLib.getPackage(localName);
       return audioPackage instanceof AudioPackage ? audioPackage : null;
     }
     case "project": {
       // pathname yields //foo/bar. Remove the initial "//"
       const localName = source.path;
-      const audioLibRef = nullthrows(appEnvironment.openProjectPackage?.audioLibRef, "no open audio lib from project");
+      const audioLibRef = nullthrows(
+        appEnvironment.projectPacakge.get()?.audioLibRef,
+        "no open audio lib from project",
+      );
       const audioPackage = await audioLibRef.open(localName);
       if (!(audioPackage instanceof AudioPackage)) {
         throw audioPackage;
