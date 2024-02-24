@@ -2,7 +2,15 @@ todo:
 - loop clips
 - peak meters
 - rename library items
-- files in project
+x files in project
+- automated effects
+
+substate
+- redo
+- dirty
+
+lowpri:
+- consolidate audio
 
 todo: bugs
 - Undo is pretty broken
@@ -40,3 +48,5 @@ https://www.npmjs.com/package/audio-buffer-utils
 https://www.npmjs.com/package/pitch-shift
 https://www.npmjs.com/package/audio-buffer-sink
 https://www.npmjs.com/package/bpm-detective
+
+https://wac2022.i3s.univ-cotedazur.fr/node/27.html

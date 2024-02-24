@@ -59,7 +59,8 @@ export class AudioStorage {
     }
 
     onFormatInfo?.(audioPackage.metadata.format);
-    await appEnvironment.localFiles.updateAudioLib();
+    // TODO: remove need to _initState()
+    await appEnvironment.localFiles.audioLib2._initState();
     return audioPackage;
   }
 
@@ -74,7 +75,8 @@ export class AudioStorage {
     }
 
     onFormatInfo?.(audioPackage.metadata.format);
-    await appEnvironment.localFiles.updateAudioLib();
+    // TODO: remove need to _initState()
+    // await appEnvironment.localFiles.updateAudioLib();
     return audioPackage;
   }
 }

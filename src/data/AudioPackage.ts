@@ -1,8 +1,7 @@
 import * as musicMetadata from "music-metadata-browser";
-import { appEnvironment } from "../lib/AppEnvironment";
 import { isRecord } from "../lib/nw/nwschema";
-import { pAll, runAll } from "../utils/ignorePromise";
-import { FSDir } from "./localFilesystem";
+import { pAll, pTry, runAll } from "../utils/ignorePromise";
+import { FSDir } from "./FSDir";
 
 /**
  * Represents an audio file in the virtual filesystem
@@ -28,9 +27,13 @@ export class AudioPackage {
   static async existingPackage(pkgDir: FSDir, kind: "library://" | "project://") {
     // dont need metadata atm but open for good measure?
     const [fileHandle, metadataHandle] = await pAll(
-      pkgDir.handle.getFileHandle(AudioPackage.BUFFER_FILE_NAME),
-      pkgDir.handle.getFileHandle(AudioPackage.METADATA_FILE_NAME),
+      pTry(pkgDir.handle.getFileHandle(AudioPackage.BUFFER_FILE_NAME), "error" as const),
+      pTry(pkgDir.handle.getFileHandle(AudioPackage.METADATA_FILE_NAME), "error" as const),
     );
+
+    if (fileHandle === "error" || metadataHandle === "error") {
+      throw new Error("ERROR: " + pkgDir.path);
+    }
 
     const [file, metadataFile] = await pAll(fileHandle.getFile(), metadataHandle.getFile());
     const metadata = JSON.parse(await metadataFile.text());
@@ -76,11 +79,8 @@ export class AudioPackage {
     });
 
     // Write locally
-    const existing: FileSystemDirectoryHandle | "not_found" = await appEnvironment.localFiles.dirExists(
-      dir.handle,
-      file.name,
-    );
-    if (existing instanceof FileSystemDirectoryHandle) {
+    const existing = await dir.open("dir", file.name);
+    if (existing instanceof FSDir) {
       return "error_file_exists";
     }
 

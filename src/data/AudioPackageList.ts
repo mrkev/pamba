@@ -1,5 +1,5 @@
 import { AudioPackage } from "./AudioPackage";
-import { FSDir, FSFile } from "./localFilesystem";
+import { FSDir, FSFile } from "./FSDir";
 
 /**
  * A location in the filesystem for storing audio files

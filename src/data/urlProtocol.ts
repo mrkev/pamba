@@ -43,8 +43,8 @@ export async function localAudioPackage(url: string) {
     case "library": {
       // pathname yields //foo/bar. Remove the initial "//"
       const localName = source.path;
-      const audioPackage = appEnvironment.localFiles._audioLib.get(localName);
-      return audioPackage ?? null;
+      const audioPackage = await appEnvironment.localFiles.audioLib2.getPackage(localName);
+      return audioPackage instanceof AudioPackage ? audioPackage : null;
     }
     case "project": {
       // pathname yields //foo/bar. Remove the initial "//"

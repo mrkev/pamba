@@ -122,7 +122,7 @@ export class AudioRecorder {
       const file = new File([blob], "recording" + new Date().getTime(), { type: "audio/ogg; codecs=opus" });
       this.chunks = [];
 
-      const projectPackage = await appEnvironment.localFiles.getProjectPackage(this.project.projectId);
+      const projectPackage = await appEnvironment.localFiles.projectLib.getPackage(this.project.projectId);
       if (!(projectPackage instanceof ProjectPackage)) {
         this.status.set("idle");
         console.error("project not found");

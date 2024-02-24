@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioProject } from "../lib/project/AudioProject";
 import { useLinkedState } from "../lib/state/LinkedState";
-import { niceBytes } from "../data/localFilesystem";
+import { niceBytes } from "../data/niceBytes";
 import { ListEntry, UtilityDataList } from "./UtilityList";
 import { ProjectPackage } from "../data/ProjectPackage";
 import { pAll } from "../utils/ignorePromise";

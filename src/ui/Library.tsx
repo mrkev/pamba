@@ -28,7 +28,7 @@ const STATIC_AUDIO_FILES = ["drums.mp3", "clav.mp3", "bassguitar.mp3", "horns.mp
 function useAudioLibrary(project: AudioProject, filter: string): (string | AudioPackage)[] {
   const [audioStorage] = useLinkedState(project.audioStorage);
   const remoteAudio = useLinkedArrayMaybe(audioStorage?.remoteFiles ?? null);
-  const [localAudio] = useLinkedMap(appEnvironment.localFiles._audioLib);
+  const [localAudio] = useLinkedMap(appEnvironment.localFiles.audioLib2.state);
   const audioLibrary = [...STATIC_AUDIO_FILES, ...(remoteAudio ?? []), ...localAudio.values()];
 
   return audioLibrary.filter((audio) => {
@@ -55,7 +55,7 @@ export function Library({
   const [isAudioPlaying] = usePrimitive(renderer.isAudioPlaying);
   const [libraryFilter, setLibraryFilter] = useState("");
   const audioLibrary = useAudioLibrary(project, libraryFilter);
-  const [localProjects] = useLinkedMap(appEnvironment.localFiles._projects);
+  const [localProjects] = useLinkedMap(appEnvironment.localFiles.projectLib.state);
 
   const loadClip = useCallback(
     async function loadClip(url: string, name?: string) {
@@ -79,10 +79,6 @@ export function Library({
     },
     [player, project],
   );
-
-  useEffect(() => {
-    ignorePromise(appEnvironment.localFiles.updateProjects());
-  }, []);
 
   const items: ListEntry<LibraryItem>[] = useMemo(() => {
     return [
@@ -206,7 +202,7 @@ export function Library({
                   // todo: auto-close, create new empty project, etc
                 }
 
-                const result = await appEnvironment.localFiles.deleteProject(item.data.id);
+                const result = await appEnvironment.localFiles.projectLib.delete(item.data.id);
                 // todo do something with result? necessary?
                 break;
               }

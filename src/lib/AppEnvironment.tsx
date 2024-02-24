@@ -89,7 +89,9 @@ export class AppEnvironment {
 
     // IDEA: Maybe merge player and renderer?
     this.renderer = new AudioRenderer(new AnalizedPlayer());
-    await this.localFiles.updateAudioLib();
+
+    await this.localFiles.projectLib._initState();
+    await this.localFiles.audioLib2._initState();
     // once plugins have been loaded, so they're available to the project
     if (this.projectStatus.get().status === "loading") {
       await ProjectPersistance.openLastProject(this.localFiles);

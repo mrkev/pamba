@@ -3,7 +3,7 @@ import { isRecord } from "../lib/nw/nwschema";
 import { AudioProject } from "../lib/project/AudioProject";
 import { pAll, pTry, runAll } from "../utils/ignorePromise";
 import { AudioPackageList } from "./AudioPackageList";
-import { FSDir, ProjectFileIssue } from "./localFilesystem";
+import { FSDir } from "./FSDir";
 import { SAudioProject, construct } from "./serializable";
 
 type ProjectMetadata = { projectName: string };
@@ -34,7 +34,7 @@ export class ProjectPackage {
     public readonly path: readonly string[],
   ) {}
 
-  async readProject(): Promise<ProjectFileIssue | AudioProject> {
+  async readProject() {
     // dont need metadata atm but open for good measure?
     const [projectHandle, metadataHandle] = await pAll(
       pTry(this.location.getFileHandle(ProjectPackage.DOCUMENT_FILE_NAME), "invalid" as const),
@@ -82,14 +82,14 @@ export class ProjectPackage {
     return [...(await this.audioLibRef.getAllAudioLibFiles()).values()];
   }
 
-  static async existingPackage(projRoot: FSDir): Promise<ProjectPackage | { status: "invalid" }> {
+  static async existingPackage(projRoot: FSDir): Promise<ProjectPackage | "invalid"> {
     const location = projRoot.handle;
     const metadata = await this.getProjectMetadata(location);
     const audioLibDir = await projRoot.ensure("dir", ProjectPackage.AUDIO_DIR_NAME);
 
     const id = location.name;
     if (metadata === "invalid" || audioLibDir === "invalid") {
-      return { status: "invalid" } as const;
+      return "invalid";
     }
 
     const projectAudioLib = new AudioPackageList(audioLibDir, "project://");
@@ -112,8 +112,9 @@ export class ProjectPackage {
     return metadata as ProjectMetadata; // TODO
   }
 
+  // TODO: replace with save project to package, and provide a project package?
   static async saveProject(projectId: string, projectName: string, data: SAudioProject) {
-    const [projects] = await pAll(appEnvironment.localFiles.projectsDir());
+    const [projects] = await pAll(appEnvironment.localFiles.projectLib.dir());
     const projectDir = await projects.ensure("dir", projectId);
     if (projectDir === "invalid") {
       throw new Error("save: dir could not be ensured. invalid.");

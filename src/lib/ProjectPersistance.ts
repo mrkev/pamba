@@ -22,7 +22,7 @@ export class ProjectPersistance {
   }
 
   static async openLastProject(localFiles: LocalFilesystem) {
-    const projects = await localFiles.getAllProjects();
+    const projects = await localFiles.projectLib.getAll();
     if (projects.length === 0) {
       return this.sampleProject();
     }
@@ -33,7 +33,7 @@ export class ProjectPersistance {
       id = projects[0].id;
     }
 
-    const result = await localFiles.getProject(id);
+    const result = await localFiles.projectLib.getPackage(id);
     if (result instanceof ProjectPackage) {
       await this.openProject(id, false);
     } else {
@@ -58,9 +58,9 @@ export class ProjectPersistance {
     }
     console.log("NOW OPENING PROJECT");
 
-    const projectPackage = await appEnvironment.localFiles.getProject(projectId);
+    const projectPackage = await appEnvironment.localFiles.projectLib.getPackage(projectId);
     if (!(projectPackage instanceof ProjectPackage)) {
-      alert(`issue opening project: ${projectPackage.status}`);
+      alert(`issue opening project: ${projectPackage}`);
       return;
     }
 

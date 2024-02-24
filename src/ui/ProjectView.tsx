@@ -199,7 +199,9 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
         exhaustive(track);
       })}
       {draggingOver && (
-        <div style={{ padding: "16px", pointerEvents: "none", position: "relative" }}>Create a new track from clip</div>
+        <div style={{ padding: "16px", pointerEvents: "none", position: "relative" }}>
+          Create a new track from audio
+        </div>
       )}
       <TimelineCursor project={project} />
       <div ref={playbackPosDiv} className={classes.playbackPosDiv}></div>

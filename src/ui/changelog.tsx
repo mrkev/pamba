@@ -1,5 +1,5 @@
 export const changelog = `
-v0.1.5
+next
 - project load times improvements
 
 v0.1.4
