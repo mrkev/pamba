@@ -24,7 +24,8 @@ export class ProjectPersistance {
   static async openLastProject(localFiles: LocalFilesystem) {
     const projects = await localFiles.projectLib.getAll();
     if (projects.length === 0) {
-      return this.sampleProject();
+      appEnvironment.projectStatus.set({ status: "loaded", project: await this.sampleProject() });
+      return;
     }
 
     let id = window.localStorage.getItem("pamba.project.open_id");

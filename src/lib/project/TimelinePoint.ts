@@ -1,12 +1,12 @@
 import { Structured } from "structured-state";
-import { exhaustive } from "../state/Subbable";
-import { AudioProject } from "./AudioProject";
 import { pulsesToSec, secsToPulses } from "../../midi/MidiClip";
 import { Pulses, Seconds } from "../AbstractClip";
+import { exhaustive } from "../state/Subbable";
+import { AudioProject } from "./AudioProject";
 
-type TimeUnit = "pulses" | "seconds";
+export type TimeUnit = "pulses" | "seconds";
 
-export type STimelinePoint = { t: number; u: TimeUnit };
+export type STimelinePoint = Readonly<{ t: number; u: TimeUnit }>;
 
 export class TimelinePoint extends Structured<STimelinePoint, typeof TimelinePoint> {
   override serialize(): STimelinePoint {

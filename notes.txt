@@ -4,6 +4,7 @@ todo:
 - rename library items
 x files in project
 - automated effects
+- package for all projects, including new
 
 substate
 - redo

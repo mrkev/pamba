@@ -4,7 +4,8 @@ import { LIBRARY_SEARCH_INPUT_ID } from "../constants";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioRenderer } from "../lib/AudioRenderer";
 import { ProjectPersistance } from "../lib/ProjectPersistance";
-import { AudioProject, ProjectSelection } from "../lib/project/AudioProject";
+import { AudioProject } from "../lib/project/AudioProject";
+import { ProjectSelection } from "../lib/project/ProjectSelection";
 import { doPaste } from "../lib/project/ClipboardState";
 import { pressedState } from "../pressedState";
 import { exhaustive } from "../utils/exhaustive";
@@ -53,6 +54,12 @@ export const documentCommands = CommandBlock.create(["Project", "Edit", "Tools",
     deleteSelection: command(["Backspace"], (e, project) => {
       // TODO: history
       ProjectSelection.deleteSelection(project);
+      e?.preventDefault();
+    }).section("Edit"),
+
+    duplicateSelection: command(["KeyD", "meta"], (e, project) => {
+      // TODO: history
+      ProjectSelection.duplicateSelection(project);
       e?.preventDefault();
     }).section("Edit"),
 
