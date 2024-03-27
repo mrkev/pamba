@@ -1,3 +1,6 @@
+- structured-state todo:
+  - expose map, set
+
 todo:
 - loop clips
 - peak meters
@@ -12,6 +15,10 @@ substate
 
 lowpri:
 - consolidate audio
+
+tracks:
+- Ordered map?
+- or: track map (id -> Track) and track order (id[])
 
 todo: bugs
 - Undo is pretty broken

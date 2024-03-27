@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { history, useContainer } from "structured-state";
+import { flushSync } from "react-dom";
+import { createUseStyles } from "react-jss";
+import { useContainer } from "structured-state";
 import useResizeObserver from "use-resize-observer";
 import { useTimelineMouseEvents } from "../input/useProjectMouseEvents";
 import { AudioClip } from "../lib/AudioClip";
@@ -7,7 +9,6 @@ import { AudioRenderer } from "../lib/AudioRenderer";
 import { AudioTrack } from "../lib/AudioTrack";
 import { AudioProject } from "../lib/project/AudioProject";
 import { useDerivedState } from "../lib/state/DerivedState";
-import { useLinkedSet } from "../lib/state/LinkedSet";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { MidiTrack } from "../midi/MidiTrack";
 import { exhaustive } from "../utils/exhaustive";
@@ -17,12 +18,10 @@ import { TimelineCursor } from "./TimelineCursor";
 import { TrackA, getDroppedAudioURL } from "./TrackA";
 import { TrackM } from "./TrackM";
 import { useEventListener } from "./useEventListener";
-import { flushSync } from "react-dom";
-import { createUseStyles } from "react-jss";
 
 export function ProjectView({ project, renderer }: { project: AudioProject; renderer: AudioRenderer }) {
   const projectDivRef = useRef<HTMLDivElement | null>(null);
-  const [dspExpandedTracks] = useLinkedSet(project.dspExpandedTracks);
+  const dspExpandedTracks = useContainer(project.dspExpandedTracks);
   const [draggingOver, setDraggingOver] = useState<boolean>(false);
   const [audioStorage] = useLinkedState(project.audioStorage);
   const [viewportStartPx] = useLinkedState(project.viewportStartPx);

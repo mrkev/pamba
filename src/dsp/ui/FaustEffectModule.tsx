@@ -11,6 +11,7 @@ export default function FaustEffectModule({
   onClickBypass,
   onHeaderClick,
   canDelete,
+  canBypass,
   isSelected,
 }: {
   effect: FaustAudioEffect;
@@ -19,6 +20,7 @@ export default function FaustEffectModule({
   onClickBypass: (effect: FaustAudioEffect) => void;
   onHeaderClick: (effect: FaustAudioEffect) => void;
   canDelete: boolean;
+  canBypass: boolean;
   isSelected: boolean;
 }) {
   // Use the top-most group as the overall wrapper, with the close button etc
@@ -31,10 +33,12 @@ export default function FaustEffectModule({
       <Effect
         title={label}
         canDelete={canDelete}
+        canBypass={canBypass}
         onClickBypass={() => onClickBypass(effect)}
         onClickRemove={() => onClickRemove(effect)}
         onHeaderClick={() => onHeaderClick(effect)}
         isSelected={isSelected}
+        bypass={effect.bypass}
       >
         <div style={groupStyle}>
           {items.map((item, i) => {

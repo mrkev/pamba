@@ -1,8 +1,9 @@
 import type { AudioContextInfo } from "../lib/initAudioContext";
-import type { SPrimitive } from "structured-state";
+import type { SBoolean, SPrimitive } from "structured-state";
 
 export abstract class DSPNode<I extends AudioNode | null = AudioNode> {
   private readonly destinations: Set<AudioNode | DSPNode> = new Set();
+  public readonly bypass: null | SBoolean = null;
 
   abstract inputNode(): I;
   abstract outputNode(): AudioNode | DSPNode;

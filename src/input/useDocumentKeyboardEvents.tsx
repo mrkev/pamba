@@ -12,6 +12,7 @@ export function useDocumentKeyboardEvents(
 ): void {
   useEffect(() => {
     function keydownEvent(e: KeyboardEvent) {
+      console.log("Doc keydown", e.code);
       // TODO: also, on top of of doing this to prevent keyboard events when typing on forms
       // make the UI modal so events don't happen when modal dialogs are open for example
       if (e.target instanceof HTMLInputElement) {
@@ -20,7 +21,7 @@ export function useDocumentKeyboardEvents(
 
       const executed = documentCommands.execByKeyboardEvent(e, project);
       if (executed) {
-        // console.log("Executed command!");
+        console.log("Executed comand!");
         return;
       }
 

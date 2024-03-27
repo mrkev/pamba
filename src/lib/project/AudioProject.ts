@@ -1,6 +1,6 @@
 import type { ScaleLinear } from "d3-scale";
 import { scaleLinear } from "d3-scale";
-import { SArray } from "structured-state";
+import { SArray, SSet } from "structured-state";
 import { ulid } from "ulid";
 import { DEFAULT_TEMPO, SYNTH_101_URL, liveAudioContext } from "../../constants";
 import { getFirebaseStorage } from "../../firebase/getFirebase";
@@ -16,8 +16,7 @@ import { AudioTrack } from "../AudioTrack";
 import { ProjectTrack, StandardTrack } from "../ProjectTrack";
 import { DerivedState } from "../state/DerivedState";
 import { LinkedMap } from "../state/LinkedMap";
-import { LinkedSet } from "../state/LinkedSet";
-import { SPrimitive } from "../state/LinkedState";
+import { LinkedState } from "../state/LinkedState";
 import { ignorePromise } from "../state/Subbable";
 import { AudioStorage } from "./AudioStorage";
 import { ProjectViewportUtil } from "./ProjectViewportUtil";
@@ -47,49 +46,49 @@ export type AxisMeasure = "tempo" | "time";
 
 export class AudioProject {
   readonly projectId: string;
-  readonly projectName: SPrimitive<string>;
+  readonly projectName: LinkedState<string>;
 
   readonly viewport: ProjectViewportUtil;
-  readonly audioStorage = SPrimitive.of<AudioStorage | null>(null);
+  readonly audioStorage = LinkedState.of<AudioStorage | null>(null);
 
-  readonly isRecording = SPrimitive.of(false); // environment?
-  readonly tempo: SPrimitive<number>;
-  readonly timeSignature = SPrimitive.of([4, 4] as const); // TODO: serialize
-  readonly primaryAxis = SPrimitive.of<AxisMeasure>("tempo"); // TODO: serialize
-  readonly snapToGrid = SPrimitive.of(true); // per project setting?
+  readonly isRecording = LinkedState.of(false); // environment?
+  readonly tempo: LinkedState<number>;
+  readonly timeSignature = LinkedState.of([4, 4] as const); // TODO: serialize
+  readonly primaryAxis = LinkedState.of<AxisMeasure>("tempo"); // TODO: serialize
+  readonly snapToGrid = LinkedState.of(true); // per project setting?
 
   // Tracks //
   readonly allTracks: SArray<AudioTrack | MidiTrack>;
-  readonly solodTracks = LinkedSet.create<AudioTrack | MidiTrack>(); // TODO: single track kind?
-  readonly dspExpandedTracks = LinkedSet.create<AudioTrack | MidiTrack>();
-  readonly lockedTracks = LinkedSet.create<AudioTrack | MidiTrack | StandardTrack<any>>();
+  readonly solodTracks = SSet.create<AudioTrack | MidiTrack>(); // TODO: single track kind?
+  readonly dspExpandedTracks = SSet.create<AudioTrack | MidiTrack>();
+  readonly lockedTracks = SSet.create<AudioTrack | MidiTrack | StandardTrack<any>>();
   // much like live, there's always an active track. Logic is a great model since
   // the active track is clearly discernable in spite of multi-track selection.
-  readonly activeTrack = SPrimitive.of<AudioTrack | MidiTrack | null>(null);
-  readonly armedTrack = SPrimitive.of<AudioTrack | MidiTrack | null>(null);
+  readonly activeTrack = LinkedState.of<AudioTrack | MidiTrack | null>(null);
+  readonly armedTrack = LinkedState.of<AudioTrack | MidiTrack | null>(null);
 
   // Pointer //
-  readonly pointerTool = SPrimitive.of<Tool>("move");
+  readonly pointerTool = LinkedState.of<Tool>("move");
   // the width of the selection at the playback cursor
   // TODO: Rename cursor time width or something?
-  readonly selectionWidth = SPrimitive.of<number | null>(null);
-  readonly cursorPos = SPrimitive.of(0);
-  readonly cursorTracks = LinkedSet.create<AudioTrack | MidiTrack>();
+  readonly selectionWidth = LinkedState.of<number | null>(null);
+  readonly cursorPos = LinkedState.of(0);
+  readonly cursorTracks = SSet.create<AudioTrack | MidiTrack>();
   // ^^ TODO: a weak linked set might be a good idea
 
   // Selection //
 
   // the selected clip(s), track(s), etc
-  readonly selected = SPrimitive.of<PrimarySelectionState | null>(null);
+  readonly selected = LinkedState.of<PrimarySelectionState | null>(null);
   readonly loopStart: TimelinePoint;
   readonly loopEnd: TimelinePoint;
-  readonly loopOnPlayback = SPrimitive.of(false);
+  readonly loopOnPlayback = LinkedState.of(false);
 
   // the zoom level. min scale is 0.64, max is 1000.
   // Px per second. Therefore, small = zoom out. big = zoom in.
-  readonly scaleFactor = SPrimitive.of(10);
+  readonly scaleFactor = LinkedState.of(10);
   // the "left" CSS position for the first second visible in the project div
-  readonly viewportStartPx = SPrimitive.of(0);
+  readonly viewportStartPx = LinkedState.of(0);
   // 1 sec corresponds to 10 px
   readonly secsToPx = DerivedState.from(
     [this.scaleFactor],
@@ -122,11 +121,11 @@ export class AudioProject {
     this.projectId = projectId;
     this.allTracks = SArray.create(tracks);
     this.viewport = new ProjectViewportUtil(this);
-    this.projectName = SPrimitive.of(projectName);
-    this.tempo = SPrimitive.of(tempo);
+    this.projectName = LinkedState.of(projectName);
+    this.tempo = LinkedState.of(tempo);
     this.loopStart = loopStart;
     this.loopEnd = loopEnd;
-    this.loopOnPlayback = SPrimitive.of(loopOnPlayback);
+    this.loopOnPlayback = LinkedState.of(loopOnPlayback);
     // so it initializes after app environment is initialized
     setTimeout(() => ignorePromise(this.asyncInits()), 0);
   }

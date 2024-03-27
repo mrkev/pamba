@@ -102,6 +102,7 @@ export const EffectRack = React.memo(function EffectRack({
               <React.Fragment key={i}>
                 <FaustEffectModule
                   canDelete={!isAudioPlaying}
+                  canBypass={!isAudioPlaying}
                   effect={effect}
                   style={{
                     alignSelf: "stretch",

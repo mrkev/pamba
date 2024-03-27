@@ -1,7 +1,7 @@
 import type { WamNode, WamParameterDataMap, WebAudioModule } from "@webaudiomodules/api";
 import { DSPNode } from "../dsp/DSPNode";
 import { appEnvironment } from "../lib/AppEnvironment";
-import { SPrimitive } from "../lib/state/LinkedState";
+import { LinkedState } from "../lib/state/LinkedState";
 import { nullthrows, assert } from "../utils/nullthrows";
 import { Position } from "../wam/WindowPanel";
 
@@ -22,7 +22,7 @@ export class MidiInstrument extends DSPNode<null> {
   }
 
   // Window Panel
-  readonly windowPanelPosition = SPrimitive.of<Position>([10, 10]);
+  readonly windowPanelPosition = LinkedState.of<Position>([10, 10]);
 
   constructor(module: WebAudioModule<WamNode>, url: string) {
     super();

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { SPrimitive } from "./LinkedState";
+import { LinkedState } from "./LinkedState";
 import { subscribe } from "./Subbable";
 
 type StateChangeHandler<S> = (value: S) => void;
@@ -9,7 +9,7 @@ type FnSrcTuple<F> = F extends (...s: infer S) => any ? S : never;
 type FnDst<F> = F extends (...s: any[]) => infer T ? T : never;
 
 type TupleOfLinkedStates<Tuple extends [...any[]]> = {
-  [Index in keyof Tuple]: SPrimitive<Tuple[Index]>;
+  [Index in keyof Tuple]: LinkedState<Tuple[Index]>;
 } & { length: Tuple["length"] };
 
 export class DerivedState<F extends Function> {

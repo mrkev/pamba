@@ -1,12 +1,13 @@
 import React, { useCallback, useRef, useState } from "react";
 import { createUseStyles } from "react-jss";
+import { history, useContainer, usePrimitive } from "structured-state";
 import { TRACK_SEPARATOR_HEIGHT } from "../constants";
 import { useTrackMouseEvents } from "../input/useTrackMouseEvents";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioRenderer } from "../lib/AudioRenderer";
 import { AudioProject } from "../lib/project/AudioProject";
-import { useLinkedArray } from "../lib/state/LinkedArray";
 import { useLinkedState } from "../lib/state/LinkedState";
+import { createEmptyMidiClipInTrack } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
 import { pressedState } from "../pressedState";
 import { ClipInvalid } from "./ClipInvalid";
@@ -14,9 +15,6 @@ import { ClipM } from "./ClipM";
 import { CursorSelection } from "./CursorSelection";
 import { EffectRack } from "./EffectRack";
 import { useEventListener } from "./useEventListener";
-import { useLinkedSet } from "../lib/state/LinkedSet";
-import { createEmptyMidiClipInTrack } from "../midi/MidiClip";
-import { history, useContainer, usePrimitive } from "structured-state";
 
 function preventDefault(e: React.DragEvent<HTMLDivElement>) {
   e.preventDefault();
@@ -41,7 +39,7 @@ export function TrackM({
   const clips = useContainer(track.clips);
   const [height] = usePrimitive(track.height);
   const [activeTrack] = useLinkedState(project.activeTrack);
-  const [lockedTracks] = useLinkedSet(project.lockedTracks);
+  const lockedTracks = useContainer(project.lockedTracks);
   const trackRef = useRef<HTMLDivElement>(null);
   const [, setStateCounter] = useState(0);
   const rerender = useCallback(function () {

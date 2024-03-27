@@ -1,6 +1,6 @@
 import type { FaustUIGroup, FaustUIInputItem, FaustUIOutputItem } from "@grame/faustwasm";
-
 import { FaustAudioProcessorNode, ProcessorLoader } from "faust-loader-vite";
+import { boolean } from "structured-state";
 import { LinkedMap } from "../lib/state/LinkedMap";
 import { DSPNode } from "./DSPNode";
 import { EffectID, FAUST_EFFECTS } from "./FAUST_EFFECTS";
@@ -48,6 +48,9 @@ export class FaustAudioEffect extends DSPNode<AudioNode> {
   readonly ui: Array<TFaustUIItem>;
   readonly name: string;
   readonly params: LinkedMap<string, number>;
+
+  // TODO: serialize
+  override readonly bypass = boolean(false);
 
   private constructor(
     faustNode: FaustAudioProcessorNode,

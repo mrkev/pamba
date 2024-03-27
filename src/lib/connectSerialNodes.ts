@@ -7,11 +7,17 @@ export function connectSerialNodes(chain: (AudioNode | DSPNode<AudioNode>)[]): v
   let currentNode = chain[0];
   for (let i = 1; chain[i] != null; i++) {
     const nextNode = chain[i];
-    // console.groupCollapsed(`Connected: ${currentNode.constructor.name} -> ${nextNode.constructor.name}`);
-    // console.log(currentNode);
-    // console.log("-->");
-    // console.log(nextNode);
-    // console.groupEnd();
+
+    if (nextNode instanceof DSPNode && nextNode.bypass != null && nextNode.bypass.get() === true) {
+      continue;
+    }
+
+    console.groupCollapsed(`Connected: ${currentNode.constructor.name} -> ${nextNode.constructor.name}`);
+    console.log(currentNode);
+    console.log("-->");
+    console.log(nextNode);
+    console.groupEnd();
+
     if (currentNode instanceof AudioNode && nextNode instanceof AudioNode) {
       currentNode.connect(nextNode);
       currentNode = nextNode;

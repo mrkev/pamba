@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { FaustAudioEffect } from "../FaustAudioEffect";
 import type { FaustUIInputItem } from "@shren/faustwasm";
+import { useLinkedMap } from "../../lib/state/LinkedMap";
+import { nullthrows } from "../../utils/nullthrows";
 
 export function FaustSlider({
   item,
@@ -13,7 +15,13 @@ export function FaustSlider({
 }) {
   const isHorizontal = direction === "horizontal";
   const { label, index, min, max, step, address } = item;
-  const [value, setValue] = useState(() => effect.getParam(address));
+
+  // observe the map to be notified of changes
+  const [params] = useLinkedMap(effect.params);
+  // TODO: handle, disable control, show error state?
+  const value = nullthrows(params.get(address), `Invalid address for effect param: ${address}`);
+
+  // const [value, setValue] = useState(() => effect.getParam(address));
   const orient = !isHorizontal ? { orient: "vertical" } : {};
   const style: React.CSSProperties = {
     display: "flex",
@@ -37,12 +45,14 @@ export function FaustSlider({
         step={step}
         value={value}
         style={{ flexShrink: 4, minHeight: 10 }}
+        onKeyDown={(e) => {
+          console.log(e, e.key);
+          e.preventDefault();
+        }}
         onChange={(e) => {
           const newVal = parseFloat(e.target.value);
-          setValue(() => {
-            effect.setParam(address, newVal);
-            return newVal;
-          });
+          effect.setParam(address, newVal);
+          return newVal;
         }}
         {...orient}
       ></input>

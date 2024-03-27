@@ -23,7 +23,7 @@ function set<T>(ls: LS<T>, v: T): void {
 /**
  * LinkedState is a Subbable, a single atomic primitive
  */
-export class SPrimitive<S> implements LS<S> {
+export class LinkedState<S> implements LS<S> {
   private _value: Readonly<S>;
   _subscriptors: Set<StateChangeHandler<S>> = new Set();
   constructor(initialValue: S) {
@@ -60,7 +60,7 @@ export class SPrimitive<S> implements LS<S> {
   }
 }
 
-export function useLinkedState<S>(linkedState: SPrimitive<S>): [S, StateDispath<S>] {
+export function useLinkedState<S>(linkedState: LinkedState<S>): [S, StateDispath<S>] {
   const [state, setState] = useState<S>(() => linkedState.get());
 
   useEffect(() => {
@@ -83,7 +83,7 @@ export function useLinkedState<S>(linkedState: SPrimitive<S>): [S, StateDispath<
         linkedState.set(newVal);
       }
     },
-    [linkedState]
+    [linkedState],
   );
 
   return [state, setter];
@@ -104,14 +104,14 @@ export function useLinkedState<S>(linkedState: SPrimitive<S>): [S, StateDispath<
 type LSIn<T> =
   // primitives
   T extends number | string | boolean
-    ? SPrimitive<T>
+    ? LinkedState<T>
     : // Records
     T extends Record<string, infer U>
     ? { [Key in keyof T]: SOut<U> }
     : never;
 
 type SOut<T> = // primitives
-  T extends SPrimitive<infer P>
+  T extends LinkedState<infer P>
     ? P
     : // Records
     T extends SRecord<infer E>
@@ -171,12 +171,12 @@ class SRecord<TSchema extends Record<string, LS<any>>>
   }
 }
 
-function primitive<T extends number | string | boolean>(val: T): SPrimitive<T> {
-  return new SPrimitive(val);
+function primitive<T extends number | string | boolean>(val: T): LinkedState<T> {
+  return new LinkedState(val);
 }
 
 function number(val: number) {
-  return new SPrimitive(val);
+  return new LinkedState(val);
 }
 
 function record<TSchema extends Record<string, LS<any>>>(schema: TSchema): SRecord<TSchema> {
@@ -201,7 +201,7 @@ type BrowserTarget<T extends LS<any>> =
   T extends SRecord<infer E>
     ? { [Key in keyof E]: BrowserTarget<E[Key]> }
     : // Primitives
-    T extends SPrimitive<any>
+    T extends LinkedState<any>
     ? void
     : never;
 

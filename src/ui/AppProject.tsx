@@ -97,7 +97,7 @@ export function AppProject({ project }: { project: AudioProject }) {
           editor: {
             icon: <i className="ri-edit-line"></i>,
             title: "Details",
-            render: () => <BottomPanel project={project} player={renderer.analizedPlayer} />,
+            render: () => <BottomPanel project={project} player={renderer.analizedPlayer} renderer={renderer} />,
           },
           debug: {
             icon: <i className="ri-bug-fill"></i>,

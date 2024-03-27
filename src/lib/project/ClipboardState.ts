@@ -4,7 +4,7 @@ import { FaustAudioEffect } from "../../dsp/FaustAudioEffect";
 import { PambaWamNode } from "../../wam/PambaWamNode";
 import { MidiTrack } from "../../midi/MidiTrack";
 import { MidiClip, pulsesToSec } from "../../midi/MidiClip";
-import { SPrimitive } from "../state/LinkedState";
+import { LinkedState } from "../state/LinkedState";
 import { AudioProject } from "./AudioProject";
 import { exhaustive } from "../state/Subbable";
 import { secs } from "../AbstractClip";
@@ -24,7 +24,7 @@ export type ClipboardState =
       effects: ReadonlyArray<{ effect: FaustAudioEffect | PambaWamNode }>;
     };
 
-export const clipboard = SPrimitive.of<ClipboardState | null>(null);
+export const clipboard = LinkedState.of<ClipboardState | null>(null);
 
 export function doPaste(project: AudioProject) {
   const copied = clipboard.get();

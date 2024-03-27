@@ -1,12 +1,12 @@
 import { SECS_IN_MIN, pulsesToSec } from "../../midi/MidiClip";
 import { clamp, stepNumber } from "../../utils/math";
 import { PPQN } from "../../wam/pianorollme/MIDIConfiguration";
-import { SPrimitive } from "../state/LinkedState";
+import { LinkedState } from "../state/LinkedState";
 import { AudioProject } from "./AudioProject";
 
 export class ProjectViewportUtil {
   readonly project: AudioProject;
-  readonly projectDivWidth = SPrimitive.of(0);
+  readonly projectDivWidth = LinkedState.of(0);
 
   constructor(project: AudioProject) {
     this.project = project;

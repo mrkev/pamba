@@ -1,4 +1,6 @@
 import { createUseStyles } from "react-jss";
+import { SBoolean, usePrimitive } from "structured-state";
+import { UtilityToggle } from "./UtilityToggle";
 import { utility } from "./utility";
 
 export function Effect({
@@ -9,6 +11,8 @@ export function Effect({
   onHeaderClick,
   isSelected,
   canDelete,
+  canBypass,
+  bypass,
 }: {
   children?: React.ReactNode;
   title: string;
@@ -17,6 +21,8 @@ export function Effect({
   onClickBypass: () => void;
   isSelected?: boolean;
   canDelete?: boolean;
+  canBypass?: boolean;
+  bypass?: SBoolean;
 }) {
   return (
     <div
@@ -37,27 +43,35 @@ export function Effect({
         onClickRemove={onClickRemove}
         onHeaderClick={onHeaderClick}
         canDelete={canDelete}
+        canBypass={canBypass}
+        bypass={bypass}
       />
       {children}
     </div>
   );
 }
 
-export function EffectHeader({
+function EffectHeader({
   onHeaderClick,
   onClickRemove,
+  onClickBypass,
   canDelete,
+  canBypass,
   title,
   isSelected,
+  bypass,
 }: {
   onClickRemove?: () => void;
   onHeaderClick?: () => void;
   onClickBypass?: () => void;
   canDelete?: boolean;
+  canBypass?: boolean;
   title: string;
   isSelected?: boolean;
+  bypass?: SBoolean;
 }) {
   const styles = useStyles();
+
   return (
     <div
       className={styles.faustTopLevelHeader}
@@ -70,15 +84,39 @@ export function EffectHeader({
       onClick={onHeaderClick}
     >
       <div style={{ whiteSpace: "nowrap" }}>{title}</div>
-      <div>
-        {/* <button className={utility.button} onClick={onClickBypass}>
-          bypass
-        </button> */}
-        <button className={utility.button} disabled={!canDelete} onClick={onClickRemove}>
-          x
-        </button>
-      </div>
+      <div className="spacer"></div>
+      {bypass && <BypassToggle bypass={bypass} onClickBypass={onClickBypass} canBypass={canBypass} />}
+      <button className={utility.button} disabled={!canDelete} onClick={onClickRemove}>
+        x
+      </button>
     </div>
+  );
+}
+
+function BypassToggle({
+  bypass,
+  onClickBypass,
+  canBypass,
+}: {
+  bypass: SBoolean;
+  onClickBypass?: () => void;
+  canBypass?: boolean;
+}) {
+  const [bypassOn] = usePrimitive(bypass);
+
+  return (
+    <UtilityToggle
+      toggled={bypassOn}
+      onToggle={(on) => {
+        bypass.set(on);
+        onClickBypass?.();
+      }}
+      title={"toggle bypass"}
+      toggleStyle={{ background: "orange" }}
+      disabled={!canBypass}
+    >
+      bypass
+    </UtilityToggle>
   );
 }
 

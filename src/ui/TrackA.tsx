@@ -4,12 +4,13 @@ import { createUseStyles } from "react-jss";
 import { history, useContainer, usePrimitive } from "structured-state";
 import { TRACK_SEPARATOR_HEIGHT } from "../constants";
 import { useTrackMouseEvents } from "../input/useTrackMouseEvents";
+import { secs } from "../lib/AbstractClip";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioRenderer } from "../lib/AudioRenderer";
 import { AudioTrack } from "../lib/AudioTrack";
+import { ProjectTrack } from "../lib/ProjectTrack";
 import { AudioProject } from "../lib/project/AudioProject";
 import { AudioStorage } from "../lib/project/AudioStorage";
-import { useLinkedSet } from "../lib/state/LinkedSet";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { pressedState } from "../pressedState";
 import { ignorePromise } from "../utils/ignorePromise";
@@ -17,8 +18,6 @@ import { ClipA } from "./ClipA";
 import { ClipInvalid } from "./ClipInvalid";
 import { CursorSelection } from "./CursorSelection";
 import { EffectRack } from "./EffectRack";
-import { secs } from "../lib/AbstractClip";
-import { ProjectTrack } from "../lib/ProjectTrack";
 
 function clientXToTrackX(trackElem: HTMLDivElement | null, clientX: number) {
   if (trackElem == null) {
@@ -96,7 +95,7 @@ export function TrackA({
   const clips = useContainer(track.clips);
   const [height] = usePrimitive(track.height);
   const [activeTrack] = useLinkedState(project.activeTrack);
-  const [lockedTracks] = useLinkedSet(project.lockedTracks);
+  const lockedTracks = useContainer(project.lockedTracks);
   const [audioStorage] = useLinkedState(project.audioStorage);
   const trackRef = useRef<HTMLDivElement>(null);
   const [draggingOver, setDraggingOver] = useState<number | null>(null);

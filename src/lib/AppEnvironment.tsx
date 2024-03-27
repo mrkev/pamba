@@ -18,7 +18,7 @@ import { initAudioContext } from "./initAudioContext";
 import { AudioProject } from "./project/AudioProject";
 import { LinkedMap } from "./state/LinkedMap";
 import { LinkedSet } from "./state/LinkedSet";
-import { SPrimitive } from "./state/LinkedState";
+import { LinkedState } from "./state/LinkedState";
 import { exhaustive } from "./state/Subbable";
 
 export type WAMAvailablePlugin = {
@@ -34,17 +34,17 @@ export class AppEnvironment {
   // Firebase
   readonly firebaseApp: FirebaseApp | null;
   readonly firebaseAuth: Auth | null;
-  readonly firebaseUser = SPrimitive.of<User | null>(null);
+  readonly firebaseUser = LinkedState.of<User | null>(null);
   // Plugins
-  readonly wamHostGroup = SPrimitive.of<[id: string, key: string] | null>(null);
+  readonly wamHostGroup = LinkedState.of<[id: string, key: string] | null>(null);
   readonly wamPlugins = LinkedMap.create<string, WAMAvailablePlugin>(new Map());
-  readonly wamStatus = SPrimitive.of<"loading" | "ready">("loading");
+  readonly wamStatus = LinkedState.of<"loading" | "ready">("loading");
   readonly faustEffects = Object.keys(FAUST_EFFECTS) as (keyof typeof FAUST_EFFECTS)[];
   // FS
   readonly localFiles: LocalFilesystem = new LocalFilesystem();
   // Project
-  readonly projectStatus: SPrimitive<ProjectState>;
-  readonly projectPacakge: SPrimitive<ProjectPackage | null>; // null if never saved
+  readonly projectStatus: LinkedState<ProjectState>;
+  readonly projectPacakge: LinkedState<ProjectPackage | null>; // null if never saved
   // UI
   readonly openEffects: LinkedSet<DSPNode | MidiInstrument>;
   readonly activeSidePanel = LocalSPrimitive.create<"library" | "project" | "history" | "settings" | "help" | null>(
@@ -67,8 +67,8 @@ export class AppEnvironment {
 
     this.openEffects = LinkedSet.create();
 
-    this.projectStatus = SPrimitive.of<ProjectState>({ status: "loading" });
-    this.projectPacakge = SPrimitive.of<ProjectPackage | null>(null); // null if never saved
+    this.projectStatus = LinkedState.of<ProjectState>({ status: "loading" });
+    this.projectPacakge = LinkedState.of<ProjectPackage | null>(null); // null if never saved
   }
 
   async initAsync(liveAudioContext: AudioContext) {

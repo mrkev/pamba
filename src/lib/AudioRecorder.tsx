@@ -6,7 +6,7 @@ import { AudioTrack } from "./AudioTrack";
 import { secs } from "./AbstractClip";
 import { AudioProject } from "./project/AudioProject";
 import { LinkedMap } from "./state/LinkedMap";
-import { SPrimitive } from "./state/LinkedState";
+import { LinkedState } from "./state/LinkedState";
 import { ignorePromise } from "./state/Subbable";
 import { ProjectTrack } from "./ProjectTrack";
 import { appEnvironment } from "./AppEnvironment";
@@ -46,11 +46,11 @@ function useMediaRecorder(loadClip: (url: string, name?: string) => void) {
 }
 
 export class AudioRecorder {
-  readonly status = SPrimitive.of<"idle" | "recording" | "error">("idle");
+  readonly status = LinkedState.of<"idle" | "recording" | "error">("idle");
   private mediaRecorder: MediaRecorder | null;
   private chunks: Array<BlobPart>;
   readonly audioInputDevices: LinkedMap<string, MediaDeviceInfo>;
-  readonly currentInput = SPrimitive.of<string | null>(null);
+  readonly currentInput = LinkedState.of<string | null>(null);
 
   readonly renderer: AudioRenderer;
   readonly project: AudioProject;

@@ -2,7 +2,7 @@ import { WamNode as IWamNode } from "@webaudiomodules/api";
 import type { WebAudioModule } from "../../packages/sdk/dist";
 import { DSPNode } from "../dsp/DSPNode";
 import { AudioContextInfo } from "../lib/initAudioContext";
-import { SPrimitive } from "../lib/state/LinkedState";
+import { LinkedState } from "../lib/state/LinkedState";
 import { Position } from "./WindowPanel";
 import { WAMImport } from "./wam";
 
@@ -23,7 +23,7 @@ export class PambaWamNode extends DSPNode {
   readonly dom: Element;
 
   // Window Panel
-  readonly windowPanelPosition = SPrimitive.of<Position>([10, 10]);
+  readonly windowPanelPosition = LinkedState.of<Position>([10, 10]);
 
   public destroy() {
     this.module.destroyGui(this.dom);
