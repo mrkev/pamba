@@ -4,13 +4,12 @@ import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import svgrPlugin from "vite-plugin-svgr";
 import viteTsconfigPaths from "vite-tsconfig-paths";
-import { faustLoder } from "./faustLoader/faustLoder";
-import * as path from "path";
+import { faustLoader } from "./faustLoader/faustLoder";
 
 // To polyfill Buffer
-import RollupPluginNodePolyfill from "rollup-plugin-node-polyfills";
 import { NodeGlobalsPolyfillPlugin } from "@esbuild-plugins/node-globals-polyfill";
 import { NodeModulesPolyfillPlugin } from "@esbuild-plugins/node-modules-polyfill";
+import RollupPluginNodePolyfill from "rollup-plugin-node-polyfills";
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -43,7 +42,7 @@ export default defineConfig({
       "Cross-Origin-Embedder-Policy": "require-corp",
     },
   },
-  plugins: [react(), viteTsconfigPaths(), svgrPlugin(), faustLoder()],
+  plugins: [react(), viteTsconfigPaths(), svgrPlugin(), faustLoader() as any],
   optimizeDeps: {
     esbuildOptions: {
       // define: { global: "globalThis" },

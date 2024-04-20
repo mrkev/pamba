@@ -7,7 +7,7 @@ module.exports = {
     sourceType: "module",
     project: "./tsconfig.json",
   },
-  ignorePatterns: ["vite.config.ts"],
+  ignorePatterns: ["vite.config.mts", "faustLoader/**"],
   parser: "@typescript-eslint/parser",
   plugins: ["react", "prettier", "@typescript-eslint", "react-hooks"],
   rules: {

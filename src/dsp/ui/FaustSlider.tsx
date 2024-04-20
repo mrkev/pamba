@@ -1,8 +1,8 @@
-import React, { useState } from "react";
-import { FaustAudioEffect } from "../FaustAudioEffect";
-import type { FaustUIInputItem } from "@shren/faustwasm";
+import type { FaustUIInputItem } from "@grame/faustwasm";
+import React from "react";
 import { useLinkedMap } from "../../lib/state/LinkedMap";
 import { nullthrows } from "../../utils/nullthrows";
+import { FaustAudioEffect } from "../FaustAudioEffect";
 
 export function FaustSlider({
   item,

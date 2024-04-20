@@ -9,7 +9,7 @@ import { useLinkedState } from "../lib/state/LinkedState";
 import { nullthrows } from "../utils/nullthrows";
 import { RenamableLabel } from "./RenamableLabel";
 import { UtilityToggle } from "./UtilityToggle";
-import { GPUWaveform } from "./gpu/GPUWaveform";
+import { GPUWaveform } from "webgpu-waveform";
 import { useEventListener } from "./useEventListener";
 
 export const HEIGHT = 200;
@@ -246,7 +246,15 @@ export function AudioClipEditor({
           </UtilityToggle>
         </div>
 
-        <div style={{ position: "relative", display: "flex", flexDirection: "column", justifyContent: "stretch" }}>
+        <div
+          style={{
+            position: "relative",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "stretch",
+            background: "black",
+          }}
+        >
           {clip.buffer != null && (
             <GPUWaveform
               ref={waveformRef}
