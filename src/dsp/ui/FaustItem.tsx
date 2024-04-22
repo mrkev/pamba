@@ -52,6 +52,9 @@ export function FaustItem({ item, effect, arrPos }: { item: TFaustUIItem; effect
     case "nentry":
       return <div>nentry</div>;
 
+    case "soundfile":
+      return <div>soundfile</div>;
+
     default:
       return exhaustive(type);
   }
