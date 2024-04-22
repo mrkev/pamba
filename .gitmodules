@@ -4,3 +4,6 @@
 [submodule "packages/burns-audio-wam"]
 	path = packages/burns-audio-wam
 	url = https://github.com/boourns/burns-audio-wam
+[submodule "packages/sdk-parammgr"]
+	path = packages/sdk-parammgr
+	url = https://github.com/webaudiomodules/sdk-parammgr

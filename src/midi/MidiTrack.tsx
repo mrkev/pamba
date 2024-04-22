@@ -1,6 +1,6 @@
 import type { WebAudioModule } from "@webaudiomodules/api";
 import { SPrimitive, SSchemaArray, arrayOf } from "structured-state";
-import { CLIP_HEIGHT, PIANO_ROLL_PLUGIN_URL, SECS_IN_MINUTE, TIME_SIGNATURE, liveAudioContext } from "../constants";
+import { CLIP_HEIGHT, SECS_IN_MINUTE, TIME_SIGNATURE, liveAudioContext } from "../constants";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { StandardTrack } from "../lib/ProjectTrack";
 import { ProjectTrackDSP } from "../lib/ProjectTrackDSP";
@@ -45,6 +45,29 @@ export class MidiTrack implements StandardTrack<MidiClip> {
     pianoRoll.audioNode.connectEvents(instrument.module.instanceId);
 
     if (clips.length === 0) this.createSampleMidiClip();
+  }
+
+  // TODO: OLD INSTRUMENT ISN'T BEING PROPERLY REMOVED
+  public async changeInstrument(instrument: MidiInstrument) {
+    // TODO: ensure audio not playing?
+    // Disconnect and destroy the old instrument
+    await liveAudioContext().suspend();
+    this.instrument.module.audioNode.disconnect(this.pianoRoll.audioNode);
+    this.pianoRoll.audioNode.disconnectEvents(instrument.module.instanceId);
+    this.pianoRoll.audioNode.clearEvents();
+    this.instrument.disconnectAll();
+    this.instrument.module.audioNode.disconnect();
+    this.instrument.module.audioNode.disconnectEvents();
+    this.instrument.destroy();
+    this.instrument.module.audioNode;
+    console.log(this.instrument);
+
+    // Setup the new instrument
+    this.instrument = instrument;
+    this.instrument.module.audioNode.connect(this.pianoRoll.audioNode);
+    this.pianoRoll.audioNode.connectEvents(instrument.module.instanceId);
+    console.log("chagned instrument to", this.instrument.url);
+    await liveAudioContext().resume();
   }
 
   public createSampleMidiClip() {

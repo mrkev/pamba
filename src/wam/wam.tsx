@@ -86,5 +86,5 @@ export async function fetchWam(
   // TODO: propery initialize instead to get proper metadata?
   const descriptor = new (plugin as any)().descriptor;
   // console.log(descriptor);
-  return { import: plugin, descriptor, kind };
+  return { import: plugin, descriptor, kind, url: pluginUrl };
 }

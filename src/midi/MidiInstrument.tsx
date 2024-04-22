@@ -31,7 +31,6 @@ export class MidiInstrument extends DSPNode<null> {
     this.name = this.module.descriptor.name;
     this.dom = null;
     this.url = url;
-    (window as any).inst = this;
   }
 
   public destroy() {

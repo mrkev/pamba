@@ -26,6 +26,7 @@ export type WAMAvailablePlugin = {
   kind: "-m" | "-a" | "m-a" | "a-a";
   import: WAMImport;
   descriptor: WamDescriptor;
+  url: string;
 };
 
 type ProjectState = { status: "loading" } | { status: "loaded"; project: AudioProject };
@@ -37,8 +38,8 @@ export class AppEnvironment {
   readonly firebaseUser = LinkedState.of<User | null>(null);
   // Plugins
   readonly wamHostGroup = LinkedState.of<[id: string, key: string] | null>(null);
-  readonly wamPlugins = LinkedMap.create<string, WAMAvailablePlugin>(new Map());
   readonly wamStatus = LinkedState.of<"loading" | "ready">("loading");
+  readonly wamPlugins = LinkedMap.create<string, WAMAvailablePlugin>(new Map());
   readonly faustEffects = Object.keys(FAUST_EFFECTS) as (keyof typeof FAUST_EFFECTS)[];
   // FS
   readonly localFiles: LocalFilesystem = new LocalFilesystem();

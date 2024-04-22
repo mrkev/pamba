@@ -1,6 +1,8 @@
 export const changelog = `
 next
 - project load times improvements
+- midi: new instruments
+- WAM effects and instruments on sidebar
 
 v0.1.4
 - cmd+L to loop selection

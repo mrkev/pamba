@@ -38,7 +38,7 @@ export class PambaWamNode extends DSPNode {
     await this.module.audioNode.setState(state);
   }
 
-  private constructor(module: WebAudioModule<IWamNode>, dom: Element, url: string) {
+  constructor(module: WebAudioModule<IWamNode>, dom: Element, url: string) {
     super();
     this.module = module;
     this.dom = dom;

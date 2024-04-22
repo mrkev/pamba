@@ -100,6 +100,10 @@ export class ProjectTrackDSP<T extends AbstractClip<any>> extends DSPNode<null> 
     this.effects.push(effect);
   }
 
+  addLoadedWAM(wam: PambaWamNode) {
+    this.effects.push(wam);
+  }
+
   async addWAM(url: string) {
     const [hostGroupId] = nullthrows(appEnvironment.wamHostGroup.get());
     const module = await PambaWamNode.fromURL(url, hostGroupId, liveAudioContext());

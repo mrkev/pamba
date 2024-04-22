@@ -9,6 +9,7 @@ export const TRACK_HEADER_WIDTH = 150;
 
 export const staticAudioContext = boxUp(() => new AudioContext(), "staticAudioContext"); // we use to decode data
 export const liveAudioContext = boxUp(() => new AudioContext(), "liveAudioContext"); // we play from this one
+(window as any).liveAudioContext = liveAudioContext;
 
 export const PX_PER_SEC = 10;
 export const PX_OVER_SEC = PX_PER_SEC;
@@ -30,15 +31,19 @@ import PIANO_ROLL_PLUGIN_URL from "./midi/pianoroll/index?url";
 
 // WAM
 
+export const SYNTH_101_URL = "https://mainline.i3s.unice.fr/wam2/packages/synth101/dist/index.js";
+export const OBXD_URL = "https://mainline.i3s.unice.fr/wam2/packages/obxd/index.js";
+export const SOUND_FONT_URL = "https://www.webaudiomodules.com/community/plugins/burns-audio/soundfont/index.js";
+
 export const WAM_PLUGINS: { url: string; kind: "-m" | "-a" | "m-a" | "a-a" }[] = [
   { url: "https://mainline.i3s.unice.fr/wam2/packages/StonePhaserStereo/index.js", kind: "a-a" },
   { url: "https://mainline.i3s.unice.fr/wam2/packages/BigMuff/index.js", kind: "a-a" },
   { url: "https://mainline.i3s.unice.fr/wam2/packages/obxd/index.js", kind: "m-a" },
   { url: "https://mainline.i3s.unice.fr/wam2/packages/synth101/dist/index.js", kind: "m-a" },
+  { url: SOUND_FONT_URL, kind: "m-a" },
+  { url: "https://www.webaudiomodules.com/community/plugins/burns-audio/modal/index.js", kind: "m-a" },
+  { url: "https://www.webaudiomodules.com/community/plugins/burns-audio/drumsampler/index.js", kind: "m-a" },
   { url: PIANO_ROLL_PLUGIN_URL, kind: "-m" },
 ];
-
-export const SYNTH_101_URL = "https://mainline.i3s.unice.fr/wam2/packages/synth101/dist/index.js";
-export const OBXD_URL = "https://mainline.i3s.unice.fr/wam2/packages/obxd/index.js";
 
 export { PIANO_ROLL_PLUGIN_URL };

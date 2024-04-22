@@ -1,12 +1,14 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { createUseStyles } from "react-jss";
+import { usePrimitive } from "structured-state";
 import { LIBRARY_SEARCH_INPUT_ID } from "../constants";
 import { AudioPackage } from "../data/AudioPackage";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
-import { appEnvironment } from "../lib/AppEnvironment";
+import { WAMAvailablePlugin, appEnvironment } from "../lib/AppEnvironment";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioRenderer } from "../lib/AudioRenderer";
 import { AudioTrack } from "../lib/AudioTrack";
+import { ProjectPersistance } from "../lib/ProjectPersistance";
 import { ProjectTrack } from "../lib/ProjectTrack";
 import { AudioProject } from "../lib/project/AudioProject";
 import { useLinkedArrayMaybe } from "../lib/state/LinkedArray";
@@ -20,8 +22,9 @@ import { doConfirm } from "./ConfirmDialog";
 import { UploadAudioButton } from "./UploadAudioButton";
 import { ListEntry, UtilityDataList } from "./UtilityList";
 import { closeProject } from "./header/ToolHeader";
-import { usePrimitive } from "structured-state";
-import { ProjectPersistance } from "../lib/ProjectPersistance";
+import { ProjectSelection } from "../lib/project/ProjectSelection";
+import { nullthrows } from "../utils/nullthrows";
+import { addAvailableWamToTrack } from "../lib/addAvailableWamToTrack";
 
 const STATIC_AUDIO_FILES = ["drums.mp3", "clav.mp3", "bassguitar.mp3", "horns.mp3", "leadguitar.mp3"];
 
@@ -40,7 +43,10 @@ function useAudioLibrary(project: AudioProject, filter: string): (string | Audio
   });
 }
 
-export type LibraryItem = { kind: "project"; id: string } | { kind: "audio"; url: string; name: string };
+export type LibraryItem =
+  | { kind: "project"; id: string }
+  | { kind: "audio"; url: string; name: string }
+  | { kind: "wam"; plugin: WAMAvailablePlugin };
 
 export function Library({
   project,
@@ -56,6 +62,7 @@ export function Library({
   const [libraryFilter, setLibraryFilter] = useState("");
   const audioLibrary = useAudioLibrary(project, libraryFilter);
   const [localProjects] = useLinkedMap(appEnvironment.localFiles.projectLib.state);
+  const [wamPlugins] = useLinkedMap(appEnvironment.wamPlugins);
 
   const loadClip = useCallback(
     async function loadClip(url: string, name?: string) {
@@ -121,8 +128,16 @@ export function Library({
           exhaustive(audio);
         }
       }),
+      "separator",
+      ...[...wamPlugins.entries()].map(([key, plugin]): ListEntry<LibraryItem> => {
+        return {
+          title: plugin.descriptor.name.replace(/^WebAudioModule[_ ]/, "").replace(/(?:Module|Plugin)$/, ""),
+          icon: plugin.kind === "m-a" ? <i>♩</i> : <i className="ri-pulse-fill"></i>,
+          data: { kind: "wam", plugin },
+        };
+      }),
     ];
-  }, [audioLibrary, localProjects, project.projectId]);
+  }, [audioLibrary, localProjects, project.projectId, wamPlugins]);
 
   return (
     <>
@@ -172,6 +187,25 @@ export function Library({
                 await ProjectPersistance.openProject(item.data.id);
                 break;
               }
+              case "wam": {
+                const selected = project.selected.get();
+                switch (selected?.status) {
+                  case "tracks":
+                    const track = nullthrows(selected.tracks.at(0), "no track to add dsp to");
+                    await addAvailableWamToTrack(track, item.data.plugin);
+                    break;
+                  case "clips":
+                  case "effects":
+                  case "loop_marker":
+                  case "time":
+                  case "track_time":
+                  case undefined:
+                    throw new Error("UNIMPLEMENTED");
+                  default:
+                    exhaustive(selected);
+                }
+                break;
+              }
               default:
                 exhaustive(item.data);
             }
@@ -206,6 +240,8 @@ export function Library({
                 // todo do something with result? necessary?
                 break;
               }
+              case "wam":
+                throw new Error("UNIMPLEMENTED");
               default:
                 exhaustive(item.data);
             }

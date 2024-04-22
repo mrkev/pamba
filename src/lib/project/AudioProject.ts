@@ -2,7 +2,7 @@ import type { ScaleLinear } from "d3-scale";
 import { scaleLinear } from "d3-scale";
 import { SArray, SSet } from "structured-state";
 import { ulid } from "ulid";
-import { DEFAULT_TEMPO, SYNTH_101_URL, liveAudioContext } from "../../constants";
+import { DEFAULT_TEMPO, SOUND_FONT_URL, SYNTH_101_URL, liveAudioContext } from "../../constants";
 import { getFirebaseStorage } from "../../firebase/getFirebase";
 import { MidiClip } from "../../midi/MidiClip";
 import { MidiInstrument } from "../../midi/MidiInstrument";
@@ -181,7 +181,7 @@ export class AudioProject {
 
   static async addMidiTrack(project: AudioProject, track?: MidiTrack) {
     const wamHostGroupId = nullthrows(appEnvironment.wamHostGroup.get())[0];
-    const obxd = await MidiInstrument.createFromUrl(SYNTH_101_URL, wamHostGroupId, liveAudioContext());
+    const obxd = await MidiInstrument.createFromUrl(SOUND_FONT_URL, wamHostGroupId, liveAudioContext());
     const newTrack = track ?? (await MidiTrack.createWithInstrument(obxd, "midi track"));
     project.allTracks.unshift(newTrack);
     return newTrack;
