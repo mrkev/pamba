@@ -9,7 +9,6 @@ import { PambaWamNode } from "../wam/PambaWamNode";
 import { AudioClip } from "./AudioClip";
 import { ProjectTrack, StandardTrack } from "./ProjectTrack";
 import { ProjectTrackDSP } from "./ProjectTrackDSP";
-import { TrackThread } from "./TrackThread";
 import { connectSerialNodes } from "./connectSerialNodes";
 import { AudioContextInfo } from "./initAudioContext";
 import { AudioProject } from "./project/AudioProject";
@@ -21,7 +20,7 @@ export class AudioTrack extends Structured<SAudioTrack, typeof AudioTrack> imple
   public readonly height: SPrimitive<number>;
 
   // For background processing
-  private thread_UNUSED = new TrackThread();
+  // private thread_UNUSED = new TrackThread();
 
   // if audo is playing, this is the soruce with the playing buffer
   private playingSource: AudioBufferSourceNode | null;

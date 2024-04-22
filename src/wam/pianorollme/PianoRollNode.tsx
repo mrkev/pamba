@@ -1,32 +1,16 @@
 import { WamEventMap } from "@webaudiomodules/api";
-import { WamNode, WebAudioModule } from "../../../packages/sdk/dist/index";
-// import { h, render } from "preact";
-
-import { PatternDelegate } from "wam-extensions";
-
-// import { PianoRollView } from "./PianoRollView";
-// import { getBaseUrl } from "../../shared/getBaseUrl";
-import { Clip } from "./PianoRollClip";
-// import { PianoRoll } from "./PianoRoll";
-
-// import styles from "./PianoRollView.scss";
-// import { insertStyle } from "../../shared/insertStyle";
-
-// import { MIDIConfiguration } from "./MIDIConfiguration";
 import { NoteDefinition } from "wam-extensions";
+import { WamNode, WebAudioModule } from "../../../packages/sdk/dist/index";
 import { PianoRollProcessorMessage, SimpleMidiClip } from "../../midi/SharedMidiTypes";
 import { ignorePromise } from "../../utils/ignorePromise";
 import { MIDIConfiguration } from "./MIDIConfiguration";
 import { NoteCanvasRenderState, NoteCanvasRenderer } from "./NoteCanvasRenderer";
-import { ClipState } from "./PianoRollClip";
+import { Clip, ClipState } from "./PianoRollClip";
 import PianoRollProcessorUrl from "./PianoRollProcessor?url";
 import DescriptorUrl from "./descriptor.json?url";
 
-const logger = console.log;
-
 export class PianoRollNode extends WamNode {
   destroyed = false;
-
   pianoRoll: PianoRoll;
   // 'wam-automation' | 'wam-transport' | 'wam-midi' | 'wam-sysex' | 'wam-mpe' | 'wam-osc';
   override readonly _supportedEventTypes: Set<keyof WamEventMap> = new Set([
@@ -63,28 +47,10 @@ export class PianoRollNode extends WamNode {
 
 /// MAIN THING
 export class PianoRollModule extends WebAudioModule<PianoRollNode> {
-  _pianoRollProcessorUrl = PianoRollProcessorUrl;
   nonce: string | undefined;
   override _descriptor: any;
-
-  override async _loadDescriptor() {
-    const url = DescriptorUrl;
-    if (!url) throw new TypeError("Descriptor not found");
-    const response = await fetch(url);
-    const descriptor = await response.json();
-    Object.assign(this._descriptor, descriptor);
-    return descriptor;
-  }
-
   sequencer: PianoRollNode = null as any; // todo as any
   // transport?: WamTransportData;
-
-  override async initialize(state: any) {
-    await this._loadDescriptor();
-    // console.log("INIT FOO");
-
-    return super.initialize(state);
-  }
 
   public sendClipsForPlayback(seqClips: SimpleMidiClip[]) {
     const message: PianoRollProcessorMessage = { action: "newclip", seqClips };
@@ -95,9 +61,26 @@ export class PianoRollModule extends WebAudioModule<PianoRollNode> {
     this.sequencer.port.postMessage(seqClips);
   }
 
+  // OVERRIDES
+
+  override async _loadDescriptor() {
+    const url = DescriptorUrl;
+    if (!url) throw new TypeError("Descriptor not found");
+    const response = await fetch(url);
+    const descriptor = await response.json();
+    Object.assign(this._descriptor, descriptor);
+    return descriptor;
+  }
+
+  override async initialize(state: any) {
+    await this._loadDescriptor();
+    // console.log("INIT FOO");
+    return super.initialize(state);
+  }
+
   override async createAudioNode(initialState: any) {
     await PianoRollNode.addModules(this.audioContext, this.moduleId);
-    await this.audioContext.audioWorklet.addModule(this._pianoRollProcessorUrl);
+    await this.audioContext.audioWorklet.addModule(PianoRollProcessorUrl);
 
     const node: PianoRollNode = new PianoRollNode(this, {});
 
@@ -216,63 +199,6 @@ export class PianoRollModule extends WebAudioModule<PianoRollNode> {
     } else {
       this.sequencer.pianoRoll.armHostRecording(true);
     }
-
-    if (!(window.WAMExtensions && window.WAMExtensions.patterns)) {
-      return;
-    }
-
-    let patternDelegate: PatternDelegate = {
-      getPatternList: () => {
-        return Object.keys(this.sequencer.pianoRoll.clips).map((id) => {
-          return { id: id, name: "pattern" };
-        });
-      },
-      createPattern: (id: string) => {
-        logger("createPattern(%s)", id);
-        this.sequencer.pianoRoll.addClip(id);
-      },
-      deletePattern: (id: string) => {
-        logger("deletePattern(%s)", id);
-        delete this.sequencer.pianoRoll.clips[id];
-      },
-      playPattern: (id: string | undefined) => {
-        logger("playPattern(%s)", id);
-
-        let clip = this.sequencer.pianoRoll.getClip(id as any); // todo as any
-        if (!clip && id != undefined) {
-          console.log("PianoRoll index: adding clip ", id);
-          this.sequencer.pianoRoll.addClip(id);
-        }
-        this.sequencer.pianoRoll.playingClip = id;
-
-        this.sequencer.port.postMessage({ action: "play", id });
-      },
-      getPatternState: (id: string) => {
-        logger("getPatternState(%s)", id);
-
-        let clip = this.sequencer.pianoRoll.getClip(id);
-        if (clip) {
-          return clip.getState(true);
-        } else {
-          return undefined;
-        }
-      },
-      setPatternState: (id: string, state: any) => {
-        logger("setPatternState(%s, %o)", id, state);
-        let clip = this.sequencer.pianoRoll.getClip(id);
-        if (clip) {
-          ignorePromise(clip.setState(state, id));
-        } else {
-          let clip = new Clip(id, state);
-          this.sequencer.pianoRoll.clips[id] = clip;
-        }
-        if (this.sequencer.pianoRoll.renderCallback) {
-          this.sequencer.pianoRoll.renderCallback();
-        }
-      },
-    };
-
-    window.WAMExtensions.patterns.setPatternDelegate(this.instanceId, patternDelegate);
   }
 }
 

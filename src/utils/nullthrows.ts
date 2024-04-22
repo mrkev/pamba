@@ -14,3 +14,7 @@ export function assert(value: boolean, msg?: string) {
     throw new Error(msg ?? "Assertion failed");
   }
 }
+
+export function mutablearr<T>(arr: readonly T[]): T[] {
+  return arr as any;
+}

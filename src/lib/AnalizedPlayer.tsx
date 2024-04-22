@@ -76,7 +76,7 @@ export class AnalizedPlayer {
           ) {
             const loopTime = (currentTimeInBuffer - loopStart) % (loopEnd - loopStart);
             currentTimeInBuffer = loopStart + loopTime;
-            console.log("loop");
+            // console.log("loop");
           }
           this.drawPlaybackTime(currentTimeInBuffer);
           this.drawPlaybeatTime?.(currentTimeInBuffer);

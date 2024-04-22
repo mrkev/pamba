@@ -158,6 +158,18 @@ export function MidiClipEditor({
         />
         Length <input value={40} onChange={console.log} />
         <UtilityNumber value={1} onChange={console.log} />
+        <input
+          type="range"
+          min={3}
+          max={20}
+          step={1}
+          value={noteHeight}
+          title="Horizontal Zoom level"
+          onChange={(e) => {
+            const newVal = parseFloat(e.target.value);
+            setNoteHeight(newVal);
+          }}
+        />
       </div>
 
       <input
@@ -221,19 +233,6 @@ export function MidiClipEditor({
           })}
         </div>
       </div>
-
-      <input
-        type="range"
-        min={3}
-        max={20}
-        step={1}
-        value={noteHeight}
-        title="Horizontal Zoom level"
-        onChange={(e) => {
-          const newVal = parseFloat(e.target.value);
-          setNoteHeight(newVal);
-        }}
-      />
     </>
   );
 }

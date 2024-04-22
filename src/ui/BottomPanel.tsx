@@ -59,8 +59,8 @@ export function BottomPanel({
     );
   }
 
-  const clip = activeTrack.pianoRoll.sequencer.pianoRoll.clips["default"];
-  return <OldMidiClipEditor clip={clip} player={player} />;
+  // const clip = activeTrack.pianoRoll.sequencer.pianoRoll.clips["default"];
+  // return <OldMidiClipEditor clip={clip} player={player} />;
 }
 function getValidEditorSelection(selected: PrimarySelectionState | null) {
   if (selected == null) {

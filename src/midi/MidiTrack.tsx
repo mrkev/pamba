@@ -2,81 +2,22 @@ import type { WebAudioModule } from "@webaudiomodules/api";
 import { SPrimitive, SSchemaArray, arrayOf } from "structured-state";
 import { CLIP_HEIGHT, PIANO_ROLL_PLUGIN_URL, SECS_IN_MINUTE, TIME_SIGNATURE, liveAudioContext } from "../constants";
 import { appEnvironment } from "../lib/AppEnvironment";
-import { ProjectTrack, StandardTrack } from "../lib/ProjectTrack";
+import { StandardTrack } from "../lib/ProjectTrack";
 import { ProjectTrackDSP } from "../lib/ProjectTrackDSP";
 import { connectSerialNodes } from "../lib/connectSerialNodes";
+import { AudioProject } from "../lib/project/AudioProject";
 import { nullthrows } from "../utils/nullthrows";
 import { PianoRollModule, PianoRollNode } from "../wam/pianorollme/PianoRollNode";
 import { MidiClip } from "./MidiClip";
 import { MidiInstrument } from "./MidiInstrument";
-import type { SimpleMidiClip } from "./SharedMidiTypes";
-import { AudioProject } from "../lib/project/AudioProject";
-
-const SAMPLE_STATE = {
-  clips: {
-    default: {
-      length: 96,
-      notes: [
-        {
-          tick: 0,
-          number: 60,
-          duration: 6,
-          velocity: 100,
-        },
-        {
-          tick: 12,
-          number: 60,
-          duration: 6,
-          velocity: 100,
-        },
-        {
-          tick: 24,
-          number: 60,
-          duration: 6,
-          velocity: 100,
-        },
-        {
-          tick: 36,
-          number: 60,
-          duration: 6,
-          velocity: 100,
-        },
-        {
-          tick: 48,
-          number: 60,
-          duration: 6,
-          velocity: 100,
-        },
-        {
-          tick: 60,
-          number: 60,
-          duration: 6,
-          velocity: 100,
-        },
-        {
-          tick: 72,
-          number: 60,
-          duration: 6,
-          velocity: 100,
-        },
-        {
-          tick: 84,
-          number: 60,
-          duration: 6,
-          velocity: 100,
-        },
-      ],
-      id: "default",
-    },
-  },
-};
+import type { PianoRollProcessorMessage, SimpleMidiClip } from "./SharedMidiTypes";
 
 export class MidiTrack implements StandardTrack<MidiClip> {
-  public readonly dsp: ProjectTrackDSP<MidiClip>;
   public readonly name: SPrimitive<string>;
-  readonly height: SPrimitive<number>;
-
+  public readonly dsp: ProjectTrackDSP<MidiClip>;
   public readonly clips: SSchemaArray<MidiClip>;
+  public readonly height: SPrimitive<number>;
+
   // todo: instrument can be empty?
   instrument: MidiInstrument;
   pianoRoll: PianoRollModule;
@@ -116,13 +57,9 @@ export class MidiTrack implements StandardTrack<MidiClip> {
 
   static async createWithInstrument(instrument: MidiInstrument, name: string, clips?: MidiClip[]) {
     const [groupId] = nullthrows(appEnvironment.wamHostGroup.get());
-    const pianoRollPlugin = nullthrows(appEnvironment.wamPlugins.get(PIANO_ROLL_PLUGIN_URL), "Piano Roll not found!");
-    // const pianoRoll = await pianoRollPlugin.import.createInstance(groupId, liveAudioContext);
     const pianoRoll = await PianoRollModule.createInstance<PianoRollNode>(groupId, liveAudioContext());
     await (pianoRoll as PianoRollModule).sequencer.setState(SAMPLE_STATE);
-
-    // const pianoRollDom = await pianoRoll.createGui();
-    return new MidiTrack(name, pianoRoll as any, instrument, clips ?? []);
+    return new MidiTrack(name, pianoRoll, instrument, clips ?? []);
   }
 
   prepareForPlayback(project: AudioProject, context: AudioContext): void {
@@ -137,7 +74,10 @@ export class MidiTrack implements StandardTrack<MidiClip> {
         endOffsetPulses: clip._timelineEndU,
       });
     }
-    this.pianoRoll.sendClipsForPlayback(simpleClips);
+    // lines from: called: this.pianoRoll.sendClipsForPlayback(simpleClips);
+    const message: PianoRollProcessorMessage = { action: "newclip", seqClips: simpleClips };
+    this.pianoRoll.sequencer.port.postMessage(message);
+
     // connect effect chain
     this.dsp.connectToDSPForPlayback(this.instrument.module.audioNode);
   }
@@ -227,3 +167,62 @@ export class MidiTrack implements StandardTrack<MidiClip> {
     });
   }
 }
+
+const SAMPLE_STATE = {
+  clips: {
+    default: {
+      length: 96,
+      notes: [
+        {
+          tick: 0,
+          number: 60,
+          duration: 6,
+          velocity: 100,
+        },
+        {
+          tick: 12,
+          number: 60,
+          duration: 6,
+          velocity: 100,
+        },
+        {
+          tick: 24,
+          number: 60,
+          duration: 6,
+          velocity: 100,
+        },
+        {
+          tick: 36,
+          number: 60,
+          duration: 6,
+          velocity: 100,
+        },
+        {
+          tick: 48,
+          number: 60,
+          duration: 6,
+          velocity: 100,
+        },
+        {
+          tick: 60,
+          number: 60,
+          duration: 6,
+          velocity: 100,
+        },
+        {
+          tick: 72,
+          number: 60,
+          duration: 6,
+          velocity: 100,
+        },
+        {
+          tick: 84,
+          number: 60,
+          duration: 6,
+          velocity: 100,
+        },
+      ],
+      id: "default",
+    },
+  },
+};

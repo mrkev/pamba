@@ -6,9 +6,7 @@ import { AbstractClip, Pulses } from "../lib/AbstractClip";
 import { ProjectTrack } from "../lib/ProjectTrack";
 import { AudioProject } from "../lib/project/AudioProject";
 import { TimelinePoint, time } from "../lib/project/TimelinePoint";
-import { MutationHashable } from "../lib/state/MutationHashable";
-import { notify } from "../lib/state/Subbable";
-import { nullthrows } from "../utils/nullthrows";
+import { mutablearr, nullthrows } from "../utils/nullthrows";
 import { mutable } from "../utils/types";
 import { PPQN } from "../wam/pianorollme/MIDIConfiguration";
 import { MidiTrack } from "./MidiTrack";
@@ -31,6 +29,16 @@ export function secsToPulses(secs: number, bpm: number) {
 }
 
 export class MidiClip extends Structured<SMidiClip, typeof MidiClip> implements AbstractClip<Pulses> {
+  // AbstractClip
+  readonly unit = "pulse";
+
+  // ordered by tick (start)
+  readonly notes: SArray<Note>;
+  readonly name: SString;
+  public lengthPulses: Pulses;
+  private _startOffsetPulses: Pulses;
+
+  // Experimental, unused
   timelineStart: TimelinePoint;
 
   override serialize(): SMidiClip {
@@ -47,28 +55,18 @@ export class MidiClip extends Structured<SMidiClip, typeof MidiClip> implements 
     throw new Error("Method not implemented.");
   }
 
-  static construct(_json: SMidiClip): MidiClip {
-    throw new Error("Method not implemented.");
+  static construct(json: SMidiClip): MidiClip {
+    return new MidiClip(json.name, json.startOffsetPulses, json.lengthPulses, json.notes);
   }
-
-  // AbstractClip
-  readonly unit = "pulse";
-
-  // ordered by tick (start)
-  readonly notes: SArray<Note>;
-  readonly name: SString;
-
-  public lengthPulses: Pulses;
-  private _startOffsetPulses: Pulses;
 
   static of(name: string, startOffsetPulses: number, lengthPulses: number, notes: Note[]) {
     return s.Structured.create(MidiClip, name, startOffsetPulses, lengthPulses, notes);
   }
 
-  constructor(name: string, startOffsetPulses: number, lengthPulses: number, notes: Note[]) {
+  constructor(name: string, startOffsetPulses: number, lengthPulses: number, notes: readonly Note[]) {
     super();
     this.name = SString.create(name);
-    this.notes = SArray.create(notes);
+    this.notes = SArray.create(mutablearr(notes));
     this.lengthPulses = lengthPulses as Pulses;
     this._startOffsetPulses = startOffsetPulses as Pulses;
     this.timelineStart = time(startOffsetPulses, "pulses");
@@ -76,23 +74,17 @@ export class MidiClip extends Structured<SMidiClip, typeof MidiClip> implements 
 
   addNote(tick: number, num: number, duration: number, velocity: number) {
     addOrderedNote(this.notes, [tick, num, duration, velocity]);
-    this.notifyUpdate();
+    this._notifyChange();
   }
 
   removeNote(note: Note) {
     this.notes.remove(note);
-    this.notifyUpdate();
+    this._notifyChange();
   }
 
   // Good for now, works long term?
   findNote(tick: number, number: number) {
     return this.notes.find(([ntick, nnum]: Note) => ntick == tick && nnum == number) ?? null;
-  }
-
-  // On mutation, they notify their subscribers that they changed
-  public notifyUpdate() {
-    MutationHashable.mutated(this);
-    notify(this, this);
   }
 
   // interface AbstractClip

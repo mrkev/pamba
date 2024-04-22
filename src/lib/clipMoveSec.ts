@@ -92,14 +92,14 @@ export function clipMovePPQN(clip: MidiClip, newOffsetSec: number, project: Audi
   if (!snap) {
     const pulses = secsToPulses(newOffsetSec, bpm);
     clip.startOffsetPulses = pulses;
-    clip.notifyUpdate();
+    clip._notifyChange();
   } else {
     const tempo = project.tempo.get();
     const oneBeatLen = 60 / tempo;
     const actualNewOffsetSec = stepNumber(newOffsetSec, oneBeatLen);
     const pulses = secsToPulses(actualNewOffsetSec, bpm);
     clip.startOffsetPulses = pulses;
-    clip.notifyUpdate();
+    clip._notifyChange();
   }
 }
 

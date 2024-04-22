@@ -163,7 +163,7 @@ export function AudioClipEditor({
 
   return (
     <>
-      <div>
+      <div style={{ marginRight: 4, alignSelf: "center" }}>
         <div
           className={styles.clipHeader}
           style={{
@@ -222,6 +222,7 @@ export function AudioClipEditor({
           flexDirection: "column",
           flexGrow: 1,
           overflow: "hidden",
+          gap: 4,
         }}
       >
         <div style={{ display: "flex", flexDirection: "row", justifyContent: "flex-end" }}>
@@ -249,10 +250,7 @@ export function AudioClipEditor({
         <div
           style={{
             position: "relative",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "stretch",
-            background: "black",
+            flexGrow: 1,
           }}
         >
           {clip.buffer != null && (
@@ -261,8 +259,9 @@ export function AudioClipEditor({
               audioBuffer={clip.buffer}
               scale={clip.detailedViewport.framesPerPixel(clip.sampleRate)}
               offset={lockPlayback ? offsetFrOfPlaybackPos(playbackPos) : waveformStartFr}
-              // width={300}
-              height={50}
+              // width={"100%"}
+              // height={50}
+              style={{ width: "100%", height: 250, background: "black", flexGrow: 1 }}
             />
           )}
           {/* cursor div */}

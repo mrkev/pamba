@@ -160,6 +160,7 @@ const useStyles = createUseStyles({
     flexDirection: "row",
     display: "flex",
     flexGrow: 1,
+    alignItems: "stretch",
   },
   bottomPanelTabs: {
     paddingTop: "4px",

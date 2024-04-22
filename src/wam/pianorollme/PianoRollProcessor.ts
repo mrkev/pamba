@@ -1,17 +1,13 @@
-// import { MIDI } from "../../shared/midi";
 import type { AudioWorkletGlobalScope, WamMidiData, WamTransportData } from "@webaudiomodules/api";
+import type { Note, PianoRollProcessorMessage, SimpleMidiClip } from "../../midi/SharedMidiTypes";
 import { nullthrows } from "../../utils/nullthrows";
+import { MIDI, MIDIConfiguration, PPQN } from "./MIDIConfiguration";
 import { Clip, MIDINoteRecorder } from "./PianoRollClip";
-import { MIDIConfiguration, MIDI, PPQN } from "./MIDIConfiguration";
-import type { PianoRollProcessorMessage, SimpleMidiClip, Note } from "../../midi/SharedMidiTypes";
-// import { Clip } from "./Clip";
-// import { MIDINoteRecorder } from "./MIDINoteRecorder";
-// import { MIDIConfiguration } from "./MIDIConfiguration";
 
-const moduleId = "com.foo.pianoRoll";
+const MODULE_ID = "com.foo.pianoRoll";
 
 const audioWorkletGlobalScope: AudioWorkletGlobalScope = globalThis as unknown as AudioWorkletGlobalScope;
-const ModuleScope = audioWorkletGlobalScope.webAudioModules.getModuleScope(moduleId);
+const ModuleScope = audioWorkletGlobalScope.webAudioModules.getModuleScope(MODULE_ID);
 const WamProcessor = ModuleScope.WamProcessor;
 
 class PianoRollProcessor extends WamProcessor {
@@ -275,7 +271,7 @@ class PianoRollProcessor extends WamProcessor {
 }
 
 try {
-  audioWorkletGlobalScope.registerProcessor(moduleId, PianoRollProcessor as typeof WamProcessor);
+  audioWorkletGlobalScope.registerProcessor(MODULE_ID, PianoRollProcessor as typeof WamProcessor);
 } catch (error) {
   // eslint-disable-next-line no-console
   console.warn(error);
