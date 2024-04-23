@@ -79,21 +79,15 @@ export function UtilityDataList<T>({
               dragStart?.(item, e);
             }}
             onKeyDown={(e: React.KeyboardEvent<HTMLDivElement>) => {
-              if (
-                e.key === "ArrowUp" &&
-                e.target instanceof HTMLDivElement &&
-                e.target.previousElementSibling instanceof HTMLDivElement
-              ) {
-                e.target.previousElementSibling.focus();
+              if (e.key === "ArrowUp" && e.target instanceof HTMLDivElement) {
+                firstDivSibbling(e.target.previousElementSibling, "prev")?.focus();
+                e.preventDefault();
                 return;
               }
 
-              if (
-                e.key === "ArrowDown" &&
-                e.target instanceof HTMLDivElement &&
-                e.target.nextElementSibling instanceof HTMLDivElement
-              ) {
-                e.target.nextElementSibling.focus();
+              if (e.key === "ArrowDown" && e.target instanceof HTMLDivElement) {
+                firstDivSibbling(e.target.nextElementSibling, "next")?.focus();
+                e.preventDefault();
                 return;
               }
 
@@ -148,6 +142,8 @@ const useStyles = createUseStyles({
     border: "1px solid #999",
     borderRadius: "3px",
     flexGrow: 1,
+    flexShrink: 1,
+    overflowY: "scroll",
     fontSize: 12,
     padding: "2px 0px",
     background: "var(--utility-list-bg)",
@@ -163,6 +159,7 @@ const useStyles = createUseStyles({
     overflow: "hidden",
     whiteSpace: "nowrap",
     padding: "0px 2px",
+    flexShrink: 0,
     "&:focus": {
       outline: "5px auto -webkit-focus-ring-color",
       background: "white",
@@ -178,3 +175,17 @@ const useStyles = createUseStyles({
     color: "gray",
   },
 });
+
+function firstDivSibbling(elem: Element | null, dir: "prev" | "next"): HTMLDivElement | null {
+  let res: Element | null = elem;
+  while (res) {
+    if (res instanceof HTMLDivElement) {
+      return res;
+    }
+    if (res == null) {
+      return null;
+    }
+    res = dir === "prev" ? res.previousElementSibling : res.nextElementSibling;
+  }
+  return null;
+}

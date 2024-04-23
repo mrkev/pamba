@@ -52,10 +52,10 @@ export class PianoRollModule extends WebAudioModule<PianoRollNode> {
   sequencer: PianoRollNode = null as any; // todo as any
   // transport?: WamTransportData;
 
-  public sendClipsForPlayback(seqClips: SimpleMidiClip[]) {
-    const message: PianoRollProcessorMessage = { action: "newclip", seqClips };
-    this.sequencer.port.postMessage(message);
-  }
+  // public sendClipsForPlayback(seqClips: SimpleMidiClip[]) {
+  //   const message: PianoRollProcessorMessage = { action: "newclip", seqClips };
+  //   this.sequencer.port.postMessage(message);
+  // }
 
   public sendMessageToProcessor(seqClips: PianoRollProcessorMessage) {
     this.sequencer.port.postMessage(seqClips);

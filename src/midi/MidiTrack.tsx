@@ -1,6 +1,7 @@
 import type { WebAudioModule } from "@webaudiomodules/api";
-import { SPrimitive, SSchemaArray, arrayOf } from "structured-state";
+import { SPrimitive, SSchemaArray, Structured, arrayOf } from "structured-state";
 import { CLIP_HEIGHT, SECS_IN_MINUTE, TIME_SIGNATURE, liveAudioContext } from "../constants";
+import { SMidiTrack } from "../data/serializable";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { StandardTrack } from "../lib/ProjectTrack";
 import { ProjectTrackDSP } from "../lib/ProjectTrackDSP";
@@ -12,30 +13,41 @@ import { MidiClip } from "./MidiClip";
 import { MidiInstrument } from "./MidiInstrument";
 import type { PianoRollProcessorMessage, SimpleMidiClip } from "./SharedMidiTypes";
 
-export class MidiTrack implements StandardTrack<MidiClip> {
+export class MidiTrack extends Structured<SMidiTrack, typeof MidiTrack> implements StandardTrack<MidiClip> {
   public readonly name: SPrimitive<string>;
   public readonly dsp: ProjectTrackDSP<MidiClip>;
   public readonly clips: SSchemaArray<MidiClip>;
   public readonly height: SPrimitive<number>;
 
   // todo: instrument can be empty?
-  instrument: MidiInstrument;
+  instrument: SPrimitive<MidiInstrument>;
   pianoRoll: PianoRollModule;
 
   // the pianoRoll to play. same as .pianoRoll when playing live,
   // a clone in an offline context when bouncing
   playingSource: PianoRollModule | null;
 
-  private constructor(
-    name: string,
-    pianoRoll: WebAudioModule<PianoRollNode>,
-    instrument: MidiInstrument,
-    clips: MidiClip[],
-  ) {
+  override serialize(): SMidiTrack {
+    return {
+      kind: "MidiTrack",
+      name: this.name.get(),
+      clips: this.clips.map((clip) => clip.serialize()),
+    };
+  }
+  override replace(json: SMidiTrack): void {
+    throw new Error("Method not implemented.");
+  }
+
+  static construct(json: SMidiTrack): MidiTrack {
+    throw new Error("Need async construct to construct MidiTrack");
+  }
+
+  constructor(name: string, pianoRoll: WebAudioModule<PianoRollNode>, instrument: MidiInstrument, clips: MidiClip[]) {
+    super();
     this.clips = arrayOf([MidiClip as any], clips);
     this.playingSource = null;
     this.pianoRoll = pianoRoll as any;
-    this.instrument = instrument;
+    this.instrument = SPrimitive.of(instrument);
     this.dsp = new ProjectTrackDSP(this, []);
     this.name = SPrimitive.of(name);
     this.height = SPrimitive.of<number>(CLIP_HEIGHT);
@@ -47,26 +59,32 @@ export class MidiTrack implements StandardTrack<MidiClip> {
     if (clips.length === 0) this.createSampleMidiClip();
   }
 
+  static async createWithInstrument(instrument: MidiInstrument, name: string, clips?: MidiClip[]) {
+    const [groupId] = nullthrows(appEnvironment.wamHostGroup.get());
+    const pianoRoll = await PianoRollModule.createInstance<PianoRollNode>(groupId, liveAudioContext());
+    await (pianoRoll as PianoRollModule).sequencer.setState(SAMPLE_STATE);
+    return new MidiTrack(name, pianoRoll, instrument, clips ?? []);
+  }
+
   // TODO: OLD INSTRUMENT ISN'T BEING PROPERLY REMOVED
   public async changeInstrument(instrument: MidiInstrument) {
+    const currInstr = this.instrument.get();
     // TODO: ensure audio not playing?
     // Disconnect and destroy the old instrument
     await liveAudioContext().suspend();
-    this.instrument.module.audioNode.disconnect(this.pianoRoll.audioNode);
+    currInstr.module.audioNode.disconnect(this.pianoRoll.audioNode);
     this.pianoRoll.audioNode.disconnectEvents(instrument.module.instanceId);
     this.pianoRoll.audioNode.clearEvents();
-    this.instrument.disconnectAll();
-    this.instrument.module.audioNode.disconnect();
-    this.instrument.module.audioNode.disconnectEvents();
-    this.instrument.destroy();
-    this.instrument.module.audioNode;
-    console.log(this.instrument);
+    currInstr.disconnectAll();
+    currInstr.module.audioNode.disconnect();
+    currInstr.module.audioNode.disconnectEvents();
+    currInstr.destroy();
 
     // Setup the new instrument
-    this.instrument = instrument;
-    this.instrument.module.audioNode.connect(this.pianoRoll.audioNode);
+    this.instrument.set(instrument);
+    instrument.module.audioNode.connect(this.pianoRoll.audioNode);
     this.pianoRoll.audioNode.connectEvents(instrument.module.instanceId);
-    console.log("chagned instrument to", this.instrument.url);
+    console.log("chagned instrument to", instrument.url);
     await liveAudioContext().resume();
   }
 
@@ -78,14 +96,7 @@ export class MidiTrack implements StandardTrack<MidiClip> {
     this.clips.push(newClip);
   }
 
-  static async createWithInstrument(instrument: MidiInstrument, name: string, clips?: MidiClip[]) {
-    const [groupId] = nullthrows(appEnvironment.wamHostGroup.get());
-    const pianoRoll = await PianoRollModule.createInstance<PianoRollNode>(groupId, liveAudioContext());
-    await (pianoRoll as PianoRollModule).sequencer.setState(SAMPLE_STATE);
-    return new MidiTrack(name, pianoRoll, instrument, clips ?? []);
-  }
-
-  prepareForPlayback(project: AudioProject, context: AudioContext): void {
+  prepareForPlayback(project: AudioProject, context: AudioContext, startingAt: number): void {
     this.playingSource = this.pianoRoll;
     // send clips to processor
     // should already be in ascending order of startOffsetPulses
@@ -97,12 +108,24 @@ export class MidiTrack implements StandardTrack<MidiClip> {
         endOffsetPulses: clip._timelineEndU,
       });
     }
+
+    // LOOP in pulses for now, is this what we want?
+    const loop = AudioProject.playbackWillLoop(project, startingAt)
+      ? ([project.loopStart.pulses(project), project.loopEnd.pulses(project)] as const)
+      : null;
+
+    console.log(`midi looping`, loop);
+
     // lines from: called: this.pianoRoll.sendClipsForPlayback(simpleClips);
-    const message: PianoRollProcessorMessage = { action: "newclip", seqClips: simpleClips };
+    const message: PianoRollProcessorMessage = {
+      action: "prepare_playback",
+      seqClips: simpleClips,
+      loop,
+    };
     this.pianoRoll.sequencer.port.postMessage(message);
 
     // connect effect chain
-    this.dsp.connectToDSPForPlayback(this.instrument.module.audioNode);
+    this.dsp.connectToDSPForPlayback(this.instrument.get().module.audioNode);
   }
 
   async prepareForBounce(
@@ -113,7 +136,7 @@ export class MidiTrack implements StandardTrack<MidiClip> {
       wamHostGroup: [groupId],
     } = offlineContextInfo;
     const pianoRoll = await PianoRollModule.createInstance<PianoRollNode>(groupId, context);
-    const instrument = await this.instrument.actualCloneToOfflineContext(context, offlineContextInfo);
+    const instrument = await this.instrument.get().actualCloneToOfflineContext(context, offlineContextInfo);
     if (instrument == null) {
       throw new Error("failed to clone instrument to offline audio context");
     }

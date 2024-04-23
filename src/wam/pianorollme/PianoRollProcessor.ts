@@ -27,6 +27,7 @@ class PianoRollProcessor extends WamProcessor {
   clips: Map<string, Clip>;
   // new system
   seqClips: SimpleMidiClip[] = [];
+  loop: readonly [number, number] | null = null;
 
   pendingClipChange?: { id: string; timestamp: number };
   currentClipId: string;
@@ -121,6 +122,7 @@ class PianoRollProcessor extends WamProcessor {
       return;
     }
 
+    // OLD SYSTEM? I DON'T THINK THIS RUNS ANYMORE
     if (this.transportData!.playing && this.transportData!.currentBarStarted <= schedulerTime) {
       const timeElapsed = schedulerTime - this.transportData!.currentBarStarted;
       const beatPosition =
@@ -135,7 +137,9 @@ class PianoRollProcessor extends WamProcessor {
         this.noteRecorder.finalizeAllNotes(clip.state.length - 1);
       }
 
-      let secondsPerTick = 1.0 / ((this.transportData!.tempo / 60.0) * PPQN);
+      const secondsPerTick = 1.0 / ((this.transportData!.tempo / 60.0) * PPQN);
+
+      console.log("ticks", this.ticks);
 
       while (this.ticks < absoluteTickPosition) {
         this.ticks = this.ticks + 1;
@@ -162,16 +166,21 @@ class PianoRollProcessor extends WamProcessor {
     return;
   }
 
+  // schedulerTime:
+  // - ever increasing timer, in seconds. Total time web audio has been playing? I keep it playing even when timeline is paused.
+  // - looks into the future. not current playback, but up to where we want to schedule
   private newSystemPlayback(schedulerTime: number) {
     const clipLength = 96; // todo, clip length in PPQN units // clip.state.length
     const theClips = this.seqClips;
-
     const transportData = nullthrows(this.transportData, "no transport data");
+    const startingTicks = this.startingTicks; // where we started playback in the timeline
 
+    // seconds since playback started, without accounting for loop
     const timeElapsed = schedulerTime - transportData.currentBarStarted;
     const beatPosition =
       transportData.currentBar * transportData.timeSigNumerator + (transportData.tempo / 60.0) * timeElapsed;
 
+    // absolute tick (pulse) position in track, without accounting for looping
     const absoluteTickPosition = Math.floor(beatPosition * PPQN);
 
     const clipPosition = absoluteTickPosition % clipLength; // remove `% clipLength`. But unimportant for now, only used when recordingArmed
@@ -186,12 +195,24 @@ class PianoRollProcessor extends WamProcessor {
 
     // console.log(currMidiPulse, "->", absoluteTickPosition);
 
+    const loopStart = this.loop == null ? null : this.loop[0];
+    const loopEnd = this.loop == null ? null : this.loop[1];
+
+    console.log("startingTikcs", this.startingTicks);
+
     while (this.ticks < absoluteTickPosition) {
+      // update ticks
       this.ticks = this.ticks + 1;
 
-      const tickMoment = transportData.currentBarStarted + (this.ticks - this.startingTicks) * secondsPerTick;
-      // console.log(this.ticks, tickMoment);
-      notesForTickNew(this.ticks, theClips).forEach(([ntick, nnumber, nduration, nvelocity]: Note) => {
+      const loopedTicks = loopEnd == null || loopStart == null ? this.ticks : (this.ticks % loopEnd) + loopStart;
+
+      console.log("notesForTickNew(loopedTicks, theClips)", loopedTicks);
+
+      // note: schedule based on real ticks, not looped ticks
+      const tickMoment = transportData.currentBarStarted + (this.ticks - startingTicks) * secondsPerTick;
+
+      // console.log(loopedTicks, tickMoment);
+      notesForTickNew(loopedTicks, theClips).forEach(([ntick, nnumber, nduration, nvelocity]: Note) => {
         console.log("events", tickMoment);
         this.emitEvents(
           {
@@ -214,32 +235,50 @@ class PianoRollProcessor extends WamProcessor {
    * @param {MessageEvent} message
    */
   async _onMessage(message: { data: PianoRollProcessorMessage }): Promise<void> {
-    if (message.data && message.data.action === "newclip") {
-      this.seqClips = message.data.seqClips;
-      console.log(message);
+    if (!message.data) {
       return;
     }
 
-    if (message.data && message.data.action == "clip") {
-      let clip = new Clip(message.data.id, message.data.state);
-      this.clips.set(message.data.id, clip);
-    } else if (message.data && message.data.action == "play") {
-      this.pendingClipChange = {
-        id: message.data.id,
-        timestamp: 0,
-      };
-    } else if (message.data && message.data.action == "midiConfig") {
-      const currentlyRecording = this.midiConfig.hostRecordingArmed && this.midiConfig.pluginRecordingArmed;
-      const stillRecording = message.data.config.hostRecordingArmed && message.data.config.pluginRecordingArmed;
-
-      if (currentlyRecording && !stillRecording) {
-        this.noteRecorder.finalizeAllNotes(this.ticks);
+    switch (message.data.action) {
+      case "clip": {
+        console.log("OLD CLIP MESSAGE");
+        let clip = new Clip(message.data.id, message.data.state);
+        this.clips.set(message.data.id, clip);
+        return;
       }
 
-      this.midiConfig = message.data.config;
-      this.noteRecorder.channel = this.midiConfig.inputMidiChannel;
-    } else {
-      super._onMessage(message);
+      case "prepare_playback": {
+        // New clips message
+        const { seqClips, loop } = message.data;
+        this.seqClips = seqClips;
+        this.loop = loop;
+        console.log(message);
+        return;
+      }
+
+      case "midiConfig": {
+        const currentlyRecording = this.midiConfig.hostRecordingArmed && this.midiConfig.pluginRecordingArmed;
+        const stillRecording = message.data.config.hostRecordingArmed && message.data.config.pluginRecordingArmed;
+
+        if (currentlyRecording && !stillRecording) {
+          this.noteRecorder.finalizeAllNotes(this.ticks);
+        }
+
+        this.midiConfig = message.data.config;
+        this.noteRecorder.channel = this.midiConfig.inputMidiChannel;
+        return;
+      }
+
+      case "play": {
+        this.pendingClipChange = {
+          id: message.data.id,
+          timestamp: 0,
+        };
+        break;
+      }
+      default:
+        super._onMessage(message);
+        break;
     }
   }
 

@@ -10,6 +10,7 @@ import { AudioRenderer } from "../lib/AudioRenderer";
 import { AudioTrack } from "../lib/AudioTrack";
 import { ProjectPersistance } from "../lib/ProjectPersistance";
 import { ProjectTrack } from "../lib/ProjectTrack";
+import { addAvailableWamToTrack } from "../lib/addAvailableWamToTrack";
 import { AudioProject } from "../lib/project/AudioProject";
 import { useLinkedArrayMaybe } from "../lib/state/LinkedArray";
 import { useLinkedMap } from "../lib/state/LinkedMap";
@@ -17,14 +18,12 @@ import { useLinkedState } from "../lib/state/LinkedState";
 import { pressedState } from "../pressedState";
 import { exhaustive } from "../utils/exhaustive";
 import { ignorePromise } from "../utils/ignorePromise";
+import { nullthrows } from "../utils/nullthrows";
 import { AudioFileUploadDropzone } from "./AudioFileUploadDropzone";
 import { doConfirm } from "./ConfirmDialog";
 import { UploadAudioButton } from "./UploadAudioButton";
 import { ListEntry, UtilityDataList } from "./UtilityList";
 import { closeProject } from "./header/ToolHeader";
-import { ProjectSelection } from "../lib/project/ProjectSelection";
-import { nullthrows } from "../utils/nullthrows";
-import { addAvailableWamToTrack } from "../lib/addAvailableWamToTrack";
 
 const STATIC_AUDIO_FILES = ["drums.mp3", "clav.mp3", "bassguitar.mp3", "horns.mp3", "leadguitar.mp3"];
 
@@ -151,104 +150,105 @@ export function Library({
         }}
       />
 
-      <AudioFileUploadDropzone className={classes.list} project={project}>
-        {/* Library */}
-        <UtilityDataList<LibraryItem>
-          // data is url
-          filter={libraryFilter}
-          draggable={!isAudioPlaying}
-          disabled={isAudioPlaying}
-          onDragStart={function (item, ev: React.DragEvent<HTMLDivElement>) {
-            if (item.data.kind !== "audio") {
-              return;
-            }
+      {/* TODO: uncomment. commented out because it prevents scroll in the list */}
+      {/* <AudioFileUploadDropzone className={classes.list} project={project}> */}
+      {/* Library */}
+      <UtilityDataList<LibraryItem>
+        // data is url
+        filter={libraryFilter}
+        draggable={!isAudioPlaying}
+        disabled={isAudioPlaying}
+        onDragStart={function (item, ev: React.DragEvent<HTMLDivElement>) {
+          if (item.data.kind !== "audio") {
+            return;
+          }
 
-            ev.dataTransfer.setData("text/uri-list", item.data.url);
-            ev.dataTransfer.setData("text/plain", item.data.url);
-            pressedState.set({
-              status: "dragging_library_item",
-              libraryItem: item.data,
-            });
-          }}
-          onDragEnd={() => {
-            pressedState.set(null);
-          }}
-          onItemSelect={async (item) => {
-            switch (item.data.kind) {
-              case "audio":
-                ignorePromise(loadClip(item.data.url));
-                break;
-              case "project": {
-                const didClose = await closeProject(project);
-                if (!didClose) {
-                  return;
-                }
-
-                await ProjectPersistance.openProject(item.data.id);
-                break;
+          ev.dataTransfer.setData("text/uri-list", item.data.url);
+          ev.dataTransfer.setData("text/plain", item.data.url);
+          pressedState.set({
+            status: "dragging_library_item",
+            libraryItem: item.data,
+          });
+        }}
+        onDragEnd={() => {
+          pressedState.set(null);
+        }}
+        onItemSelect={async (item) => {
+          switch (item.data.kind) {
+            case "audio":
+              ignorePromise(loadClip(item.data.url));
+              break;
+            case "project": {
+              const didClose = await closeProject(project);
+              if (!didClose) {
+                return;
               }
-              case "wam": {
-                const selected = project.selected.get();
-                switch (selected?.status) {
-                  case "tracks":
-                    const track = nullthrows(selected.tracks.at(0), "no track to add dsp to");
-                    await addAvailableWamToTrack(track, item.data.plugin);
-                    break;
-                  case "clips":
-                  case "effects":
-                  case "loop_marker":
-                  case "time":
-                  case "track_time":
-                  case undefined:
-                    throw new Error("UNIMPLEMENTED");
-                  default:
-                    exhaustive(selected);
-                }
-                break;
+
+              await ProjectPersistance.openProject(item.data.id);
+              break;
+            }
+            case "wam": {
+              const selected = project.selected.get();
+              switch (selected?.status) {
+                case "tracks":
+                  const track = nullthrows(selected.tracks.at(0), "no track to add dsp to");
+                  await addAvailableWamToTrack(track, item.data.plugin);
+                  break;
+                case "clips":
+                case "effects":
+                case "loop_marker":
+                case "time":
+                case "track_time":
+                case undefined:
+                  throw new Error("UNIMPLEMENTED");
+                default:
+                  exhaustive(selected);
               }
-              default:
-                exhaustive(item.data);
+              break;
             }
-          }}
-          onKeydown={async (item, e) => {
-            if (e.key !== "Backspace") {
-              return;
-            }
+            default:
+              exhaustive(item.data);
+          }
+        }}
+        onKeydown={async (item, e) => {
+          if (e.key !== "Backspace") {
+            return;
+          }
 
-            const selection = await doConfirm(
-              `Are you sure you want to delete "${item.title}"?\nThis cannot be undone.`,
-              "yes",
-              "no",
-            );
+          const selection = await doConfirm(
+            `Are you sure you want to delete "${item.title}"?\nThis cannot be undone.`,
+            "yes",
+            "no",
+          );
 
-            if (selection === "no" || selection === "cancel") {
-              return;
-            }
+          if (selection === "no" || selection === "cancel") {
+            return;
+          }
 
-            switch (item.data.kind) {
-              case "audio":
-                // TODO? Warn about files that use this audio?
-                alert("not implemented, coming soon");
-                break;
-              case "project": {
-                if (item.data.id === project.projectId) {
-                  alert("cant delete current project");
-                  // todo: auto-close, create new empty project, etc
-                }
-
-                const result = await appEnvironment.localFiles.projectLib.delete(item.data.id);
-                // todo do something with result? necessary?
-                break;
+          switch (item.data.kind) {
+            case "audio":
+              // TODO? Warn about files that use this audio?
+              alert("not implemented, coming soon");
+              break;
+            case "project": {
+              if (item.data.id === project.projectId) {
+                alert("cant delete current project");
+                // todo: auto-close, create new empty project, etc
               }
-              case "wam":
-                throw new Error("UNIMPLEMENTED");
-              default:
-                exhaustive(item.data);
+
+              const result = await appEnvironment.localFiles.projectLib.delete(item.data.id);
+              // todo do something with result? necessary?
+              break;
             }
-          }}
-          items={items}
-        />
-      </AudioFileUploadDropzone>
+            case "wam":
+              throw new Error("UNIMPLEMENTED");
+            default:
+              exhaustive(item.data);
+          }
+        }}
+        items={items}
+      />
+      {/* </AudioFileUploadDropzone> */}
 
       {/* TODO: library won't be updated when new audio gets uploaded, unless it's constantly executed when I think it might be */}
       <UploadAudioButton project={project} loadClip={loadClip} />
@@ -263,9 +263,9 @@ const useStyles = createUseStyles({
   list: {
     display: "flex",
     flexDirection: "column",
-    // border: "1px solid #999",
     borderRadius: "3px",
     flexGrow: 1,
     fontSize: 12,
+    flexShrink: 1,
   },
 });

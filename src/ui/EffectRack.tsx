@@ -78,23 +78,7 @@ export const EffectRack = React.memo(function EffectRack({
         ref={rackRef}
       >
         {"↳"}
-        {track instanceof MidiTrack && (
-          <React.Fragment>
-            <Effect
-              canDelete={!isAudioPlaying}
-              onClickRemove={() => {
-                console.log("CANT REMOVE");
-              }}
-              onHeaderClick={() => console.log("TODO")}
-              onClickBypass={() => console.log("TODO")}
-              isSelected={false}
-              title={"Instrument"}
-            >
-              <button onClick={() => appEnvironment.openEffects.add(track.instrument)}>Configure</button>
-            </Effect>
-            {"→"}
-          </React.Fragment>
-        )}
+        {track instanceof MidiTrack && <InstrumentEffect track={track} project={project} renderer={renderer} />}
 
         {effects.map((effect, i) => {
           if (effect instanceof FaustAudioEffect) {
@@ -172,3 +156,25 @@ export const EffectRack = React.memo(function EffectRack({
     </>
   );
 });
+
+function InstrumentEffect({ track }: { track: MidiTrack; project: AudioProject; renderer: AudioRenderer }) {
+  const [instrument] = usePrimitive(track.instrument);
+  return (
+    <React.Fragment>
+      <Effect
+        canDelete={false}
+        onClickRemove={() => {
+          console.log("CANT REMOVE");
+        }}
+        onHeaderClick={() => console.log("TODO")}
+        onClickBypass={() => console.log("TODO")}
+        isSelected={false}
+        title={instrument.name}
+      >
+        {/* TODO: this wont be reactive: the window won't render the new instrument when we change it */}
+        <button onClick={() => appEnvironment.openEffects.add(instrument)}>Configure</button>
+      </Effect>
+      {"→"}
+    </React.Fragment>
+  );
+}
