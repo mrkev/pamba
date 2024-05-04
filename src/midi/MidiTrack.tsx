@@ -123,6 +123,7 @@ export class MidiTrack extends Structured<SMidiTrack, typeof MidiTrack> implemen
       loop,
     };
     this.pianoRoll.sequencer.port.postMessage(message);
+    console.log(message);
 
     // connect effect chain
     this.dsp.connectToDSPForPlayback(this.instrument.get().module.audioNode);

@@ -198,15 +198,22 @@ class PianoRollProcessor extends WamProcessor {
     const loopStart = this.loop == null ? null : this.loop[0];
     const loopEnd = this.loop == null ? null : this.loop[1];
 
-    console.log("startingTikcs", this.startingTicks);
+    // console.log("startingTikcs", this.startingTicks);
 
     while (this.ticks < absoluteTickPosition) {
       // update ticks
       this.ticks = this.ticks + 1;
 
-      const loopedTicks = loopEnd == null || loopStart == null ? this.ticks : (this.ticks % loopEnd) + loopStart;
+      const loopedTicks =
+        loopEnd != null &&
+        loopStart != null &&
+        //  in the loop
+        this.ticks - loopStart > 0
+          ? ((this.ticks - loopStart) % (loopEnd - loopStart)) + loopStart
+          : this.ticks;
+      // const loopTime = (currentTimeInBuffer - loopStart) % (loopEnd - loopStart);
 
-      console.log("notesForTickNew(loopedTicks, theClips)", loopedTicks);
+      console.log("ticks", this.ticks, "loopedTicks", loopedTicks);
 
       // note: schedule based on real ticks, not looped ticks
       const tickMoment = transportData.currentBarStarted + (this.ticks - startingTicks) * secondsPerTick;

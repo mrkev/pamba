@@ -1,4 +1,7 @@
 export const changelog = `
+next
+- fix midi looping when loop start isn't 0s
+
 v.1.5
 - project load times improvements
 - midi: new instruments
