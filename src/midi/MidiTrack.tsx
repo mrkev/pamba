@@ -32,6 +32,7 @@ export class MidiTrack extends Structured<SMidiTrack, typeof MidiTrack> implemen
       kind: "MidiTrack",
       name: this.name.get(),
       clips: this.clips.map((clip) => clip.serialize()),
+      instrument: this.instrument.get().serialize(),
     };
   }
   override replace(json: SMidiTrack): void {
@@ -123,7 +124,6 @@ export class MidiTrack extends Structured<SMidiTrack, typeof MidiTrack> implemen
       loop,
     };
     this.pianoRoll.sequencer.port.postMessage(message);
-    console.log(message);
 
     // connect effect chain
     this.dsp.connectToDSPForPlayback(this.instrument.get().module.audioNode);

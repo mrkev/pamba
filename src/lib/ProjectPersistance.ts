@@ -50,9 +50,10 @@ export class ProjectPersistance {
 
     appEnvironment.projectStatus.set({ status: "loaded", project: ProjectPersistance.emptyProject() });
     appEnvironment.projectPacakge.set(null);
+    console.log("OPENED EMPTY PROJECT");
   }
 
-  public static async openProject(projectId: string, skipIfLoading: boolean = true) {
+  public static async openProject(projectId: string, skipIfLoading: boolean = true): Promise<void> {
     if (skipIfLoading && appEnvironment.projectStatus.get().status === "loading") {
       console.warn("Aleady loading a project");
       return;
@@ -62,12 +63,18 @@ export class ProjectPersistance {
     const projectPackage = await appEnvironment.localFiles.projectLib.getPackage(projectId);
     if (!(projectPackage instanceof ProjectPackage)) {
       alert(`issue opening project: ${projectPackage}`);
+      // On error create and open empty project:
+      appEnvironment.projectStatus.set({ status: "loaded", project: ProjectPersistance.emptyProject() });
+      appEnvironment.projectPacakge.set(null);
       return;
     }
 
     const project = await projectPackage.readProject();
     if (!(project instanceof AudioProject)) {
       alert(`issue opening project: ${project.status}`);
+      // On error create and open empty project:
+      appEnvironment.projectStatus.set({ status: "loaded", project: ProjectPersistance.emptyProject() });
+      appEnvironment.projectPacakge.set(null);
       return;
     }
 

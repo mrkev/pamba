@@ -20,7 +20,7 @@ import { LinkedState } from "../state/LinkedState";
 import { ignorePromise } from "../state/Subbable";
 import { AudioStorage } from "./AudioStorage";
 import { ProjectViewportUtil } from "./ProjectViewportUtil";
-import { PrimarySelectionState } from "./SelectionState";
+import { PanelSelectionState, PrimarySelectionState } from "./SelectionState";
 import { TimelinePoint, time } from "./TimelinePoint";
 
 /**
@@ -40,6 +40,7 @@ import { TimelinePoint, time } from "./TimelinePoint";
 export type XScale = ScaleLinear<number, number>;
 
 export type Tool = "move" | "trimStart" | "trimEnd" | "slice";
+export type SecondaryTool = "move" | "draw";
 
 export type TimeSignature = readonly [numerator: number, denominator: number];
 export type AxisMeasure = "tempo" | "time";
@@ -69,6 +70,7 @@ export class AudioProject {
 
   // Pointer //
   readonly pointerTool = LinkedState.of<Tool>("move");
+  readonly panelTool = LinkedState.of<SecondaryTool>("move");
   // the width of the selection at the playback cursor
   // TODO: Rename cursor time width or something?
   readonly selectionWidth = LinkedState.of<number | null>(null);
@@ -80,6 +82,9 @@ export class AudioProject {
 
   // the selected clip(s), track(s), etc
   readonly selected = LinkedState.of<PrimarySelectionState | null>(null);
+  readonly secondarySelection = LinkedState.of<PanelSelectionState | null>(null);
+
+  // looping
   readonly loopStart: TimelinePoint;
   readonly loopEnd: TimelinePoint;
   readonly loopOnPlayback = LinkedState.of(false);
@@ -181,8 +186,8 @@ export class AudioProject {
 
   static async addMidiTrack(project: AudioProject, track?: MidiTrack) {
     const wamHostGroupId = nullthrows(appEnvironment.wamHostGroup.get())[0];
-    const obxd = await MidiInstrument.createFromUrl(SOUND_FONT_URL, wamHostGroupId, liveAudioContext());
-    const newTrack = track ?? (await MidiTrack.createWithInstrument(obxd, "midi track"));
+    const instrument = await MidiInstrument.createFromUrl(SOUND_FONT_URL, wamHostGroupId, liveAudioContext());
+    const newTrack = track ?? (await MidiTrack.createWithInstrument(instrument, "midi track"));
     project.allTracks.unshift(newTrack);
     return newTrack;
   }

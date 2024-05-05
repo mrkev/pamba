@@ -4,6 +4,7 @@ import { appEnvironment } from "../lib/AppEnvironment";
 import { LinkedState } from "../lib/state/LinkedState";
 import { nullthrows, assert } from "../utils/nullthrows";
 import { Position } from "../wam/WindowPanel";
+import { SMidiInstrument } from "../data/serializable";
 
 export class MidiInstrument extends DSPNode<null> {
   override effectId: string;
@@ -19,6 +20,13 @@ export class MidiInstrument extends DSPNode<null> {
   }
   override outputNode(): AudioNode | DSPNode<AudioNode> {
     return this.module.audioNode;
+  }
+
+  serialize(): SMidiInstrument {
+    return {
+      kind: "MidiInstrument",
+      url: this.url,
+    };
   }
 
   // Window Panel
@@ -56,10 +64,10 @@ export class MidiInstrument extends DSPNode<null> {
   }
 
   // TODO
-  private async setTest() {
-    const msg = { 2: { id: 2, value: 1.0 } } as any; // for some reason, the id is typed as string but only works if its a number
-    await this.module.audioNode.setParameterValues(msg);
-  }
+  // private async setTest() {
+  //   const msg = { 2: { id: 2, value: 1.0 } } as any; // for some reason, the id is typed as string but only works if its a number
+  //   await this.module.audioNode.setParameterValues(msg);
+  // }
 
   async getState(): Promise<WamParameterDataMap> {
     // for some reason this.module.audioNode.getState() returns undefined, so

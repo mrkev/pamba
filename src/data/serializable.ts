@@ -44,6 +44,12 @@ export type SMidiTrack = {
   kind: "MidiTrack";
   clips: Array<SMidiClip>;
   name: string;
+  instrument: SMidiInstrument;
+};
+
+export type SMidiInstrument = {
+  kind: "MidiInstrument";
+  url: string;
 };
 
 export type SAudioProject = {
@@ -77,9 +83,19 @@ export async function serializable(obj: AudioProject): Promise<SAudioProject>;
 export async function serializable(obj: AudioTrack | MidiTrack): Promise<SAudioTrack | SMidiTrack>;
 export async function serializable(obj: AudioClip): Promise<SAudioClip>;
 export async function serializable(obj: MidiClip): Promise<SMidiClip>;
+export async function serializable(obj: MidiInstrument): Promise<SMidiInstrument>;
 export async function serializable(
-  obj: AudioClip | AudioTrack | MidiClip | MidiTrack | AudioProject | FaustAudioEffect | PambaWamNode,
-): Promise<SAudioClip | SAudioTrack | SMidiClip | SMidiTrack | SAudioProject | SFaustAudioEffect | SPambaWamNode> {
+  obj: AudioClip | AudioTrack | MidiClip | MidiTrack | AudioProject | FaustAudioEffect | PambaWamNode | MidiInstrument,
+): Promise<
+  | SAudioClip
+  | SAudioTrack
+  | SMidiClip
+  | SMidiTrack
+  | SAudioProject
+  | SFaustAudioEffect
+  | SPambaWamNode
+  | SMidiInstrument
+> {
   if (obj instanceof AudioClip) {
     const { name, bufferURL, bufferOffset, timelineStartSec, clipLengthSec } = obj;
     return {
@@ -111,7 +127,12 @@ export async function serializable(
       kind: "MidiTrack",
       name: obj.name.get(),
       clips: await Promise.all(obj.clips.map((clip) => serializable(clip) as any)), // TODO: as any?
+      instrument: obj.instrument.get().serialize(),
     };
+  }
+
+  if (obj instanceof MidiInstrument) {
+    return obj.serialize();
   }
 
   if (obj instanceof AudioProject) {
@@ -152,9 +173,20 @@ export async function construct(rep: SAudioProject): Promise<AudioProject>;
 export async function construct(rep: SAudioClip): Promise<AudioClip>;
 export async function construct(rep: SMidiClip): Promise<MidiClip>;
 export async function construct(rep: SAudioTrack | SMidiTrack): Promise<AudioTrack | MidiTrack>;
+export async function construct(rep: SMidiInstrument): Promise<MidiInstrument>;
 export async function construct(
-  rep: SAudioClip | SMidiClip | SAudioTrack | SMidiTrack | SAudioProject | SFaustAudioEffect | SPambaWamNode,
-): Promise<AudioClip | MidiClip | AudioTrack | MidiTrack | AudioProject | FaustAudioEffect | PambaWamNode> {
+  rep:
+    | SAudioClip
+    | SMidiClip
+    | SAudioTrack
+    | SMidiTrack
+    | SAudioProject
+    | SFaustAudioEffect
+    | SPambaWamNode
+    | SMidiInstrument,
+): Promise<
+  AudioClip | MidiClip | AudioTrack | MidiTrack | AudioProject | FaustAudioEffect | PambaWamNode | MidiInstrument
+> {
   switch (rep.kind) {
     case "AudioClip": {
       const { bufferURL, name, bufferOffset, clipLengthSec, timelineStartSec } = rep;
@@ -175,14 +207,15 @@ export async function construct(
     case "MidiTrack": {
       const { clips: sClips, name } = rep;
       const clips = await Promise.all(sClips.map((clip) => construct(clip)));
-      const [wamHostGroupId] = nullthrows(appEnvironment.wamHostGroup.get(), "wam host not initialized yet!");
-      const obxd = await MidiInstrument.createFromUrl(
-        "https://mainline.i3s.unice.fr/wam2/packages/obxd/index.js",
-        wamHostGroupId,
-        liveAudioContext(),
-      );
-      return MidiTrack.createWithInstrument(obxd, name, clips);
+      const instrument = await construct(rep.instrument);
+      return MidiTrack.createWithInstrument(instrument, name, clips);
     }
+
+    case "MidiInstrument": {
+      const [wamHostGroupId] = nullthrows(appEnvironment.wamHostGroup.get(), "wam host not initialized yet!");
+      return await MidiInstrument.createFromUrl(rep.url, wamHostGroupId, liveAudioContext());
+    }
+
     case "AudioProject": {
       const tracks = await Promise.all(rep.tracks.map((clip) => construct(clip)));
       const { projectId, projectName, tempo, loopStart, loopEnd, loopOnPlayback } = rep;

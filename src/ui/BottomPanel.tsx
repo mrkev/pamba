@@ -1,6 +1,8 @@
 import { useCallback, useRef } from "react";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import { AudioClip } from "../lib/AudioClip";
+import { AudioRenderer } from "../lib/AudioRenderer";
+import { AudioTrack } from "../lib/AudioTrack";
 import { AudioProject } from "../lib/project/AudioProject";
 import { PrimarySelectionState } from "../lib/project/SelectionState";
 import { useLinkedState } from "../lib/state/LinkedState";
@@ -9,11 +11,8 @@ import { MidiTrack } from "../midi/MidiTrack";
 import { exhaustive } from "../utils/exhaustive";
 import { AudioClipEditor } from "./AudioClipEditor";
 import { MidiClipEditor } from "./MidiClipEditor";
-import { OldMidiClipEditor } from "./OldMidiClipEditor";
-import { useMousePressMove } from "./useEventListener";
-import { AudioTrack } from "../lib/AudioTrack";
 import { TrackEditor } from "./TrackEditor";
-import { AudioRenderer } from "../lib/AudioRenderer";
+import { useMousePressMove } from "./useEventListener";
 
 export function BottomPanel({
   project,

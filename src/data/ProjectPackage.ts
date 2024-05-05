@@ -37,7 +37,7 @@ export class ProjectPackage {
     private readonly pkgDir: FSDir,
   ) {}
 
-  async readProject() {
+  async readProject(): Promise<{ status: "invalid" } | AudioProject> {
     // dont need metadata atm but open for good measure?
     const [projectHandle, metadataHandle] = await pAll(
       pTry(this.pkgDir.handle.getFileHandle(ProjectPackage.DOCUMENT_FILE_NAME), "invalid" as const),

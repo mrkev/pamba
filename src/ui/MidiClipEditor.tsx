@@ -1,3 +1,4 @@
+import classNames from "classnames";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createUseStyles } from "react-jss";
 import { history, useContainer, usePrimitive } from "structured-state";
@@ -6,9 +7,11 @@ import { AudioProject } from "../lib/project/AudioProject";
 import { useSubscribeToSubbableMutationHashable } from "../lib/state/LinkedMap";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { MidiClip, secsToPulses } from "../midi/MidiClip";
+import { exhaustive } from "../utils/exhaustive";
 import { PPQN } from "../wam/pianorollme/MIDIConfiguration";
 import { RenamableLabel } from "./RenamableLabel";
 import { UtilityNumber } from "./UtilityNumber";
+import { UtilityToggle } from "./UtilityToggle";
 import { useDrawOnCanvas } from "./useDrawOnCanvas";
 import { useEventListener } from "./useEventListener";
 
@@ -62,6 +65,9 @@ export function MidiClipEditor({
   const [name] = usePrimitive(clip.name);
   const [noteHeight, setNoteHeight] = useState(10 /* px per note */);
   const [pulseWidth, setPulseWidth] = useState(5 /* width of a midi pulse */);
+  const [secondarySel] = useLinkedState(project.secondarySelection);
+  const [panelTool] = useLinkedState(project.panelTool);
+
   const [bpm] = useLinkedState(project.tempo);
 
   useSubscribeToSubbableMutationHashable(clip);
@@ -127,15 +133,32 @@ export function MidiClipEditor({
         const tick = noteX * NOTE_DURATION;
 
         const prevNote = clip.findNote(tick, noteNum);
-        void history.record(() => {
-          if (prevNote != null) {
-            clip.removeNote(prevNote);
-          } else {
-            clip.addNote(tick, noteNum, NOTE_DURATION, 100);
+
+        const panelTool = project.panelTool.get();
+        switch (panelTool) {
+          case "move": {
+            if (prevNote) {
+              project.secondarySelection.set({ status: "note", note: prevNote });
+            } else {
+              project.secondarySelection.set(null);
+            }
+            break;
           }
-        });
+          case "draw": {
+            void history.record(() => {
+              if (prevNote != null) {
+                clip.removeNote(prevNote);
+              } else {
+                clip.addNote(tick, noteNum, NOTE_DURATION, 100);
+              }
+            });
+            break;
+          }
+          default:
+            exhaustive(panelTool);
+        }
       },
-      [clip, noteHeight],
+      [clip, noteHeight, project.panelTool, project.secondarySelection],
     ),
   );
 
@@ -158,6 +181,30 @@ export function MidiClipEditor({
         />
         Length <input value={40} onChange={console.log} />
         <UtilityNumber value={1} onChange={console.log} />
+        <div>
+          <UtilityToggle
+            title={"selection tool"}
+            toggled={panelTool === "move"}
+            onToggle={function (): void {
+              project.panelTool.set("move");
+            }}
+          >
+            <i className="ri-cursor-fill"></i>
+          </UtilityToggle>
+          <UtilityToggle
+            title={"draw notes"}
+            toggled={panelTool === "draw"}
+            onToggle={function (): void {
+              project.panelTool.set("draw");
+              // unselect notes on changing to draw tool
+              if (secondarySel?.status === "note") {
+                project.secondarySelection.set(null);
+              }
+            }}
+          >
+            <i className="ri-edit-fill"></i>
+          </UtilityToggle>
+        </div>
         <input
           type="range"
           min={3}
@@ -215,10 +262,12 @@ export function MidiClipEditor({
 
           {notes.map((note, i) => {
             const [tick, num, duration, velocity] = note;
+            const selected = secondarySel?.status === "note" && secondarySel.note === note;
+
             return (
               <div
                 key={i}
-                className={styles.note}
+                className={classNames(styles.note, selected && styles.noteSelected)}
                 style={{
                   bottom: num * noteHeight - 1,
                   height: noteHeight + 1,
@@ -252,6 +301,9 @@ const useStyles = createUseStyles({
     background: "red",
     border: "1px solid #bb0000",
     boxSizing: "border-box",
+  },
+  noteSelected: {
+    background: "green",
   },
   cursor: {
     position: "absolute",
