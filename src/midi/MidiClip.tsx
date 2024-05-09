@@ -11,6 +11,7 @@ import { mutable } from "../utils/types";
 import { PPQN } from "../wam/pianorollme/MIDIConfiguration";
 import { MidiTrack } from "./MidiTrack";
 import type { Note } from "./SharedMidiTypes";
+import { MidiViewport } from "../ui/AudioViewport";
 
 export const SECS_IN_MIN = 60;
 
@@ -37,6 +38,8 @@ export class MidiClip extends Structured<SMidiClip, typeof MidiClip> implements 
   readonly name: SString;
   public lengthPulses: Pulses;
   private _startOffsetPulses: Pulses;
+
+  readonly detailedViewport = new MidiViewport(10, 10, 0, 0);
 
   // Experimental, unused
   timelineStart: TimelinePoint;

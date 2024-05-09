@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { createUseStyles } from "react-jss";
 import { history, useContainer, usePrimitive } from "structured-state";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
@@ -9,17 +9,17 @@ import { useLinkedState } from "../lib/state/LinkedState";
 import { MidiClip, secsToPulses } from "../midi/MidiClip";
 import { exhaustive } from "../utils/exhaustive";
 import { PPQN } from "../wam/pianorollme/MIDIConfiguration";
+import { MidiViewport } from "./AudioViewport";
 import { RenamableLabel } from "./RenamableLabel";
 import { UtilityNumber } from "./UtilityNumber";
 import { UtilityToggle } from "./UtilityToggle";
 import { useDrawOnCanvas } from "./useDrawOnCanvas";
 import { useEventListener } from "./useEventListener";
+import { nullthrows } from "../utils/nullthrows";
+import { clamp } from "../utils/math";
 
-const TOTAL_NOTES = 128;
-
-const PULSE_WIDTH = 5;
-const NOTE_DURATION = 6;
-const NOTE_WDITH = PULSE_WIDTH * NOTE_DURATION;
+const TOTAL_VERTICAL_NOTES = 128;
+const DEFAULT_NOTE_DURATION = 6;
 
 const CLIP_TOTAL_BARS = 4; //
 
@@ -39,13 +39,9 @@ function secsToTicks(secs: number, tempo: number) {
 }
 
 // TODO: we shouldn't need tempo for this if we do the math another way
-function secsToPx(secs: number, tempo: number): number {
+function secsToPx(secs: number, tempo: number, clipViewport: MidiViewport): number {
   const ticks = secsToTicks(secs, tempo);
-  return ticks * PULSE_WIDTH;
-}
-
-function pulsesToPx(pulses: number) {
-  return pulses * PULSE_WIDTH; //horizontal scale factor
+  return clipViewport.pulsesToPx(ticks);
 }
 
 export function MidiClipEditor({
@@ -59,15 +55,15 @@ export function MidiClipEditor({
 }) {
   const styles = useStyles();
   const containerRef = useRef<HTMLDivElement>(null);
+  const editorContainerRef = useRef<HTMLDivElement>(null);
   const cursorDiv = useRef<HTMLDivElement>(null);
   const backgroundRef = useRef<HTMLCanvasElement>(null);
   const notes = useContainer(clip.notes);
   const [name] = usePrimitive(clip.name);
-  const [noteHeight, setNoteHeight] = useState(10 /* px per note */);
-  const [pulseWidth, setPulseWidth] = useState(5 /* width of a midi pulse */);
+  const [noteHeight, setNoteHeight] = usePrimitive(clip.detailedViewport.pxNoteHeight);
+  const [pxPerPulse, setPxPerPulse] = usePrimitive(clip.detailedViewport.pxPerPulse);
   const [secondarySel] = useLinkedState(project.secondarySelection);
   const [panelTool] = useLinkedState(project.panelTool);
-
   const [bpm] = useLinkedState(project.tempo);
 
   useSubscribeToSubbableMutationHashable(clip);
@@ -78,11 +74,14 @@ export function MidiClipEditor({
       (ctx, canvas) => {
         ctx.scale(CANVAS_SCALE, CANVAS_SCALE);
         ctx.strokeStyle = "#bbb";
-        for (let n = 0; n < TOTAL_NOTES; n++) {
+        // piano roll notes are PPQN / 4 wide
+        const noteWidth = clip.detailedViewport.pulsesToPx(PPQN / 4);
+
+        for (let n = 0; n < TOTAL_VERTICAL_NOTES; n++) {
           const noteStr = NOTES[n % NOTES.length];
           ctx.fillStyle = keyboardColorOfNote(noteStr);
 
-          ctx.fillRect(0, n * noteHeight, NOTE_WDITH, noteHeight);
+          ctx.fillRect(0, n * noteHeight, noteWidth, noteHeight);
 
           // https://stackoverflow.com/questions/13879322/drawing-a-1px-thick-line-in-canvas-creates-a-2px-thick-line
           ctx.beginPath();
@@ -90,11 +89,80 @@ export function MidiClipEditor({
           ctx.lineTo(canvas.width, n * noteHeight + 0.5);
           ctx.stroke();
         }
+
+        for (let i = 0; i < clip.lengthPulses; i += PPQN / 4) {
+          if (i === 0) {
+            continue;
+          } else if (i % 8 === 0) {
+            ctx.strokeStyle = "#bbb";
+          } else {
+            ctx.strokeStyle = "#888";
+          }
+          const x = noteWidth + clip.detailedViewport.pulsesToPx(i) + 0.5;
+          ctx.beginPath();
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, canvas.height);
+          ctx.stroke();
+        }
+
         ctx.scale(1, 1);
       },
-      [noteHeight],
+      [clip.detailedViewport, clip.lengthPulses, noteHeight, pxPerPulse],
     ),
   );
+
+  useEventListener(
+    "wheel",
+    editorContainerRef,
+    useCallback(
+      function (e: WheelEvent) {
+        const editorContainer = nullthrows(editorContainerRef.current);
+        const mouseX = e.clientX - editorContainer.getBoundingClientRect().left;
+        e.preventDefault();
+        e.stopPropagation();
+
+        // both pinches and two-finger pans trigger the wheel event trackpads.
+        // ctrlKey is true for pinches though, so we can use it to differentiate
+        // one from the other.
+        // pinch
+        if (e.ctrlKey) {
+          const sDelta = Math.exp(-e.deltaY / 70);
+          const expectedNewScale = clip.detailedViewport.pxPerPulse.get() * sDelta;
+          // Min: 10 <->  Max: Sample rate
+          clip.detailedViewport.setHScale(expectedNewScale, 1, 10, mouseX);
+        }
+
+        // pan
+        else {
+          // if (lockPlayback) {
+          //   clip.detailedViewport.lockPlayback.set(false);
+          //   // TODO: not working, keeping current scroll left position hmm
+          //   const offsetFr = offsetFrOfPlaybackPos(player.playbackPos.get());
+          //   clip.detailedViewport.scrollLeftPx.set(offsetFr / clip.sampleRate);
+          // }
+          const maxScrollLeft = editorContainer.scrollWidth - editorContainer.clientWidth;
+          const maxScrollTop = editorContainer.scrollHeight - editorContainer.clientHeight;
+          clip.detailedViewport.scrollLeftPx.setDyn((prev) => clamp(0, prev + e.deltaX, maxScrollLeft));
+          clip.detailedViewport.scrollTopPx.setDyn((prev) => clamp(0, prev + e.deltaY, maxScrollTop));
+          // console.log(clip.detailedViewport.scrollLeftPx.get(), clip.detailedViewport.scrollTopPx.get());
+          editorContainer.scrollTo({
+            left: clip.detailedViewport.scrollLeftPx.get(),
+            top: clip.detailedViewport.scrollTopPx.get(),
+          });
+        }
+      },
+      [clip.detailedViewport],
+    ),
+  );
+
+  // on first render, set the scroll
+  useEffect(() => {
+    const editorContainer = nullthrows(editorContainerRef.current);
+    editorContainer.scrollTo({
+      left: clip.detailedViewport.scrollLeftPx.get(),
+      top: clip.detailedViewport.scrollTopPx.get(),
+    });
+  }, [clip.detailedViewport.scrollLeftPx, clip.detailedViewport.scrollTopPx]);
 
   useEffect(() => {
     player.onFrame2 = function (playbackTimeSecs) {
@@ -116,7 +184,7 @@ export function MidiClipEditor({
         return;
       }
 
-      cursorElem.style.left = String(secsToPx(playbackTimeSecs, bpm)) + "px";
+      cursorElem.style.left = String(secsToPx(playbackTimeSecs, bpm, clip.detailedViewport)) + "px";
       cursorElem.style.display = "block";
     };
   }, [bpm, clip, clip.startOffsetPulses, player, player.isAudioPlaying]);
@@ -126,11 +194,14 @@ export function MidiClipEditor({
     containerRef,
     useCallback(
       (e: MouseEvent) => {
-        const TOTAL_HEIGHT = noteHeight * TOTAL_NOTES;
+        const TOTAL_HEIGHT = noteHeight * TOTAL_VERTICAL_NOTES;
         const noteNum = Math.floor((TOTAL_HEIGHT - e.offsetY) / noteHeight);
 
-        const noteX = Math.floor(e.offsetX / NOTE_WDITH);
-        const tick = noteX * NOTE_DURATION;
+        // default notes  are PPQN / 4 wide
+        const DEFAULT_NOTE_WIDTH = clip.detailedViewport.pulsesToPx(PPQN / 4);
+
+        const noteX = Math.floor(e.offsetX / DEFAULT_NOTE_WIDTH);
+        const tick = noteX * DEFAULT_NOTE_DURATION;
 
         const prevNote = clip.findNote(tick, noteNum);
 
@@ -149,7 +220,7 @@ export function MidiClipEditor({
               if (prevNote != null) {
                 clip.removeNote(prevNote);
               } else {
-                clip.addNote(tick, noteNum, NOTE_DURATION, 100);
+                clip.addNote(tick, noteNum, DEFAULT_NOTE_DURATION, 100);
               }
             });
             break;
@@ -179,7 +250,13 @@ export function MidiClipEditor({
             clip.name.set(newVal);
           }}
         />
-        Length <input value={40} onChange={console.log} />
+        Length {/* TODO: number only */}
+        <input
+          value={clip.lengthPulses}
+          onChange={(e) => {
+            console.log(parseInt(e.target.value));
+          }}
+        />
         <UtilityNumber value={1} onChange={console.log} />
         <div>
           <UtilityToggle
@@ -207,14 +284,14 @@ export function MidiClipEditor({
         </div>
         <input
           type="range"
-          min={3}
-          max={20}
-          step={1}
-          value={noteHeight}
+          min={1}
+          max={10}
+          step={0.1}
+          value={pxPerPulse}
           title="Horizontal Zoom level"
           onChange={(e) => {
             const newVal = parseFloat(e.target.value);
-            setNoteHeight(newVal);
+            setPxPerPulse(newVal);
           }}
         />
       </div>
@@ -235,26 +312,34 @@ export function MidiClipEditor({
         }}
       />
 
-      <div className={styles.editorContainer} style={{ paddingLeft: NOTE_WDITH }}>
+      {/*  piano roll notes are PPQN / 4 wide */}
+
+      <div
+        ref={editorContainerRef}
+        className={styles.editorContainer}
+        style={{ paddingLeft: clip.detailedViewport.pulsesToPx(PPQN / 4) }}
+      >
         <canvas
           ref={backgroundRef}
-          height={CANVAS_SCALE * noteHeight * TOTAL_NOTES}
-          width={CANVAS_SCALE * 512}
+          height={CANVAS_SCALE * noteHeight * TOTAL_VERTICAL_NOTES}
+          // piano roll notes are PPQN / 4 wide
+          width={CANVAS_SCALE * clip.detailedViewport.pulsesToPx(clip.lengthPulses + PPQN / 4)}
           style={{
             pointerEvents: "none",
             position: "absolute",
             top: 0,
             left: 0,
-            height: noteHeight * TOTAL_NOTES,
+            height: noteHeight * TOTAL_VERTICAL_NOTES,
             background: "var(--timeline-bg)",
-            width: 512,
+            // piano roll notes are PPQN / 4 wide
+            width: clip.detailedViewport.pulsesToPx(clip.lengthPulses + PPQN / 4),
             // imageRendering: "pixelated",
           }}
         />
         <div
           className={styles.noteEditor}
           style={{
-            height: noteHeight * TOTAL_NOTES,
+            height: noteHeight * TOTAL_VERTICAL_NOTES,
           }}
           ref={containerRef}
         >
@@ -271,8 +356,8 @@ export function MidiClipEditor({
                 style={{
                   bottom: num * noteHeight - 1,
                   height: noteHeight + 1,
-                  left: tick * PULSE_WIDTH,
-                  width: pulsesToPx(duration) + 1,
+                  left: clip.detailedViewport.pulsesToPx(tick),
+                  width: clip.detailedViewport.pulsesToPx(duration) + 1,
                   overflow: "hidden",
                   opacity: velocity / 100,
                   pointerEvents: "none",

@@ -1,5 +1,6 @@
 import { SPrimitive, Structured } from "structured-state";
 import { clamp } from "../utils/math";
+import { PPQN } from "../wam/pianorollme/MIDIConfiguration";
 
 type SAudioViewport = {
   pxPerSec: number;
@@ -58,6 +59,74 @@ export class AudioViewport extends Structured<SAudioViewport, typeof AudioViewpo
     }
 
     this.pxPerSecScale.set(newScale);
+    this.scrollLeftPx.setDyn((prev) => {
+      const newStartPx = (prev + mouseX) * scaleFactorFactor - mouseX;
+      // console.log(newStartPx);
+      if (newStartPx < 0) {
+        return 0;
+      }
+      return newStartPx;
+    });
+  }
+}
+
+type SMidiViewport = {
+  pxPerPulse: number;
+  pxNoteHeight: number;
+  scrollLeft: number;
+  scrollTop: number;
+};
+
+export class MidiViewport extends Structured<SMidiViewport, typeof MidiViewport> {
+  readonly pxPerPulse: SPrimitive<number>;
+  readonly pxNoteHeight: SPrimitive<number>;
+  readonly scrollLeftPx: SPrimitive<number>;
+  readonly scrollTopPx: SPrimitive<number>;
+  readonly lockPlayback = SPrimitive.of(false);
+
+  override serialize(): SMidiViewport {
+    return {
+      pxPerPulse: this.pxPerPulse.get(),
+      pxNoteHeight: this.pxNoteHeight.get(),
+      scrollLeft: this.scrollLeftPx.get(),
+      scrollTop: this.scrollTopPx.get(),
+    };
+  }
+
+  override replace(json: SMidiViewport): void {
+    this.pxPerPulse.set(json.pxPerPulse);
+    this.pxNoteHeight.set(json.pxNoteHeight);
+    this.scrollLeftPx.set(json.scrollLeft);
+    this.scrollTopPx.set(json.scrollTop);
+  }
+
+  static construct(json: SMidiViewport): MidiViewport {
+    return new this(json.pxPerPulse, json.pxNoteHeight, json.scrollLeft, json.scrollTop);
+  }
+
+  constructor(pxPerPulse: number, pxNoteHeight: number, scrollLeft: number, scrollTop: number) {
+    super();
+    this.pxPerPulse = SPrimitive.of(pxPerPulse);
+    this.pxNoteHeight = SPrimitive.of(pxNoteHeight);
+    this.scrollLeftPx = SPrimitive.of(scrollLeft);
+    this.scrollTopPx = SPrimitive.of(scrollTop);
+  }
+
+  pulsesToPx(pulses: number) {
+    return pulses * this.pxPerPulse.get();
+  }
+
+  setHScale(expectedNewScale: number, min: number, max: number, mouseX: number) {
+    // min scale is 0.64, max is 1000
+    const newScale = clamp(min, expectedNewScale, max);
+    const currentScaleFactor = this.pxPerPulse.get();
+    const scaleFactorFactor = expectedNewScale / currentScaleFactor;
+
+    if (newScale === currentScaleFactor) {
+      return;
+    }
+
+    this.pxPerPulse.set(newScale);
     this.scrollLeftPx.setDyn((prev) => {
       const newStartPx = (prev + mouseX) * scaleFactorFactor - mouseX;
       // console.log(newStartPx);
