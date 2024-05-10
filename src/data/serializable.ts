@@ -10,6 +10,7 @@ import { MidiClip } from "../midi/MidiClip";
 import { MidiInstrument } from "../midi/MidiInstrument";
 import { MidiTrack } from "../midi/MidiTrack";
 import { Note } from "../midi/SharedMidiTypes";
+import { SMidiViewport } from "../ui/AudioViewport";
 import { exhaustive } from "../utils/exhaustive";
 import { nullthrows } from "../utils/nullthrows";
 import { mutable } from "../utils/types";
@@ -30,6 +31,7 @@ export type SMidiClip = Readonly<{
   startOffsetPulses: number;
   lengthPulses: number;
   notes: readonly Note[];
+  viewport: SMidiViewport;
 }>;
 
 export type SAudioTrack = {

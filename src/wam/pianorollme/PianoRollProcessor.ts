@@ -6,6 +6,8 @@ import { Clip, MIDINoteRecorder } from "./PianoRollClip";
 
 const MODULE_ID = "com.foo.pianoRoll";
 
+console.log("PIANO ROLL ROOT");
+
 const audioWorkletGlobalScope: AudioWorkletGlobalScope = globalThis as unknown as AudioWorkletGlobalScope;
 const ModuleScope = audioWorkletGlobalScope.webAudioModules.getModuleScope(MODULE_ID);
 const WamProcessor = ModuleScope.WamProcessor;
@@ -36,6 +38,7 @@ class PianoRollProcessor extends WamProcessor {
   midiConfig: MIDIConfiguration;
 
   constructor(options: { processorOptions: { moduleId: string; instanceId: string } }) {
+    console.log("PIANO ROLL CONSTRUCTOR");
     // console.log("PRE");
     super(options);
 
@@ -196,6 +199,8 @@ class PianoRollProcessor extends WamProcessor {
     // console.log(currMidiPulse, "->", absoluteTickPosition);
     const loopStart = this.loop == null ? null : this.loop[0];
     const loopEnd = this.loop == null ? null : this.loop[1];
+
+    console.log("Hello");
 
     // console.log("startingTikcs", this.startingTicks);
     while (this.ticks < absoluteTickPosition) {

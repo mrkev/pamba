@@ -57,6 +57,6 @@ export type PrimarySelectionState =
     };
 
 export type PanelSelectionState = {
-  status: "note";
-  note: Note;
+  status: "notes";
+  notes: Set<Note>;
 };

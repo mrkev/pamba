@@ -1,4 +1,3 @@
-import classNames from "classnames";
 import { useCallback, useEffect, useRef } from "react";
 import { createUseStyles } from "react-jss";
 import { history, useContainer, usePrimitive } from "structured-state";
@@ -17,6 +16,7 @@ import { useDrawOnCanvas } from "./useDrawOnCanvas";
 import { useEventListener } from "./useEventListener";
 import { nullthrows } from "../utils/nullthrows";
 import { clamp } from "../utils/math";
+import { NoteR } from "./NoteR";
 
 const TOTAL_VERTICAL_NOTES = 128;
 const DEFAULT_NOTE_DURATION = 6;
@@ -107,6 +107,7 @@ export function MidiClipEditor({
 
         ctx.scale(1, 1);
       },
+      // TODO: rn need pxPerPulse for updating
       [clip.detailedViewport, clip.lengthPulses, noteHeight, pxPerPulse],
     ),
   );
@@ -209,7 +210,7 @@ export function MidiClipEditor({
         switch (panelTool) {
           case "move": {
             if (prevNote) {
-              project.secondarySelection.set({ status: "note", note: prevNote });
+              project.secondarySelection.set({ status: "notes", notes: new Set([prevNote]) });
             } else {
               project.secondarySelection.set(null);
             }
@@ -274,7 +275,7 @@ export function MidiClipEditor({
             onToggle={function (): void {
               project.panelTool.set("draw");
               // unselect notes on changing to draw tool
-              if (secondarySel?.status === "note") {
+              if (secondarySel?.status === "notes") {
                 project.secondarySelection.set(null);
               }
             }}
@@ -346,24 +347,7 @@ export function MidiClipEditor({
           <div className={styles.cursor} ref={cursorDiv} />
 
           {notes.map((note, i) => {
-            const [tick, num, duration, velocity] = note;
-            const selected = secondarySel?.status === "note" && secondarySel.note === note;
-
-            return (
-              <div
-                key={i}
-                className={classNames(styles.note, selected && styles.noteSelected)}
-                style={{
-                  bottom: num * noteHeight - 1,
-                  height: noteHeight + 1,
-                  left: clip.detailedViewport.pulsesToPx(tick),
-                  width: clip.detailedViewport.pulsesToPx(duration) + 1,
-                  overflow: "hidden",
-                  opacity: velocity / 100,
-                  pointerEvents: "none",
-                }}
-              ></div>
-            );
+            return <NoteR key={i} note={note} viewport={clip.detailedViewport} project={project} />;
           })}
         </div>
       </div>

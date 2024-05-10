@@ -264,6 +264,10 @@ export function useTimelineMouseEvents(
           case "moving_timeline_points":
             pressedState.set(null);
             break;
+          case "moving_notes":
+            // HANDLED ON NoteR 'mousedown' event itself
+            // throw new Error("UNIMPLEMENTED");
+            break;
           default:
             exhaustive(status);
         }
@@ -438,6 +442,10 @@ export function useTimelineMouseEvents(
             const newWidth = snapped(project, e, deltaXSecs);
             project.selectionWidth.set(newWidth);
             // project.selected.set(null);
+            break;
+          case "moving_notes":
+            // HANDLED ON NoteR 'mousedown' event itself
+            // throw new Error("UNIMPLEMENTED");
             break;
           default:
             exhaustive(pressed);

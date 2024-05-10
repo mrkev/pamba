@@ -180,6 +180,7 @@ export class MidiTrack extends Structured<SMidiTrack, typeof MidiTrack> implemen
     const currentBar = (offsetSec * bpm) / (BEATS_PER_BAR * SECS_IN_MINUTE);
 
     // this.pianoRoll.sendMessageToProcessor({ action: "setPlaybackStartOffset", offsetSec });
+    console.log("SCHEDULE");
     this.playingSource.audioNode.scheduleEvents({
       type: "wam-transport",
       data: {

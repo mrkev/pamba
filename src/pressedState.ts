@@ -5,6 +5,7 @@ import { SPrimitive } from "structured-state";
 import { MidiClip } from "./midi/MidiClip";
 import { MidiTrack } from "./midi/MidiTrack";
 import { LibraryItem } from "./ui/Library";
+import { Note } from "./midi/SharedMidiTypes";
 
 export type CursorState =
   | Readonly<{
@@ -65,6 +66,12 @@ export type CursorState =
       points: Set<{ original: STimelinePoint; point: TimelinePoint }>;
       clientX: number;
       limit: [lower: null | TimelinePoint, upper: null | TimelinePoint] | null;
+    }>
+  | Readonly<{
+      status: "moving_notes";
+      notes: Set<Note>;
+      clientX: number;
+      clientY: number;
     }>;
 
 export const pressedState = SPrimitive.of<CursorState | null>(null);

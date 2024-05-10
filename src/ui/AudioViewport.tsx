@@ -1,6 +1,5 @@
 import { SPrimitive, Structured } from "structured-state";
 import { clamp } from "../utils/math";
-import { PPQN } from "../wam/pianorollme/MIDIConfiguration";
 
 type SAudioViewport = {
   pxPerSec: number;
@@ -70,7 +69,7 @@ export class AudioViewport extends Structured<SAudioViewport, typeof AudioViewpo
   }
 }
 
-type SMidiViewport = {
+export type SMidiViewport = {
   pxPerPulse: number;
   pxNoteHeight: number;
   scrollLeft: number;
@@ -91,6 +90,15 @@ export class MidiViewport extends Structured<SMidiViewport, typeof MidiViewport>
       scrollLeft: this.scrollLeftPx.get(),
       scrollTop: this.scrollTopPx.get(),
     };
+  }
+
+  clone() {
+    return new MidiViewport(
+      this.pxPerPulse.get(),
+      this.pxNoteHeight.get(),
+      this.scrollLeftPx.get(),
+      this.scrollTopPx.get(),
+    );
   }
 
   override replace(json: SMidiViewport): void {

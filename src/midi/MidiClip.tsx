@@ -6,12 +6,12 @@ import { AbstractClip, Pulses } from "../lib/AbstractClip";
 import { ProjectTrack } from "../lib/ProjectTrack";
 import { AudioProject } from "../lib/project/AudioProject";
 import { TimelinePoint, time } from "../lib/project/TimelinePoint";
+import { MidiViewport } from "../ui/AudioViewport";
 import { mutablearr, nullthrows } from "../utils/nullthrows";
 import { mutable } from "../utils/types";
 import { PPQN } from "../wam/pianorollme/MIDIConfiguration";
 import { MidiTrack } from "./MidiTrack";
 import type { Note } from "./SharedMidiTypes";
-import { MidiViewport } from "../ui/AudioViewport";
 
 export const SECS_IN_MIN = 60;
 
@@ -39,7 +39,7 @@ export class MidiClip extends Structured<SMidiClip, typeof MidiClip> implements 
   public lengthPulses: Pulses;
   private _startOffsetPulses: Pulses;
 
-  readonly detailedViewport = new MidiViewport(10, 10, 0, 0);
+  readonly detailedViewport: MidiViewport;
 
   // Experimental, unused
   timelineStart: TimelinePoint;
@@ -51,6 +51,7 @@ export class MidiClip extends Structured<SMidiClip, typeof MidiClip> implements 
       startOffsetPulses: this.startOffsetPulses,
       lengthPulses: this.lengthPulses,
       notes: this.notes._getRaw(),
+      viewport: this.detailedViewport.serialize(),
     };
   }
 
@@ -59,20 +60,35 @@ export class MidiClip extends Structured<SMidiClip, typeof MidiClip> implements 
   }
 
   static construct(json: SMidiClip): MidiClip {
-    return new MidiClip(json.name, json.startOffsetPulses, json.lengthPulses, json.notes);
+    const viewport = json.viewport ? MidiViewport.construct(json.viewport) : new MidiViewport(10, 10, 0, 0);
+    return new MidiClip(json.name, json.startOffsetPulses, json.lengthPulses, json.notes, viewport);
   }
 
-  static of(name: string, startOffsetPulses: number, lengthPulses: number, notes: Note[]) {
-    return s.Structured.create(MidiClip, name, startOffsetPulses, lengthPulses, notes);
+  static of(name: string, startOffsetPulses: number, lengthPulses: number, notes: Note[], viewport?: MidiViewport) {
+    return s.Structured.create(
+      MidiClip,
+      name,
+      startOffsetPulses,
+      lengthPulses,
+      notes,
+      viewport ?? new MidiViewport(10, 10, 0, 0),
+    );
   }
 
-  constructor(name: string, startOffsetPulses: number, lengthPulses: number, notes: readonly Note[]) {
+  constructor(
+    name: string,
+    startOffsetPulses: number,
+    lengthPulses: number,
+    notes: readonly Note[],
+    viewport: MidiViewport,
+  ) {
     super();
     this.name = SString.create(name);
     this.notes = SArray.create(mutablearr(notes));
     this.lengthPulses = lengthPulses as Pulses;
     this._startOffsetPulses = startOffsetPulses as Pulses;
     this.timelineStart = time(startOffsetPulses, "pulses");
+    this.detailedViewport = viewport;
   }
 
   addNote(tick: number, num: number, duration: number, velocity: number) {
@@ -141,6 +157,7 @@ export class MidiClip extends Structured<SMidiClip, typeof MidiClip> implements 
       this._startOffsetPulses,
       this.lengthPulses,
       mutable(this.notes._getRaw()),
+      this.detailedViewport.clone(),
     );
     return newClip;
   }
