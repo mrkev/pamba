@@ -9,6 +9,13 @@ export type TimeUnit = "pulses" | "seconds";
 export type STimelinePoint = Readonly<{ t: number; u: TimeUnit }>;
 
 export class TimelinePoint extends Structured<STimelinePoint, typeof TimelinePoint> {
+  constructor(
+    private t: number,
+    public u: "pulses" | "seconds",
+  ) {
+    super();
+  }
+
   override serialize(): STimelinePoint {
     return { t: this.t, u: this.u };
   }
@@ -28,13 +35,6 @@ export class TimelinePoint extends Structured<STimelinePoint, typeof TimelinePoi
       this.u = u;
     }
     this._notifyChange();
-  }
-
-  constructor(
-    private t: number,
-    public u: "pulses" | "seconds",
-  ) {
-    super();
   }
 
   secs(project: AudioProject): Seconds {

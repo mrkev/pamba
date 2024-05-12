@@ -1,6 +1,5 @@
 import { SArray, Structured } from "structured-state";
 import { nullthrows } from "../utils/nullthrows";
-import { TimelinePoint } from "./project/TimelinePoint";
 
 export function printClips(clips: SArray<AbstractClip<any>>) {
   return clips.map((c) => c.toString()).join("\n");
@@ -38,10 +37,10 @@ export function addClip<Clip extends AbstractClip<U>, U extends Pulses | Seconds
   // Essentially, we want to insert in order, sorted
   // by the startOffsetSec of each clip.
   let i = 0;
-  let prev: Clip | undefined;
+  let _prev: Clip | undefined;
   let next: Clip | undefined;
   for (; i < clips.length; i++) {
-    prev = i == 0 ? undefined : clips.at(i - 1);
+    _prev = i == 0 ? undefined : clips.at(i - 1);
     next = clips.at(i);
 
     // We want to iterate until i

@@ -1,11 +1,11 @@
 import { MidiClip, secsToPulses } from "../midi/MidiClip";
 import { getOneTickLen } from "../ui/Axis";
 import { clamp, returnClosest, stepNumber } from "../utils/math";
-import { AudioClip } from "./AudioClip";
+import { PPQN } from "../wam/pianorollme/MIDIConfiguration";
 import { secs } from "./AbstractClip";
+import { AudioClip } from "./AudioClip";
 import { AudioProject } from "./project/AudioProject";
 import { TimelinePoint } from "./project/TimelinePoint";
-import { PPQN } from "../wam/pianorollme/MIDIConfiguration";
 
 export function clipResizeEndSec(clip: AudioClip, newLength: number, project: AudioProject, snap: boolean) {
   const newClipEnd = clamp(
@@ -91,14 +91,14 @@ export function clipMovePPQN(clip: MidiClip, newOffsetSec: number, project: Audi
 
   if (!snap) {
     const pulses = secsToPulses(newOffsetSec, bpm);
-    clip.startOffsetPulses = pulses;
+    clip.setStartOffsetPulses(pulses);
     clip._notifyChange();
   } else {
     const tempo = project.tempo.get();
     const oneBeatLen = 60 / tempo;
     const actualNewOffsetSec = stepNumber(newOffsetSec, oneBeatLen);
     const pulses = secsToPulses(actualNewOffsetSec, bpm);
-    clip.startOffsetPulses = pulses;
+    clip.setStartOffsetPulses(pulses);
     clip._notifyChange();
   }
 }

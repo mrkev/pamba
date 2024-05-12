@@ -106,22 +106,22 @@ export class MidiClip extends Structured<SMidiClip, typeof MidiClip> implements 
     return this.notes.find(([ntick, nnum]: Note) => ntick == tick && nnum == number) ?? null;
   }
 
-  // interface AbstractClip
-
   get startOffsetPulses() {
     return this._startOffsetPulses;
   }
 
-  set startOffsetPulses(value: number) {
+  setStartOffsetPulses(value: number) {
     this._startOffsetPulses = value as Pulses;
   }
+
+  // interface AbstractClip
 
   get _timelineStartU(): Pulses {
     return this._startOffsetPulses;
   }
 
-  _setTimelineStartU(): void {
-    this._startOffsetPulses = this._startOffsetPulses;
+  _setTimelineStartU(val: Pulses): void {
+    this._startOffsetPulses = val;
   }
 
   get _timelineEndU(): Pulses {
@@ -144,7 +144,7 @@ export class MidiClip extends Structured<SMidiClip, typeof MidiClip> implements 
       throw new Error("trimming past end time");
     }
 
-    const delta = timePulses - this._startOffsetPulses;
+    const _delta = timePulses - this._startOffsetPulses;
 
     this._startOffsetPulses = timePulses as Pulses;
     // TODO

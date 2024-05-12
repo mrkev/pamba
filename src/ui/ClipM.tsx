@@ -8,52 +8,53 @@ import { useLinkedState } from "../lib/state/LinkedState";
 import { MidiClip, pulsesToSec } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
 import { pressedState } from "../pressedState";
-import { RenamableLabel } from "./RenamableLabel";
 import { StandardClip } from "./StandardClip";
 
 export function ClipM({
   clip,
   isSelected,
-  style = {},
   project,
   track,
 }: {
   clip: MidiClip;
   rerender: () => void; // todo: unused
   isSelected: boolean;
-  style?: React.CSSProperties;
   project: AudioProject;
   track: MidiTrack | null; // null if clip is being rendered for move
 }) {
   const styles = useStyles();
-  const width = project.viewport.pxForPulse(clip.lengthPulses);
   const [bpm] = useLinkedState(project.tempo);
   const notes = useContainer(clip.notes);
   // const startTrimmedWidth = project.viewport.secsToPx(clip.trimStartSec);
   const [tool] = useLinkedState(project.pointerTool);
-  const [name] = usePrimitive(clip.name);
+  const width = project.viewport.pulsesToPx(clip.lengthPulses);
+  const left = Math.floor(project.viewport.pulsesToPx(clip.startOffsetPulses));
+
   // const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useSubscribeToSubbableMutationHashable(clip);
 
-  // function onMouseDownToResize(e: React.MouseEvent<HTMLDivElement>, from: "start" | "end") {
-  //   e.stopPropagation();
-  //   if (tool !== "move") {
-  //     return;
-  //   }
+  const onMouseDownToResize = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>, from: "start" | "end") => {
+      e.stopPropagation();
+      if (tool !== "move") {
+        return;
+      }
 
-  //   pressedState.set({
-  //     status: "resizing_clip",
-  //     clip,
-  //     // IDEA: just clone and have the original clip at hand
-  //     originalClipEndPosSec: clip.trimEndSec,
-  //     originalClipStartPosSec: clip.trimStartSec,
-  //     originalClipOffsetSec: clip.startOffsetSec,
-  //     from,
-  //     clientX: e.clientX,
-  //     clientY: e.clientY,
-  //   });
-  // }
+      // pressedState.set({
+      //   status: "resizing_clip",
+      //   clip,
+      //   // IDEA: just clone and have the original clip at hand
+      //   originalClipEndPosSec: clip.trimEndSec,
+      //   originalClipStartPosSec: clip.trimStartSec,
+      //   originalClipOffsetSec: clip.startOffsetSec,
+      //   from,
+      //   clientX: e.clientX,
+      //   clientY: e.clientY,
+      // });
+    },
+    [tool],
+  );
 
   const onMouseDownToMove = useCallback(
     (e: MouseEvent) => {
@@ -96,36 +97,36 @@ export function ClipM({
     [bpm, clip, project.selected, project.selectionWidth, tool, track],
   );
 
-  // function onClipClick(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
-  //   const div = e.currentTarget;
-  //   if (!(div instanceof HTMLDivElement)) {
-  //     return;
-  //   }
-  //   if (tool === "trimStart") {
-  //     const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
-  //     const asSec = project.viewport.pxToSecs(pxFromStartOfClip);
-  //     clip.trimStartSec += asSec;
-  //     clip.startOffsetSec += asSec;
-  //     clip.notifyUpdate();
-  //   }
-  //   if (tool === "trimEnd") {
-  //     const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
-  //     const secsFromStartPos = project.viewport.pxToSecs(pxFromStartOfClip);
-  //     const secsFromZero = clip.trimStartSec + secsFromStartPos;
-  //     clip.trimEndSec = secsFromZero;
-  //     clip.notifyUpdate();
-  //   }
-  // }
+  const onClipClick = useCallback((e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+    const div = e.currentTarget;
+    if (!(div instanceof HTMLDivElement)) {
+      return;
+    }
+    // if (tool === "trimStart") {
+    //   const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
+    //   const asSec = project.viewport.pxToSecs(pxFromStartOfClip);
+    //   clip.trimStartSec += asSec;
+    //   clip.startOffsetSec += asSec;
+    //   clip.notifyUpdate();
+    // }
+    // if (tool === "trimEnd") {
+    //   const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
+    //   const secsFromStartPos = project.viewport.pxToSecs(pxFromStartOfClip);
+    //   const secsFromZero = clip.trimStartSec + secsFromStartPos;
+    //   clip.trimEndSec = secsFromZero;
+    //   clip.notifyUpdate();
+    // }
+  }, []);
 
   return (
     <StandardClip
       clip={clip}
       isSelected={isSelected}
-      onMouseDownToResize={function (e: React.MouseEvent<HTMLDivElement, MouseEvent>, from: "end" | "start"): void {}}
+      onMouseDownToResize={onMouseDownToResize}
       onMouseDownToMove={onMouseDownToMove}
-      onClipClick={() => {}}
+      onClipClick={onClipClick}
       width={width}
-      left={Math.floor(project.viewport.pxForPulse(clip.startOffsetPulses))}
+      left={left}
       style={{}}
     >
       {notes.length}

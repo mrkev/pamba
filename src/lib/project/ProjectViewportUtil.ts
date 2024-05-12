@@ -42,6 +42,11 @@ export class ProjectViewportUtil {
     return s * factor;
   }
 
+  pulsesToPx(p: number) {
+    const bpm = this.project.tempo.get();
+    return this.secsToPx(pulsesToSec(p, bpm));
+  }
+
   pxToSecs(px: number, factorOverride?: number) {
     const factor = factorOverride ?? this.project.scaleFactor.get();
     return px / factor;
