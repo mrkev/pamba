@@ -9,12 +9,24 @@ import { MidiViewport } from "./AudioViewport";
 import { useEventListener } from "./useEventListener";
 import { pressedState } from "../pressedState";
 import { modifierState } from "../ModifierState";
+import { MidiClip } from "../midi/MidiClip";
 
-export function NoteR({ note, viewport, project }: { note: Note; viewport: MidiViewport; project: AudioProject }) {
+export function NoteR({
+  clip,
+  note,
+  viewport,
+  project,
+}: {
+  clip: MidiClip;
+  note: Note;
+  viewport: MidiViewport;
+  project: AudioProject;
+}) {
   const styles = useStyles();
   const [secondarySel] = useLinkedState(project.secondarySelection);
   const [noteHeight] = usePrimitive(viewport.pxNoteHeight);
   const divRef = useRef<HTMLDivElement>(null);
+  const [panelTool] = useLinkedState(project.panelTool);
 
   const [tick, num, duration, velocity] = note;
   const selected = secondarySel?.status === "notes" && secondarySel.notes.has(note);
@@ -23,53 +35,60 @@ export function NoteR({ note, viewport, project }: { note: Note; viewport: MidiV
     "mousedown",
     divRef,
     useCallback(
-      function (e: MouseEvent) {
-        console.log("HERE3eee");
-        // if (tool !== "move" || track == null) {
-        //   return;
-        // }
-
-        // if (!editable) {
-        //   return;
-        // }
-
-        pressedState.set({
-          status: "moving_notes",
-          clientX: e.clientX,
-          clientY: e.clientY,
-          notes: new Set([note]),
-        });
-
-        project.secondarySelection.setDyn((prev) => {
-          const selectAdd = modifierState.meta || modifierState.shift;
-          if (selectAdd && prev !== null && prev.status === "notes") {
-            prev.notes.add(note);
-            return { ...prev };
-          } else {
-            return {
-              status: "notes",
-              notes: new Set([note]),
-            };
+      (e: MouseEvent) => {
+        // if (editable === true)
+        switch (panelTool) {
+          case "draw": {
+            clip.removeNote(note);
+            break;
           }
-        });
+          case "move": {
+            project.secondarySelection.set({ status: "notes", notes: new Set([note]) });
+            pressedState.set({
+              status: "moving_notes",
+              clientX: e.clientX,
+              clientY: e.clientY,
+              notes: new Set([note]),
+            });
+            project.secondarySelection.setDyn((prev) => {
+              const selectAdd = modifierState.meta || modifierState.shift;
+              if (selectAdd && prev !== null && prev.status === "notes") {
+                prev.notes.add(note);
+                return { ...prev };
+              } else {
+                return {
+                  status: "notes",
+                  notes: new Set([note]),
+                };
+              }
+            });
+            document.addEventListener("mousemove", onNoteMoveMouseMove);
+            document.addEventListener("mouseup", function onMouseUp() {
+              pressedState.set(null);
+              document.removeEventListener("mouseup", onMouseUp);
+              document.removeEventListener("mousemove", onNoteMoveMouseMove);
+            });
+            break;
+          }
+        }
 
-        function onMouseMove() {
+        function onNoteMoveMouseMove(e: MouseEvent) {
           // pressedState.set(null);
-          console.log("moving");
+
           const pressed = pressedState.get();
           if (!pressed || pressed.status != "moving_notes") {
             return;
           }
-        }
+          const deltaX = e.clientX - pressed.clientX;
+          const deltaY = e.clientY - pressed.clientY;
 
-        document.addEventListener("mousemove", onMouseMove);
-        document.addEventListener("mouseup", function onMouseUp() {
-          pressedState.set(null);
-          document.removeEventListener("mouseup", onMouseUp);
-          document.removeEventListener("mousemove", onMouseMove);
-        });
+          const deltaXPulses = Math.floor(clip.detailedViewport.pxToPulses(deltaX));
+          const deltaYNotes = Math.floor(clip.detailedViewport.pxToVerticalNotes(deltaY));
+
+          console.log("moving", deltaXPulses);
+        }
       },
-      [note, project.secondarySelection],
+      [clip, note, panelTool, project.secondarySelection],
     ),
   );
 

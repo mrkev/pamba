@@ -124,6 +124,14 @@ export class MidiViewport extends Structured<SMidiViewport, typeof MidiViewport>
     return pulses * this.pxPerPulse.get();
   }
 
+  pxToPulses(px: number) {
+    return px / this.pxPerPulse.get();
+  }
+
+  pxToVerticalNotes(px: number) {
+    return px / this.pxNoteHeight.get();
+  }
+
   setHScale(expectedNewScale: number, min: number, max: number, mouseX: number) {
     // min scale is 0.64, max is 1000
     const newScale = clamp(min, expectedNewScale, max);

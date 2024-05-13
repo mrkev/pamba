@@ -7,23 +7,22 @@ import { useSubscribeToSubbableMutationHashable } from "../lib/state/LinkedMap";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { MidiClip, secsToPulses } from "../midi/MidiClip";
 import { exhaustive } from "../utils/exhaustive";
+import { clamp } from "../utils/math";
+import { nullthrows } from "../utils/nullthrows";
 import { PPQN } from "../wam/pianorollme/MIDIConfiguration";
-import { MidiViewport } from "./AudioViewport";
+import { NoteR } from "./NoteR";
 import { RenamableLabel } from "./RenamableLabel";
 import { UtilityNumber } from "./UtilityNumber";
 import { UtilityToggle } from "./UtilityToggle";
 import { useDrawOnCanvas } from "./useDrawOnCanvas";
 import { useEventListener } from "./useEventListener";
-import { nullthrows } from "../utils/nullthrows";
-import { clamp } from "../utils/math";
-import { NoteR } from "./NoteR";
 
 const TOTAL_VERTICAL_NOTES = 128;
 const DEFAULT_NOTE_DURATION = 6;
-
-const CLIP_TOTAL_BARS = 4; //
-
+const CLIP_TOTAL_BARS = 4;
 const CANVAS_SCALE = Math.floor(window.devicePixelRatio);
+const PIANO_ROLL_WIDTH = 24;
+const MAX_H_SCALE = 20;
 
 type NoteStr = "C" | "C#" | "D" | "D#" | "E" | "F" | "F#" | "G" | "G#" | "A" | "A#" | "B";
 const NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"] as const;
@@ -38,12 +37,6 @@ function secsToTicks(secs: number, tempo: number) {
   return (secs / oneTickLen) % (CLIP_TOTAL_BARS * PPQN);
 }
 
-// TODO: we shouldn't need tempo for this if we do the math another way
-function secsToPx(secs: number, tempo: number, clipViewport: MidiViewport): number {
-  const ticks = secsToTicks(secs, tempo);
-  return clipViewport.pulsesToPx(ticks);
-}
-
 export function MidiClipEditor({
   clip,
   player,
@@ -55,7 +48,9 @@ export function MidiClipEditor({
 }) {
   const styles = useStyles();
   const containerRef = useRef<HTMLDivElement>(null);
+  const pianoRollRef = useRef<HTMLDivElement>(null);
   const editorContainerRef = useRef<HTMLDivElement>(null);
+  const pianoRollCanvasRef = useRef<HTMLCanvasElement>(null);
   const cursorDiv = useRef<HTMLDivElement>(null);
   const backgroundRef = useRef<HTMLCanvasElement>(null);
   const notes = useContainer(clip.notes);
@@ -68,20 +63,55 @@ export function MidiClipEditor({
 
   useSubscribeToSubbableMutationHashable(clip);
 
+  const secsToPixels = useCallback(
+    (secs: number, tempo: number) => {
+      // TODO: we shouldn't need tempo for this if we do the math another way
+      const ticks = secsToTicks(secs, tempo);
+      return clip.detailedViewport.pulsesToPx(ticks);
+    },
+    [clip.detailedViewport],
+  );
+
+  useDrawOnCanvas(
+    pianoRollCanvasRef,
+    useCallback(
+      (ctx, canvas) => {
+        ctx.scale(CANVAS_SCALE, CANVAS_SCALE);
+        ctx.strokeStyle = "#bbb";
+        // piano roll notes are PPQN / 4 wide
+
+        for (let n = 0; n < TOTAL_VERTICAL_NOTES; n++) {
+          const noteStr = NOTES[n % NOTES.length];
+          ctx.fillStyle = keyboardColorOfNote(noteStr);
+
+          ctx.fillRect(0, n * noteHeight, PIANO_ROLL_WIDTH, noteHeight);
+
+          // https://stackoverflow.com/questions/13879322/drawing-a-1px-thick-line-in-canvas-creates-a-2px-thick-line
+          ctx.beginPath();
+          ctx.moveTo(0, n * noteHeight + 0.5);
+          ctx.lineTo(canvas.width, n * noteHeight + 0.5);
+          ctx.stroke();
+        }
+
+        ctx.scale(1, 1);
+      },
+      // TODO: rn need pxPerPulse for updating
+      [noteHeight],
+    ),
+  );
+
   useDrawOnCanvas(
     backgroundRef,
     useCallback(
       (ctx, canvas) => {
         ctx.scale(CANVAS_SCALE, CANVAS_SCALE);
         ctx.strokeStyle = "#bbb";
-        // piano roll notes are PPQN / 4 wide
-        const noteWidth = clip.detailedViewport.pulsesToPx(PPQN / 4);
 
         for (let n = 0; n < TOTAL_VERTICAL_NOTES; n++) {
-          const noteStr = NOTES[n % NOTES.length];
-          ctx.fillStyle = keyboardColorOfNote(noteStr);
+          // const noteStr = NOTES[n % NOTES.length];
+          // ctx.fillStyle = keyboardColorOfNote(noteStr);
 
-          ctx.fillRect(0, n * noteHeight, noteWidth, noteHeight);
+          // ctx.fillRect(0, n * noteHeight, noteWidth, noteHeight);
 
           // https://stackoverflow.com/questions/13879322/drawing-a-1px-thick-line-in-canvas-creates-a-2px-thick-line
           ctx.beginPath();
@@ -98,7 +128,7 @@ export function MidiClipEditor({
           } else {
             ctx.strokeStyle = "#888";
           }
-          const x = noteWidth + clip.detailedViewport.pulsesToPx(i) + 0.5;
+          const x = clip.detailedViewport.pulsesToPx(i) + 0.5;
           ctx.beginPath();
           ctx.moveTo(x, 0);
           ctx.lineTo(x, canvas.height);
@@ -114,11 +144,11 @@ export function MidiClipEditor({
 
   useEventListener(
     "wheel",
-    editorContainerRef,
+    pianoRollRef,
     useCallback(
       function (e: WheelEvent) {
-        const editorContainer = nullthrows(editorContainerRef.current);
-        const mouseX = e.clientX - editorContainer.getBoundingClientRect().left;
+        const pianoRoll = nullthrows(pianoRollRef.current);
+        const mouseX = e.clientX - pianoRoll.getBoundingClientRect().left;
         e.preventDefault();
         e.stopPropagation();
 
@@ -130,7 +160,7 @@ export function MidiClipEditor({
           const sDelta = Math.exp(-e.deltaY / 70);
           const expectedNewScale = clip.detailedViewport.pxPerPulse.get() * sDelta;
           // Min: 10 <->  Max: Sample rate
-          clip.detailedViewport.setHScale(expectedNewScale, 1, 10, mouseX);
+          clip.detailedViewport.setHScale(expectedNewScale, 1, MAX_H_SCALE, mouseX);
         }
 
         // pan
@@ -141,12 +171,12 @@ export function MidiClipEditor({
           //   const offsetFr = offsetFrOfPlaybackPos(player.playbackPos.get());
           //   clip.detailedViewport.scrollLeftPx.set(offsetFr / clip.sampleRate);
           // }
-          const maxScrollLeft = editorContainer.scrollWidth - editorContainer.clientWidth;
-          const maxScrollTop = editorContainer.scrollHeight - editorContainer.clientHeight;
+          const maxScrollLeft = pianoRoll.scrollWidth - pianoRoll.clientWidth;
+          const maxScrollTop = pianoRoll.scrollHeight - pianoRoll.clientHeight;
           clip.detailedViewport.scrollLeftPx.setDyn((prev) => clamp(0, prev + e.deltaX, maxScrollLeft));
           clip.detailedViewport.scrollTopPx.setDyn((prev) => clamp(0, prev + e.deltaY, maxScrollTop));
-          // console.log(clip.detailedViewport.scrollLeftPx.get(), clip.detailedViewport.scrollTopPx.get());
-          editorContainer.scrollTo({
+
+          pianoRoll.scrollTo({
             left: clip.detailedViewport.scrollLeftPx.get(),
             top: clip.detailedViewport.scrollTopPx.get(),
           });
@@ -158,8 +188,8 @@ export function MidiClipEditor({
 
   // on first render, set the scroll
   useEffect(() => {
-    const editorContainer = nullthrows(editorContainerRef.current);
-    editorContainer.scrollTo({
+    const pianoRoll = nullthrows(pianoRollRef.current);
+    pianoRoll.scrollTo({
       left: clip.detailedViewport.scrollLeftPx.get(),
       top: clip.detailedViewport.scrollTopPx.get(),
     });
@@ -185,16 +215,20 @@ export function MidiClipEditor({
         return;
       }
 
-      cursorElem.style.left = String(secsToPx(playbackTimeSecs, bpm, clip.detailedViewport)) + "px";
+      cursorElem.style.left = String(secsToPixels(playbackTimeSecs, bpm)) + "px";
       cursorElem.style.display = "block";
     };
-  }, [bpm, clip, clip.startOffsetPulses, player, player.isAudioPlaying]);
+  }, [bpm, clip, clip.startOffsetPulses, player, player.isAudioPlaying, secsToPixels]);
 
   useEventListener(
     "mousedown",
     containerRef,
     useCallback(
       (e: MouseEvent) => {
+        const clickedEditor = e.target === containerRef.current;
+        if (!clickedEditor) {
+          return;
+        }
         const TOTAL_HEIGHT = noteHeight * TOTAL_VERTICAL_NOTES;
         const noteNum = Math.floor((TOTAL_HEIGHT - e.offsetY) / noteHeight);
 
@@ -205,12 +239,13 @@ export function MidiClipEditor({
         const tick = noteX * DEFAULT_NOTE_DURATION;
 
         const prevNote = clip.findNote(tick, noteNum);
-
+        console.log("prev", prevNote, tick, noteNum);
         const panelTool = project.panelTool.get();
         switch (panelTool) {
           case "move": {
+            console.log("HERE", prevNote);
             if (prevNote) {
-              project.secondarySelection.set({ status: "notes", notes: new Set([prevNote]) });
+              // selection handled inside the note
             } else {
               project.secondarySelection.set(null);
             }
@@ -219,7 +254,8 @@ export function MidiClipEditor({
           case "draw": {
             void history.record(() => {
               if (prevNote != null) {
-                clip.removeNote(prevNote);
+                // removal handled in note
+                // clip.removeNote(prevNote);
               } else {
                 clip.addNote(tick, noteNum, DEFAULT_NOTE_DURATION, 100);
               }
@@ -286,7 +322,7 @@ export function MidiClipEditor({
         <input
           type="range"
           min={1}
-          max={10}
+          max={MAX_H_SCALE}
           step={0.1}
           value={pxPerPulse}
           title="Horizontal Zoom level"
@@ -316,39 +352,57 @@ export function MidiClipEditor({
       {/*  piano roll notes are PPQN / 4 wide */}
 
       <div
-        ref={editorContainerRef}
-        className={styles.editorContainer}
-        style={{ paddingLeft: clip.detailedViewport.pulsesToPx(PPQN / 4) }}
+        ref={pianoRollRef}
+        style={{
+          display: "grid",
+          gridTemplateColumns: `${PIANO_ROLL_WIDTH}px auto`,
+          flexGrow: 1,
+          overflow: "scroll",
+        }}
       >
         <canvas
-          ref={backgroundRef}
+          ref={pianoRollCanvasRef}
           height={CANVAS_SCALE * noteHeight * TOTAL_VERTICAL_NOTES}
-          // piano roll notes are PPQN / 4 wide
-          width={CANVAS_SCALE * clip.detailedViewport.pulsesToPx(clip.lengthPulses + PPQN / 4)}
+          width={CANVAS_SCALE * PIANO_ROLL_WIDTH}
           style={{
             pointerEvents: "none",
-            position: "absolute",
-            top: 0,
+            position: "sticky",
             left: 0,
             height: noteHeight * TOTAL_VERTICAL_NOTES,
             background: "var(--timeline-bg)",
-            // piano roll notes are PPQN / 4 wide
-            width: clip.detailedViewport.pulsesToPx(clip.lengthPulses + PPQN / 4),
-            // imageRendering: "pixelated",
+            width: PIANO_ROLL_WIDTH,
+            zIndex: 1,
           }}
         />
-        <div
-          className={styles.noteEditor}
-          style={{
-            height: noteHeight * TOTAL_VERTICAL_NOTES,
-          }}
-          ref={containerRef}
-        >
-          <div className={styles.cursor} ref={cursorDiv} />
+        <div ref={editorContainerRef} className={styles.editorContainer}>
+          <canvas
+            ref={backgroundRef}
+            height={CANVAS_SCALE * noteHeight * TOTAL_VERTICAL_NOTES}
+            width={CANVAS_SCALE * clip.detailedViewport.pulsesToPx(clip.lengthPulses)}
+            style={{
+              pointerEvents: "none",
+              position: "absolute",
+              top: 0,
+              left: 0,
+              height: noteHeight * TOTAL_VERTICAL_NOTES,
+              background: "var(--timeline-bg)",
+              width: clip.detailedViewport.pulsesToPx(clip.lengthPulses),
+              // imageRendering: "pixelated",
+            }}
+          />
+          <div
+            className={styles.noteEditor}
+            style={{
+              height: noteHeight * TOTAL_VERTICAL_NOTES,
+            }}
+            ref={containerRef}
+          >
+            <div className={styles.cursor} ref={cursorDiv} />
 
-          {notes.map((note, i) => {
-            return <NoteR key={i} note={note} viewport={clip.detailedViewport} project={project} />;
-          })}
+            {notes.map((note, i) => {
+              return <NoteR clip={clip} key={i} note={note} viewport={clip.detailedViewport} project={project} />;
+            })}
+          </div>
         </div>
       </div>
     </>
@@ -360,7 +414,7 @@ const useStyles = createUseStyles({
     borderRadius: 3,
     position: "relative",
     flexGrow: 1,
-    overflow: "scroll",
+    // overflow: "scroll",
   },
   noteEditor: {
     position: "relative",

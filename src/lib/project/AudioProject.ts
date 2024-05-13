@@ -41,6 +41,7 @@ export type XScale = ScaleLinear<number, number>;
 
 export type Tool = "move" | "trimStart" | "trimEnd" | "slice";
 export type SecondaryTool = "move" | "draw";
+export type Panel = "primary" | "secondary" | "sidebar";
 
 export type TimeSignature = readonly [numerator: number, denominator: number];
 export type AxisMeasure = "tempo" | "time";
@@ -83,6 +84,7 @@ export class AudioProject {
   // the selected clip(s), track(s), etc
   readonly selected = LinkedState.of<PrimarySelectionState | null>(null);
   readonly secondarySelection = LinkedState.of<PanelSelectionState | null>(null);
+  readonly activePanel = LinkedState.of<Panel>("primary");
 
   // looping
   readonly loopStart: TimelinePoint;

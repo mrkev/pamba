@@ -200,8 +200,6 @@ class PianoRollProcessor extends WamProcessor {
     const loopStart = this.loop == null ? null : this.loop[0];
     const loopEnd = this.loop == null ? null : this.loop[1];
 
-    console.log("Hello");
-
     // console.log("startingTikcs", this.startingTicks);
     while (this.ticks < absoluteTickPosition) {
       // update ticks
