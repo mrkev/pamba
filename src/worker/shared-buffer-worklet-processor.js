@@ -37,7 +37,7 @@ class SharedBufferWorkletProcessor extends AudioWorkletProcessor {
    * @constructor
    * @param {AudioWorkletNodeOptions} nodeOptions
    */
-  constructor(nodeOptions) {
+  constructor(_nodeOptions) {
     super();
 
     this._initialized = false;
@@ -108,9 +108,7 @@ class SharedBufferWorkletProcessor extends AudioWorkletProcessor {
     const nextReadIndex = outputReadIndex + outputChannelData.length;
 
     if (nextReadIndex < this._ringBufferLength) {
-      outputChannelData.set(
-        this._outputRingBuffer[0].subarray(outputReadIndex, nextReadIndex)
-      );
+      outputChannelData.set(this._outputRingBuffer[0].subarray(outputReadIndex, nextReadIndex));
       this._states[STATE.OB_READ_INDEX] += outputChannelData.length;
     } else {
       let overflow = nextReadIndex - this._ringBufferLength;
@@ -151,7 +149,4 @@ class SharedBufferWorkletProcessor extends AudioWorkletProcessor {
   }
 } // class SharedBufferWorkletProcessor
 
-registerProcessor(
-  "shared-buffer-worklet-processor",
-  SharedBufferWorkletProcessor
-);
+registerProcessor("shared-buffer-worklet-processor", SharedBufferWorkletProcessor);

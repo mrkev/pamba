@@ -1,6 +1,6 @@
 class MixDownProcessor extends AudioWorkletProcessor {
   // inputs, channels, samples
-  process(inputs, outputs, parameters) {
+  process(inputs, outputs, _parameters) {
     // only output to the first output
     const output = outputs[0];
     // console.log("a");
