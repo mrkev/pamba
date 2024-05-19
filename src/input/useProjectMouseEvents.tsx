@@ -429,6 +429,11 @@ export function useTimelineMouseEvents(
                   pointMovePulses(project, point, newOffsetP, snap);
                   break;
                 }
+
+                case "bars": {
+                  throw new Error("todo: unimplmented");
+                }
+
                 default:
                   exhaustive(point.u);
               }

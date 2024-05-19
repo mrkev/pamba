@@ -10,9 +10,9 @@ import { exhaustive } from "../utils/exhaustive";
 import { clamp } from "../utils/math";
 import { nullthrows } from "../utils/nullthrows";
 import { PPQN } from "../wam/pianorollme/MIDIConfiguration";
+import { TimelineTEditor } from "./TimelineTEditor";
 import { NoteR } from "./NoteR";
 import { RenamableLabel } from "./RenamableLabel";
-import { UtilityNumber } from "./UtilityNumber";
 import { UtilityToggle } from "./UtilityToggle";
 import { useDrawOnCanvas } from "./useDrawOnCanvas";
 import { useEventListener } from "./useEventListener";
@@ -60,6 +60,7 @@ export function MidiClipEditor({
   const [secondarySel] = useLinkedState(project.secondarySelection);
   const [panelTool] = useLinkedState(project.panelTool);
   const [bpm] = useLinkedState(project.tempo);
+  const timelineLen = useContainer(clip.timelineLength);
 
   useSubscribeToSubbableMutationHashable(clip);
 
@@ -288,13 +289,16 @@ export function MidiClipEditor({
           }}
         />
         Length {/* TODO: number only */}
-        <input
-          value={clip.lengthPulses}
+        <TimelineTEditor t={timelineLen} project={project} />
+        {/* <input
+          type="number"
+          value={timelineLen.pul}
+          step={}
           onChange={(e) => {
-            console.log(parseInt(e.target.value));
+            clip.timelineLength.set(parseInt(e.target.value));
           }}
-        />
-        <UtilityNumber value={1} onChange={console.log} />
+        /> */}
+        {/* <UtilityNumber value={1} onChange={console.log} /> */}
         <div>
           <UtilityToggle
             title={"selection tool"}

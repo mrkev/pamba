@@ -4,7 +4,7 @@ import { AudioProject } from "../lib/project/AudioProject";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { pressedState } from "../pressedState";
 import { set } from "../utils/set";
-import { time } from "../lib/project/TimelinePoint";
+import { time } from "../lib/project/TimelineT";
 import { PPQN } from "../wam/pianorollme/MIDIConfiguration";
 import classNames from "classnames";
 

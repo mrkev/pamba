@@ -5,7 +5,7 @@ import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioTrack } from "../lib/AudioTrack";
 import { AudioProject } from "../lib/project/AudioProject";
-import { STimelinePoint, TimelinePoint } from "../lib/project/TimelinePoint";
+import { STimelineT, TimelineT } from "../lib/project/TimelineT";
 import { MidiClip } from "../midi/MidiClip";
 import { MidiInstrument } from "../midi/MidiInstrument";
 import { MidiTrack } from "../midi/MidiTrack";
@@ -60,8 +60,8 @@ export type SAudioProject = {
   projectName: string;
   tempo: number;
   tracks: Array<SAudioTrack | SMidiTrack>;
-  loopStart: STimelinePoint;
-  loopEnd: STimelinePoint;
+  loopStart: STimelineT;
+  loopEnd: STimelineT;
   loopOnPlayback: boolean;
 };
 
@@ -226,8 +226,8 @@ export async function construct(
         projectId,
         projectName,
         tempo,
-        TimelinePoint.construct(loopStart),
-        TimelinePoint.construct(loopEnd),
+        TimelineT.construct(loopStart),
+        TimelineT.construct(loopEnd),
         loopOnPlayback,
       );
     }

@@ -1,13 +1,10 @@
 import classNames from "classnames";
-import { useEffect, useState } from "react";
-import { ignoreMaybePromise } from "../utils/ignorePromise";
+import { useEffect, useRef, useState } from "react";
 import { utility } from "./utility";
 
 export function UtilityButton({ className, style, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return <button className={classNames(utility.button, className)} style={style} {...props} />;
 }
-
-type MaybePromise<T> = Promise<T> | T;
 
 export function UtilityTextInput({
   className,
@@ -18,14 +15,19 @@ export function UtilityTextInput({
   ...props
 }: Omit<React.ButtonHTMLAttributes<HTMLInputElement>, "value" | "onChange" | "type"> & {
   value: string;
-  onChange: (value: string) => MaybePromise<string | void>;
+  onChange: (value: string) => void;
 }) {
   const [edit, setEdit] = useState(value);
-  const [editable, setEditable] = useState(!disabled);
+  const [editable] = useState(!disabled);
+  const [skipBlurChange, setSkipBlurChange] = useState(false);
+  const ref = useRef<HTMLInputElement>(null);
   useEffect(() => setEdit(value), [value]);
+
+  console.log("skipblurchange", skipBlurChange);
 
   return (
     <input
+      ref={ref}
       type="text"
       className={classNames("utilityInput", className)}
       style={style}
@@ -34,34 +36,34 @@ export function UtilityTextInput({
       disabled={disabled || !editable}
       onChange={(e) => setEdit(e.target.value)}
       onBlur={() => {
-        if (!editable) {
+        console.log("ONBLUR:skip?", skipBlurChange);
+        if (!editable || skipBlurChange) {
+          setSkipBlurChange(false);
           return;
         }
-        ignoreMaybePromise(onChange(edit));
+        onChange(edit);
       }}
       onKeyDown={(e) => {
-        if (e.key !== "Enter") {
-          return;
-        }
-
-        const maybePromise = onChange(value);
-        if (maybePromise instanceof Promise) {
-          setEditable(false);
-          maybePromise
-            .then((value) => {
-              if (typeof value === "string") {
-                setEdit(value);
-              }
-              setEditable(!disabled);
-            })
-            .catch((e) => {
-              console.error(e);
-              setEditable(!disabled);
-            });
-        } else if (typeof value === "string") {
-          setEdit(value);
-        } else {
-          return;
+        switch (e.key) {
+          case "Enter": {
+            console.log("ENTER");
+            onChange(edit);
+            setSkipBlurChange(true);
+            // otherwise onblur triggers before state chagne
+            setTimeout(() => {
+              ref.current?.blur();
+            }, 0);
+            break;
+          }
+          case "Escape": {
+            console.log("ESC");
+            setEdit(value);
+            setSkipBlurChange(true);
+            setTimeout(() => {
+              ref.current?.blur();
+            }, 0);
+            break;
+          }
         }
       }}
     />

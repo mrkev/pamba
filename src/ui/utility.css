@@ -40,5 +40,8 @@
 }
 
 .utilityInput {
-  border: 2px solid var(--control-bg-color);
+  border: none;
+  background-color: var(--control-bg-color);
+  font-size: 11px;
+  padding: 2px 4px;
 }

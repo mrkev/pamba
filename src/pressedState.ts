@@ -1,6 +1,6 @@
 import { AudioClip } from "./lib/AudioClip";
 import { AudioTrack } from "./lib/AudioTrack";
-import { TimelinePoint, STimelinePoint } from "./lib/project/TimelinePoint";
+import { TimelineT, STimelineT } from "./lib/project/TimelineT";
 import { SPrimitive } from "structured-state";
 import { MidiClip } from "./midi/MidiClip";
 import { MidiTrack } from "./midi/MidiTrack";
@@ -63,9 +63,9 @@ export type CursorState =
     }>
   | Readonly<{
       status: "moving_timeline_points";
-      points: Set<{ original: STimelinePoint; point: TimelinePoint }>;
+      points: Set<{ original: STimelineT; point: TimelineT }>;
       clientX: number;
-      limit: [lower: null | TimelinePoint, upper: null | TimelinePoint] | null;
+      limit: [lower: null | TimelineT, upper: null | TimelineT] | null;
     }>
   | Readonly<{
       status: "moving_notes";

@@ -9,7 +9,13 @@ module.exports = {
   },
   ignorePatterns: ["vite.config.mts", "faustLoader/**", "src/midi/**"],
   parser: "@typescript-eslint/parser",
-  plugins: ["react", "prettier", "@typescript-eslint", "react-hooks", "eslint-plugin-react-compiler"],
+  plugins: [
+    "react",
+    "prettier",
+    "@typescript-eslint",
+    "react-hooks",
+    //  "eslint-plugin-react-compiler"
+  ],
   rules: {
     "no-useless-concat": "off",
     // Require Promise-like statements to be handled appropriately.
@@ -42,7 +48,7 @@ module.exports = {
     "react-hooks/exhaustive-deps": "warn",
     "react/react-in-jsx-scope": "off",
     "react/no-unescaped-entities": "off",
-    "react-compiler/react-compiler": 2,
+    // "react-compiler/react-compiler": 2,
   },
   globals: {
     Atomics: "readonly",

@@ -27,7 +27,7 @@ export function ClipM({
   const notes = useContainer(clip.notes);
   // const startTrimmedWidth = project.viewport.secsToPx(clip.trimStartSec);
   const [tool] = useLinkedState(project.pointerTool);
-  const width = project.viewport.pulsesToPx(clip.lengthPulses);
+  const width = project.viewport.pulsesToPx(clip.timelineLength.ensurePulses());
   const left = Math.floor(project.viewport.pulsesToPx(clip.startOffsetPulses));
 
   // const canvasRef = useRef<HTMLCanvasElement | null>(null);

@@ -5,7 +5,7 @@ import { PPQN } from "../wam/pianorollme/MIDIConfiguration";
 import { secs } from "./AbstractClip";
 import { AudioClip } from "./AudioClip";
 import { AudioProject } from "./project/AudioProject";
-import { TimelinePoint } from "./project/TimelinePoint";
+import { TimelineT } from "./project/TimelineT";
 
 export function clipResizeEndSec(clip: AudioClip, newLength: number, project: AudioProject, snap: boolean) {
   const newClipEnd = clamp(
@@ -105,7 +105,7 @@ export function clipMovePPQN(clip: MidiClip, newOffsetSec: number, project: Audi
 
 export function pointMoveSec(
   project: AudioProject,
-  point: TimelinePoint,
+  point: TimelineT,
   newOffsetSec: number,
   snap: boolean,
   originalStartOffsetSec?: number,
@@ -124,7 +124,7 @@ export function pointMoveSec(
   }
 }
 
-export function pointMovePulses(project: AudioProject, point: TimelinePoint, newOffsetPulses: number, snap: boolean) {
+export function pointMovePulses(project: AudioProject, point: TimelineT, newOffsetPulses: number, snap: boolean) {
   // todo: snap arg to snap to larger grid, vs PPQN
 
   if (!snap) {

@@ -21,7 +21,7 @@ import { ignorePromise } from "../state/Subbable";
 import { AudioStorage } from "./AudioStorage";
 import { ProjectViewportUtil } from "./ProjectViewportUtil";
 import { PanelSelectionState, PrimarySelectionState } from "./SelectionState";
-import { TimelinePoint, time } from "./TimelinePoint";
+import { TimelineT, time } from "./TimelineT";
 
 /**
  * TODO:
@@ -87,8 +87,8 @@ export class AudioProject {
   readonly activePanel = LinkedState.of<Panel>("primary");
 
   // looping
-  readonly loopStart: TimelinePoint;
-  readonly loopEnd: TimelinePoint;
+  readonly loopStart: TimelineT;
+  readonly loopEnd: TimelineT;
   readonly loopOnPlayback = LinkedState.of(false);
 
   // the zoom level. min scale is 0.64, max is 1000.
@@ -121,8 +121,8 @@ export class AudioProject {
     projectId: string,
     projectName: string,
     tempo: number,
-    loopStart: TimelinePoint,
-    loopEnd: TimelinePoint,
+    loopStart: TimelineT,
+    loopEnd: TimelineT,
     loopOnPlayback: boolean,
   ) {
     this.projectId = projectId;

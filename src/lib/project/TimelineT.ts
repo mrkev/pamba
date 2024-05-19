@@ -4,29 +4,32 @@ import { Pulses, Seconds } from "../AbstractClip";
 import { exhaustive } from "../state/Subbable";
 import { AudioProject } from "./AudioProject";
 
-export type TimeUnit = "pulses" | "seconds";
+export type STimelineT = Readonly<{ t: number; u: TimeUnit }>;
 
-export type STimelinePoint = Readonly<{ t: number; u: TimeUnit }>;
+export type TimeUnit = "pulses" | "seconds" | "bars";
 
-export class TimelinePoint extends Structured<STimelinePoint, typeof TimelinePoint> {
+// TODO: assuming constant 4/4
+const PULSES_PER_BAR = 6 * 4;
+
+export class TimelineT extends Structured<STimelineT, typeof TimelineT> {
   constructor(
     private t: number,
-    public u: "pulses" | "seconds",
+    public u: TimeUnit,
   ) {
     super();
   }
 
-  override serialize(): STimelinePoint {
+  override serialize(): STimelineT {
     return { t: this.t, u: this.u };
   }
 
-  override replace({ t, u }: STimelinePoint): void {
+  override replace({ t, u }: STimelineT): void {
     this.t = t;
     this.u = u;
   }
 
-  static construct({ t, u }: STimelinePoint): TimelinePoint {
-    return Structured.create(TimelinePoint, t, u);
+  static construct({ t, u }: STimelineT): TimelineT {
+    return Structured.create(TimelineT, t, u);
   }
 
   public set(t: number, u?: TimeUnit) {
@@ -43,6 +46,8 @@ export class TimelinePoint extends Structured<STimelinePoint, typeof TimelinePoi
         return this.t as Seconds;
       case "pulses":
         return pulsesToSec(this.t, project.tempo.get()) as Seconds;
+      case "bars":
+        return pulsesToSec(this.pulses(project), project.tempo.get()) as Seconds;
       default:
         exhaustive(this.u);
     }
@@ -54,6 +59,22 @@ export class TimelinePoint extends Structured<STimelinePoint, typeof TimelinePoi
         return secsToPulses(this.t, project.tempo.get()) as Pulses;
       case "pulses":
         return this.t as Pulses;
+      case "bars":
+        return (this.t * PULSES_PER_BAR) as Pulses;
+      default:
+        exhaustive(this.u);
+    }
+  }
+
+  // TODO: could replace with get/set function that takes "note" argument, uses pulses setup
+  bars(project: AudioProject): number {
+    switch (this.u) {
+      case "seconds":
+        return secsToPulses(this.t, project.tempo.get()) / PULSES_PER_BAR;
+      case "pulses":
+        return this.t / PULSES_PER_BAR;
+      case "bars":
+        return this.t;
       default:
         exhaustive(this.u);
     }
@@ -65,6 +86,8 @@ export class TimelinePoint extends Structured<STimelinePoint, typeof TimelinePoi
         return project.viewport.pxForTime(this.t);
       case "pulses":
         return project.viewport.pxForPulse(this.t);
+      case "bars":
+        throw new Error("TODO: Cant convert bars to px");
       default:
         exhaustive(this.u);
     }
@@ -76,16 +99,18 @@ export class TimelinePoint extends Structured<STimelinePoint, typeof TimelinePoi
         return this.secs(project);
       case "pulses":
         return this.pulses(project);
+      case "bars":
+        return this.bars(project);
       default:
         exhaustive(u);
     }
   }
 
   clone() {
-    return new TimelinePoint(this.t, this.u);
+    return new TimelineT(this.t, this.u);
   }
 
-  add(p: TimelinePoint, project: AudioProject) {
+  add(p: TimelineT, project: AudioProject) {
     if (this.u === p.u) {
       this.t += p.t;
     } else {
@@ -94,7 +119,7 @@ export class TimelinePoint extends Structured<STimelinePoint, typeof TimelinePoi
     return this;
   }
 
-  subtract(p: TimelinePoint, project: AudioProject) {
+  subtract(p: TimelineT, project: AudioProject) {
     if (this.u === p.u) {
       this.t -= p.t;
     } else {
@@ -107,8 +132,21 @@ export class TimelinePoint extends Structured<STimelinePoint, typeof TimelinePoi
     this.t = op(this.t);
     return this;
   }
+
+  ensurePulses() {
+    switch (this.u) {
+      case "seconds":
+        throw new Error("expected pulses, found " + this.u);
+      case "bars":
+        return this.t * PULSES_PER_BAR;
+      case "pulses":
+        return this.t;
+      default:
+        exhaustive(this.u);
+    }
+  }
 }
 
-export function time(t: number, u: "pulses" | "seconds"): TimelinePoint {
-  return Structured.create(TimelinePoint, t, u);
+export function time(t: number, u: "pulses" | "seconds"): TimelineT {
+  return Structured.create(TimelineT, t, u);
 }

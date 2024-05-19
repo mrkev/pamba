@@ -1,15 +1,15 @@
 import { useCallback, useRef } from "react";
 import { createUseStyles } from "react-jss";
-import { history, usePrimitive } from "structured-state";
+import { usePrimitive } from "structured-state";
+import { GPUWaveform } from "webgpu-waveform";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioProject } from "../lib/project/AudioProject";
 import { useSubscribeToSubbableMutationHashable } from "../lib/state/LinkedMap";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { nullthrows } from "../utils/nullthrows";
-import { RenamableLabel } from "./RenamableLabel";
+import { ClipPropsEditor } from "./ClipPropsEditor";
 import { UtilityToggle } from "./UtilityToggle";
-import { GPUWaveform } from "webgpu-waveform";
 import { useEventListener } from "./useEventListener";
 
 export const HEIGHT = 200;
@@ -26,9 +26,8 @@ export function AudioClipEditor({
   // const containerRef = useRef<HTMLDivElement>(null);
   // const backgroundRef = useRef<HTMLCanvasElement>(null);
   const waveformRef = useRef<HTMLCanvasElement>(null);
-  const styles = useStyles();
+  // const styles = useStyles();
   const playbackDiv = useRef<HTMLDivElement>(null);
-  const [name] = usePrimitive(clip.name);
   const [playbackPos] = usePrimitive(player.playbackPos);
   const [cursorPos] = useLinkedState(project.cursorPos);
   const [selectionWidthRaw] = useLinkedState(project.selectionWidth);
@@ -54,8 +53,6 @@ export function AudioClipEditor({
   //   1000,
   //   HEIGHT,
   // );
-
-  const border = "1px solid #114411";
 
   // how many samples per pixel
 
@@ -163,58 +160,7 @@ export function AudioClipEditor({
 
   return (
     <>
-      <div style={{ marginRight: 4, alignSelf: "center" }}>
-        <div
-          className={styles.clipHeader}
-          style={{
-            color: "white",
-            background: "#225522",
-            border: "1px solid #114411",
-            boxSizing: "border-box",
-            borderTopRightRadius: "3px",
-            borderTopLeftRadius: "3px",
-            padding: "0px 4px",
-          }}
-        >
-          {/* TODO: not working */}
-          <RenamableLabel
-            style={{
-              color: "white",
-              fontSize: 12,
-              cursor: "text",
-            }}
-            value={name}
-            setValue={(value) => {
-              history.record(() => {
-                clip.name.set(value);
-              });
-            }}
-            showEditButton
-          />
-        </div>
-        <div
-          style={{
-            borderLeft: border,
-            borderRight: border,
-            borderBottom: border,
-            display: "flex",
-            flexDirection: "column",
-            fontSize: 12,
-            alignSelf: "flex-start",
-            padding: "2px 4px",
-            background: "#4e4e4e",
-          }}
-        >
-          Length <input type="number" value={clip.clipLengthSec} disabled />
-          Filename:
-          <input type="text" value={clip.bufferURL} disabled />
-          Sample Rate:
-          <input type="number" value={clip.sampleRate} disabled />
-          sid:
-          <input type="text" value={clip._id} disabled />
-          <small>note: sid is for debugging</small>
-        </div>
-      </div>
+      <ClipPropsEditor clip={clip} project={project} />
       {/* Waveform view */}
       <div
         style={{
@@ -369,13 +315,5 @@ const useStyles = createUseStyles({
   waveformViewContainer: {
     flexGrow: 1,
     overflowX: "scroll",
-  },
-  clipHeader: {
-    opacity: 0.8,
-    fontSize: 10,
-    whiteSpace: "nowrap",
-    overflow: "hidden",
-    flexShrink: 0,
-    paddingBottom: "0px 0px 1px 0px",
   },
 });

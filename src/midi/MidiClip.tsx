@@ -5,7 +5,7 @@ import { SMidiClip } from "../data/serializable";
 import { AbstractClip, Pulses } from "../lib/AbstractClip";
 import { ProjectTrack } from "../lib/ProjectTrack";
 import { AudioProject } from "../lib/project/AudioProject";
-import { TimelinePoint, time } from "../lib/project/TimelinePoint";
+import { TimelineT, time } from "../lib/project/TimelineT";
 import { MidiViewport } from "../ui/AudioViewport";
 import { mutablearr, nullthrows } from "../utils/nullthrows";
 import { mutable } from "../utils/types";
@@ -36,20 +36,21 @@ export class MidiClip extends Structured<SMidiClip, typeof MidiClip> implements 
   // ordered by tick (start)
   readonly notes: SArray<Note>;
   readonly name: SString;
-  public lengthPulses: Pulses;
-  private _startOffsetPulses: Pulses;
+  // public lengthPulses: Pulses;
+  // private _startOffsetPulses: Pulses;
 
   readonly detailedViewport: MidiViewport;
 
   // Experimental, unused
-  timelineStart: TimelinePoint;
+  timelineStart: TimelineT;
+  timelineLength: TimelineT;
 
   override serialize(): SMidiClip {
     return {
       kind: "MidiClip",
       name: this.name.get(),
       startOffsetPulses: this.startOffsetPulses,
-      lengthPulses: this.lengthPulses,
+      lengthPulses: this.timelineLength.ensurePulses(), // todo: replace for serialized timelinet to avoid ensurePulses
       notes: this.notes._getRaw(),
       viewport: this.detailedViewport.serialize(),
     };
@@ -85,9 +86,10 @@ export class MidiClip extends Structured<SMidiClip, typeof MidiClip> implements 
     super();
     this.name = SString.create(name);
     this.notes = SArray.create(mutablearr(notes));
-    this.lengthPulses = lengthPulses as Pulses;
-    this._startOffsetPulses = startOffsetPulses as Pulses;
+    // this.lengthPulses = lengthPulses as Pulses;
+    // this._startOffsetPulses = startOffsetPulses as Pulses;
     this.timelineStart = time(startOffsetPulses, "pulses");
+    this.timelineLength = time(lengthPulses, "pulses");
     this.detailedViewport = viewport;
   }
 
@@ -107,36 +109,39 @@ export class MidiClip extends Structured<SMidiClip, typeof MidiClip> implements 
   }
 
   get startOffsetPulses() {
-    return this._startOffsetPulses;
+    return this.timelineStart.ensurePulses();
   }
 
   setStartOffsetPulses(value: number) {
-    this._startOffsetPulses = value as Pulses;
+    // this._startOffsetPulses = value as Pulses;
+    this.timelineStart.set(value, "pulses");
   }
 
   // interface AbstractClip
 
   get _timelineStartU(): Pulses {
-    return this._startOffsetPulses;
+    return this.timelineStart.ensurePulses() as Pulses;
   }
 
   _setTimelineStartU(val: Pulses): void {
-    this._startOffsetPulses = val;
+    // this._startOffsetPulses = val;
+    this.timelineStart.set(val, "pulses");
   }
 
   get _timelineEndU(): Pulses {
-    return (this._startOffsetPulses + this.lengthPulses) as Pulses;
+    return (this.startOffsetPulses + this.timelineLength.ensurePulses()) as Pulses;
   }
 
   _setTimelineEndU(newEnd: number): void {
-    if (newEnd < this._startOffsetPulses) {
+    if (newEnd < this.startOffsetPulses) {
       throw new Error("Can't set endOffsetSec to be before startOffsetSec");
     }
-    this.lengthPulses = (newEnd - this._startOffsetPulses) as Pulses;
+    // this.lengthPulses = (newEnd - this._startOffsetPulses) as Pulses;
+    this.timelineLength.set(newEnd - this.startOffsetPulses, "pulses");
   }
 
   trimStartToTimelineU(timePulses: number) {
-    if (timePulses < this._startOffsetPulses) {
+    if (timePulses < this.startOffsetPulses) {
       return;
     }
 
@@ -144,18 +149,24 @@ export class MidiClip extends Structured<SMidiClip, typeof MidiClip> implements 
       throw new Error("trimming past end time");
     }
 
-    const _delta = timePulses - this._startOffsetPulses;
+    const _delta = timePulses - this.startOffsetPulses;
 
-    this._startOffsetPulses = timePulses as Pulses;
+    // this._startOffsetPulses = timePulses as Pulses;
+    this.timelineStart.set(timePulses, "pulses");
+
     // TODO
     // this.trimStartSec = this.trimStartSec + delta;
+  }
+
+  get lengthPulses() {
+    return this.timelineLength.ensurePulses();
   }
 
   clone(): MidiClip {
     const newClip = new MidiClip(
       this.name.get(),
-      this._startOffsetPulses,
-      this.lengthPulses,
+      this.startOffsetPulses,
+      this.timelineLength.ensurePulses(),
       mutable(this.notes._getRaw()),
       this.detailedViewport.clone(),
     );

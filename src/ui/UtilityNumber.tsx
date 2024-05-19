@@ -56,10 +56,12 @@ export function UtilityNumber({
   value,
   onChange,
   decimals = 0,
+  style,
 }: {
   value: number;
   onChange?: (v: number) => void;
   decimals?: number;
+  style?: React.CSSProperties;
 }) {
   const divRef = useRef<HTMLDivElement>(null);
   useMouseDrag(
@@ -89,6 +91,7 @@ export function UtilityNumber({
           textAlign: "center",
           // width: 17,
           padding: "0px",
+          ...style,
         }}
         className="utilityButton"
       >
