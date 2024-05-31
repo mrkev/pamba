@@ -11,6 +11,10 @@ export type TimeUnit = "pulses" | "seconds" | "bars";
 // TODO: assuming constant 4/4
 const PULSES_PER_BAR = 6 * 4;
 
+// 1 pulse
+// 6 puleses = 1 beat
+// 4 beats = 1 bar
+
 export class TimelineT extends Structured<STimelineT, typeof TimelineT> {
   constructor(
     private t: number,
@@ -54,15 +58,19 @@ export class TimelineT extends Structured<STimelineT, typeof TimelineT> {
   }
 
   pulses(project: AudioProject): Pulses {
-    switch (this.u) {
+    return TimelineT.pulses(project, this.t, this.u);
+  }
+
+  static pulses(project: AudioProject, t: number, u: TimeUnit): Pulses {
+    switch (u) {
       case "seconds":
-        return secsToPulses(this.t, project.tempo.get()) as Pulses;
+        return secsToPulses(t, project.tempo.get()) as Pulses;
       case "pulses":
-        return this.t as Pulses;
+        return t as Pulses;
       case "bars":
-        return (this.t * PULSES_PER_BAR) as Pulses;
+        return (t * PULSES_PER_BAR) as Pulses;
       default:
-        exhaustive(this.u);
+        exhaustive(u);
     }
   }
 
@@ -141,6 +149,18 @@ export class TimelineT extends Structured<STimelineT, typeof TimelineT> {
         return this.t * PULSES_PER_BAR;
       case "pulses":
         return this.t;
+      default:
+        exhaustive(this.u);
+    }
+  }
+
+  ensureSecs() {
+    switch (this.u) {
+      case "seconds":
+        return this.t;
+      case "bars":
+      case "pulses":
+        throw new Error("expected pulses, found " + this.u);
       default:
         exhaustive(this.u);
     }

@@ -10,9 +10,9 @@ import { PambaWamNode } from "../wam/PambaWamNode";
 import { AppProject } from "./AppProject";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { PambaWamNodeWindowPanel } from "./PambaWamNodeWindowPanel";
+import { changelog } from "./changelog";
 import { useDocumentEventListener } from "./useEventListener";
 import { utility } from "./utility";
-import { changelog } from "./changelog";
 
 // var w = new TrackThread();
 // var sab = new SharedArrayBuffer(1024);

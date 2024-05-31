@@ -20,7 +20,9 @@ import { Note } from "../../midi/SharedMidiTypes";
 export type PrimarySelectionState =
   | {
       status: "clips";
-      clips: Array<{ clip: AudioClip; track: AudioTrack } | { clip: MidiClip; track: MidiTrack }>;
+      clips: Array<
+        { kind: "audio"; clip: AudioClip; track: AudioTrack } | { kind: "midi"; clip: MidiClip; track: MidiTrack }
+      >;
       test: Set<AudioClip | AudioTrack | MidiClip | MidiTrack>;
     }
   | {

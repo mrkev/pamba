@@ -14,6 +14,12 @@ import { MidiClipEditor } from "./MidiClipEditor";
 import { TrackEditor } from "./TrackEditor";
 import { useMousePressMove } from "./useEventListener";
 
+type BottomPanelDisplay =
+  | { kind: "AudioClip"; clip: AudioClip; track: AudioTrack }
+  | { kind: "MidiClip"; clip: MidiClip; track: MidiTrack }
+  | { kind: "AudioTrack"; track: AudioTrack }
+  | { kind: "MidiTrack"; track: MidiTrack };
+
 export function BottomPanel({
   project,
   player,
@@ -35,33 +41,42 @@ export function BottomPanel({
     }, []),
   );
 
-  if (primarySelection instanceof AudioClip) {
-    return <AudioClipEditor clip={primarySelection} player={player} project={project} />;
-  }
+  switch (primarySelection?.kind) {
+    case null:
+      return (
+        <div>
+          nothing to show
+          {/* <div ref={testref}>TEST</div>
+          <UtilityPanel layout={"horizontal"}>nothing to show</UtilityPanel>
+          <UtilityPanel layout={"horizontal"}>nothing to show</UtilityPanel> */}
+        </div>
+      );
+    case "AudioClip":
+      return (
+        <AudioClipEditor
+          clip={primarySelection.clip}
+          track={primarySelection.track}
+          player={player}
+          project={project}
+        />
+      );
+    case "MidiClip":
+      return (
+        <MidiClipEditor clip={primarySelection.clip} track={primarySelection.track} player={player} project={project} />
+      );
+    case "AudioTrack":
+    case "MidiTrack":
+      return <TrackEditor track={primarySelection.track} project={project} renderer={renderer} />;
 
-  if (primarySelection instanceof MidiClip) {
-    return <MidiClipEditor clip={primarySelection} player={player} project={project} />;
-  }
-
-  if (primarySelection instanceof MidiTrack || primarySelection instanceof AudioTrack) {
-    return <TrackEditor track={primarySelection} project={project} renderer={renderer} />;
-  }
-
-  if (!(activeTrack instanceof MidiTrack)) {
-    return (
-      <div>
-        nothing to show
-        {/* <div ref={testref}>TEST</div>
-        <UtilityPanel layout={"horizontal"}>nothing to show</UtilityPanel>
-        <UtilityPanel layout={"horizontal"}>nothing to show</UtilityPanel> */}
-      </div>
-    );
+      break;
+    default:
+    // exhaustive(primarySelection?.[0]);
   }
 
   // const clip = activeTrack.pianoRoll.sequencer.pianoRoll.clips["default"];
   // return <OldMidiClipEditor clip={clip} player={player} />;
 }
-function getValidEditorSelection(selected: PrimarySelectionState | null) {
+function getValidEditorSelection(selected: PrimarySelectionState | null): BottomPanelDisplay | null {
   if (selected == null) {
     return null;
   }
@@ -72,13 +87,13 @@ function getValidEditorSelection(selected: PrimarySelectionState | null) {
         return null;
       }
 
-      const clip = selected.clips[0];
-      if (clip.clip instanceof MidiClip) {
-        return clip.clip;
-      } else if (clip.clip instanceof AudioClip) {
-        return clip.clip;
+      const sel = selected.clips[0];
+      if (sel.kind === "midi") {
+        return { kind: "MidiClip", clip: sel.clip, track: sel.track };
+      } else if (sel.kind === "audio") {
+        return { kind: "AudioClip", clip: sel.clip, track: sel.track };
       } else {
-        exhaustive(clip.clip);
+        exhaustive(sel);
       }
     }
     case "tracks": {
@@ -87,9 +102,9 @@ function getValidEditorSelection(selected: PrimarySelectionState | null) {
       }
       const track = selected.tracks[0];
       if (track instanceof AudioTrack) {
-        return track;
+        return { kind: "AudioTrack", track: track };
       } else if (track instanceof MidiTrack) {
-        return track;
+        return { kind: "MidiTrack", track: track };
       } else {
         exhaustive(track);
       }

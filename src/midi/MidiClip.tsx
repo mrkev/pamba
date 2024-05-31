@@ -5,7 +5,7 @@ import { SMidiClip } from "../data/serializable";
 import { AbstractClip, Pulses } from "../lib/AbstractClip";
 import { ProjectTrack } from "../lib/ProjectTrack";
 import { AudioProject } from "../lib/project/AudioProject";
-import { TimelineT, time } from "../lib/project/TimelineT";
+import { TimeUnit, TimelineT, time } from "../lib/project/TimelineT";
 import { MidiViewport } from "../ui/AudioViewport";
 import { mutablearr, nullthrows } from "../utils/nullthrows";
 import { mutable } from "../utils/types";
@@ -30,20 +30,16 @@ export function secsToPulses(secs: number, bpm: number) {
 }
 
 export class MidiClip extends Structured<SMidiClip, typeof MidiClip> implements AbstractClip<Pulses> {
-  // AbstractClip
   readonly unit = "pulse";
-
-  // ordered by tick (start)
-  readonly notes: SArray<Note>;
+  // StandardClip
   readonly name: SString;
+
+  readonly notes: SArray<Note>; // ordered by tick (start)
   // public lengthPulses: Pulses;
   // private _startOffsetPulses: Pulses;
-
   readonly detailedViewport: MidiViewport;
-
-  // Experimental, unused
-  timelineStart: TimelineT;
-  timelineLength: TimelineT;
+  readonly timelineStart: TimelineT;
+  readonly timelineLength: TimelineT;
 
   override serialize(): SMidiClip {
     return {
@@ -93,14 +89,27 @@ export class MidiClip extends Structured<SMidiClip, typeof MidiClip> implements 
     this.detailedViewport = viewport;
   }
 
-  addNote(tick: number, num: number, duration: number, velocity: number) {
-    addOrderedNote(this.notes, [tick, num, duration, velocity]);
-    this._notifyChange();
+  static addNote(clip: MidiClip, tick: number, num: number, duration: number, velocity: number) {
+    addOrderedNote(clip.notes, [tick, num, duration, velocity]);
+    clip._notifyChange();
   }
 
-  removeNote(note: Note) {
-    this.notes.remove(note);
-    this._notifyChange();
+  static addNoteAndUpdateTrackPlayback(
+    track: MidiTrack,
+    clip: MidiClip,
+    tick: number,
+    num: number,
+    duration: number,
+    velocity: number,
+  ) {
+    // TODO
+    addOrderedNote(clip.notes, [tick, num, duration, velocity]);
+    clip._notifyChange();
+  }
+
+  static removeNote(clip: MidiClip, note: Note) {
+    clip.notes.remove(note);
+    clip._notifyChange();
   }
 
   // Good for now, works long term?
@@ -194,4 +203,29 @@ export function createEmptyMidiClipInTrack(project: AudioProject, track: MidiTra
   const length = project.viewport.secsToPulses(endS - startS);
   const clip = MidiClip.of("new clip", startPulses, length, []);
   ProjectTrack.addClip(project, track, clip);
+}
+
+export function setClipLength(project: AudioProject, track: MidiTrack, clip: MidiClip, t: number, u: TimeUnit) {
+  const i = track.clips.indexOf(clip);
+  const next = track.clips.at(i + 1);
+  if (i < 0) {
+    throw new Error("setClipLength: clip not in track");
+  }
+
+  const prevLength = clip.timelineLength.pulses(project);
+  const newLength = TimelineT.pulses(project, t, u);
+
+  // nothing special to do anything in these cases
+  if (newLength < prevLength || next === null) {
+    clip.timelineLength.set(t, u);
+    return;
+  }
+
+  // Delete all the area we're expanding into, and set the new length
+  const clipStart = clip.timelineStart.pulses(project);
+  const start = clipStart + prevLength; // pulses
+  const end = clipStart + newLength; // pulses
+  ProjectTrack.deleteTime(project, track, start, end);
+
+  clip.timelineLength.set(t, u);
 }

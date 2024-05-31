@@ -92,7 +92,7 @@ export class MidiTrack extends Structured<SMidiTrack, typeof MidiTrack> implemen
   public createSampleMidiClip() {
     const newClip = MidiClip.of("new midi clip", 0, 96, []);
     for (const note of SAMPLE_STATE.clips.default.notes) {
-      newClip.addNote(note.tick, note.number, note.duration, note.velocity);
+      MidiClip.addNote(newClip, note.tick, note.number, note.duration, note.velocity);
     }
     this.clips.push(newClip);
   }

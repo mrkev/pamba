@@ -8,9 +8,10 @@ import { AudioProject } from "../lib/project/AudioProject";
 import { useSubscribeToSubbableMutationHashable } from "../lib/state/LinkedMap";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { nullthrows } from "../utils/nullthrows";
-import { ClipPropsEditor } from "./ClipPropsEditor";
+import { AudioClipPropsEditor, ClipPropsEditor } from "./ClipPropsEditor";
 import { UtilityToggle } from "./UtilityToggle";
 import { useEventListener } from "./useEventListener";
+import { AudioTrack } from "../lib/AudioTrack";
 
 export const HEIGHT = 200;
 
@@ -18,8 +19,10 @@ export function AudioClipEditor({
   clip,
   player,
   project,
+  track,
 }: {
   clip: AudioClip;
+  track: AudioTrack;
   player: AnalizedPlayer;
   project: AudioProject;
 }) {
@@ -160,7 +163,8 @@ export function AudioClipEditor({
 
   return (
     <>
-      <ClipPropsEditor clip={clip} project={project} />
+      <ClipPropsEditor clip={clip} project={project} track={track} />
+      <AudioClipPropsEditor clip={clip} project={project} />
       {/* Waveform view */}
       <div
         style={{

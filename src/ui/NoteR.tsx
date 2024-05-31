@@ -39,7 +39,7 @@ export function NoteR({
         // if (editable === true)
         switch (panelTool) {
           case "draw": {
-            clip.removeNote(note);
+            MidiClip.removeNote(clip, note);
             break;
           }
           case "move": {

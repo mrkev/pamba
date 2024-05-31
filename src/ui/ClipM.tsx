@@ -1,6 +1,5 @@
 import React, { useCallback } from "react";
-import { createUseStyles } from "react-jss";
-import { useContainer, usePrimitive } from "structured-state";
+import { useContainer } from "structured-state";
 import { modifierState } from "../ModifierState";
 import type { AudioProject } from "../lib/project/AudioProject";
 import { useSubscribeToSubbableMutationHashable } from "../lib/state/LinkedMap";
@@ -9,6 +8,7 @@ import { MidiClip, pulsesToSec } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
 import { pressedState } from "../pressedState";
 import { StandardClip } from "./StandardClip";
+import { PrimarySelectionState } from "../lib/project/SelectionState";
 
 export function ClipM({
   clip,
@@ -22,7 +22,6 @@ export function ClipM({
   project: AudioProject;
   track: MidiTrack | null; // null if clip is being rendered for move
 }) {
-  const styles = useStyles();
   const [bpm] = useLinkedState(project.tempo);
   const notes = useContainer(clip.notes);
   // const startTrimmedWidth = project.viewport.secsToPx(clip.trimStartSec);
@@ -75,17 +74,17 @@ export function ClipM({
         inHistory: false,
       });
 
-      project.selected.setDyn((prev) => {
+      project.selected.setDyn((prev): PrimarySelectionState | null => {
         const selectAdd = modifierState.meta || modifierState.shift;
         if (selectAdd && prev !== null && prev.status === "clips") {
-          prev.clips.push({ clip, track });
+          prev.clips.push({ kind: "midi", clip, track });
           prev.test.add(clip);
           prev.test.add(track);
           return { ...prev };
         } else {
           return {
             status: "clips",
-            clips: [{ clip, track }],
+            clips: [{ kind: "midi", clip, track }],
             test: new Set([clip, track]),
           };
         }
@@ -133,43 +132,3 @@ export function ClipM({
     </StandardClip>
   );
 }
-
-const useStyles = createUseStyles({
-  clip: {
-    backgroundColor: "#ccffcc",
-    boxSizing: "border-box",
-    height: "100%",
-    userSelect: "none",
-    color: "white",
-    pointerEvents: "all",
-    display: "flex",
-    flexDirection: "column",
-    position: "absolute",
-  },
-  resizerEnd: {
-    width: 10,
-    background: "rgba(0,0,0,0)",
-    height: "100%",
-    position: "absolute",
-    right: -5,
-    top: 0,
-    cursor: "ew-resize",
-  },
-  resizerStart: {
-    width: 10,
-    background: "rgba(0,0,0,0)",
-    height: "100%",
-    position: "absolute",
-    left: -5,
-    top: 0,
-    cursor: "ew-resize",
-  },
-  clipHeader: {
-    opacity: 0.8,
-    fontSize: 10,
-    whiteSpace: "nowrap",
-    overflow: "hidden",
-    flexShrink: 0,
-    paddingBottom: "0px 0px 1px 0px",
-  },
-});

@@ -5,7 +5,7 @@ import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import { AudioProject } from "../lib/project/AudioProject";
 import { useSubscribeToSubbableMutationHashable } from "../lib/state/LinkedMap";
 import { useLinkedState } from "../lib/state/LinkedState";
-import { MidiClip, secsToPulses } from "../midi/MidiClip";
+import { MidiClip, secsToPulses, setClipLength as setMidiClipLength } from "../midi/MidiClip";
 import { exhaustive } from "../utils/exhaustive";
 import { clamp } from "../utils/math";
 import { nullthrows } from "../utils/nullthrows";
@@ -16,6 +16,8 @@ import { RenamableLabel } from "./RenamableLabel";
 import { UtilityToggle } from "./UtilityToggle";
 import { useDrawOnCanvas } from "./useDrawOnCanvas";
 import { useEventListener } from "./useEventListener";
+import { ClipPropsEditor } from "./ClipPropsEditor";
+import { MidiTrack } from "../midi/MidiTrack";
 
 const TOTAL_VERTICAL_NOTES = 128;
 const DEFAULT_NOTE_DURATION = 6;
@@ -39,10 +41,12 @@ function secsToTicks(secs: number, tempo: number) {
 
 export function MidiClipEditor({
   clip,
+  track,
   player,
   project,
 }: {
   clip: MidiClip;
+  track: MidiTrack;
   player: AnalizedPlayer;
   project: AudioProject;
 }) {
@@ -258,7 +262,7 @@ export function MidiClipEditor({
                 // removal handled in note
                 // clip.removeNote(prevNote);
               } else {
-                clip.addNote(tick, noteNum, DEFAULT_NOTE_DURATION, 100);
+                MidiClip.addNote(clip, tick, noteNum, DEFAULT_NOTE_DURATION, 100);
               }
             });
             break;
@@ -273,6 +277,7 @@ export function MidiClipEditor({
 
   return (
     <>
+      <ClipPropsEditor clip={clip} project={project} track={track} />
       <div
         style={{
           border: "3px solid gray",
@@ -289,7 +294,14 @@ export function MidiClipEditor({
           }}
         />
         Length {/* TODO: number only */}
-        <TimelineTEditor t={timelineLen} project={project} />
+        <TimelineTEditor
+          t={timelineLen}
+          project={project}
+          defaultUnit="bars"
+          onChange={(t, u) => {
+            setMidiClipLength(project, track, clip, t, u);
+          }}
+        />
         {/* <input
           type="number"
           value={timelineLen.pul}

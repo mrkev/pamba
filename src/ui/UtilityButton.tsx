@@ -15,15 +15,13 @@ export function UtilityTextInput({
   ...props
 }: Omit<React.ButtonHTMLAttributes<HTMLInputElement>, "value" | "onChange" | "type"> & {
   value: string;
-  onChange: (value: string) => void;
+  onChange?: (value: string) => void;
 }) {
   const [edit, setEdit] = useState(value);
-  const [editable] = useState(!disabled);
+  const [editable] = useState(!disabled && onChange != null);
   const [skipBlurChange, setSkipBlurChange] = useState(false);
   const ref = useRef<HTMLInputElement>(null);
   useEffect(() => setEdit(value), [value]);
-
-  console.log("skipblurchange", skipBlurChange);
 
   return (
     <input
@@ -36,18 +34,16 @@ export function UtilityTextInput({
       disabled={disabled || !editable}
       onChange={(e) => setEdit(e.target.value)}
       onBlur={() => {
-        console.log("ONBLUR:skip?", skipBlurChange);
         if (!editable || skipBlurChange) {
           setSkipBlurChange(false);
           return;
         }
-        onChange(edit);
+        onChange?.(edit);
       }}
       onKeyDown={(e) => {
         switch (e.key) {
           case "Enter": {
-            console.log("ENTER");
-            onChange(edit);
+            onChange?.(edit);
             setSkipBlurChange(true);
             // otherwise onblur triggers before state chagne
             setTimeout(() => {
@@ -56,7 +52,6 @@ export function UtilityTextInput({
             break;
           }
           case "Escape": {
-            console.log("ESC");
             setEdit(value);
             setSkipBlurChange(true);
             setTimeout(() => {

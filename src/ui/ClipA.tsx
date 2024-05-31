@@ -1,6 +1,6 @@
 import { scaleLinear } from "d3-scale";
 import React, { useCallback, useRef } from "react";
-import { history } from "structured-state";
+import { history, useContainer } from "structured-state";
 import { modifierState } from "../ModifierState";
 import { CLIP_HEIGHT } from "../constants";
 import { secs } from "../lib/AbstractClip";
@@ -32,12 +32,15 @@ export function ClipA({
   editable?: boolean;
 }) {
   const headerRef = useRef<HTMLDivElement>(null);
-  const width = project.viewport.secsToPx(clip.clipLengthSec);
-  const left = project.viewport.secsToPx(clip.timelineStartSec);
+  // const width = project.viewport.secsToPx(clip.clipLengthSec);
+  // const left = project.viewport.secsToPx(clip.timelineStartSec);
   const totalBufferWidth = project.viewport.secsToPx(clip.bufferLength);
   const startTrimmedWidth = project.viewport.secsToPx(clip.trimStartSec);
   const [tool] = useLinkedState(project.pointerTool);
   const height = CLIP_HEIGHT - 3; // to clear the bottom track separator gridlines
+
+  const tStart = useContainer(clip.timelineStart);
+  const tLen = useContainer(clip.timelineLength);
 
   useSubscribeToSubbableMutationHashable(clip);
 
@@ -52,9 +55,9 @@ export function ClipA({
       clip,
       // IDEA: just clone and have the original clip at hand
       originalClipLength: clip.clipLengthSec,
-      originalClipTimelineStartSec: clip.timelineStartSec,
+      originalClipTimelineStartSec: tStart.secs(project),
       originalBufferOffset: clip.bufferOffset,
-      originalTimelineStartSec: clip.timelineStartSec,
+      originalTimelineStartSec: tStart.secs(project),
       // originalClipEndPosSec: clip.trimEndSec,
       // originalClipStartPosSec: clip.trimStartSec,
       // originalClipOffsetSec: clip.timelineStartSec,
@@ -83,7 +86,7 @@ export function ClipA({
         clip,
         track,
         originalTrack: track,
-        originalClipStartOffsetSec: clip.timelineStartSec,
+        originalClipStartOffsetSec: tStart.secs(project),
         originalClipEndOffsetSec: clip.timelineEndSec,
         inHistory: false,
       });
@@ -91,14 +94,14 @@ export function ClipA({
       project.selected.setDyn((prev) => {
         const selectAdd = modifierState.meta || modifierState.shift;
         if (selectAdd && prev !== null && prev.status === "clips") {
-          prev.clips.push({ clip, track });
+          prev.clips.push({ kind: "audio", clip, track });
           prev.test.add(clip);
           prev.test.add(track);
           return { ...prev };
         } else {
           return {
             status: "clips",
-            clips: [{ clip, track }],
+            clips: [{ kind: "audio", clip, track }],
             test: new Set([clip, track]),
           };
         }
@@ -133,14 +136,14 @@ export function ClipA({
         history.record(() => {
           const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
           const secFromStartOfClip = project.viewport.pxToSecs(pxFromStartOfClip);
-          const secFromTimelineStart = clip.timelineStartSec + secFromStartOfClip;
+          const secFromTimelineStart = tStart.secs(project) + secFromStartOfClip;
           ProjectTrack.splitClip(project, track, clip, secFromTimelineStart);
         });
         break;
       case "trimStart": {
         const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
         const asSec = project.viewport.pxToSecs(pxFromStartOfClip);
-        project.cursorPos.set(clip.timelineStartSec + asSec);
+        project.cursorPos.set(tStart.secs(project) + asSec);
         void history.record(() => {
           clip.trimStartAddingTime(asSec);
         });
@@ -164,6 +167,8 @@ export function ClipA({
     CLIP_HEIGHT,
   );
 
+  const width = project.viewport.secsToPx(tLen.secs(project));
+  const left = project.viewport.secsToPx(tStart.secs(project));
   return (
     <StandardClip
       clip={clip}

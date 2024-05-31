@@ -1,5 +1,6 @@
 export const changelog = `
 next
+- resize midi clips
 - better panning/zooming in midi clip editor
 - fix midi looping when loop start isn't 0s
 

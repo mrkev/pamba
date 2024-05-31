@@ -2,12 +2,13 @@ import { SPrimitive, Structured } from "structured-state";
 import { staticAudioContext } from "../constants";
 import { AudioPackage } from "../data/AudioPackage";
 import { SAudioClip } from "../data/serializable";
+import { AudioViewport } from "../ui/AudioViewport";
 import { nullthrows } from "../utils/nullthrows";
 import { dataURLForWaveform } from "../utils/waveform";
 import { AbstractClip, Seconds, secs } from "./AbstractClip";
 import { SharedAudioBuffer } from "./SharedAudioBuffer";
 import { SOUND_LIB_FOR_HISTORY, loadSound, loadSoundFromAudioPackage } from "./loadSound";
-import { AudioViewport } from "../ui/AudioViewport";
+import { TimelineT, time } from "./project/TimelineT";
 
 // A clip of Audio. Basic topology:
 //
@@ -34,10 +35,12 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
   // These properties represent media that has a certain length (in frames), but has
   // been trimmed to be of another length.
   readonly bufferLength: Seconds; // seconds, whole buffer
-  public clipLengthSec: Seconds; // TODO: incorporate
+  // public clipLengthSec: Seconds; // TODO: incorporate
   public bufferOffset: Seconds;
 
-  public timelineStartSec: Seconds; // on the timeline, the x position
+  // public timelineStartSec: Seconds; // on the timeline, the x position
+  readonly timelineStart: TimelineT;
+  readonly timelineLength: TimelineT;
 
   gainAutomation: Array<{ time: number; value: number }> = [{ time: 0, value: 1 }];
   // Let's not pre-compute this since we don't know the acutal dimensions
@@ -52,7 +55,7 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
       bufferURL,
       bufferOffset: this.bufferOffset,
       timelineStartSec: this.timelineStartSec,
-      clipLengthSec: this.clipLengthSec,
+      clipLengthSec: this.timelineLength.ensureSecs(),
     };
     return result;
   }
@@ -66,7 +69,8 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
     // cause audio buffer never changes, and all clips that replace this one will be the same buffer
     this.bufferOffset = secs(json.bufferOffset);
     this.timelineStartSec = secs(json.timelineStartSec);
-    this.clipLengthSec = secs(json.clipLengthSec);
+    // this.clipLengthSec = secs(json.clipLengthSec);
+    this.timelineLength.set(json.clipLengthSec, "seconds"); // TODO: can I use .set in replace?
   }
 
   static construct(json: SAudioClip): AudioClip {
@@ -111,11 +115,30 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
     }
 
     this.bufferOffset = secs(bufferOffset);
-    this.timelineStartSec = secs(timelineStartSec);
-    this.clipLengthSec = secs(clipLengthSec);
+    // this.timelineStartSec = secs(timelineStartSec);
+    // this.clipLengthSec = secs(clipLengthSec);
+
+    this.timelineStart = time(timelineStartSec, "seconds");
+    this.timelineLength = time(clipLengthSec, "seconds");
 
     this.name = SPrimitive.of(name);
     this.bufferURL = bufferURL;
+  }
+
+  get clipLengthSec() {
+    return this.timelineLength.ensureSecs();
+  }
+
+  set clipLengthSec(s: number) {
+    this.timelineLength.set(s, "seconds");
+  }
+
+  get timelineStartSec() {
+    return this.timelineLength.ensureSecs();
+  }
+
+  set timelineStartSec(s: number) {
+    this.timelineStart.set(s, "seconds");
   }
 
   static async fromAudioPackage(
@@ -188,7 +211,7 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
       this.bufferURL,
       this.bufferOffset,
       this.timelineStartSec,
-      this.clipLengthSec,
+      this.timelineLength.ensureSecs(),
     );
     return newClip;
   }
@@ -216,7 +239,8 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
     this.featuredMutation(() => {
       this.timelineStartSec = (this.timelineStartSec + addedTime) as Seconds;
       this.bufferOffset = (this.bufferOffset + addedTime) as Seconds;
-      this.clipLengthSec = (this.clipLengthSec - addedTime) as Seconds;
+      // this.clipLengthSec = (this.clipLengthSec - addedTime) as Seconds;
+      this.timelineLength.set(this.clipLengthSec - addedTime, "seconds");
     });
   }
 
@@ -249,7 +273,8 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
       // TODO: make newEnd = this.timelineStartSec + this.lengthSec + this.bufferOffset
     }
     this.featuredMutation(() => {
-      this.clipLengthSec = newLen as Seconds;
+      // this.clipLengthSec = newLen as Seconds;
+      this.timelineLength.set(newLen, "seconds");
     });
   }
 
@@ -322,7 +347,7 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
   // interface AbstractClip
 
   get _timelineStartU(): Seconds {
-    return this.timelineStartSec;
+    return this.timelineStartSec as Seconds;
   }
 
   _setTimelineStartU(num: Seconds): void {
@@ -359,7 +384,8 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
     const delta = newTimelineSec - this.timelineStartSec;
     this.timelineStartSec = newTimelineSec as Seconds;
     this.bufferOffset = (this.bufferOffset + delta) as Seconds;
-    this.clipLengthSec = (this.clipLengthSec - delta) as Seconds;
+    // this.clipLengthSec = (this.clipLengthSec - delta) as Seconds;
+    this.timelineLength.set(this.clipLengthSec - delta, "seconds");
   }
 
   // Buffer

@@ -1,11 +1,11 @@
+import { SPrimitive } from "structured-state";
 import { AudioClip } from "./lib/AudioClip";
 import { AudioTrack } from "./lib/AudioTrack";
-import { TimelineT, STimelineT } from "./lib/project/TimelineT";
-import { SPrimitive } from "structured-state";
+import { STimelineT, TimelineT } from "./lib/project/TimelineT";
 import { MidiClip } from "./midi/MidiClip";
 import { MidiTrack } from "./midi/MidiTrack";
-import { LibraryItem } from "./ui/Library";
 import { Note } from "./midi/SharedMidiTypes";
+import { LibraryItem } from "./ui/Library";
 
 export type CursorState =
   | Readonly<{
