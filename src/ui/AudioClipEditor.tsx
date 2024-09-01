@@ -1,7 +1,7 @@
 import { useCallback, useRef } from "react";
 import { createUseStyles } from "react-jss";
 import { usePrimitive } from "structured-state";
-import { GPUWaveform } from "webgpu-waveform";
+import { GPUWaveform } from "webgpu-waveform-react";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioProject } from "../lib/project/AudioProject";
