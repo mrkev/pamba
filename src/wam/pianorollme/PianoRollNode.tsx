@@ -127,7 +127,7 @@ export class PianoRollModule extends WebAudioModule<PianoRollNode> {
     // h("div", {});
     div.setAttribute(
       "style",
-      "display: flex; flex-direction: column; height: 100px; width: 100px; max-height: 100%; max-width: 100%;",
+      "display: flex; flex-direction: column; height: 100px; width: 100px; max-height: 100%; max-width: 100%;"
     );
 
     div.setAttribute("width", "1024");
@@ -137,7 +137,7 @@ export class PianoRollModule extends WebAudioModule<PianoRollNode> {
     const container = document.createElement("div");
     container.setAttribute(
       "style",
-      "display: flex; flex-direction: column; height: 100px; width: 100px; max-height: 100%; max-width: 100%;",
+      "display: flex; flex-direction: column; height: 100px; width: 100px; max-height: 100%; max-width: 100%;"
     );
 
     shadow.appendChild(container);
@@ -248,7 +248,7 @@ export class PianoRoll {
       (id) =>
         (this.clips[id].updateProcessor = (c) => {
           if (this.updateProcessor) this.updateProcessor(c);
-        }),
+        })
     );
   }
 

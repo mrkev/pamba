@@ -25,7 +25,7 @@ export class AudioPackageList {
   public async getAllAudioLibFiles(): Promise<Map<string, AudioPackage>> {
     const libPkgs = await this.dir.list();
     const result = new Map<string, AudioPackage>();
-    for await (let pkg of libPkgs) {
+    for await (const pkg of libPkgs) {
       if (pkg instanceof FSFile) {
         continue;
       }

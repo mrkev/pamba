@@ -1,7 +1,10 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //@ts-ignore
 import MixDownProcessorURL from "../worker/mix-down-processor?url";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //@ts-ignore
 import SharedBufferWrokletURL from "../worker/shared-buffer-worklet-processor?url";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //@ts-ignore
 import WhiteNoiseProcessorURL from "../worker/white-noise-processor?url";
 

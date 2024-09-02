@@ -5,7 +5,7 @@ import { KeyCode } from "./KeyCode";
 type KeyboardShortcut = [key: KeyCode, ...modifiers: ("meta" | "alt" | "ctrl" | "shift")[]];
 type CommandCallback = (
   e: KeyboardEvent | null,
-  project: AudioProject,
+  project: AudioProject
   // player: AnalizedPlayer,
   // renderer: AudioRenderer,
 ) => void;
@@ -72,7 +72,7 @@ export class CommandBlock<S extends string[], T extends Record<string, Command>>
 
   execByKeyboardEvent(
     e: KeyboardEvent,
-    project: AudioProject,
+    project: AudioProject
     // player: AnalizedPlayer,
     // renderer: AudioRenderer,
   ): boolean {
@@ -103,7 +103,7 @@ export class CommandBlock<S extends string[], T extends Record<string, Command>>
 
   static create<S extends string[], T extends Record<string, Command<S>>>(
     sections: S,
-    commandFn: (fn: (shortcut: KeyboardShortcut, cb: CommandCallback) => Command<S>) => T,
+    commandFn: (fn: (shortcut: KeyboardShortcut, cb: CommandCallback) => Command<S>) => T
   ) {
     const byKeyCode = new Map<string, Command>();
 
@@ -114,7 +114,7 @@ export class CommandBlock<S extends string[], T extends Record<string, Command>>
         set.has("meta"),
         set.has("alt"),
         set.has("ctrl"),
-        set.has("shift"),
+        set.has("shift")
       );
       const command = new Command<S>(cb, shortcut);
       if (byKeyCode.has(chordId)) {

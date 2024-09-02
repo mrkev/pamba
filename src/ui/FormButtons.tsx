@@ -26,28 +26,27 @@ export function UploadButton({
   );
 }
 
-export function AnchorButton({
-  hidden,
-  children,
-  className,
-  style,
-  ...props
-}: Omit<React.DetailedHTMLProps<React.AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement>, "ref">) {
-  const anchorRef = useRef<HTMLAnchorElement>(null);
-  return (
-    <>
-      {/* eslint-disable-next-line jsx-a11y/anchor-has-content */}
-      <a ref={anchorRef} {...props} hidden />
-      <button
-        className={className}
-        style={style}
-        onClick={() => {
-          anchorRef.current?.click();
-        }}
-        hidden={hidden}
-      >
-        {children}
-      </button>
-    </>
-  );
-}
+// export function AnchorButton({
+//   hidden,
+//   children,
+//   className,
+//   style,
+//   ...props
+// }: Omit<React.DetailedHTMLProps<React.AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement>, "ref">) {
+//   const anchorRef = useRef<HTMLAnchorElement>(null);
+//   return (
+//     <>
+//       <a ref={anchorRef} {...props} hidden />
+//       <button
+//         className={className}
+//         style={style}
+//         onClick={() => {
+//           anchorRef.current?.click();
+//         }}
+//         hidden={hidden}
+//       >
+//         {children}
+//       </button>
+//     </>
+//   );
+// }

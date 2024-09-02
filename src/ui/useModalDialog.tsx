@@ -19,6 +19,7 @@ export function useModalDialog(
   };
 
   return [
+    // eslint-disable-next-line react/jsx-key
     <dialog id="favDialog" ref={dialogRef} style={{ padding: 0, userSelect: "none" }} open={false}>
       <form style={{ padding: "1rem", display: "flex", flexDirection: "column" }} ref={formRef} onSubmit={onSubmit}>
         {renderForm()}
@@ -30,5 +31,5 @@ export function useModalDialog(
       }
       dialogRef.current?.showModal();
     },
-  ];
+  ] as const;
 }

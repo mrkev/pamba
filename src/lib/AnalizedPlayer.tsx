@@ -120,11 +120,11 @@ export class AnalizedPlayer {
     // .prepareForPlayback can take a while, especially on slow computers,
     // so we prepare all before we acutally play to keep tracks as much in
     // sync as possible
-    for (let track of tracks) {
+    for (const track of tracks) {
       track.prepareForPlayback(project, liveAudioContext, cursorPos);
       track.dsp.connect(this.mixDownNode);
     }
-    for (let track of tracks) {
+    for (const track of tracks) {
       track.startPlayback(tempo, liveAudioContext, cursorPos);
     }
     this.playingTracks = tracks;
@@ -170,7 +170,7 @@ export class AnalizedPlayer {
     if (this.isAudioPlaying === false) {
       return;
     }
-    for (let track of this.playingTracks) {
+    for (const track of this.playingTracks) {
       track.stopPlayback(liveAudioContext);
       track.dsp.disconnect(this.mixDownNode);
     }

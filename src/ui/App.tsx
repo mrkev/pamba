@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback } from "react";
 import { useLinkedState } from "../lib/state/LinkedState";
 // import { TrackThread } from "../lib/TrackThread";
 // import { MidiDemo } from "../midi";
@@ -8,6 +8,7 @@ import { appEnvironment } from "../lib/AppEnvironment";
 import { useLinkedSet } from "../lib/state/LinkedSet";
 import { MidiInstrument } from "../midi/MidiInstrument";
 import { exhaustive } from "../utils/exhaustive";
+import { ignorePromise } from "../utils/ignorePromise";
 import { PambaWamNode } from "../wam/PambaWamNode";
 import { AppProject } from "./AppProject";
 import { ConfirmDialog } from "./ConfirmDialog";
@@ -135,7 +136,7 @@ function InitButtion() {
           className={utility.button}
           onClick={async () => {
             appEnvironment.projectStatus.set({ status: "loading" });
-            init();
+            ignorePromise(init());
           }}
         >
           Continue

@@ -1,14 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
+import { AudioPackage } from "../data/AudioPackage";
+import { niceBytes } from "../data/niceBytes";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioProject } from "../lib/project/AudioProject";
 import { useLinkedState } from "../lib/state/LinkedState";
-import { niceBytes } from "../data/niceBytes";
-import { ListEntry, UtilityDataList } from "./UtilityList";
-import { ProjectPackage } from "../data/ProjectPackage";
 import { pAll } from "../utils/ignorePromise";
-import { AudioPackage } from "../data/AudioPackage";
+import { ListEntry, UtilityDataList } from "./UtilityList";
 
-let STATUS_PENDING = { status: "pending" } as const;
+const STATUS_PENDING = { status: "pending" } as const;
 
 type AsyncResult<T> =
   | Readonly<{ status: "rejected"; error: any }>
@@ -44,7 +43,7 @@ export function ProjectEditor({ project }: { project: AudioProject }) {
       }
 
       return { size, projectAudioFiles };
-    }, [projectPackage]),
+    }, [projectPackage])
   );
 
   const items: ListEntry<AudioPackage>[] = useMemo(() => {

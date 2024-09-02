@@ -10,7 +10,7 @@ export function mixDown(clipList: ReadonlyArray<AudioClip>, numberOfChannels = 2
 
   // TODO: make start offset aware, so not all clips start at 0:00
   let totalLength = 0;
-  for (let clip of clipList) {
+  for (const clip of clipList) {
     const end = clip.durationFr + clip.startOffsetFr;
     if (end > totalLength) {
       totalLength = end;
@@ -18,7 +18,7 @@ export function mixDown(clipList: ReadonlyArray<AudioClip>, numberOfChannels = 2
   }
 
   //create a buffer using the totalLength and sampleRate of the first buffer node
-  let finalMix = staticAudioContext().createBuffer(numberOfChannels, totalLength, clipList[0].sampleRate);
+  const finalMix = staticAudioContext().createBuffer(numberOfChannels, totalLength, clipList[0].sampleRate);
 
   // The spec doesn't quite specify if getChannelData() returns a reference or a
   // copy, so let's call it as little as possible just in case.
@@ -34,7 +34,7 @@ export function mixDown(clipList: ReadonlyArray<AudioClip>, numberOfChannels = 2
     // second loop for each channel ie. left and right
     for (let channel = 0; channel < numberOfChannels; channel++) {
       //here we get a reference to the final mix buffer data
-      let buffer = finalMix.getChannelData(channel);
+      const buffer = finalMix.getChannelData(channel);
       // If it's mono audio, we just copy it to all channels
       const channelSrc = clip.numberOfChannels === 1 ? 0 : channel;
       const clipBuffer = clip.buffer.getChannelData(channelSrc);

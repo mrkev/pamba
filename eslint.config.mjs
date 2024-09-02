@@ -20,7 +20,16 @@ const compat = new FlatCompat({
 export default tseslint.config(
   ...tseslint.configs.recommended,
   {
-    ignores: ["**/vite.config.mts", "faustLoader/**/*", "src/midi/**/*", "public", "scripts", "packages", "build"],
+    ignores: [
+      "**/vite.config.mts",
+      "faustLoader/**/*",
+      "src/midi/**/*",
+      "public",
+      "scripts",
+      "packages",
+      "build",
+      "src/wam/pianorollme",
+    ],
   },
   ...fixupConfigRules(compat.extends("plugin:react/recommended", "plugin:react-hooks/recommended")),
   {
@@ -75,6 +84,8 @@ export default tseslint.config(
       "@typescript-eslint/array-type": "off",
       "@typescript-eslint/lines-between-class-members": "off",
       "@typescript-eslint/consistent-generic-constructors": "off",
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-unsafe-function-type": "off",
       "spaced-comment": "off",
       "react-hooks/rules-of-hooks": "error",
       "react-hooks/exhaustive-deps": "warn",

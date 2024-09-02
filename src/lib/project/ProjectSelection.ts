@@ -53,7 +53,7 @@ export class ProjectSelection {
 
     switch (selected.status) {
       case "clips": {
-        for (let { clip, track } of selected.clips) {
+        for (const { clip, track } of selected.clips) {
           console.log("remove", selected);
           if (track instanceof MidiTrack && clip instanceof MidiClip) {
             AudioProject.removeMidiClip(project, track, clip);
@@ -68,7 +68,7 @@ export class ProjectSelection {
       }
       case "tracks": {
         // TODO: if playing don't delete. show track locked?
-        for (let track of selected.tracks) {
+        for (const track of selected.tracks) {
           console.log("remove", selected);
           AudioProject.removeTrack(project, appEnvironment.renderer.analizedPlayer, track);
           project.selected.set(null);
@@ -76,7 +76,7 @@ export class ProjectSelection {
         break;
       }
       case "effects": {
-        for (let { track, effect } of selected.effects) {
+        for (const { track, effect } of selected.effects) {
           console.log("remove", selected);
           AudioTrack.removeEffect(track, effect);
           project.selected.set(null);
@@ -103,7 +103,7 @@ export class ProjectSelection {
               project,
               track,
               project.viewport.secsToPulses(selected.startS),
-              project.viewport.secsToPulses(selected.endS),
+              project.viewport.secsToPulses(selected.endS)
             );
           }
         }

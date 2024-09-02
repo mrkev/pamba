@@ -9,7 +9,7 @@ export const SOUND_LIB_FOR_HISTORY = new Map<string, AudioBuffer>();
 
 export async function loadSoundFromAudioPackage(
   audioContext: AudioContext,
-  audioPackage: AudioPackage,
+  audioPackage: AudioPackage
 ): Promise<AudioBuffer> {
   const buffer = await audioPackage.file.arrayBuffer();
   const decoded = await audioContext.decodeAudioData(buffer);
@@ -31,7 +31,7 @@ export async function loadSound(audioContext: AudioContext, url: string): Promis
 
   return new Promise(function (res, onError) {
     // document.getElementById("msg").textContent = "Loading audio...";
-    let request = new XMLHttpRequest();
+    const request = new XMLHttpRequest();
     request.open("GET", url, true);
     request.responseType = "arraybuffer";
     // When loaded, decode the data and play the sound
@@ -47,8 +47,8 @@ export async function loadSound(audioContext: AudioContext, url: string): Promis
             res(buffer);
             // playSound(audioData);
           },
-          onError,
-        ),
+          onError
+        )
       );
     };
     request.send();

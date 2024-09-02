@@ -32,7 +32,7 @@ export function assertClipInvariants<U extends Pulses | Seconds>(clips: SArray<A
 
 export function addClip<Clip extends AbstractClip<U>, U extends Pulses | Seconds>(
   newClip: Clip,
-  clips: SArray<Clip>,
+  clips: SArray<Clip>
 ): void {
   // Essentially, we want to insert in order, sorted
   // by the startOffsetSec of each clip.
@@ -79,7 +79,7 @@ export function addClip<Clip extends AbstractClip<U>, U extends Pulses | Seconds
 
 function simplyAddSorted<Clip extends AbstractClip<U>, U extends Pulses | Seconds>(
   newClips: Clip[],
-  clips: SArray<Clip>,
+  clips: SArray<Clip>
 ): void {
   if (newClips.length === 0) {
     return;
@@ -97,7 +97,7 @@ function simplyAddSorted<Clip extends AbstractClip<U>, U extends Pulses | Second
 export function deleteTime<Clip extends AbstractClip<U>, U extends Pulses | Seconds>(
   start: number, // in timeline units
   end: number, // in timeline units
-  clips: SArray<Clip>,
+  clips: SArray<Clip>
 ): Clip[] {
   if (start === end) {
     return [];
@@ -111,7 +111,7 @@ export function deleteTime<Clip extends AbstractClip<U>, U extends Pulses | Seco
   const toResort = [];
 
   const notifyClips = [];
-  let res = clips;
+  const res = clips;
   for (let i = 0; i < clips.length; i++) {
     const current = nullthrows(clips.at(i));
 
@@ -163,7 +163,7 @@ export function deleteTime<Clip extends AbstractClip<U>, U extends Pulses | Seco
 
   // console.log("clips", clips, toRemove, toResort);
 
-  for (let clip of toRemove) {
+  for (const clip of toRemove) {
     // todo: optimize
     removeClip(clip, clips);
   }
@@ -181,7 +181,7 @@ export function deleteTime<Clip extends AbstractClip<U>, U extends Pulses | Seco
  */
 export function removeClip<Clip extends AbstractClip<U>, U extends Pulses | Seconds>(
   clip: Clip,
-  clips: SArray<Clip>,
+  clips: SArray<Clip>
 ): void {
   const i = clips.indexOf(clip);
   if (i === -1) {
@@ -199,7 +199,7 @@ export function removeClip<Clip extends AbstractClip<U>, U extends Pulses | Seco
 export function splitClip<Clip extends AbstractClip<U>, U extends Pulses | Seconds>(
   clip: Clip,
   timelineTime: number,
-  clips: SArray<Clip>,
+  clips: SArray<Clip>
 ): [before: Clip, after: Clip] | null {
   if (timelineTime > clip._timelineEndU || timelineTime < clip._timelineStartU) {
     return null;
@@ -228,7 +228,7 @@ export function splitClip<Clip extends AbstractClip<U>, U extends Pulses | Secon
  */
 export function pushClip<Clip extends AbstractClip<U>, U extends Pulses | Seconds>(
   newClip: Clip,
-  clips: SArray<Clip>,
+  clips: SArray<Clip>
 ): SArray<Clip> {
   const lastClip = clips.length > 0 ? clips.at(-1) : null;
 
@@ -248,7 +248,7 @@ export function pushClip<Clip extends AbstractClip<U>, U extends Pulses | Second
  */
 export function moveClip<Clip extends AbstractClip<U>, U extends Pulses | Seconds>(
   clip: Clip,
-  clips: SArray<Clip>,
+  clips: SArray<Clip>
 ): SArray<Clip> {
   if (clips.length === 0) {
     throw new Error("moving in empty array");

@@ -2,10 +2,7 @@ import { pTry } from "../utils/ignorePromise";
 import { LocalFilesystem } from "./localFilesystem";
 
 export class FSDir {
-  constructor(
-    public readonly handle: FileSystemDirectoryHandle,
-    public readonly path: readonly string[],
-  ) {}
+  constructor(public readonly handle: FileSystemDirectoryHandle, public readonly path: readonly string[]) {}
 
   get name() {
     return this.path[this.path.length - 1];
@@ -33,7 +30,8 @@ export class FSDir {
   public async list() {
     const results = [];
     // https://github.com/microsoft/TypeScript-DOM-lib-generator/issues/1639
-    for await (let [_, child] of (this.handle as any).entries()) {
+    for await (const [_, child] of (this.handle as any).entries()) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       child as FileSystemDirectoryHandle | FileSystemFileHandle;
 
       if (child instanceof FileSystemFileHandle) {
@@ -92,8 +90,5 @@ export class FSDir {
 }
 
 export class FSFile {
-  constructor(
-    public readonly handle: FileSystemFileHandle,
-    public readonly path: readonly string[],
-  ) {}
+  constructor(public readonly handle: FileSystemFileHandle, public readonly path: readonly string[]) {}
 }

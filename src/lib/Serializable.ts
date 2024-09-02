@@ -50,7 +50,7 @@ export class Serializable {
 
   __serialize<T>(): Serialized<T> {
     const acc: Record<string, unknown> = {};
-    for (let key in this) {
+    for (const key in this) {
       // skip loop if the property is from prototype
       if (!this.hasOwnProperty(key)) continue;
 

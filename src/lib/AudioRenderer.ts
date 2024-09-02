@@ -58,8 +58,8 @@ export class AudioRenderer {
     // If no end is provided, bounce to the full duration of the track. We go
     // through each clip and find when the last one ends.
     if (endSec == null) {
-      for (let track of tracks) {
-        for (let clip of track.clips._getRaw()) {
+      for (const track of tracks) {
+        for (const clip of track.clips._getRaw()) {
           if (clip instanceof AudioClip) {
             end = end == null || clip.timelineEndSec > end ? clip.timelineEndSec : end;
             console.log("endOffsetSec", clip.timelineEndSec, end);
@@ -95,11 +95,11 @@ export class AudioRenderer {
       })
     );
 
-    for (let trackDest of trackDests) {
+    for (const trackDest of trackDests) {
       trackDest.connect(offlineMixDownNode);
     }
 
-    for (let track of tracks) {
+    for (const track of tracks) {
       track.startPlayback(tempo, offlineAudioContext, startSec);
     }
 

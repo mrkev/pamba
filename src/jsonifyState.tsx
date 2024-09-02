@@ -28,7 +28,7 @@ function jsonifyState(val: unknown): any {
         return `constructor/${val.constructor.name}`;
     }
 
-    for (let key in val) {
+    for (const key in val) {
       res[key] = jsonifyState((val as any)[key]);
     }
 

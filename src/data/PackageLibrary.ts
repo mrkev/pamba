@@ -5,7 +5,7 @@ export class PackageLibrary<P> {
   public readonly state = LinkedMap.create<string, P>();
   constructor(
     private readonly PATH: readonly string[],
-    private readonly existingPackage: (dir: FSDir) => Promise<P | "invalid" | "not_found">,
+    private readonly existingPackage: (dir: FSDir) => Promise<P | "invalid" | "not_found">
   ) {}
 
   async dir() {
@@ -17,7 +17,7 @@ export class PackageLibrary<P> {
     const dirList = await (await this.dir()).list();
     // https://github.com/microsoft/TypeScript-DOM-lib-generator/issues/1639\
     const result = new Map();
-    for await (let child of dirList) {
+    for await (const child of dirList) {
       if (child instanceof FSFile) {
         continue;
       }
