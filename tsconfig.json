@@ -26,6 +26,6 @@
     "noImplicitOverride": true,
     "types": ["vite/client", "@webgpu/types"]
   },
-  "include": ["src", ".eslintrc.js"],
+  "include": ["src", "eslint.config.mjs"],
   "exclude": ["packages/burns-audio-wam"]
 }
