@@ -83,7 +83,7 @@ export function useLinkedState<S>(linkedState: LinkedState<S>): [S, StateDispath
         linkedState.set(newVal);
       }
     },
-    [linkedState],
+    [linkedState]
   );
 
   return [state, setter];

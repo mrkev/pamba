@@ -2,10 +2,10 @@ import { SPrimitive } from "structured-state";
 import { liveAudioContext as liveAudioContextFn, sampleSize } from "../constants";
 import { MidiTrack } from "../midi/MidiTrack";
 // import SharedBufferWorkletNode from "./lib/shared-buffer-worklet-node";
+import { Seconds } from "./AbstractClip";
 import { AudioTrack } from "./AudioTrack";
 import { OscilloscopeNode } from "./OscilloscopeNode";
 import { AudioProject } from "./project/AudioProject";
-import { Seconds } from "./AbstractClip";
 
 // sbwNode.onInitialized = () => {
 //   oscillator.connect(sbwNode).connect(context.destination);
@@ -16,13 +16,11 @@ import { Seconds } from "./AbstractClip";
 //   logger.post('[ERROR] ' + errorData.detail);
 // };
 
-const liveAudioContext = liveAudioContextFn();
-
 export class AnalizedPlayer {
   private readonly oscilloscope = new OscilloscopeNode();
 
   // Nodes
-  private readonly playbackTimeNode = liveAudioContext.createScriptProcessor(sampleSize, 1, 1);
+  private readonly playbackTimeNode: ScriptProcessorNode;
   private readonly mixDownNode: AudioWorkletNode;
   // private readonly noiseNode: AudioWorkletNode = new AudioWorkletNode(liveAudioContext, "white-noise-processor");
   public isAudioPlaying: boolean = false;
@@ -54,7 +52,8 @@ export class AnalizedPlayer {
 
   drawPlaybeatTime: ((playbackTime: number) => void) | null = null;
 
-  constructor() {
+  constructor(liveAudioContext: AudioContext) {
+    this.playbackTimeNode = liveAudioContext.createScriptProcessor(sampleSize, 1, 1);
     this.mixDownNode = new AudioWorkletNode(liveAudioContext, "mix-down-processor");
     this.mixDownNode.connect(liveAudioContext.destination);
     this.mixDownNode.connect(this.playbackTimeNode);
@@ -105,6 +104,10 @@ export class AnalizedPlayer {
   playingLoop: readonly [startS: Seconds, endS: Seconds] | readonly [null, null] = [null, null];
   // Position of the cursor; where the playback is going to start
   playTracks(project: AudioProject, tracks: ReadonlyArray<AudioTrack | MidiTrack>, cursorPos: number, tempo: number) {
+    const liveAudioContext = liveAudioContextFn();
+
+    console.log("play tracks");
+
     // Need to connect to dest, otherwrise audio just doesn't flow through. This adds nothing, just silence though
     this.oscilloscope.connect(liveAudioContext.destination);
     this.playbackTimeNode.connect(liveAudioContext.destination);
@@ -134,6 +137,8 @@ export class AnalizedPlayer {
    * Adds a track to playback if we're already playing all tracks.
    */
   addTrackToPlayback(project: AudioProject, track: AudioTrack, startAt: number, tempo: number) {
+    const liveAudioContext = liveAudioContextFn();
+
     if (!this.playingTracks) {
       // TODO: mke playing tracks and isAudioPlaying the same state
       throw new Error("No tracks playing");
@@ -155,6 +160,8 @@ export class AnalizedPlayer {
   }
 
   stopSound() {
+    const liveAudioContext = liveAudioContextFn();
+
     if (!this.playingTracks) {
       console.warn("Stopping but no playing tracks on player");
       return;
