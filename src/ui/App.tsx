@@ -3,9 +3,11 @@ import { useLinkedState } from "../lib/state/LinkedState";
 // import { TrackThread } from "../lib/TrackThread";
 // import { MidiDemo } from "../midi";
 import "remixicon/fonts/remixicon.css";
+import { liveAudioContext } from "../constants";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { useLinkedSet } from "../lib/state/LinkedSet";
 import { MidiInstrument } from "../midi/MidiInstrument";
+import { exhaustive } from "../utils/exhaustive";
 import { PambaWamNode } from "../wam/PambaWamNode";
 import { AppProject } from "./AppProject";
 import { ConfirmDialog } from "./ConfirmDialog";
@@ -24,7 +26,6 @@ const NON_PASSIVE = { passive: false };
 export function App(): React.ReactElement {
   const [projectStatus] = useLinkedState(appEnvironment.projectStatus);
   const [openEffects] = useLinkedSet(appEnvironment.openEffects);
-  const [showApp, setShowApp] = useState(false);
 
   useDocumentEventListener(
     "wheel",
@@ -33,10 +34,10 @@ export function App(): React.ReactElement {
         e.preventDefault();
       }
     }, []),
-    NON_PASSIVE,
+    NON_PASSIVE
   );
 
-  if (!showApp || projectStatus.status === "loading") {
+  if (projectStatus.status !== "loaded") {
     return (
       <pre
         style={{
@@ -93,18 +94,7 @@ export function App(): React.ReactElement {
         ---
         <br />
         <br />
-        {projectStatus.status === "loading" ? (
-          <>
-            {/* <progress>Loading</progress>{" "} */}
-            <button className={utility.button} disabled>
-              Loading...
-            </button>
-          </>
-        ) : (
-          <button className={utility.button} onClick={() => setShowApp(true)}>
-            Continue
-          </button>
-        )}
+        <InitButtion />
         <br />
         <details>
           <summary>Changelog</summary>
@@ -133,4 +123,50 @@ export function App(): React.ReactElement {
       </>
     );
   }
+}
+
+function InitButtion() {
+  const [projectStatus] = useLinkedState(appEnvironment.projectStatus);
+
+  switch (projectStatus.status) {
+    case "idle":
+      return (
+        <button
+          className={utility.button}
+          onClick={async () => {
+            appEnvironment.projectStatus.set({ status: "loading" });
+            init();
+          }}
+        >
+          Continue
+        </button>
+      );
+    case "loading":
+      return (
+        <>
+          {/* <progress>Loading</progress>{" "} */}
+          <button className={utility.button} disabled>
+            Loading...
+          </button>
+        </>
+      );
+    case "loaded":
+      return "loaded";
+
+    default:
+      exhaustive(projectStatus);
+  }
+}
+
+async function init() {
+  try {
+    await wait(1);
+    await appEnvironment.initAsync(liveAudioContext());
+  } catch (e) {
+    console.trace(e);
+  }
+}
+
+async function wait(ms: number) {
+  return new Promise((res) => setTimeout(res, ms));
 }

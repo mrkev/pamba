@@ -29,7 +29,7 @@ export type WAMAvailablePlugin = {
   url: string;
 };
 
-type ProjectState = { status: "loading" } | { status: "loaded"; project: AudioProject };
+type ProjectState = { status: "idle" } | { status: "loading" } | { status: "loaded"; project: AudioProject };
 
 export class AppEnvironment {
   // Firebase
@@ -50,7 +50,7 @@ export class AppEnvironment {
   readonly openEffects: LinkedSet<DSPNode | MidiInstrument>;
   readonly activeSidePanel = LocalSPrimitive.create<"library" | "project" | "history" | "settings" | "help" | null>(
     "side-panel-active",
-    "library",
+    "library"
   );
   readonly activeBottomPanel = LocalSPrimitive.create<"editor" | "debug" | "about" | null>("bottom-panel-active", null);
 
@@ -68,7 +68,7 @@ export class AppEnvironment {
 
     this.openEffects = LinkedSet.create();
 
-    this.projectStatus = LinkedState.of<ProjectState>({ status: "loading" });
+    this.projectStatus = LinkedState.of<ProjectState>({ status: "idle" });
     this.projectPacakge = LinkedState.of<ProjectPackage | null>(null); // null if never saved
   }
 
@@ -84,12 +84,12 @@ export class AppEnvironment {
           return;
         }
         this.wamPlugins.set(url, plugin);
-      }),
+      })
     );
     this.wamStatus.set("ready");
 
     // IDEA: Maybe merge player and renderer?
-    this.renderer = new AudioRenderer(new AnalizedPlayer());
+    this.renderer = new AudioRenderer(new AnalizedPlayer(liveAudioContext));
 
     await this.localFiles.projectLib._initState();
     await this.localFiles.audioLib._initState();
@@ -128,6 +128,7 @@ export class AppEnvironment {
     const projectStatus = this.projectStatus.get();
     switch (projectStatus.status) {
       case "loading":
+      case "idle":
         // TODO: can maybe wait for project to load?
         throw new Error("TODO");
       case "loaded":
@@ -140,7 +141,7 @@ export class AppEnvironment {
 
     if (projectStatus.project.projectId !== projectId) {
       throw new Error(
-        `Can't load audio outside current project: project: ${projectStatus.project.projectId}, path: ${path}`,
+        `Can't load audio outside current project: project: ${projectStatus.project.projectId}, path: ${path}`
       );
     }
 

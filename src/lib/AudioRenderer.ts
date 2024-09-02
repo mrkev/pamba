@@ -21,12 +21,11 @@ function getOfflineAudioContext(lenSec: number) {
 export class AudioRenderer {
   /** Is the audio currently playing? */
   readonly isAudioPlaying = SPrimitive.of(false);
-  /** */
-  readonly analizedPlayer: AnalizedPlayer;
 
-  constructor(analizedPlayer: AnalizedPlayer) {
-    this.analizedPlayer = analizedPlayer;
-  }
+  constructor(
+    /** */
+    public analizedPlayer: AnalizedPlayer
+  ) {}
 
   /**
    * Bounces the current time slecteion. If no time is selected, bunces the whole track.
@@ -53,7 +52,7 @@ export class AudioRenderer {
     tracks: ReadonlyArray<AudioTrack | MidiTrack>,
     tempo: number,
     startSec: number = 0,
-    endSec?: number,
+    endSec?: number
   ): Promise<AudioBuffer> {
     let end = endSec;
     // If no end is provided, bounce to the full duration of the track. We go
@@ -93,7 +92,7 @@ export class AudioRenderer {
     const trackDests = await Promise.all(
       tracks.map((track) => {
         return track.prepareForBounce(offlineAudioContext, offlineContextInfo);
-      }),
+      })
     );
 
     for (let trackDest of trackDests) {

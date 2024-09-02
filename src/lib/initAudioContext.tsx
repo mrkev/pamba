@@ -36,6 +36,7 @@ export async function initAudioContext(audioContext: BaseAudioContext): Promise<
   console.log("LOADED", "shared-buffer-worklet-processor.js");
   await audioContext.audioWorklet.addModule(MixDownProcessorURL);
   console.log("LOADED", "mix-down-processor.js");
+  // TODO:
   const { default: initializeWamHost } = await import("../../packages/sdk/src/initializeWamHost");
   const [hostGroupId, hostGroupKey] = await initializeWamHost(audioContext);
   console.log("INITIALIZED", "wamHost", hostGroupId, hostGroupKey);

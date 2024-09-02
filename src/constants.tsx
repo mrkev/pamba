@@ -7,8 +7,16 @@ export const EFFECT_HEIGHT = CLIP_HEIGHT + 46;
 export const MIN_TRACK_HEIGHT = 76;
 export const TRACK_HEADER_WIDTH = 150;
 
-export const staticAudioContext = boxUp(() => new AudioContext(), "staticAudioContext"); // we use to decode data
-export const liveAudioContext = boxUp(() => new AudioContext(), "liveAudioContext"); // we play from this one
+export const staticAudioContext = boxUp(() => {
+  console.log("created static");
+  const audioContext = new AudioContext();
+  return audioContext;
+}, "staticAudioContext"); // we use to decode data
+export const liveAudioContext = boxUp(() => {
+  console.log("created live");
+  const audioContext = new AudioContext();
+  return audioContext;
+}, "liveAudioContext"); // we play from this one
 (window as any).liveAudioContext = liveAudioContext;
 
 export const PX_PER_SEC = 10;
