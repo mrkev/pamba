@@ -7,6 +7,27 @@ export class LinkedSet<S> implements Set<S>, Subbable<ReadonlySet<S>> {
   private constructor(initialValue: Set<S>) {
     this._set = initialValue;
   }
+  union<U>(other: ReadonlySetLike<U>): Set<S | U> {
+    throw new Error("Method not implemented.");
+  }
+  intersection<U>(other: ReadonlySetLike<U>): Set<S & U> {
+    throw new Error("Method not implemented.");
+  }
+  difference<U>(other: ReadonlySetLike<U>): Set<S> {
+    throw new Error("Method not implemented.");
+  }
+  symmetricDifference<U>(other: ReadonlySetLike<U>): Set<S | U> {
+    throw new Error("Method not implemented.");
+  }
+  isSubsetOf(other: ReadonlySetLike<unknown>): boolean {
+    throw new Error("Method not implemented.");
+  }
+  isSupersetOf(other: ReadonlySetLike<unknown>): boolean {
+    throw new Error("Method not implemented.");
+  }
+  isDisjointFrom(other: ReadonlySetLike<unknown>): boolean {
+    throw new Error("Method not implemented.");
+  }
 
   _getRaw(): ReadonlySet<S> {
     return this._set;
