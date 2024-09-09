@@ -1,5 +1,6 @@
 import { SArray, Structured } from "structured-state";
 import { nullthrows } from "../utils/nullthrows";
+import { TimelineT } from "./project/TimelineT";
 
 export function printClips(clips: SArray<AbstractClip<any>>) {
   return clips.map((c) => c.toString()).join("\n");
@@ -28,24 +29,6 @@ export function assertClipInvariants<U extends Pulses | Seconds>(clips: SArray<A
     cStart = clip._timelineStartU;
     cEnd = clip._timelineStartU;
   }
-}
-
-// TODO: can we assume clips are sorted?
-export function clipsLimits<Clip extends AbstractClip<U>, U extends Pulses | Seconds>(
-  clips: Clip[]
-): [min: number, max: number] | null {
-  if (clips.length < 1) {
-    return null;
-  }
-
-  let min = Infinity;
-  let max = -Infinity;
-  for (const clip of clips) {
-    min = clip._timelineStartU < min ? clip._timelineStartU : min;
-    max = clip._timelineEndU > max ? clip._timelineEndU : max;
-  }
-
-  return [min, max];
 }
 
 export function addClip<Clip extends AbstractClip<U>, U extends Pulses | Seconds>(
@@ -322,6 +305,9 @@ export function secsAsNum(num: Seconds) {
 // rn mostly used for invariants
 
 export interface AbstractClip<U extends Seconds | Pulses> extends Structured<any, any> {
+  readonly timelineStart: TimelineT;
+  readonly timelineLength: TimelineT;
+
   get _timelineStartU(): U;
   _setTimelineStartU(num: U): void;
 

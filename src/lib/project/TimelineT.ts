@@ -41,6 +41,10 @@ export class TimelineT extends Structured<STimelineT, typeof TimelineT> {
     this._notifyChange();
   }
 
+  public replaceWith(b: TimelineT) {
+    this.set(b.t, b.u);
+  }
+
   secs(project: AudioProject): Seconds {
     switch (this.u) {
       case "seconds":
@@ -131,6 +135,27 @@ export class TimelineT extends Structured<STimelineT, typeof TimelineT> {
       this.t -= p.asUnit(this.u, project);
     }
     return this;
+  }
+
+  eq(b: TimelineT, project: AudioProject): boolean {
+    if (this.u === b.u) {
+      return this.t === b.t;
+    }
+    return TimelineT.compare(project, this, "=", b);
+  }
+
+  static compare(project: AudioProject, a: TimelineT, op: "<" | ">" | "=", b: TimelineT): boolean {
+    const aSecs = a.secs(project);
+    const bSecs = b.secs(project);
+
+    switch (op) {
+      case "<":
+        return aSecs < bSecs;
+      case "=":
+        return aSecs === bSecs;
+      case ">":
+        return aSecs > bSecs;
+    }
   }
 
   operate(op: (x: number) => number) {

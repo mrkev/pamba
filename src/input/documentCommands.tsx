@@ -11,8 +11,8 @@ import { pressedState } from "../pressedState";
 import { exhaustive } from "../utils/exhaustive";
 import { ignorePromise } from "../utils/ignorePromise";
 import { CommandBlock } from "./Command";
-import { clipsLimits } from "../lib/AbstractClip";
 import { nullthrows } from "../utils/nullthrows";
+import { clipsLimits } from "../lib/project/timeline";
 
 export const documentCommands = CommandBlock.create(["Project", "Edit", "Tools", "Playback"] as const, (command) => {
   return {
@@ -113,26 +113,32 @@ export const documentCommands = CommandBlock.create(["Project", "Edit", "Tools",
           break;
         }
         case "clips": {
+          // Works across different units (ie, AudioClips and MidiClips)
+          // even though selection state, as of rn, is only one or the other
+
           const clips = selectionState.clips.map((s) => s.clip);
           if (clips.length === 0) {
             throw new Error("empty clips what");
           }
 
-          // TODO: this wont work when mixing midi+audio clips
-          const u = clips[0].timelineStart.u;
-          const [clipsStart, clipsEnd] = nullthrows(clipsLimits(selectionState.clips.map((s) => s.clip)));
+          const [clipsStart, clipsEnd] = nullthrows(
+            clipsLimits(
+              project,
+              selectionState.clips.map((s) => s.clip)
+            )
+          );
 
           const thisLoopIsSelected =
             project.loopOnPlayback.get() === true &&
-            project.loopStart.secs(project) === clipsStart &&
-            project.loopEnd.secs(project) === clipsEnd;
+            project.loopStart.eq(clipsStart, project) &&
+            project.loopEnd.eq(clipsEnd, project);
 
           if (thisLoopIsSelected) {
             project.loopOnPlayback.set(false);
           } else {
             project.loopOnPlayback.set(true);
-            project.loopStart.set(clipsStart, u);
-            project.loopEnd.set(clipsEnd, u);
+            project.loopStart.replaceWith(clipsStart);
+            project.loopEnd.replaceWith(clipsEnd);
           }
           e?.preventDefault();
           break;
