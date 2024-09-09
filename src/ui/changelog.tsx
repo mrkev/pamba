@@ -1,4 +1,7 @@
 export const changelog = `
+next
+- loop clip selection
+
 v0.1.6
 - resize midi clips via the clip editor
 - better panning/zooming in midi clip editor

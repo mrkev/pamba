@@ -30,6 +30,24 @@ export function assertClipInvariants<U extends Pulses | Seconds>(clips: SArray<A
   }
 }
 
+// TODO: can we assume clips are sorted?
+export function clipsLimits<Clip extends AbstractClip<U>, U extends Pulses | Seconds>(
+  clips: Clip[]
+): [min: number, max: number] | null {
+  if (clips.length < 1) {
+    return null;
+  }
+
+  let min = Infinity;
+  let max = -Infinity;
+  for (const clip of clips) {
+    min = clip._timelineStartU < min ? clip._timelineStartU : min;
+    max = clip._timelineEndU > max ? clip._timelineEndU : max;
+  }
+
+  return [min, max];
+}
+
 export function addClip<Clip extends AbstractClip<U>, U extends Pulses | Seconds>(
   newClip: Clip,
   clips: SArray<Clip>

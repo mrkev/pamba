@@ -11,6 +11,8 @@ import { pressedState } from "../pressedState";
 import { exhaustive } from "../utils/exhaustive";
 import { ignorePromise } from "../utils/ignorePromise";
 import { CommandBlock } from "./Command";
+import { clipsLimits } from "../lib/AbstractClip";
+import { nullthrows } from "../utils/nullthrows";
 
 export const documentCommands = CommandBlock.create(["Project", "Edit", "Tools", "Playback"] as const, (command) => {
   return {
@@ -91,11 +93,11 @@ export const documentCommands = CommandBlock.create(["Project", "Edit", "Tools",
       switch (selectionState.status) {
         case "track_time":
         case "time": {
-          if (
+          const thisLoopIsSelected =
             project.loopOnPlayback.get() === true &&
             project.loopStart.secs(project) === selectionState.startS &&
-            project.loopEnd.secs(project) === selectionState.endS
-          ) {
+            project.loopEnd.secs(project) === selectionState.endS;
+          if (thisLoopIsSelected) {
             project.loopOnPlayback.set(false);
           } else {
             project.loopOnPlayback.set(true);
@@ -110,7 +112,32 @@ export const documentCommands = CommandBlock.create(["Project", "Edit", "Tools",
           e?.preventDefault();
           break;
         }
-        case "clips":
+        case "clips": {
+          const clips = selectionState.clips.map((s) => s.clip);
+          if (clips.length === 0) {
+            throw new Error("empty clips what");
+          }
+
+          // TODO: this wont work when mixing midi+audio clips
+          const u = clips[0].timelineStart.u;
+          const [clipsStart, clipsEnd] = nullthrows(clipsLimits(selectionState.clips.map((s) => s.clip)));
+
+          const thisLoopIsSelected =
+            project.loopOnPlayback.get() === true &&
+            project.loopStart.secs(project) === clipsStart &&
+            project.loopEnd.secs(project) === clipsEnd;
+
+          if (thisLoopIsSelected) {
+            project.loopOnPlayback.set(false);
+          } else {
+            project.loopOnPlayback.set(true);
+            project.loopStart.set(clipsStart, u);
+            project.loopEnd.set(clipsEnd, u);
+          }
+          e?.preventDefault();
+          break;
+        }
+
         case "effects":
 
         case "tracks":

@@ -16,10 +16,7 @@ const PULSES_PER_BAR = 6 * 4;
 // 4 beats = 1 bar
 
 export class TimelineT extends Structured<STimelineT, typeof TimelineT> {
-  constructor(
-    private t: number,
-    public u: TimeUnit,
-  ) {
+  constructor(private t: number, public u: TimeUnit) {
     super();
   }
 
