@@ -1,10 +1,11 @@
 export const changelog = `
-next
-- resize midi clips
+v0.1.6
+- resize midi clips via the clip editor
 - better panning/zooming in midi clip editor
 - fix midi looping when loop start isn't 0s
+- improvements to initialization
 
-v.1.5
+v0.1.5
 - project load times improvements
 - midi: new instruments
 - WAM effects and instruments on sidebar
