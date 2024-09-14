@@ -10,14 +10,17 @@ import { AudioRenderer } from "../lib/AudioRenderer";
 import { AudioTrack } from "../lib/AudioTrack";
 import { ProjectTrack } from "../lib/ProjectTrack";
 import { AudioProject } from "../lib/project/AudioProject";
-import { AudioStorage } from "../lib/project/AudioStorage";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { pressedState } from "../pressedState";
+import { exhaustive } from "../utils/exhaustive";
 import { ignorePromise } from "../utils/ignorePromise";
+import { nullthrows } from "../utils/nullthrows";
 import { ClipA } from "./ClipA";
 import { ClipInvalid } from "./ClipInvalid";
 import { CursorSelection } from "./CursorSelection";
 import { EffectRack } from "./EffectRack";
+import { getTrackAcceptableDataTransferResources } from "./getTrackAcceptableDataTransferResources";
+import { addAvailableWamToTrack } from "../lib/addAvailableWamToTrack";
 
 function clientXToTrackX(trackElem: HTMLDivElement | null, clientX: number) {
   if (trackElem == null) {
@@ -26,39 +29,12 @@ function clientXToTrackX(trackElem: HTMLDivElement | null, clientX: number) {
   return clientX + trackElem.scrollLeft - trackElem.getBoundingClientRect().x;
 }
 
-export async function getDroppedAudioURL(audioStorage: AudioStorage | null, dataTransfer: DataTransfer) {
-  if (audioStorage == null) {
-    return null;
-  }
-
-  // We can drop audio files from outside the app
-  let url: string | null = null;
-
-  for (let i = 0; i < dataTransfer.files.length; i++) {
-    const file = dataTransfer.files[i];
-    console.log("TODO: VERIFY FILE TYPE. Parallel uploads", file);
-
-    const result = await audioStorage.uploadToLibrary(file);
-    if (result instanceof Error) {
-      throw result;
-    }
-    url = result.url().toString();
-  }
-
-  // We can drop urls to audio from other parts of the UI
-  if (url == null) {
-    url = dataTransfer.getData("text");
-  }
-
-  return url;
-}
-
 const loadAudioClipIntoTrack = async (
   project: AudioProject,
   url: string,
   track: AudioTrack,
   startOffsetSec: number,
-  name: string,
+  name: string
 ): Promise<void> => {
   try {
     if (!project.canEditTrack(project, track)) {
@@ -113,28 +89,39 @@ export function TrackA({
     async function onDropNewAudio(ev: React.DragEvent<HTMLDivElement>) {
       ev.preventDefault();
       ev.stopPropagation();
-      const pressed = pressedState.get();
-      // NOTE: dropping from Finder is not handled here. Figure out where that is handled.
-      // this just seems to handle things dragged from the library right now anyway.
-      if (pressed?.status !== "dragging_library_item") {
-        console.warn("dropped something but pressed status was wrong?");
-        return;
-      }
 
-      if (pressed.libraryItem.kind !== "audio") {
-        console.warn("This should never happen");
-        return;
-      }
+      const transferableResources = await getTrackAcceptableDataTransferResources(
+        ev.dataTransfer,
+        nullthrows(audioStorage)
+      );
 
-      const url = await getDroppedAudioURL(audioStorage, ev.dataTransfer);
-      if (url && url.length > 0) {
-        const startOffsetSec = project.viewport.pxToSecs(draggingOver ?? 0);
-        ignorePromise(loadAudioClipIntoTrack(project, url, track, startOffsetSec, pressed.libraryItem.name));
+      for (const resource of transferableResources) {
+        switch (resource.kind) {
+          case "WAMAvailablePlugin":
+            await addAvailableWamToTrack(track, resource);
+            break;
+          case "AudioPackage.local":
+            console.warn("NOT IMEPLEMENTED");
+            break;
+          case "audio":
+            const startOffsetSec = project.viewport.pxToSecs(draggingOver ?? 0);
+            ignorePromise(loadAudioClipIntoTrack(project, resource.url, track, startOffsetSec, resource.name));
+            break;
+          default:
+            exhaustive(resource);
+        }
       }
       setDraggingOver(null);
     },
-    [audioStorage, draggingOver, project, track],
+    [audioStorage, draggingOver, project, track]
   );
+
+  const dragType =
+    pressed == null || pressed.status !== "dragging_library_item" || draggingOver != null
+      ? null
+      : pressed.libraryItem.kind === "audio"
+      ? "audio"
+      : "effect";
 
   return (
     <>
@@ -155,6 +142,7 @@ export function TrackA({
           position: "relative",
           height: height - TRACK_SEPARATOR_HEIGHT,
           background: activeTrack === track ? "rgba(64,64,64,0.1)" : "none",
+          filter: dragType == "effect" ? "brightness(0.7)" : undefined,
           ...style,
         }}
       >
@@ -173,19 +161,23 @@ export function TrackA({
         <CursorSelection track={track} project={project} />
 
         {/* RENDER DRAG DROP MARKER */}
-        {pressed && pressed.status === "dragging_library_item" && draggingOver != null && (
-          <div
-            style={{
-              width: 1,
-              left: draggingOver,
-              backgroundColor: "#114411",
-              height: "100%",
-              userSelect: "none",
-              pointerEvents: "none",
-              position: "absolute",
-            }}
-          ></div>
-        )}
+        {/* note: only for audio */}
+        {pressed &&
+          pressed.status === "dragging_library_item" &&
+          pressed.libraryItem.kind === "audio" &&
+          draggingOver != null && (
+            <div
+              style={{
+                width: 1,
+                left: draggingOver,
+                backgroundColor: "#114411",
+                height: "100%",
+                userSelect: "none",
+                pointerEvents: "none",
+                position: "absolute",
+              }}
+            ></div>
+          )}
 
         {/* RENDER CLIP BEING MOVED FROM ANOTHER TRACK */}
         {pressed &&

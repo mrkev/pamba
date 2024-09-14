@@ -50,7 +50,7 @@ export class MidiInstrument extends DSPNode<null> {
   static async createFromUrl(pluginUrl: string, wamHostGroupId: string, audioContext: BaseAudioContext) {
     // console.log(pluginUrl, appEnvironment.wamPlugins);
     const plugin = nullthrows(appEnvironment.wamPlugins.get(pluginUrl));
-    assert(plugin.kind === "m-a", "plugin is not an instrument");
+    assert(plugin.pluginKind === "m-a", "plugin is not an instrument");
 
     const module = await plugin.import.createInstance(wamHostGroupId, audioContext);
     return new MidiInstrument(module, pluginUrl);
@@ -58,7 +58,7 @@ export class MidiInstrument extends DSPNode<null> {
 
   cloneToOfflineContext<MidiInstrument>(
     _context: OfflineAudioContext,
-    _offlineContextInfo: Readonly<{ wamHostGroup: [id: string, key: string] }>,
+    _offlineContextInfo: Readonly<{ wamHostGroup: [id: string, key: string] }>
   ): Promise<MidiInstrument | null> {
     throw new Error("Method not implemented.");
   }
@@ -84,7 +84,7 @@ export class MidiInstrument extends DSPNode<null> {
 
   async actualCloneToOfflineContext(
     context: OfflineAudioContext,
-    offlineContextInfo: Readonly<{ wamHostGroup: [id: string, key: string] }>,
+    offlineContextInfo: Readonly<{ wamHostGroup: [id: string, key: string] }>
   ): Promise<MidiInstrument | null> {
     const state = await this.getState();
     console.log("with state", state);

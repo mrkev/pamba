@@ -140,17 +140,17 @@ export const documentCommands = CommandBlock.create(["Project", "Edit", "Tools",
             project.loopStart.replaceWith(clipsStart);
             project.loopEnd.replaceWith(clipsEnd);
           }
-          e?.preventDefault();
           break;
         }
 
         case "effects":
-
         case "tracks":
+          // nothing to do
           break;
         default:
           exhaustive(selectionState);
       }
+      e?.preventDefault();
     })
       .helptext("Loop selection")
       .section("Playback"),

@@ -1,6 +1,7 @@
 export const changelog = `
 next
-- loop clip selection
+- Cmd+L while selecting clip(s) activates loop on their duration
+- drag-drop effects from library into tracks
 
 v0.1.6
 - resize midi clips via the clip editor

@@ -273,8 +273,12 @@ export const TrackHeader = React.memo(function TrackHeader({
             })}
 
             {appEnvironment.wamPlugins.map((value, key) => {
-              return value.kind !== "a-a" ? null : (
-                <option key={key} disabled={value.kind !== "a-a"} onDoubleClick={async () => track.dsp.addWAM(key)}>
+              return value.pluginKind !== "a-a" ? null : (
+                <option
+                  key={key}
+                  disabled={value.pluginKind !== "a-a"}
+                  onDoubleClick={async () => track.dsp.addWAM(key)}
+                >
                   {value.descriptor.name.replace(/^WebAudioModule\_/, "").replace(/Plugin$/, "")}
                 </option>
               );

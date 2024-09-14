@@ -1,13 +1,13 @@
+import { ReactElement } from "react";
 import { createUseStyles } from "react-jss";
 import { useContainer, usePrimitive } from "structured-state";
 import { AudioClip } from "../lib/AudioClip";
+import { AudioTrack } from "../lib/AudioTrack";
 import { AudioProject } from "../lib/project/AudioProject";
 import { MidiClip } from "../midi/MidiClip";
-import { UtilityTextInput } from "./UtilityButton";
-import { TimelineTEditor } from "./TimelineTEditor";
-import { AudioTrack } from "../lib/AudioTrack";
 import { MidiTrack } from "../midi/MidiTrack";
-import { ReactElement } from "react";
+import { TimelineTEditor } from "./TimelineTEditor";
+import { UtilityTextInput } from "./UtilityButton";
 
 export function ClipPropsEditor(props: { clip: AudioClip; project: AudioProject; track: AudioTrack }): ReactElement;
 export function ClipPropsEditor(props: { clip: MidiClip; project: AudioProject; track: MidiTrack }): ReactElement;
@@ -33,10 +33,16 @@ export function ClipPropsEditor({
           clip.name.set(value);
         }}
       />
-      Length:
-      <TimelineTEditor t={tLen} project={project} readonly onChange={() => {}} />
       Start:
-      <TimelineTEditor t={tStart} project={project} readonly onChange={() => {}} />
+      <TimelineTEditor t={tStart} project={project} readonly onChange={() => {}} defaultUnit={"bars"} />
+      Length:
+      <TimelineTEditor
+        t={tLen}
+        project={project}
+        readonly
+        onChange={() => {}}
+        defaultUnit={clip instanceof MidiClip ? "bars" : "seconds"}
+      />
       sid:
       <UtilityTextInput value={clip._id} />
       <small>note: sid is for debugging</small>

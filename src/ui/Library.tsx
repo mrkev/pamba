@@ -82,7 +82,7 @@ export function Library({
         return;
       }
     },
-    [player, project],
+    [player, project]
   );
 
   const items: ListEntry<LibraryItem>[] = useMemo(() => {
@@ -130,7 +130,7 @@ export function Library({
       ...[...wamPlugins.entries()].map(([key, plugin]): ListEntry<LibraryItem> => {
         return {
           title: plugin.descriptor.name.replace(/^WebAudioModule[_ ]/, "").replace(/(?:Module|Plugin)$/, ""),
-          icon: plugin.kind === "m-a" ? <i>♩</i> : <i className="ri-pulse-fill"></i>,
+          icon: plugin.pluginKind === "m-a" ? <i>♩</i> : <i className="ri-pulse-fill"></i>,
           data: { kind: "wam", plugin },
         };
       }),
@@ -158,12 +158,32 @@ export function Library({
         draggable={!isAudioPlaying}
         disabled={isAudioPlaying}
         onDragStart={function (item, ev: React.DragEvent<HTMLDivElement>) {
-          if (item.data.kind !== "audio") {
-            return;
+          console.log(item.data);
+          ev.dataTransfer.effectAllowed = "copy";
+
+          switch (item.data.kind) {
+            case "audio":
+              ev.dataTransfer.setData("application/pamba.rawaudio", JSON.stringify(item.data));
+              // ev.dataTransfer.setData("text/uri-list", item.data.url);
+              // ev.dataTransfer.setData("text/plain", item.data.url);
+              // TODO: add files, so they show up when we drag out of the application
+              // NOTE: internally if we handle an application/pamba.* data item we will skip handling files too,
+              // so this is no problem and we won't get double audio drops on the track or anything like that
+              // ev.dataTransfer.items.add()
+              break;
+            case "project": {
+              // TODO: can't even be dragged right now
+              ev.dataTransfer.setData("application/pamba.project", item.data.id);
+              break;
+            }
+            case "wam": {
+              ev.dataTransfer.setData("application/pamba.wam", item.data.plugin.url);
+              break;
+            }
+            default:
+              exhaustive(item.data);
           }
 
-          ev.dataTransfer.setData("text/uri-list", item.data.url);
-          ev.dataTransfer.setData("text/plain", item.data.url);
           pressedState.set({
             status: "dragging_library_item",
             libraryItem: item.data,
@@ -217,7 +237,7 @@ export function Library({
           const selection = await doConfirm(
             `Are you sure you want to delete "${item.title}"?\nThis cannot be undone.`,
             "yes",
-            "no",
+            "no"
           );
 
           if (selection === "no" || selection === "cancel") {

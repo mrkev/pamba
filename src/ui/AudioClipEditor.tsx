@@ -4,6 +4,7 @@ import { usePrimitive } from "structured-state";
 import { GPUWaveform } from "webgpu-waveform-react";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import { AudioClip } from "../lib/AudioClip";
+import { AudioTrack } from "../lib/AudioTrack";
 import { AudioProject } from "../lib/project/AudioProject";
 import { useSubscribeToSubbableMutationHashable } from "../lib/state/LinkedMap";
 import { useLinkedState } from "../lib/state/LinkedState";
@@ -11,7 +12,6 @@ import { nullthrows } from "../utils/nullthrows";
 import { AudioClipPropsEditor, ClipPropsEditor } from "./ClipPropsEditor";
 import { UtilityToggle } from "./UtilityToggle";
 import { useEventListener } from "./useEventListener";
-import { AudioTrack } from "../lib/AudioTrack";
 
 export const HEIGHT = 200;
 
@@ -68,7 +68,7 @@ export function AudioClipEditor({
       const clipFr = clipSecs * clip.sampleRate;
       return clipFr;
     },
-    [clip.sampleRate, clip.timelineStartSec],
+    [clip.sampleRate, clip.timelineStartSec]
   );
 
   useEventListener(
@@ -104,8 +104,8 @@ export function AudioClipEditor({
           clip.detailedViewport.scrollLeftPx.setDyn((prev) => Math.max(prev + e.deltaX, 0));
         }
       },
-      [clip.detailedViewport, clip.sampleRate, lockPlayback, offsetFrOfPlaybackPos, player.playbackPos],
-    ),
+      [clip.detailedViewport, clip.sampleRate, lockPlayback, offsetFrOfPlaybackPos, player.playbackPos]
+    )
   );
 
   useEventListener(
@@ -123,8 +123,8 @@ export function AudioClipEditor({
 
         project.cursorPos.set(positionTimeline);
       },
-      [clip.detailedViewport, clip.timelineStartSec, project.cursorPos],
-    ),
+      [clip.detailedViewport, clip.timelineStartSec, project.cursorPos]
+    )
   );
 
   // console.log("SCSL", scale);
@@ -139,14 +139,7 @@ export function AudioClipEditor({
       const clipPx = clipFr / clip.detailedViewport.framesPerPixel(clip.sampleRate);
       return clipPx - waveformOffset / clip.detailedViewport.framesPerPixel(clip.sampleRate);
     },
-    [
-      clip.detailedViewport,
-      clip.sampleRate,
-      clip.timelineStartSec,
-      offsetFrOfPlaybackPos,
-      playbackPos,
-      waveformStartFr,
-    ],
+    [clip.detailedViewport, clip.sampleRate, clip.timelineStartSec, offsetFrOfPlaybackPos, playbackPos, waveformStartFr]
   );
 
   // useEffect(() => {

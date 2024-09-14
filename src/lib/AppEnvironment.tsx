@@ -22,8 +22,9 @@ import { LinkedState } from "./state/LinkedState";
 import { exhaustive } from "./state/Subbable";
 
 export type WAMAvailablePlugin = {
+  kind: "WAMAvailablePlugin";
   // midi out, audio out, midi to audio, audio to audio
-  kind: "-m" | "-a" | "m-a" | "a-a";
+  pluginKind: "-m" | "-a" | "m-a" | "a-a";
   import: WAMImport;
   descriptor: WamDescriptor;
   url: string;

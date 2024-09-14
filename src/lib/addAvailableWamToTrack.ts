@@ -11,10 +11,10 @@ import { AudioTrack } from "./AudioTrack";
  */
 export async function addAvailableWamToTrack(track: AudioTrack | MidiTrack, wam: WAMAvailablePlugin) {
   const [hostGroupId] = nullthrows(appEnvironment.wamHostGroup.get());
-  switch (wam.kind) {
+  switch (wam.pluginKind) {
     case "-a":
     case "-m":
-      throw new Error(`Generator of kind ${wam.kind} can't be dynamically added, unsupported`);
+      throw new Error(`Generator of kind ${wam.pluginKind} can't be dynamically added, unsupported`);
     case "a-a": {
       const pluginInstance1 = await wam.import.createInstance(hostGroupId, liveAudioContext());
       const pluginDom1 = await pluginInstance1.createGui();

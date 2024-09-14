@@ -7,7 +7,7 @@ import { FSDir } from "./FSDir";
  * Represents an audio file in the virtual filesystem
  */
 export class AudioPackage {
-  readonly kind = "local" as const;
+  readonly kind = "AudioPackage.local" as const;
   static readonly BUFFER_FILE_NAME = "audio" as const;
   static readonly METADATA_FILE_NAME = "metadata" as const;
 
@@ -15,7 +15,7 @@ export class AudioPackage {
     public readonly name: string,
     public readonly file: File,
     public readonly metadata: musicMetadata.IAudioMetadata,
-    public readonly pkgRoot: FSDir,
+    public readonly pkgRoot: FSDir
   ) {}
 
   public url() {
@@ -26,7 +26,7 @@ export class AudioPackage {
     // dont need metadata atm but open for good measure?
     const [fileHandle, metadataHandle] = await pAll(
       pTry(pkgDir.handle.getFileHandle(AudioPackage.BUFFER_FILE_NAME), "error" as const),
-      pTry(pkgDir.handle.getFileHandle(AudioPackage.METADATA_FILE_NAME), "error" as const),
+      pTry(pkgDir.handle.getFileHandle(AudioPackage.METADATA_FILE_NAME), "error" as const)
     );
 
     if (fileHandle === "error" || metadataHandle === "error") {
@@ -90,7 +90,7 @@ export class AudioPackage {
 
     const [audioBufferHandle, metadataHandle] = await pAll(
       newPackage.handle.getFileHandle("audio", { create: true }),
-      newPackage.handle.getFileHandle("metadata", { create: true }),
+      newPackage.handle.getFileHandle("metadata", { create: true })
     );
 
     console.log("attempting to save");
@@ -105,7 +105,7 @@ export class AudioPackage {
         const writable = await metadataHandle.createWritable();
         await writable.write(JSON.stringify({ musicMetadata: metadata }));
         await writable.close();
-      },
+      }
     );
 
     return new AudioPackage(file.name, file, metadata, newPackage);

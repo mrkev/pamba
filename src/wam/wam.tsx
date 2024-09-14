@@ -10,7 +10,7 @@ export type WAMImport = {
   createInstance<Node extends IWamNode = IWamNode>(
     groupId: string,
     audioContext: BaseAudioContext,
-    initialState?: any,
+    initialState?: any
   ): Promise<WebAudioModule<Node>>;
   new <Node extends IWamNode = IWamNode>(groupId: string, audioContext: BaseAudioContext): WebAudioModule<Node>;
 } & Pick<typeof IWebAudioModule, "isWebAudioModuleConstructor">;
@@ -69,7 +69,7 @@ export const WamInstrumentContent = React.memo(function WamInstrumentContentImpl
 
 export async function fetchWam(
   pluginUrl: string,
-  kind: "-m" | "-a" | "m-a" | "a-a",
+  kind: "-m" | "-a" | "m-a" | "a-a"
 ): Promise<WAMAvailablePlugin | null> {
   console.log("WAM: LOADING fromURLlllll", pluginUrl);
   const rawModule = await import(/* @vite-ignore */ pluginUrl);
@@ -86,5 +86,11 @@ export async function fetchWam(
   // TODO: propery initialize instead to get proper metadata?
   const descriptor = new (plugin as any)().descriptor;
   // console.log(descriptor);
-  return { import: plugin, descriptor, kind, url: pluginUrl };
+  return {
+    kind: "WAMAvailablePlugin",
+    import: plugin,
+    descriptor,
+    pluginKind: kind,
+    url: pluginUrl,
+  };
 }

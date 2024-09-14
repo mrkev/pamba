@@ -15,9 +15,40 @@ import { exhaustive } from "../utils/exhaustive";
 import { nullthrows } from "../utils/nullthrows";
 import { Axis } from "./Axis";
 import { TimelineCursor } from "./TimelineCursor";
-import { TrackA, getDroppedAudioURL } from "./TrackA";
+import { TrackA } from "./TrackA";
 import { TrackM } from "./TrackM";
 import { useEventListener } from "./useEventListener";
+import { AudioStorage } from "../lib/project/AudioStorage";
+
+export async function getDroppedAudioURL(audioStorage: AudioStorage | null, dataTransfer: DataTransfer) {
+  if (audioStorage == null) {
+    return null;
+  }
+
+  console.log(dataTransfer.types);
+
+  // We can drop audio files from outside the app
+  let url: string | null = null;
+
+  for (let i = 0; i < dataTransfer.files.length; i++) {
+    console.log(dataTransfer.types, dataTransfer.items[0]);
+    const file = dataTransfer.files[i];
+    console.log("TODO: VERIFY FILE TYPE. Parallel uploads", file);
+
+    const result = await audioStorage.uploadToLibrary(file);
+    if (result instanceof Error) {
+      throw result;
+    }
+    url = result.url().toString();
+  }
+
+  // We can drop urls to audio from other parts of the UI
+  if (url == null) {
+    url = dataTransfer.getData("text");
+  }
+
+  return url;
+}
 
 export function ProjectView({ project, renderer }: { project: AudioProject; renderer: AudioRenderer }) {
   const projectDivRef = useRef<HTMLDivElement | null>(null);
@@ -82,9 +113,9 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
           });
         }
       },
-      [project.scaleFactor, project.viewport, project.viewportStartPx],
+      [project.scaleFactor, project.viewport, project.viewportStartPx]
     ),
-    { capture: false },
+    { capture: false }
   );
 
   useTimelineMouseEvents(project, projectDivRef);
@@ -95,7 +126,7 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
       ({ width }: { width?: number; height?: number }) => {
         project.viewport.projectDivWidth.set(width ?? 0);
       },
-      [project.viewport.projectDivWidth],
+      [project.viewport.projectDivWidth]
     ),
   });
 
@@ -128,7 +159,7 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
       }
       setDraggingOver(false);
     },
-    [audioStorage, project],
+    [audioStorage, project]
   );
 
   const classes = useStyles();
@@ -221,5 +252,7 @@ export const useStyles = createUseStyles({
     position: "absolute",
     left: 0,
     top: 0,
+    userSelect: "none",
+    pointerEvents: "none",
   },
 });
