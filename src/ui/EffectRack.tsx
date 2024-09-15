@@ -19,6 +19,7 @@ import {
   effectRackCanHandleTransfer,
   getRackAcceptableDataTransferResources,
 } from "./dragdrop/getTrackAcceptableDataTransferResources";
+import { ignorePromise } from "../utils/ignorePromise";
 
 const useStyles = createUseStyles({
   effectRack: {
@@ -76,8 +77,17 @@ export const EffectRack = React.memo(function EffectRack({
       ev.preventDefault();
       ev.stopPropagation();
       const transferableResources = await getRackAcceptableDataTransferResources(ev.dataTransfer);
-      for (const plugin of transferableResources) {
-        await addAvailableWamToTrack(track, plugin);
+      for (const effectPlugin of transferableResources) {
+        switch (effectPlugin.kind) {
+          case "WAMAvailablePlugin":
+            ignorePromise(addAvailableWamToTrack(track, effectPlugin));
+            break;
+          case "fausteffect":
+            ignorePromise(track.dsp.addEffect(effectPlugin.id));
+            break;
+          default:
+            exhaustive(effectPlugin);
+        }
       }
       setDraggingOver(false);
     },

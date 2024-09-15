@@ -23,6 +23,7 @@ import { doConfirm } from "./ConfirmDialog";
 import { UploadAudioButton } from "./UploadAudioButton";
 import { ListEntry, UtilityDataList } from "./UtilityList";
 import { closeProject } from "./header/ToolHeader";
+import { FAUST_EFFECTS, FaustEffectID } from "../dsp/FAUST_EFFECTS";
 
 const STATIC_AUDIO_FILES = ["drums.mp3", "clav.mp3", "bassguitar.mp3", "horns.mp3", "leadguitar.mp3"];
 
@@ -44,7 +45,16 @@ function useAudioLibrary(project: AudioProject, filter: string): (string | Audio
 export type LibraryItem =
   | { kind: "project"; id: string }
   | { kind: "audio"; url: string; name: string }
-  | { kind: "wam"; plugin: WAMAvailablePlugin };
+  | { kind: "wam"; plugin: WAMAvailablePlugin }
+  | { kind: "fausteffect"; id: FaustEffectID };
+
+function faustEffectLibraryListEntries(): ListEntry<LibraryItem>[] {
+  return Object.keys(FAUST_EFFECTS).map((id) => ({
+    title: id,
+    icon: <i className="ri-pulse-fill"></i>,
+    data: { kind: "fausteffect", id: id as FaustEffectID },
+  }));
+}
 
 export function Library({
   project,
@@ -130,10 +140,11 @@ export function Library({
       ...[...wamPlugins.entries()].map(([key, plugin]): ListEntry<LibraryItem> => {
         return {
           title: plugin.descriptor.name.replace(/^WebAudioModule[_ ]/, "").replace(/(?:Module|Plugin)$/, ""),
-          icon: plugin.pluginKind === "m-a" ? <i>♩</i> : <i className="ri-pulse-fill"></i>,
+          icon: plugin.pluginKind === "m-a" ? <i style={{ fontSize: 11 }}>♩</i> : <i className="ri-pulse-fill"></i>,
           data: { kind: "wam", plugin },
         };
       }),
+      ...faustEffectLibraryListEntries(),
     ];
   }, [audioLibrary, localProjects, project.projectId, wamPlugins]);
 
@@ -180,6 +191,10 @@ export function Library({
               ev.dataTransfer.setData("application/pamba.wam", item.data.plugin.url);
               break;
             }
+            case "fausteffect": {
+              ev.dataTransfer.setData("application/pamba.fausteffect", item.data.id);
+              break;
+            }
             default:
               exhaustive(item.data);
           }
@@ -204,6 +219,25 @@ export function Library({
               }
 
               await ProjectPersistance.openProject(item.data.id);
+              break;
+            }
+            case "fausteffect": {
+              const selected = project.selected.get();
+              switch (selected?.status) {
+                case "tracks":
+                  const track = nullthrows(selected.tracks.at(0), "no track to add dsp to");
+                  ignorePromise(track.dsp.addEffect(item.data.id));
+                  break;
+                case "clips":
+                case "effects":
+                case "loop_marker":
+                case "time":
+                case "track_time":
+                case undefined:
+                  throw new Error("UNIMPLEMENTED");
+                default:
+                  exhaustive(selected);
+              }
               break;
             }
             case "wam": {
@@ -260,6 +294,7 @@ export function Library({
               break;
             }
             case "wam":
+            case "fausteffect":
               throw new Error("UNIMPLEMENTED");
             default:
               exhaustive(item.data);

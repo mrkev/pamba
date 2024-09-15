@@ -1,7 +1,7 @@
 import { SArray, SPrimitive } from "structured-state";
 import { liveAudioContext } from "../constants";
 import { DSPNode } from "../dsp/DSPNode";
-import { EffectID } from "../dsp/FAUST_EFFECTS";
+import { FaustEffectID } from "../dsp/FAUST_EFFECTS";
 import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
 import { nullthrows } from "../utils/nullthrows";
 import { PambaWamNode } from "../wam/PambaWamNode";
@@ -21,10 +21,7 @@ export class ProjectTrackDSP<T extends AbstractClip<any>> extends DSPNode<null> 
 
   override readonly effectId = "builtin:ProjectTrackNode";
   override name: string | SPrimitive<string>;
-  constructor(
-    private readonly track: StandardTrack<T>,
-    effects: (FaustAudioEffect | PambaWamNode)[],
-  ) {
+  constructor(private readonly track: StandardTrack<T>, effects: (FaustAudioEffect | PambaWamNode)[]) {
     super();
     this.name = track.name;
     this.effects = SArray.create(effects);
@@ -92,7 +89,7 @@ export class ProjectTrackDSP<T extends AbstractClip<any>> extends DSPNode<null> 
   }
 
   //////////////////// EFFECTS //////////////////////
-  async addEffect(effectId: EffectID) {
+  async addEffect(effectId: FaustEffectID) {
     const effect = await FaustAudioEffect.create(liveAudioContext(), effectId);
     if (effect == null) {
       return;

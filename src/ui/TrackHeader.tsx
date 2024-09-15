@@ -14,6 +14,8 @@ import { pressedState } from "../pressedState";
 import { RenamableLabel } from "./RenamableLabel";
 import { UtilityToggle } from "./UtilityToggle";
 import { UtilitySlider, utility } from "./utility";
+import { cx } from "./cx";
+import { doConfirm } from "./ConfirmDialog";
 
 export const TrackHeader = React.memo(function TrackHeader({
   track,
@@ -63,6 +65,7 @@ export const TrackHeader = React.memo(function TrackHeader({
   return (
     <div
       style={{
+        background: isSelected ? "rgba(0,0,0,0.5)" : "none",
         position: "relative",
         borderBottom: `${TRACK_SEPARATOR_HEIGHT}px solid var(--track-separator)`,
         cursor: "pointer",
@@ -75,10 +78,9 @@ export const TrackHeader = React.memo(function TrackHeader({
           height: height - TRACK_SEPARATOR_HEIGHT,
           position: "relative",
           userSelect: "none",
-          background: isSelected ? "rgba(0,0,0,0.5)" : "none",
           display: "flex",
           flexDirection: "column",
-          borderBottom: isDspExpanded ? `${TRACK_SEPARATOR_HEIGHT}px solid #444444` : undefined,
+          // borderBottom: isDspExpanded ? `${TRACK_SEPARATOR_HEIGHT}px solid #444444` : undefined,
         }}
       >
         <div
@@ -102,8 +104,15 @@ export const TrackHeader = React.memo(function TrackHeader({
           </span>
           <RenamableLabel value={trackName} setValue={setTrackName} />
           <div style={{ flexGrow: 1 }}></div>
-          <button className={styles.actionButton} onClick={() => AudioProject.removeTrack(project, player, track)}>
-            x
+          <button
+            className={cx("utilityButton", styles.deleteTrackButton)}
+            onClick={async () => {
+              if ((await doConfirm(`delete track "${track.name.get()}"?\n\nThis cannot be undone (yet)!`)) === "yes") {
+                AudioProject.removeTrack(project, player, track);
+              }
+            }}
+          >
+            <i className="ri-close-line"></i>
           </button>{" "}
         </div>
         <div className={styles.buttonRow}>
@@ -226,7 +235,7 @@ export const TrackHeader = React.memo(function TrackHeader({
         {/* TODO: allow rezising track by dragging either line below dsp, or line between dsp and clips */}
 
         <UtilityToggle
-          style={{ margin: "2px 0px 2px 4px", fontWeight: 200, fontSize: 10, height: 14 }}
+          style={{ margin: "2px 4px 0px 4px", fontWeight: 200, fontSize: 10, height: 14 }}
           toggled={isDspExpanded}
           onToggle={function (): void {
             if (dspExpandedTracks.has(track)) {
@@ -244,8 +253,8 @@ export const TrackHeader = React.memo(function TrackHeader({
       {isDspExpanded ? (
         <div
           style={{
-            background: "#444444",
-            height: EFFECT_HEIGHT + 17 - TRACK_SEPARATOR_HEIGHT - 2,
+            // background: "#444444",
+            height: EFFECT_HEIGHT + 17 - 2,
             position: "relative",
             userSelect: "none",
             display: "flex",
@@ -254,6 +263,7 @@ export const TrackHeader = React.memo(function TrackHeader({
             padding: "0px 2px 2px 2px",
           }}
         >
+          {/* 
           <input style={{ width: "100%", border: "none", fontSize: 12 }} type="search" placeholder="Search..." />
           <select
             multiple
@@ -283,20 +293,7 @@ export const TrackHeader = React.memo(function TrackHeader({
                 </option>
               );
             })}
-
-            {/* <optgroup label="4-legged pets">
-              <option value="dog">Dog</option>
-              <option value="cat">Cat</option>
-              <option value="hamster" disabled>
-                Hamster
-              </option>
-            </optgroup>
-            <optgroup label="Flying pets">
-              <option value="parrot">Parrot</option>
-              <option value="macaw">Macaw</option>
-              <option value="albatross">Albatross</option>
-            </optgroup> */}
-          </select>
+          </select> */}
         </div>
       ) : null}
       <div
@@ -316,11 +313,15 @@ export const TrackHeader = React.memo(function TrackHeader({
 });
 
 const useStyles = createUseStyles({
-  actionButton: {
+  deleteTrackButton: {
     cursor: "pointer",
     border: "none",
     background: "var(--control-bg-color)",
     fontSize: 11,
+    color: "white",
+    "&:not(:active)": {
+      background: "none",
+    },
   },
   trackNumber: {
     width: 17.5,

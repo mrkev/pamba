@@ -24,7 +24,7 @@ import {
   getTrackAcceptableDataTransferResources,
   trackCanHandleTransfer,
 } from "./dragdrop/getTrackAcceptableDataTransferResources";
-import { handleDropOntoAudioTrack } from "./dragdrop/resourceDrop";
+import { handleDropOntoAudioTrack, handleDropOntoMidiTrack } from "./dragdrop/resourceDrop";
 
 function clientXToTrackX(trackElem: HTMLDivElement | null, clientX: number) {
   if (trackElem == null) {
@@ -35,9 +35,9 @@ function clientXToTrackX(trackElem: HTMLDivElement | null, clientX: number) {
 
 function trackCanHandleLibraryItem(track: AudioTrack | MidiTrack, libraryItem: LibraryItem) {
   if (track instanceof MidiTrack) {
-    return libraryItem.kind === "wam";
+    return libraryItem.kind === "wam" || libraryItem.kind === "fausteffect";
   } else if (track instanceof AudioTrack) {
-    return libraryItem.kind === "audio" || libraryItem.kind === "wam";
+    return libraryItem.kind === "audio" || libraryItem.kind === "wam" || libraryItem.kind === "fausteffect";
   } else {
     exhaustive(track);
   }
@@ -94,6 +94,9 @@ export function TrackS({
       );
 
       if (track instanceof MidiTrack) {
+        for (const resource of transferableResources) {
+          await handleDropOntoMidiTrack(track, resource, draggingOver ?? 0, project);
+        }
       } else if (track instanceof AudioTrack) {
         for (const resource of transferableResources) {
           await handleDropOntoAudioTrack(track, resource, draggingOver ?? 0, project);
@@ -107,6 +110,8 @@ export function TrackS({
     [audioStorage, draggingOver, project, track]
   );
 
+  // TODO: replace with the system I use in EffectRack? Where we just set state on wether the transfer if acceptable
+  // in onDragOver, via the mime types of ev.dataTransfer?
   const darkenOnDrag =
     pressed != null &&
     pressed.status === "dragging_library_item" &&
@@ -122,6 +127,8 @@ export function TrackS({
         onDragOver={function allowDrop(ev) {
           const draggedOffsetPx = clientXToTrackX(trackRef.current, ev.clientX);
           setDraggingOver(draggedOffsetPx);
+
+          // console.log("trackCanHandleTransfer", trackCanHandleTransfer(track, ev.dataTransfer));
 
           if (!trackCanHandleTransfer(track, ev.dataTransfer)) {
             ev.dataTransfer.dropEffect = "none";

@@ -1,5 +1,6 @@
 import { AudioPackage } from "../../data/AudioPackage";
 import { localAudioPackage } from "../../data/urlProtocol";
+import { validateFaustEffectId } from "../../dsp/FAUST_EFFECTS";
 import { WAMAvailablePlugin, appEnvironment } from "../../lib/AppEnvironment";
 import { AudioTrack } from "../../lib/AudioTrack";
 import { AudioStorage } from "../../lib/project/AudioStorage";
@@ -11,7 +12,8 @@ type PambaDataTransferResourceKind =
   | "application/pamba.audio"
   | "application/pamba.rawaudio"
   | "application/pamba.wam"
-  | "application/pamba.project";
+  | "application/pamba.project"
+  | "application/pamba.fausteffect";
 
 export function hasResouceKind(dataTransfer: DataTransfer, ...kinds: PambaDataTransferResourceKind[]) {
   for (const kind of kinds) {
@@ -24,31 +26,41 @@ export function hasResouceKind(dataTransfer: DataTransfer, ...kinds: PambaDataTr
 
 export function trackCanHandleTransfer(track: AudioTrack | MidiTrack, dataTransfer: DataTransfer) {
   if (track instanceof MidiTrack) {
-    return hasResouceKind(dataTransfer, "application/pamba.wam");
+    return hasResouceKind(dataTransfer, "application/pamba.wam", "application/pamba.fausteffect");
   } else if (track instanceof AudioTrack) {
-    return hasResouceKind(dataTransfer, "application/pamba.audio", "application/pamba.rawaudio");
+    return hasResouceKind(
+      dataTransfer,
+      "application/pamba.audio",
+      "application/pamba.rawaudio",
+      "application/pamba.wam",
+      "application/pamba.fausteffect"
+    );
   } else {
     exhaustive(track);
   }
 }
 
 export function effectRackCanHandleTransfer(dataTransfer: DataTransfer) {
-  return hasResouceKind(dataTransfer, "application/pamba.wam");
+  return hasResouceKind(dataTransfer, "application/pamba.wam", "application/pamba.fausteffect");
 }
 
 export async function getRackAcceptableDataTransferResources(
   dataTransfer: DataTransfer
-): Promise<Array<WAMAvailablePlugin>> {
+): Promise<Array<WAMAvailablePlugin | FaustEffectLibraryItem>> {
   const resources = await getTrackAcceptableDataTransferResources(dataTransfer, null as any); // TODO: abstract to not send an invalid null here
-  return resources.filter((resource) => resource.kind === "WAMAvailablePlugin");
+  return resources.filter((resource) => resource.kind === "WAMAvailablePlugin" || resource.kind === "fausteffect");
 }
 
 export type AudioLibraryItem = Extract<LibraryItem, { kind: "audio" }>;
+export type FaustEffectLibraryItem = Extract<LibraryItem, { kind: "fausteffect" }>;
+
+export type TransferableResource = AudioPackage | WAMAvailablePlugin | AudioLibraryItem | FaustEffectLibraryItem;
+
 export async function getTrackAcceptableDataTransferResources(
   dataTransfer: DataTransfer,
   audioStorage: AudioStorage
-): Promise<Array<AudioPackage | WAMAvailablePlugin | AudioLibraryItem>> {
-  const resultingResources: Array<AudioPackage | WAMAvailablePlugin | AudioLibraryItem> = [];
+): Promise<TransferableResource[]> {
+  const resultingResources: TransferableResource[] = [];
   let handledInternalFormat = false;
 
   // Internal Audio
@@ -86,13 +98,23 @@ export async function getTrackAcceptableDataTransferResources(
     handledInternalFormat = true;
   }
 
+  // Internal Faust Effect
+  data = dataTransfer.getData("application/pamba.fausteffect");
+  if (data != "") {
+    // for faust effects, data is the effect id
+    const id = data;
+    resultingResources.push({ kind: "fausteffect", id: validateFaustEffectId(id) });
+    // TODO:
+    handledInternalFormat = true;
+  }
+
   // TODO: can't even be dragged right now
   // Internal Project
   data = dataTransfer.getData("application/pamba.project");
   if (data != "") {
     // for projects, data is the project id
     const id = data;
-    // TODO: what do we do when a project is tragged into a track?
+    // TODO: what do we do when a project is dragged onto a track?
     console.warn("unimplemented: loading project, id", id);
     handledInternalFormat = true;
   }

@@ -1,8 +1,6 @@
 import { history } from "structured-state";
-import { AudioPackage } from "../../data/AudioPackage";
 import { secs } from "../../lib/AbstractClip";
 import { addAvailableWamToTrack } from "../../lib/addAvailableWamToTrack";
-import { WAMAvailablePlugin } from "../../lib/AppEnvironment";
 import { AudioClip } from "../../lib/AudioClip";
 import { AudioTrack } from "../../lib/AudioTrack";
 import { AudioProject } from "../../lib/project/AudioProject";
@@ -11,7 +9,7 @@ import { MidiInstrument } from "../../midi/MidiInstrument";
 import { MidiTrack } from "../../midi/MidiTrack";
 import { exhaustive } from "../../utils/exhaustive";
 import { ignorePromise } from "../../utils/ignorePromise";
-import { AudioLibraryItem } from "./getTrackAcceptableDataTransferResources";
+import { TransferableResource } from "./getTrackAcceptableDataTransferResources";
 
 export const loadAudioClipIntoTrack = async (
   project: AudioProject,
@@ -38,13 +36,13 @@ export const loadAudioClipIntoTrack = async (
 
 export async function handleDropOntoAudioTrack(
   track: AudioTrack,
-  resource: AudioPackage | WAMAvailablePlugin | AudioLibraryItem,
+  resource: TransferableResource,
   position: number,
   project: AudioProject
 ) {
   switch (resource.kind) {
     case "WAMAvailablePlugin":
-      await addAvailableWamToTrack(track, resource);
+      ignorePromise(addAvailableWamToTrack(track, resource));
       break;
     case "AudioPackage.local":
       console.warn("NOT IMEPLEMENTED");
@@ -53,19 +51,46 @@ export async function handleDropOntoAudioTrack(
       const startOffsetSec = project.viewport.pxToSecs(position);
       ignorePromise(loadAudioClipIntoTrack(project, resource.url, track, startOffsetSec, resource.name));
       break;
+    case "fausteffect":
+      ignorePromise(track.dsp.addEffect(resource.id));
+      break;
     default:
       exhaustive(resource);
   }
 }
 
-export async function handleDropIntoTimeline(
-  resources: Array<AudioPackage | WAMAvailablePlugin | AudioLibraryItem>,
+export async function handleDropOntoMidiTrack(
+  track: MidiTrack,
+  resource: TransferableResource,
+  position: number,
   project: AudioProject
 ) {
+  switch (resource.kind) {
+    case "WAMAvailablePlugin":
+      ignorePromise(addAvailableWamToTrack(track, resource));
+      break;
+    case "AudioPackage.local":
+      throw new Error("Can't transfer AudioPackage.local onto MidiTrack");
+    case "audio":
+      throw new Error("Can't transfer audio onto MidiTrack");
+    case "fausteffect":
+      ignorePromise(track.dsp.addEffect(resource.id));
+      break;
+    default:
+      exhaustive(resource);
+  }
+}
+
+export async function handleDropIntoTimeline(resources: TransferableResource[], project: AudioProject) {
   for (const resource of resources) {
     switch (resource.kind) {
       case "AudioPackage.local":
         break;
+      case "fausteffect": {
+        const track = AudioProject.addAudioTrack(project, "bottom");
+        await track.dsp.addEffect(resource.id);
+        break;
+      }
       case "WAMAvailablePlugin": {
         switch (resource.pluginKind) {
           case "a-a": {

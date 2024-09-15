@@ -2,10 +2,10 @@ import type { FaustUIGroup, FaustUIInputItem, FaustUIOutputItem, IFaustMonoWebAu
 import { boolean } from "structured-state";
 import { LinkedMap } from "../lib/state/LinkedMap";
 import { DSPNode } from "./DSPNode";
-import { EffectID, FAUST_EFFECTS } from "./FAUST_EFFECTS";
+import { FaustEffectID, FAUST_EFFECTS } from "./FAUST_EFFECTS";
 
 export type ProcessorLoader = (
-  context: BaseAudioContext,
+  context: BaseAudioContext
 ) => Promise<{ faustNode: IFaustMonoWebAudioNode; dspMeta: any } | null | undefined>;
 
 // from: https://github.com/Fr0stbyteR/faust-ui/blob/7665c7a754b4f856a5b60b7148963e263bf45e14/src/types.d.ts#L23
@@ -47,7 +47,7 @@ export type FaustNodeSetParamFn = (address: string, value: number) => void;
 
 export class FaustAudioEffect extends DSPNode<AudioNode> {
   private readonly node: IFaustMonoWebAudioNode;
-  readonly effectId: EffectID;
+  readonly effectId: FaustEffectID;
   readonly ui: Array<TFaustUIItem>;
   readonly name: string;
   readonly params: LinkedMap<string, number>;
@@ -58,8 +58,8 @@ export class FaustAudioEffect extends DSPNode<AudioNode> {
   private constructor(
     faustNode: IFaustMonoWebAudioNode,
     nodeData: INodeData,
-    effectId: EffectID,
-    params: Array<[string, number]>,
+    effectId: FaustEffectID,
+    params: Array<[string, number]>
   ) {
     super();
     this.effectId = effectId;
@@ -115,7 +115,7 @@ export class FaustAudioEffect extends DSPNode<AudioNode> {
   static async create(
     context: BaseAudioContext,
     id: keyof typeof FAUST_EFFECTS,
-    initialParamValues?: Array<[address: string, value: number]>,
+    initialParamValues?: Array<[address: string, value: number]>
   ): Promise<FaustAudioEffect | null> {
     const mod: { default: ProcessorLoader } = await FAUST_EFFECTS[id]();
     const creator = mod.default;
