@@ -1,20 +1,21 @@
 import classNames from "classnames";
 import React, { useCallback, useRef, useState } from "react";
 import { createUseStyles } from "react-jss";
-import { history, useContainer, usePrimitive } from "structured-state";
+import { useContainer, usePrimitive } from "structured-state";
 import { TRACK_SEPARATOR_HEIGHT } from "../constants";
 import { useTrackMouseEvents } from "../input/useTrackMouseEvents";
-import { secs } from "../lib/AbstractClip";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioRenderer } from "../lib/AudioRenderer";
 import { AudioTrack } from "../lib/AudioTrack";
-import { ProjectTrack } from "../lib/ProjectTrack";
 import { AudioProject } from "../lib/project/AudioProject";
 import { useLinkedState } from "../lib/state/LinkedState";
+import { MidiClip } from "../midi/MidiClip";
+import { MidiTrack } from "../midi/MidiTrack";
 import { pressedState } from "../pressedState";
 import { nullthrows } from "../utils/nullthrows";
 import { ClipA } from "./ClipA";
 import { ClipInvalid } from "./ClipInvalid";
+import { ClipM } from "./ClipM";
 import { CursorSelection } from "./CursorSelection";
 import { EffectRack } from "./EffectRack";
 import { getTrackAcceptableDataTransferResources } from "./dragdrop/getTrackAcceptableDataTransferResources";
@@ -27,37 +28,15 @@ function clientXToTrackX(trackElem: HTMLDivElement | null, clientX: number) {
   return clientX + trackElem.scrollLeft - trackElem.getBoundingClientRect().x;
 }
 
-export const loadAudioClipIntoTrack = async (
-  project: AudioProject,
-  url: string,
-  track: AudioTrack,
-  startOffsetSec: number,
-  name: string
-): Promise<void> => {
-  try {
-    if (!project.canEditTrack(project, track)) {
-      return;
-    }
-    const clip = await AudioClip.fromURL(url, name);
-    history.record(() => {
-      // load clip
-      clip.timelineStartSec = secs(startOffsetSec);
-      ProjectTrack.addClip(project, track, clip);
-    });
-  } catch (e) {
-    console.trace(e);
-    return;
-  }
-};
-
-export function TrackA({
+/** Standard Track Renderer */
+export function TrackS({
   track,
   project,
   isDspExpanded,
   renderer,
   style,
 }: {
-  track: AudioTrack;
+  track: AudioTrack | MidiTrack;
   project: AudioProject;
   renderer: AudioRenderer;
   isDspExpanded: boolean;
@@ -73,6 +52,12 @@ export function TrackA({
   const [audioStorage] = useLinkedState(project.audioStorage);
   const trackRef = useRef<HTMLDivElement>(null);
   const [draggingOver, setDraggingOver] = useState<number | null>(null);
+
+  // TODO: REMOVE RERENDER
+  const [, setStateCounter] = useState(0);
+  const rerender = useCallback(function () {
+    setStateCounter((x) => x + 1);
+  }, []);
 
   const locked = lockedTracks.has(track);
 
@@ -93,8 +78,13 @@ export function TrackA({
         nullthrows(audioStorage)
       );
 
-      for (const resource of transferableResources) {
-        await handleDropOntoAudioTrack(track, resource, draggingOver ?? 0, project);
+      if (track instanceof MidiTrack) {
+      } else if (track instanceof AudioTrack) {
+        for (const resource of transferableResources) {
+          await handleDropOntoAudioTrack(track, resource, draggingOver ?? 0, project);
+        }
+      } else {
+        throw new Error("Unknown track kind");
       }
 
       setDraggingOver(null);
@@ -138,9 +128,21 @@ export function TrackA({
             return null;
           }
           const isSelected = selected !== null && selected.status === "clips" && selected.test.has(clip);
-          return (
-            <ClipA editable={!locked} key={i} clip={clip} isSelected={isSelected} track={track} project={project} />
-          );
+
+          if (track instanceof MidiTrack && clip instanceof MidiClip) {
+            return (
+              <ClipM key={i} clip={clip} rerender={rerender} isSelected={isSelected} track={track} project={project} />
+            );
+          }
+
+          if (track instanceof AudioTrack && clip instanceof AudioClip) {
+            return (
+              <ClipA editable={!locked} key={i} clip={clip} isSelected={isSelected} track={track} project={project} />
+            );
+          }
+
+          console.warn("Invalid clip in track???");
+          return null;
         })}
 
         {/* RENDER SELECTION */}
@@ -169,8 +171,10 @@ export function TrackA({
         {pressed &&
           pressed.status === "moving_clip" &&
           pressed.track === track &&
-          (pressed.clip instanceof AudioClip ? (
+          (track instanceof AudioTrack && pressed.clip instanceof AudioClip ? (
             <ClipA clip={pressed.clip} isSelected={true} project={project} track={null} />
+          ) : track instanceof MidiTrack && pressed.clip instanceof MidiClip ? (
+            <ClipM clip={pressed.clip} rerender={rerender} track={track} project={project} isSelected={true} />
           ) : (
             <ClipInvalid clip={pressed.clip} project={project} />
           ))}

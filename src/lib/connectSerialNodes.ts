@@ -12,11 +12,11 @@ export function connectSerialNodes(chain: (AudioNode | DSPNode<AudioNode>)[]): v
       continue;
     }
 
-    console.groupCollapsed(`Connected: ${currentNode.constructor.name} -> ${nextNode.constructor.name}`);
-    console.log(currentNode);
-    console.log("-->");
-    console.log(nextNode);
-    console.groupEnd();
+    // console.groupCollapsed(`Connected: ${currentNode.constructor.name} -> ${nextNode.constructor.name}`);
+    // console.log(currentNode);
+    // console.log("-->");
+    // console.log(nextNode);
+    // console.groupEnd();
 
     if (currentNode instanceof AudioNode && nextNode instanceof AudioNode) {
       currentNode.connect(nextNode);

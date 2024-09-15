@@ -1,14 +1,40 @@
+import { history } from "structured-state";
 import { AudioPackage } from "../../data/AudioPackage";
+import { secs } from "../../lib/AbstractClip";
 import { addAvailableWamToTrack } from "../../lib/addAvailableWamToTrack";
 import { WAMAvailablePlugin } from "../../lib/AppEnvironment";
+import { AudioClip } from "../../lib/AudioClip";
 import { AudioTrack } from "../../lib/AudioTrack";
 import { AudioProject } from "../../lib/project/AudioProject";
+import { ProjectTrack } from "../../lib/ProjectTrack";
 import { MidiInstrument } from "../../midi/MidiInstrument";
 import { MidiTrack } from "../../midi/MidiTrack";
 import { exhaustive } from "../../utils/exhaustive";
 import { ignorePromise } from "../../utils/ignorePromise";
 import { AudioLibraryItem } from "./getTrackAcceptableDataTransferResources";
-import { loadAudioClipIntoTrack } from "../TrackA";
+
+export const loadAudioClipIntoTrack = async (
+  project: AudioProject,
+  url: string,
+  track: AudioTrack,
+  startOffsetSec: number,
+  name: string
+): Promise<void> => {
+  try {
+    if (!project.canEditTrack(project, track)) {
+      return;
+    }
+    const clip = await AudioClip.fromURL(url, name);
+    history.record(() => {
+      // load clip
+      clip.timelineStartSec = secs(startOffsetSec);
+      ProjectTrack.addClip(project, track, clip);
+    });
+  } catch (e) {
+    console.trace(e);
+    return;
+  }
+};
 
 export async function handleDropOntoAudioTrack(
   track: AudioTrack,

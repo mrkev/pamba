@@ -4,25 +4,18 @@ import { createUseStyles } from "react-jss";
 import { useContainer } from "structured-state";
 import useResizeObserver from "use-resize-observer";
 import { useTimelineMouseEvents } from "../input/useProjectMouseEvents";
-import { AudioClip } from "../lib/AudioClip";
 import { AudioRenderer } from "../lib/AudioRenderer";
-import { AudioTrack } from "../lib/AudioTrack";
 import { AudioProject } from "../lib/project/AudioProject";
 import { AudioStorage } from "../lib/project/AudioStorage";
 import { useDerivedState } from "../lib/state/DerivedState";
 import { useLinkedState } from "../lib/state/LinkedState";
-import { MidiInstrument } from "../midi/MidiInstrument";
-import { MidiTrack } from "../midi/MidiTrack";
-import { exhaustive } from "../utils/exhaustive";
 import { nullthrows } from "../utils/nullthrows";
 import { Axis } from "./Axis";
 import { getTrackAcceptableDataTransferResources } from "./dragdrop/getTrackAcceptableDataTransferResources";
-import { TimelineCursor } from "./TimelineCursor";
-import { TrackA } from "./TrackA";
-import { TrackM } from "./TrackM";
-import { useEventListener } from "./useEventListener";
-import { addAvailableWamToTrack } from "../lib/addAvailableWamToTrack";
 import { handleDropIntoTimeline } from "./dragdrop/resourceDrop";
+import { TimelineCursor } from "./TimelineCursor";
+import { TrackS } from "./TrackS";
+import { useEventListener } from "./useEventListener";
 
 export async function getDroppedAudioURL(audioStorage: AudioStorage | null, dataTransfer: DataTransfer) {
   if (audioStorage == null) {
@@ -212,32 +205,16 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
         </div> */}
       {tracks.map((track, i) => {
         const isDspExpanded = dspExpandedTracks.has(track);
-        // TODO: Singel track renderer??
-        if (track instanceof AudioTrack) {
-          return (
-            <TrackA
-              key={i}
-              track={track}
-              project={project}
-              isDspExpanded={isDspExpanded}
-              renderer={renderer}
-              style={{ width: viewportStartPx + (projectDivRef.current?.clientWidth ?? 0) }}
-            />
-          );
-        }
-        if (track instanceof MidiTrack) {
-          return (
-            <TrackM
-              key={i}
-              track={track}
-              project={project}
-              renderer={renderer}
-              isDspExpanded={isDspExpanded}
-              style={{ width: viewportStartPx + (projectDivRef.current?.clientWidth ?? 0) }}
-            ></TrackM>
-          );
-        }
-        exhaustive(track);
+        return (
+          <TrackS
+            key={i}
+            track={track}
+            project={project}
+            isDspExpanded={isDspExpanded}
+            renderer={renderer}
+            style={{ width: viewportStartPx + (projectDivRef.current?.clientWidth ?? 0) }}
+          />
+        );
       })}
       {draggingOver && (
         <div style={{ padding: "16px", pointerEvents: "none", position: "relative" }}>
