@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { createUseStyles } from "react-jss";
 import { useContainer, usePrimitive } from "structured-state";
 import { EFFECT_HEIGHT } from "../constants";
@@ -7,6 +7,7 @@ import FaustEffectModule from "../dsp/ui/FaustEffectModule";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioRenderer } from "../lib/AudioRenderer";
 import { AudioTrack } from "../lib/AudioTrack";
+import { addAvailableWamToTrack } from "../lib/addAvailableWamToTrack";
 import { AudioProject } from "../lib/project/AudioProject";
 import { ProjectSelection } from "../lib/project/ProjectSelection";
 import { useLinkedState } from "../lib/state/LinkedState";
@@ -14,6 +15,10 @@ import { MidiTrack } from "../midi/MidiTrack";
 import { exhaustive } from "../utils/exhaustive";
 import { PambaWamNode } from "../wam/PambaWamNode";
 import { Effect } from "./Effect";
+import {
+  effectRackCanHandleTransfer,
+  getRackAcceptableDataTransferResources,
+} from "./dragdrop/getTrackAcceptableDataTransferResources";
 
 const useStyles = createUseStyles({
   effectRack: {
@@ -49,6 +54,7 @@ export const EffectRack = React.memo(function EffectRack({
   const [selected] = useLinkedState(project.selected);
   const rackRef = useRef<HTMLDivElement | null>(null);
   const [isAudioPlaying] = usePrimitive(renderer.isAudioPlaying);
+  const [draggingOver, setDraggingOver] = useState<false | "transferable" | "invalid">(false);
 
   useEffect(() => {
     const div = rackRef.current;
@@ -65,17 +71,46 @@ export const EffectRack = React.memo(function EffectRack({
     };
   }, []);
 
+  const onDrop = useCallback(
+    async (ev: React.DragEvent<HTMLDivElement>) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      const transferableResources = await getRackAcceptableDataTransferResources(ev.dataTransfer);
+      for (const plugin of transferableResources) {
+        await addAvailableWamToTrack(track, plugin);
+      }
+      setDraggingOver(false);
+    },
+    [track]
+  );
+
+  const onDragOver = useCallback(async function allowDrop(ev: React.DragEvent<HTMLDivElement>) {
+    // For some reason, need to .preventDefault() so onDrop gets called
+    ev.preventDefault();
+    if (!effectRackCanHandleTransfer(ev.dataTransfer)) {
+      ev.dataTransfer.dropEffect = "none";
+      setDraggingOver("invalid");
+    } else {
+      setDraggingOver("transferable");
+    }
+  }, []);
+
   return (
     <>
       <div
         style={{
           height: EFFECT_HEIGHT,
+          background:
+            draggingOver === false ? undefined : draggingOver === "invalid" ? undefined : "rgba(23, 43, 23, 0.7)",
         }}
         className={styles.effectRack}
         onMouseDownCapture={(e) => {
           e.stopPropagation();
         }}
         ref={rackRef}
+        onDrop={onDrop}
+        onDragOver={onDragOver}
+        onDragLeave={() => setDraggingOver(false)}
       >
         {"↳"}
         {track instanceof MidiTrack && <InstrumentEffect track={track} project={project} renderer={renderer} />}

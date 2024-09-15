@@ -1,8 +1,9 @@
 export const changelog = `
 next
 - Cmd+L while selecting clip(s) activates loop on their duration
-- drag-drop effects from library into tracks
+- drag-drop effects from library onto tracks
 - drag-drop effects and instruments onto project to create new tracks
+- drag-drop effects and instruments onto the effect rack
 - improvements to midi track rendering and behaviour
 
 v0.1.6

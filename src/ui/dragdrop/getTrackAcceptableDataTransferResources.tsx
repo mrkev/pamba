@@ -32,6 +32,17 @@ export function trackCanHandleTransfer(track: AudioTrack | MidiTrack, dataTransf
   }
 }
 
+export function effectRackCanHandleTransfer(dataTransfer: DataTransfer) {
+  return hasResouceKind(dataTransfer, "application/pamba.wam");
+}
+
+export async function getRackAcceptableDataTransferResources(
+  dataTransfer: DataTransfer
+): Promise<Array<WAMAvailablePlugin>> {
+  const resources = await getTrackAcceptableDataTransferResources(dataTransfer, null as any); // TODO: abstract to not send an invalid null here
+  return resources.filter((resource) => resource.kind === "WAMAvailablePlugin");
+}
+
 export type AudioLibraryItem = Extract<LibraryItem, { kind: "audio" }>;
 export async function getTrackAcceptableDataTransferResources(
   dataTransfer: DataTransfer,
