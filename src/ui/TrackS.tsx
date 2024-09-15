@@ -68,12 +68,6 @@ export function TrackS({
   const trackRef = useRef<HTMLDivElement>(null);
   const [draggingOver, setDraggingOver] = useState<number | null>(null);
 
-  // TODO: REMOVE RERENDER
-  const [, setStateCounter] = useState(0);
-  const rerender = useCallback(function () {
-    setStateCounter((x) => x + 1);
-  }, []);
-
   const locked = lockedTracks.has(track);
 
   // const [, setStateCounter] = useState(0);
@@ -155,9 +149,7 @@ export function TrackS({
           const isSelected = selected !== null && selected.status === "clips" && selected.test.has(clip);
 
           if (track instanceof MidiTrack && clip instanceof MidiClip) {
-            return (
-              <ClipM key={i} clip={clip} rerender={rerender} isSelected={isSelected} track={track} project={project} />
-            );
+            return <ClipM key={i} clip={clip} isSelected={isSelected} track={track} project={project} />;
           }
 
           if (track instanceof AudioTrack && clip instanceof AudioClip) {
@@ -199,7 +191,7 @@ export function TrackS({
           (track instanceof AudioTrack && pressed.clip instanceof AudioClip ? (
             <ClipA clip={pressed.clip} isSelected={true} project={project} track={null} />
           ) : track instanceof MidiTrack && pressed.clip instanceof MidiClip ? (
-            <ClipM clip={pressed.clip} rerender={rerender} track={track} project={project} isSelected={true} />
+            <ClipM clip={pressed.clip} isSelected={true} track={null} project={project} />
           ) : (
             <ClipInvalid clip={pressed.clip} project={project} />
           ))}

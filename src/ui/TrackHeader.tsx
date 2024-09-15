@@ -300,8 +300,8 @@ export const TrackHeader = React.memo(function TrackHeader({
         style={{
           background: "rgba(0,0,0,0)",
           height: TRACK_SEPARATOR_HEIGHT * 2,
-          position: "absolute",
           bottom: -TRACK_SEPARATOR_HEIGHT * 1.5,
+          position: "absolute",
           left: 0,
           width: "100%",
           cursor: "ns-resize",

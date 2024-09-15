@@ -87,6 +87,7 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
     projectDivRef,
     useCallback(
       (e: WheelEvent) => {
+        console.log("here");
         const projectDiv = nullthrows(projectDivRef.current);
         const mouseX = e.clientX - projectDiv.getBoundingClientRect().left;
 

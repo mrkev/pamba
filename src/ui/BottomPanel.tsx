@@ -38,7 +38,7 @@ export function BottomPanel({
     testref,
     useCallback((kind) => {
       console.log(kind);
-    }, []),
+    }, [])
   );
 
   switch (primarySelection?.kind) {
@@ -114,7 +114,6 @@ function getValidEditorSelection(selected: PrimarySelectionState | null): Bottom
     case "loop_marker":
     case "time":
     case "track_time":
-    case "tracks":
       return null;
     default:
       exhaustive(selected);

@@ -78,7 +78,7 @@ export function PlaybeatTime({ project, player }: { project: AudioProject; playe
       ctx.clearRect(0, 0, playbeatCanvasRef.current.width, 100);
       ctx.fillText(String(`${bar}.${beat}.${high}`), 6, 26);
     },
-    [project.tempo, project.timeSignature],
+    [project.tempo, project.timeSignature]
   );
 
   return (
@@ -99,6 +99,38 @@ export function PlaybeatTime({ project, player }: { project: AudioProject; playe
   );
 }
 
+function ScaleFactorSlider({ project }: { project: AudioProject }) {
+  const [scaleFactor] = useLinkedState(project.scaleFactor);
+
+  return (
+    <input
+      type="range"
+      min={Math.log(0.64)}
+      max={Math.log(1000)}
+      step={0.01}
+      value={Math.log(scaleFactor)}
+      title="Zoom level"
+      onChange={(e) => {
+        const cursorPosSecs = project.cursorPos.get();
+        const cursorPosPx = project.secsToPx.get()(cursorPosSecs) - project.viewportStartPx.get();
+        const projectDivWidth = project.viewport.projectDivWidth.get();
+        const expectedNewScale = Math.exp(parseFloat(e.target.value));
+
+        if (cursorPosPx < projectDivWidth && cursorPosPx > 0) {
+          // if cursor is within view, resize around cursor
+          project.viewport.setScale(expectedNewScale, cursorPosPx);
+        } else {
+          // if cursor is outside the view, resize from the center
+          project.viewport.setScale(expectedNewScale, Math.floor(projectDivWidth / 2));
+        }
+
+        e.preventDefault();
+        e.stopPropagation();
+      }}
+    />
+  );
+}
+
 export function ToolHeader({
   project,
   player,
@@ -111,7 +143,6 @@ export function ToolHeader({
   recorder: AudioRecorder;
 }) {
   const classes = useStyles();
-  const [scaleFactor] = useLinkedState(project.scaleFactor);
   const [tempo] = useLinkedState(project.tempo);
   const [snapToGrid] = useLinkedState(project.snapToGrid);
   const [loopPlayback] = useLinkedState(project.loopOnPlayback);
@@ -238,38 +269,7 @@ export function ToolHeader({
           </span>
           <div style={{ flexGrow: 1 }}></div>
 
-          <input
-            type="range"
-            min={Math.log(0.64)}
-            max={Math.log(1000)}
-            step={0.01}
-            value={Math.log(scaleFactor)}
-            title="Zoom level"
-            onChange={(e) => {
-              const projectDivWidth = project.viewport.projectDivWidth.get();
-              if (projectDivWidth === 0) {
-                return;
-              }
-              const newFactor = Math.exp(parseFloat(e.target.value));
-              project.viewport.setScale(newFactor);
-
-              // const renderedTime = project.viewport.pxToSecs(projectDivWidth);
-              // const newRenderedWidth = project.viewport.secsToPx(renderedTime, newFactor);
-
-              // console.log("new", newRenderedWidth, "old", projectDivWidth);
-              // const pxDelta = newRenderedWidth - projectDivWidth;
-              // console.log("PXDELTA", pxDelta);
-
-              // // console.log(currentFactor, newFactor, currentFactor - newFactor);
-              // // const totalPixels = projectDiv.clientWidth * (currentFactor - newFactor);
-              // // console.log(projectDiv.clientWidth, "totalPixels", totalPixels);
-              // // const viewportEndPx = viewportStartPx + projectDiv.clientWidth;
-              // // const middlePx = (viewportStartPx + viewportEndPx) / 2;
-
-              // project.scaleFactor.set(newFactor);
-              // project.viewportStartPx.setDyn((prev) => prev + pxDelta / 2);
-            }}
-          />
+          <ScaleFactorSlider project={project} />
         </div>
       </div>
       <canvas

@@ -20,32 +20,34 @@ import { TimelineT, time } from "./project/TimelineT";
 // +--timelineEndSec-------------------------------+
 // trimEndSec:            +------------------------+
 // trimStartSec:          +---+
+//
+// These properties represent media that has a certain length (in frames), but has
+// been trimmed to be of another length.
 export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implements AbstractClip<Seconds> {
-  // AudioClip
-  readonly name: SPrimitive<string>;
+  // constants
+  readonly unit = "sec";
   readonly buffer: SharedAudioBuffer | null;
   readonly numberOfChannels: number;
   readonly bufferURL: string;
   readonly sampleRate: number; // how many frames per second
-  public status: "ready" | "missing";
-
-  readonly detailedViewport = new AudioViewport(80, 0);
-  readonly unit = "sec";
-
-  // These properties represent media that has a certain length (in frames), but has
-  // been trimmed to be of another length.
   readonly bufferLength: Seconds; // seconds, whole buffer
-  // public clipLengthSec: Seconds; // TODO: incorporate
-  public bufferOffset: Seconds;
 
-  // public timelineStartSec: Seconds; // on the timeline, the x position
-  readonly timelineStart: TimelineT;
-  readonly timelineLength: TimelineT;
-
-  gainAutomation: Array<{ time: number; value: number }> = [{ time: 0, value: 1 }];
+  // status, from construction
+  readonly status: "ready" | "missing";
+  readonly detailedViewport = new AudioViewport(80, 0);
   // Let's not pre-compute this since we don't know the acutal dimensions
   // but lets memoize the last size used for perf. shouldn't change.
-  private memodWaveformDataURL: Map<string, { width: number; height: number; data: string }> = new Map();
+  private readonly memodWaveformDataURL: Map<string, { width: number; height: number; data: string }> = new Map();
+
+  // AudioClip
+  readonly name: SPrimitive<string>;
+  readonly timelineStart: TimelineT; // on the timeline, the x position
+  readonly timelineLength: TimelineT; // length of the clip on the timeline
+  public bufferOffset: Seconds; // todo: make linked state
+  // public clipLengthSec: Seconds; // TODO: incorporate?
+
+  // unused
+  public gainAutomation: Array<{ time: number; value: number }> = [{ time: 0, value: 1 }];
 
   override serialize(): SAudioClip {
     const { name, bufferURL } = this;
@@ -95,6 +97,7 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
     clipLengthSec: number
   ) {
     super();
+    // TODO: make missing clips their own class, without buffer info props. They serialize to SAudioClip too
     if (buffer === "missing") {
       this.status = "missing";
       this.bufferLength = secs(10_000); // TODO: make clip unbounded by length? serialize and star buffer length when first creating a clip?

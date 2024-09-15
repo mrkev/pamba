@@ -311,7 +311,6 @@ export function useTimelineMouseEvents(
             break;
           }
           case "dragging_library_item": {
-            console.log("TODO");
             break;
           }
 
@@ -443,6 +442,7 @@ export function useTimelineMouseEvents(
           }
 
           case "selecting_track_time":
+            console.log("selecting_track_time");
             const deltaXSecs = project.viewport.pxToSecs(e.clientX - pressed.clientX);
             const newWidth = snapped(project, e, deltaXSecs);
             project.selectionWidth.set(newWidth);

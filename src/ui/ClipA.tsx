@@ -109,7 +109,7 @@ export function ClipA({
 
       project.selectionWidth.set(null);
     },
-    [clip, editable, project.selected, project.selectionWidth, tool, track],
+    [clip, editable, project.selected, project.selectionWidth, tool, track]
   );
 
   useEventListener(
@@ -117,7 +117,7 @@ export function ClipA({
     headerRef,
     useCallback(() => {
       appEnvironment.activeBottomPanel.set("editor");
-    }, []),
+    }, [])
   );
 
   function onClipClick(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
@@ -164,7 +164,7 @@ export function ClipA({
   const backgroundImageData = clip.getWaveformDataURL(
     // totalBufferWidth,
     1000,
-    CLIP_HEIGHT,
+    CLIP_HEIGHT
   );
 
   const width = project.viewport.secsToPx(tLen.secs(project));

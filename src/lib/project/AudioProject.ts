@@ -2,7 +2,7 @@ import type { ScaleLinear } from "d3-scale";
 import { scaleLinear } from "d3-scale";
 import { SArray, SSet } from "structured-state";
 import { ulid } from "ulid";
-import { DEFAULT_TEMPO, SOUND_FONT_URL, SYNTH_101_URL, liveAudioContext } from "../../constants";
+import { DEFAULT_TEMPO, SOUND_FONT_URL, liveAudioContext } from "../../constants";
 import { getFirebaseStorage } from "../../firebase/getFirebase";
 import { MidiClip } from "../../midi/MidiClip";
 import { MidiInstrument } from "../../midi/MidiInstrument";
@@ -27,13 +27,13 @@ import { TimelineT, time } from "./TimelineT";
  * TODO:
  * - Make timeline view track separator taller, like the one on the TrackHeader
  *   so it's easier to grab.
- * - Render with panning, gain, effects.
+ * [x] Render with panning, gain, effects.
  * - Level Meters in DSP
  * [x] Drop to upload audio file
  * - DSP Bypass button get working
- * - DSP Search Box get working
+ * [x] DSP Search Box get working
  * [x] Overscroll towards the end of the project means we got to scroll extra to come back
- * - resizing with slider should resize around the cursor, not 0:00
+ * [x] resizing with slider should resize around the cursor, not 0:00
  * [x] Load previous project if it exists, instead of creating a new one
  */
 

@@ -1,4 +1,7 @@
 export const changelog = `
+next
+- improve zoom slider
+
 v0.1.7
 - Cmd+L while selecting clip(s) activates loop on their duration
 - drag-drop effects from library onto tracks

@@ -2,13 +2,13 @@ import React, { useCallback } from "react";
 import { useContainer } from "structured-state";
 import { modifierState } from "../ModifierState";
 import type { AudioProject } from "../lib/project/AudioProject";
+import { PrimarySelectionState } from "../lib/project/SelectionState";
 import { useSubscribeToSubbableMutationHashable } from "../lib/state/LinkedMap";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { MidiClip, pulsesToSec } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
 import { pressedState } from "../pressedState";
 import { StandardClip } from "./StandardClip";
-import { PrimarySelectionState } from "../lib/project/SelectionState";
 
 export function ClipM({
   clip,
@@ -17,7 +17,6 @@ export function ClipM({
   track,
 }: {
   clip: MidiClip;
-  rerender: () => void; // todo: unused
   isSelected: boolean;
   project: AudioProject;
   track: MidiTrack | null; // null if clip is being rendered for move
@@ -52,7 +51,7 @@ export function ClipM({
       //   clientY: e.clientY,
       // });
     },
-    [tool],
+    [tool]
   );
 
   const onMouseDownToMove = useCallback(
@@ -93,7 +92,7 @@ export function ClipM({
       project.selectionWidth.set(null);
       e.stopPropagation();
     },
-    [bpm, clip, project.selected, project.selectionWidth, tool, track],
+    [bpm, clip, project.selected, project.selectionWidth, tool, track]
   );
 
   const onClipClick = useCallback((e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
