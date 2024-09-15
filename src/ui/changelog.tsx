@@ -1,10 +1,12 @@
 export const changelog = `
-next
+v0.1.7
 - Cmd+L while selecting clip(s) activates loop on their duration
 - drag-drop effects from library onto tracks
 - drag-drop effects and instruments onto project to create new tracks
 - drag-drop effects and instruments onto the effect rack
 - improvements to midi track rendering and behaviour
+- remove effect selector from tracks' effect rack header
+- faust effects now live in the library
 
 v0.1.6
 - resize midi clips via the clip editor
