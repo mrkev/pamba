@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { useContainer, usePrimitive } from "structured-state";
+import { documentCommands } from "../../input/documentCommands";
 import { AnalizedPlayer } from "../../lib/AnalizedPlayer";
 import { AudioRecorder } from "../../lib/AudioRecorder";
 import { AudioRenderer } from "../../lib/AudioRenderer";
@@ -7,7 +8,6 @@ import { AudioProject } from "../../lib/project/AudioProject";
 import { useLinkedState } from "../../lib/state/LinkedState";
 import { exhaustive } from "../../utils/exhaustive";
 import { utility } from "../utility";
-import { documentCommands } from "../../input/documentCommands";
 
 export function TransportControl({
   project,

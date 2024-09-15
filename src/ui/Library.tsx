@@ -75,7 +75,7 @@ export function Library({
         }
 
         const newTrack = AudioTrack.fromClip(project, clip);
-        AudioProject.addAudioTrack(project, player, newTrack);
+        AudioProject.addAudioTrack(project, "top", newTrack, player);
         console.log("loaded");
       } catch (e) {
         console.trace(e);

@@ -173,10 +173,10 @@ export class AudioProject {
   // TODO: maybe let's not try to add this track to playback
   static addAudioTrack(
     project: AudioProject,
-    player?: AnalizedPlayer,
+    position: "top" | "bottom" = "top",
     track?: AudioTrack,
-    position: "top" | "bottom" = "top"
-  ) {
+    player?: AnalizedPlayer
+  ): AudioTrack {
     const newTrack = track ?? AudioTrack.of();
     if (position === "top") {
       project.allTracks.unshift(newTrack);
@@ -190,11 +190,15 @@ export class AudioProject {
     return newTrack;
   }
 
-  static async addMidiTrack(project: AudioProject, track?: MidiTrack) {
+  static async addMidiTrack(project: AudioProject, position: "top" | "bottom" = "top", track?: MidiTrack) {
     const wamHostGroupId = nullthrows(appEnvironment.wamHostGroup.get())[0];
     const instrument = await MidiInstrument.createFromUrl(SOUND_FONT_URL, wamHostGroupId, liveAudioContext());
     const newTrack = track ?? (await MidiTrack.createWithInstrument(instrument, "midi track"));
-    project.allTracks.unshift(newTrack);
+    if (position === "top") {
+      project.allTracks.unshift(newTrack);
+    } else {
+      project.allTracks.push(newTrack);
+    }
     return newTrack;
   }
 

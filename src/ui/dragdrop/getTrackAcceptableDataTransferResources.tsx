@@ -1,10 +1,10 @@
-import { AudioPackage } from "../data/AudioPackage";
-import { localAudioPackage } from "../data/urlProtocol";
-import { WAMAvailablePlugin, appEnvironment } from "../lib/AppEnvironment";
-import { AudioStorage } from "../lib/project/AudioStorage";
-import { LibraryItem } from "./Library";
+import { AudioPackage } from "../../data/AudioPackage";
+import { localAudioPackage } from "../../data/urlProtocol";
+import { WAMAvailablePlugin, appEnvironment } from "../../lib/AppEnvironment";
+import { AudioStorage } from "../../lib/project/AudioStorage";
+import { LibraryItem } from "../Library";
 
-type AudioLibraryItem = Extract<LibraryItem, { kind: "audio" }>;
+export type AudioLibraryItem = Extract<LibraryItem, { kind: "audio" }>;
 export async function getTrackAcceptableDataTransferResources(
   dataTransfer: DataTransfer,
   audioStorage: AudioStorage

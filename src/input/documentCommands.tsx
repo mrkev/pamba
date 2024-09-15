@@ -41,7 +41,7 @@ export const documentCommands = CommandBlock.create(["Project", "Edit", "Tools",
 
     createAudioTrack: command(["KeyT", "ctrl"], (e, project) => {
       // TODO: history
-      AudioProject.addAudioTrack(project, appEnvironment.renderer.analizedPlayer);
+      AudioProject.addAudioTrack(project, "top", undefined, appEnvironment.renderer.analizedPlayer);
       e?.preventDefault();
     })
       .helptext("New Audio Track")

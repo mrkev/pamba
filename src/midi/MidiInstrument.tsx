@@ -1,10 +1,12 @@
 import type { WamNode, WamParameterDataMap, WebAudioModule } from "@webaudiomodules/api";
 import { DSPNode } from "../dsp/DSPNode";
-import { appEnvironment } from "../lib/AppEnvironment";
+import { appEnvironment, WAMAvailablePlugin } from "../lib/AppEnvironment";
 import { LinkedState } from "../lib/state/LinkedState";
 import { nullthrows, assert } from "../utils/nullthrows";
 import { Position } from "../wam/WindowPanel";
 import { SMidiInstrument } from "../data/serializable";
+import { LibraryItem } from "../ui/Library";
+import { liveAudioContext } from "../constants";
 
 export class MidiInstrument extends DSPNode<null> {
   override effectId: string;
@@ -54,6 +56,12 @@ export class MidiInstrument extends DSPNode<null> {
 
     const module = await plugin.import.createInstance(wamHostGroupId, audioContext);
     return new MidiInstrument(module, pluginUrl);
+  }
+
+  static async createFromPlugin(insturment: WAMAvailablePlugin & { pluginKind: "m-a" }) {
+    const wamHostGroupId = nullthrows(appEnvironment.wamHostGroup.get())[0];
+    const instrument = await MidiInstrument.createFromUrl(insturment.url, wamHostGroupId, liveAudioContext());
+    return instrument;
   }
 
   cloneToOfflineContext<MidiInstrument>(

@@ -12,15 +12,13 @@ import { ProjectTrack } from "../lib/ProjectTrack";
 import { AudioProject } from "../lib/project/AudioProject";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { pressedState } from "../pressedState";
-import { exhaustive } from "../utils/exhaustive";
-import { ignorePromise } from "../utils/ignorePromise";
 import { nullthrows } from "../utils/nullthrows";
 import { ClipA } from "./ClipA";
 import { ClipInvalid } from "./ClipInvalid";
 import { CursorSelection } from "./CursorSelection";
 import { EffectRack } from "./EffectRack";
-import { getTrackAcceptableDataTransferResources } from "./getTrackAcceptableDataTransferResources";
-import { addAvailableWamToTrack } from "../lib/addAvailableWamToTrack";
+import { getTrackAcceptableDataTransferResources } from "./dragdrop/getTrackAcceptableDataTransferResources";
+import { handleDropOntoAudioTrack } from "./dragdrop/resourceDrop";
 
 function clientXToTrackX(trackElem: HTMLDivElement | null, clientX: number) {
   if (trackElem == null) {
@@ -29,7 +27,7 @@ function clientXToTrackX(trackElem: HTMLDivElement | null, clientX: number) {
   return clientX + trackElem.scrollLeft - trackElem.getBoundingClientRect().x;
 }
 
-const loadAudioClipIntoTrack = async (
+export const loadAudioClipIntoTrack = async (
   project: AudioProject,
   url: string,
   track: AudioTrack,
@@ -96,21 +94,9 @@ export function TrackA({
       );
 
       for (const resource of transferableResources) {
-        switch (resource.kind) {
-          case "WAMAvailablePlugin":
-            await addAvailableWamToTrack(track, resource);
-            break;
-          case "AudioPackage.local":
-            console.warn("NOT IMEPLEMENTED");
-            break;
-          case "audio":
-            const startOffsetSec = project.viewport.pxToSecs(draggingOver ?? 0);
-            ignorePromise(loadAudioClipIntoTrack(project, resource.url, track, startOffsetSec, resource.name));
-            break;
-          default:
-            exhaustive(resource);
-        }
+        await handleDropOntoAudioTrack(track, resource, draggingOver ?? 0, project);
       }
+
       setDraggingOver(null);
     },
     [audioStorage, draggingOver, project, track]

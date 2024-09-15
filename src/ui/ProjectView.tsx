@@ -8,17 +8,21 @@ import { AudioClip } from "../lib/AudioClip";
 import { AudioRenderer } from "../lib/AudioRenderer";
 import { AudioTrack } from "../lib/AudioTrack";
 import { AudioProject } from "../lib/project/AudioProject";
+import { AudioStorage } from "../lib/project/AudioStorage";
 import { useDerivedState } from "../lib/state/DerivedState";
 import { useLinkedState } from "../lib/state/LinkedState";
+import { MidiInstrument } from "../midi/MidiInstrument";
 import { MidiTrack } from "../midi/MidiTrack";
 import { exhaustive } from "../utils/exhaustive";
 import { nullthrows } from "../utils/nullthrows";
 import { Axis } from "./Axis";
+import { getTrackAcceptableDataTransferResources } from "./dragdrop/getTrackAcceptableDataTransferResources";
 import { TimelineCursor } from "./TimelineCursor";
 import { TrackA } from "./TrackA";
 import { TrackM } from "./TrackM";
 import { useEventListener } from "./useEventListener";
-import { AudioStorage } from "../lib/project/AudioStorage";
+import { addAvailableWamToTrack } from "../lib/addAvailableWamToTrack";
+import { handleDropIntoTimeline } from "./dragdrop/resourceDrop";
 
 export async function getDroppedAudioURL(audioStorage: AudioStorage | null, dataTransfer: DataTransfer) {
   if (audioStorage == null) {
@@ -148,15 +152,23 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
   const onDrop = useCallback(
     async (ev: React.DragEvent<HTMLDivElement>) => {
       ev.preventDefault();
-      const url = await getDroppedAudioURL(audioStorage, ev.dataTransfer);
 
-      if (url && url.length > 0) {
-        console.log("dropped", url, "to timeline");
-        // history.record(() => {});
-        const clip = await AudioClip.fromURL(url);
-        const track = AudioTrack.fromClip(project, clip);
-        AudioProject.addAudioTrack(project, undefined, track, "bottom");
-      }
+      const resources = await getTrackAcceptableDataTransferResources(
+        ev.dataTransfer,
+        nullthrows(audioStorage, "error: audio storage not available")
+      );
+
+      await handleDropIntoTimeline(resources, project);
+
+      // const url = await getDroppedAudioURL(audioStorage, ev.dataTransfer);
+
+      // if (url && url.length > 0) {
+      //   console.log("dropped", url, "to timeline");
+      //   // history.record(() => {});
+      //   const clip = await AudioClip.fromURL(url);
+      //   const track = AudioTrack.fromClip(project, clip);
+      //   AudioProject.addAudioTrack(project, undefined, track, "bottom");
+      // }
       setDraggingOver(false);
     },
     [audioStorage, project]
