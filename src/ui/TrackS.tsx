@@ -12,13 +12,18 @@ import { useLinkedState } from "../lib/state/LinkedState";
 import { MidiClip } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
 import { pressedState } from "../pressedState";
+import { exhaustive } from "../utils/exhaustive";
 import { nullthrows } from "../utils/nullthrows";
 import { ClipA } from "./ClipA";
 import { ClipInvalid } from "./ClipInvalid";
 import { ClipM } from "./ClipM";
 import { CursorSelection } from "./CursorSelection";
 import { EffectRack } from "./EffectRack";
-import { getTrackAcceptableDataTransferResources } from "./dragdrop/getTrackAcceptableDataTransferResources";
+import { LibraryItem } from "./Library";
+import {
+  getTrackAcceptableDataTransferResources,
+  trackCanHandleTransfer,
+} from "./dragdrop/getTrackAcceptableDataTransferResources";
 import { handleDropOntoAudioTrack } from "./dragdrop/resourceDrop";
 
 function clientXToTrackX(trackElem: HTMLDivElement | null, clientX: number) {
@@ -26,6 +31,16 @@ function clientXToTrackX(trackElem: HTMLDivElement | null, clientX: number) {
     return 0;
   }
   return clientX + trackElem.scrollLeft - trackElem.getBoundingClientRect().x;
+}
+
+function trackCanHandleLibraryItem(track: AudioTrack | MidiTrack, libraryItem: LibraryItem) {
+  if (track instanceof MidiTrack) {
+    return libraryItem.kind === "wam";
+  } else if (track instanceof AudioTrack) {
+    return libraryItem.kind === "audio" || libraryItem.kind === "wam";
+  } else {
+    exhaustive(track);
+  }
 }
 
 /** Standard Track Renderer */
@@ -92,12 +107,10 @@ export function TrackS({
     [audioStorage, draggingOver, project, track]
   );
 
-  const dragType =
-    pressed == null || pressed.status !== "dragging_library_item" || draggingOver != null
-      ? null
-      : pressed.libraryItem.kind === "audio"
-      ? "audio"
-      : "effect";
+  const darkenOnDrag =
+    pressed != null &&
+    pressed.status === "dragging_library_item" &&
+    (draggingOver == null || !trackCanHandleLibraryItem(track, pressed.libraryItem));
 
   return (
     <>
@@ -109,6 +122,11 @@ export function TrackS({
         onDragOver={function allowDrop(ev) {
           const draggedOffsetPx = clientXToTrackX(trackRef.current, ev.clientX);
           setDraggingOver(draggedOffsetPx);
+
+          if (!trackCanHandleTransfer(track, ev.dataTransfer)) {
+            ev.dataTransfer.dropEffect = "none";
+          }
+
           ev.preventDefault();
         }}
         onDragLeave={() => {
@@ -118,7 +136,7 @@ export function TrackS({
           position: "relative",
           height: height - TRACK_SEPARATOR_HEIGHT,
           background: activeTrack === track ? "rgba(64,64,64,0.1)" : "none",
-          filter: dragType == "effect" ? "brightness(0.7)" : undefined,
+          filter: darkenOnDrag ? "brightness(0.7)" : undefined,
           ...style,
         }}
       >

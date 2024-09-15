@@ -1,8 +1,36 @@
 import { AudioPackage } from "../../data/AudioPackage";
 import { localAudioPackage } from "../../data/urlProtocol";
 import { WAMAvailablePlugin, appEnvironment } from "../../lib/AppEnvironment";
+import { AudioTrack } from "../../lib/AudioTrack";
 import { AudioStorage } from "../../lib/project/AudioStorage";
+import { MidiTrack } from "../../midi/MidiTrack";
+import { exhaustive } from "../../utils/exhaustive";
 import { LibraryItem } from "../Library";
+
+type PambaDataTransferResourceKind =
+  | "application/pamba.audio"
+  | "application/pamba.rawaudio"
+  | "application/pamba.wam"
+  | "application/pamba.project";
+
+export function hasResouceKind(dataTransfer: DataTransfer, ...kinds: PambaDataTransferResourceKind[]) {
+  for (const kind of kinds) {
+    if (dataTransfer.types.indexOf(kind) > -1) {
+      return true;
+    }
+  }
+  return false;
+}
+
+export function trackCanHandleTransfer(track: AudioTrack | MidiTrack, dataTransfer: DataTransfer) {
+  if (track instanceof MidiTrack) {
+    return hasResouceKind(dataTransfer, "application/pamba.wam");
+  } else if (track instanceof AudioTrack) {
+    return hasResouceKind(dataTransfer, "application/pamba.audio", "application/pamba.rawaudio");
+  } else {
+    exhaustive(track);
+  }
+}
 
 export type AudioLibraryItem = Extract<LibraryItem, { kind: "audio" }>;
 export async function getTrackAcceptableDataTransferResources(
