@@ -60,7 +60,7 @@ export class LinkedArray<S> implements ArrayWithoutIndexer<S>, Subbable<Readonly
     return this._array.at(index);
   }
 
-  [Symbol.iterator](): IterableIterator<S> {
+  [Symbol.iterator](): ArrayIterator<S> {
     return this._array[Symbol.iterator]();
   }
 
@@ -238,13 +238,13 @@ export class LinkedArray<S> implements ArrayWithoutIndexer<S>, Subbable<Readonly
     throw new Error("Method not implemented.");
   }
 
-  entries(): IterableIterator<[number, S]> {
+  entries(): ArrayIterator<[number, S]> {
     throw new Error("Method not implemented.");
   }
-  keys(): IterableIterator<number> {
+  keys(): ArrayIterator<number> {
     throw new Error("Method not implemented.");
   }
-  values(): IterableIterator<S> {
+  values(): ArrayIterator<S> {
     throw new Error("Method not implemented.");
   }
   includes(searchElement: S, fromIndex?: number): boolean {
@@ -252,7 +252,7 @@ export class LinkedArray<S> implements ArrayWithoutIndexer<S>, Subbable<Readonly
   }
   flatMap<U, This = undefined>(
     callback: (this: This, value: S, index: number, array: S[]) => U | readonly U[],
-    thisArg?: This,
+    thisArg?: This
   ): U[] {
     throw new Error("Method not implemented.");
   }
@@ -296,7 +296,7 @@ export function useLinkedArray<S>(linkedSet: LinkedArray<S>): [LinkedArray<S>, S
         linkedSet._setRaw(newVal);
       }
     },
-    [linkedSet],
+    [linkedSet]
   );
 
   return [linkedSet, setter];

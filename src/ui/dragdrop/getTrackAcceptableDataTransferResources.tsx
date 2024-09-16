@@ -40,15 +40,15 @@ export function trackCanHandleTransfer(track: AudioTrack | MidiTrack, dataTransf
   }
 }
 
-export function effectRackCanHandleTransfer(dataTransfer: DataTransfer) {
-  return hasResouceKind(dataTransfer, "application/pamba.wam", "application/pamba.fausteffect");
-}
-
 export async function getRackAcceptableDataTransferResources(
   dataTransfer: DataTransfer
 ): Promise<Array<WAMAvailablePlugin | FaustEffectLibraryItem>> {
   const resources = await getTrackAcceptableDataTransferResources(dataTransfer, null as any); // TODO: abstract to not send an invalid null here
   return resources.filter((resource) => resource.kind === "WAMAvailablePlugin" || resource.kind === "fausteffect");
+}
+
+export function effectRackCanHandleTransfer(dataTransfer: DataTransfer) {
+  return hasResouceKind(dataTransfer, "application/pamba.wam", "application/pamba.fausteffect");
 }
 
 export type AudioLibraryItem = Extract<LibraryItem, { kind: "audio" }>;

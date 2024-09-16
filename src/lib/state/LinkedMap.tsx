@@ -90,22 +90,22 @@ export class LinkedMap<K, V> implements Map<K, V>, Subbable<ReadonlyMap<K, V>>, 
   }
 
   // Map<K, V> interface
-  entries(): IterableIterator<[K, V]> {
+  entries(): MapIterator<[K, V]> {
     return this._map.entries();
   }
 
   // Map<K, V> interface
-  keys(): IterableIterator<K> {
+  keys(): MapIterator<K> {
     return this._map.keys();
   }
 
   // Map<K, V> interface
-  values(): IterableIterator<V> {
+  values(): MapIterator<V> {
     return this._map.values();
   }
 
   // Map<K, V> interface
-  [Symbol.iterator](): IterableIterator<[K, V]> {
+  [Symbol.iterator](): MapIterator<[K, V]> {
     return this._map[Symbol.iterator]();
   }
 
@@ -132,7 +132,7 @@ export function useLinkedMap<K, V>(linkedMap: LinkedMap<K, V>): [LinkedMap<K, V>
         linkedMap._setRaw(newVal);
       }
     },
-    [linkedMap],
+    [linkedMap]
   );
 
   return [linkedMap, setter];
@@ -140,7 +140,7 @@ export function useLinkedMap<K, V>(linkedMap: LinkedMap<K, V>): [LinkedMap<K, V>
 
 export function useSubscribeToSubbableMutationHashable<T extends MutationHashable & Subbable<any>>(
   obj: T,
-  cb?: () => void,
+  cb?: () => void
 ): T {
   const [, setHash] = useState(() => MutationHashable.getMutationHash(obj));
 

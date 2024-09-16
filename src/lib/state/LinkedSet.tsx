@@ -98,22 +98,22 @@ export class LinkedSet<S> implements Set<S>, Subbable<ReadonlySet<S>> {
   }
 
   // Set<S> interface
-  entries(): IterableIterator<[S, S]> {
+  entries(): SetIterator<[S, S]> {
     return this._set.entries();
   }
 
   // Set<S> interface
-  keys(): IterableIterator<S> {
+  keys(): SetIterator<S> {
     return this._set.keys();
   }
 
   // Set<S> interface
-  values(): IterableIterator<S> {
+  values(): SetIterator<S> {
     return this._set.values();
   }
 
   // Set<S> interface
-  [Symbol.iterator](): IterableIterator<S> {
+  [Symbol.iterator](): SetIterator<S> {
     return this._set[Symbol.iterator]();
   }
 

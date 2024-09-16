@@ -164,7 +164,8 @@ export const EffectRack = React.memo(function EffectRack({
                 >
                   <button onClick={() => appEnvironment.openEffects.add(effect)}>Configure</button>
                 </Effect>
-                {"→"}
+                {/* dropzone */}
+                <div>{"→"}</div>
               </React.Fragment>
             );
           }
@@ -222,4 +223,42 @@ function InstrumentEffect({ track }: { track: MidiTrack; project: AudioProject; 
       {"→"}
     </React.Fragment>
   );
+}
+
+function EffectDropzone({ track }: { track: AudioTrack | MidiTrack }) {
+  const [draggingOver, setDraggingOver] = useState<false | "transferable" | "invalid">(false);
+
+  const onDrop = useCallback(
+    async (ev: React.DragEvent<HTMLDivElement>) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      const transferableResources = await getRackAcceptableDataTransferResources(ev.dataTransfer);
+      for (const effectPlugin of transferableResources) {
+        switch (effectPlugin.kind) {
+          case "WAMAvailablePlugin":
+            ignorePromise(addAvailableWamToTrack(track, effectPlugin));
+            break;
+          case "fausteffect":
+            ignorePromise(track.dsp.addEffect(effectPlugin.id));
+            break;
+          default:
+            exhaustive(effectPlugin);
+        }
+      }
+      setDraggingOver(false);
+    },
+    [track]
+  );
+
+  const onDragOver = useCallback(async function allowDrop(ev: React.DragEvent<HTMLDivElement>) {
+    // For some reason, need to .preventDefault() so onDrop gets called
+    ev.preventDefault();
+    if (!effectRackCanHandleTransfer(ev.dataTransfer)) {
+      ev.dataTransfer.dropEffect = "none";
+      setDraggingOver("invalid");
+    } else {
+      setDraggingOver("transferable");
+    }
+  }, []);
+  return <div>{"→"}</div>;
 }
