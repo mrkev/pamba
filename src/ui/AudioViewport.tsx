@@ -13,6 +13,8 @@ export class AudioViewport extends Structured<SAudioViewport, typeof AudioViewpo
   readonly scrollLeftPx: SPrimitive<number>;
   readonly lockPlayback = SPrimitive.of(false);
 
+  readonly selectionWidthFr = SPrimitive.of<number | null>(null);
+
   override serialize(): SAudioViewport {
     return {
       pxPerSec: this.pxPerSecScale.get(),
@@ -36,11 +38,15 @@ export class AudioViewport extends Structured<SAudioViewport, typeof AudioViewpo
   }
 
   pxToFr(px: number, sampleRate: number) {
-    return (px / this.pxPerSecScale.get()) * sampleRate;
+    return Math.floor((px / this.pxPerSecScale.get()) * sampleRate);
   }
 
   pxToSec(px: number) {
     return (px + this.scrollLeftPx.get()) / this.pxPerSecScale.get();
+  }
+
+  frToPx(fr: number, sampleRate: number) {
+    return (fr / sampleRate) * this.pxPerSecScale.get();
   }
 
   framesPerPixel(sampleRate: number) {

@@ -58,7 +58,13 @@ export type PrimarySelectionState =
       kind: "box" | "start" | "end";
     };
 
-export type PanelSelectionState = {
-  status: "notes";
-  notes: Set<Note>;
-};
+export type PanelSelectionState =
+  | {
+      status: "notes";
+      notes: Set<Note>;
+    }
+  | {
+      status: "audioTime";
+      startS: number; // todo: changeToFrames
+      lengthFr: number;
+    };

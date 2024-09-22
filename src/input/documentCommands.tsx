@@ -124,8 +124,8 @@ export const documentCommands = CommandBlock.create(["Project", "Edit", "Tools",
           const [clipsStart, clipsEnd] = nullthrows(
             clipsLimits(
               project,
-              selectionState.clips.map((s) => s.clip)
-            )
+              selectionState.clips.map((s) => s.clip),
+            ),
           );
 
           const thisLoopIsSelected =

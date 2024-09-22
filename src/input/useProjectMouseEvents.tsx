@@ -28,7 +28,7 @@ export function timelineSecs(e: MouseEvent, projectDiv: HTMLDivElement, project:
 
 export function useAxisContainerMouseEvents(
   project: AudioProject,
-  axisContainer: React.MutableRefObject<HTMLDivElement | null>
+  axisContainer: React.MutableRefObject<HTMLDivElement | null>,
 ) {
   useEventListener(
     "mousedown",
@@ -62,14 +62,14 @@ export function useAxisContainerMouseEvents(
           startTime: newPos,
         });
       },
-      [axisContainer, project]
-    )
+      [axisContainer, project],
+    ),
   );
 }
 
 export function useTimelineMouseEvents(
   project: AudioProject,
-  projectDivRef: React.MutableRefObject<HTMLDivElement | null>
+  projectDivRef: React.MutableRefObject<HTMLDivElement | null>,
 ): void {
   useEventListener(
     "mousedown",
@@ -122,8 +122,8 @@ export function useTimelineMouseEvents(
         project.cursorPos.set(newPos);
         project.selectionWidth.set(null);
       },
-      [project, projectDivRef]
-    )
+      [project, projectDivRef],
+    ),
   );
 
   useDocumentEventListener(
@@ -158,7 +158,7 @@ export function useTimelineMouseEvents(
                 project,
                 pressed.track,
                 pressed.clip.startOffsetPulses,
-                pressed.clip._timelineEndU
+                pressed.clip._timelineEndU,
               );
               ProjectTrack.removeClip(project, pressed.originalTrack, pressed.clip);
               ProjectTrack.addClip(project, pressed.track, pressed.clip);
@@ -272,8 +272,8 @@ export function useTimelineMouseEvents(
             exhaustive(status);
         }
       },
-      [project]
-    )
+      [project],
+    ),
   );
 
   useDocumentEventListener(
@@ -341,7 +341,7 @@ export function useTimelineMouseEvents(
                 0,
                 pressed.originalClipLength - opDeltaXSecs,
                 // since trimming from start, max is going back all the way to zero
-                pressed.originalClipLength + pressed.originalBufferOffset
+                pressed.originalClipLength + pressed.originalBufferOffset,
               );
 
               const delta = pressed.originalClipLength - newClipLength;
@@ -351,7 +351,7 @@ export function useTimelineMouseEvents(
                 0,
                 pressed.originalBufferOffset + opDeltaXSecs,
                 // Can't trim past the length of the clip
-                pressed.originalBufferOffset + pressed.originalClipLength
+                pressed.originalBufferOffset + pressed.originalClipLength,
               );
               // console.log("NBO", newBufferOffset, pressed.originalClipLength);
               // const newTimelineStartSec = clamp(
@@ -456,7 +456,7 @@ export function useTimelineMouseEvents(
             exhaustive(pressed);
         }
       },
-      [project]
-    )
+      [project],
+    ),
   );
 }

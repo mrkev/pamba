@@ -46,15 +46,15 @@ export class ProjectSelection {
    * Deletes whatever is selected
    */
   static deleteSelection(project: AudioProject) {
-    const selected = project.selected.get();
-    if (selected == null) {
+    const primarySelection = project.selected.get();
+    if (primarySelection == null) {
       return;
     }
 
-    switch (selected.status) {
+    switch (primarySelection.status) {
       case "clips": {
-        for (const { clip, track } of selected.clips) {
-          console.log("remove", selected);
+        for (const { clip, track } of primarySelection.clips) {
+          console.log("remove", primarySelection);
           if (track instanceof MidiTrack && clip instanceof MidiClip) {
             AudioProject.removeMidiClip(project, track, clip);
           } else if (track instanceof AudioTrack && clip instanceof AudioClip) {
@@ -72,7 +72,7 @@ export class ProjectSelection {
           break;
         }
 
-        const selectedTracks = new Set(selected.tracks);
+        const selectedTracks = new Set(primarySelection.tracks);
         const noneLocked = project.lockedTracks.isDisjointFrom(selectedTracks);
 
         if (!noneLocked) {
@@ -81,16 +81,16 @@ export class ProjectSelection {
         }
 
         // TODO: if playing don't delete. show track locked?
-        for (const track of selected.tracks) {
-          console.log("remove", selected);
+        for (const track of primarySelection.tracks) {
+          console.log("remove", primarySelection);
           AudioProject.removeTrack(project, appEnvironment.renderer.analizedPlayer, track);
           project.selected.set(null);
         }
         break;
       }
       case "effects": {
-        for (const { track, effect } of selected.effects) {
-          console.log("remove", selected);
+        for (const { track, effect } of primarySelection.effects) {
+          console.log("remove", primarySelection);
           AudioTrack.removeEffect(track, effect);
           project.selected.set(null);
         }
@@ -99,24 +99,24 @@ export class ProjectSelection {
       case "time": {
         history.record(() => {
           for (const track of project.allTracks) {
-            deleteTime(project, track, selected.startS, selected.endS);
+            deleteTime(project, track, primarySelection.startS, primarySelection.endS);
           }
         });
         break;
       }
       case "track_time":
-        for (const track of selected.tracks) {
+        for (const track of primarySelection.tracks) {
           if (track instanceof AudioTrack) {
             // TODO: move history.record(...) up to the command level as possible
             history.record(() => {
-              ProjectTrack.deleteTime(project, track, selected.startS, selected.endS);
+              ProjectTrack.deleteTime(project, track, primarySelection.startS, primarySelection.endS);
             });
           } else if (track instanceof MidiTrack) {
             ProjectTrack.deleteTime(
               project,
               track,
-              project.viewport.secsToPulses(selected.startS),
-              project.viewport.secsToPulses(selected.endS),
+              project.viewport.secsToPulses(primarySelection.startS),
+              project.viewport.secsToPulses(primarySelection.endS),
             );
           }
         }
@@ -128,7 +128,7 @@ export class ProjectSelection {
         project.selected.set(null);
         break;
       default:
-        exhaustive(selected);
+        exhaustive(primarySelection);
     }
   }
 
