@@ -64,7 +64,7 @@ export function AudioClipPropsEditor({ clip, project }: { clip: AudioClip; proje
 export function EditorSection({ children, title }: { children: React.ReactNode; title: string }) {
   const styles = useStyles();
   return (
-    <div style={{ marginRight: 4, border: "1px solid #114411" }}>
+    <div style={{ marginRight: 4, border: "1px solid #114411", background: "var(--background)" }}>
       <div className={styles.clipHeader}>{title}</div>
       <div className={styles.clipBody}>{children}</div>
     </div>
@@ -94,6 +94,5 @@ const useStyles = createUseStyles({
     fontSize: 11,
     alignSelf: "flex-start",
     padding: "2px 4px",
-    background: "#4e4e4e",
   },
 });

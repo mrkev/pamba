@@ -147,7 +147,7 @@ export function DebugContent({ project }: { project: AudioProject }) {
         style={{
           overflow: "scroll",
           background: "#222",
-          margin: "0px 4px",
+          margin: "0px 4px 0px 0px",
           textAlign: "left",
           width: 400,
           fontSize: 12,

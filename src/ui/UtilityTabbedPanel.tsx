@@ -18,6 +18,8 @@ export function UtilityTabbedPanel<P extends Record<string, Panel>>({
   style,
   extraControls,
   className,
+  onMouseDownCapture,
+  activeButtonClassName,
 }: {
   activeTab: keyof P | null;
   onSelectTab: SetState<keyof P | null>;
@@ -27,6 +29,8 @@ export function UtilityTabbedPanel<P extends Record<string, Panel>>({
   style?: React.CSSProperties;
   extraControls?: React.ReactNode;
   className?: string;
+  onMouseDownCapture?: React.MouseEventHandler<HTMLDivElement>;
+  activeButtonClassName?: string;
 }) {
   const styles = useStyles();
   const activePanel = activeTab != null ? panels[activeTab] : null;
@@ -37,6 +41,7 @@ export function UtilityTabbedPanel<P extends Record<string, Panel>>({
 
   return (
     <div
+      onMouseDownCapture={onMouseDownCapture}
       className={classNames(
         className,
         styles.panel,
@@ -87,7 +92,11 @@ export function UtilityTabbedPanel<P extends Record<string, Panel>>({
               title={panel.title}
               key={id}
               style={{ textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}
-              className={classNames("utilityButton", activeTab === id && "utilityButtonActive")}
+              className={classNames(
+                "utilityButton",
+                activeTab === id && "utilityButtonActive",
+                activeTab === id && activeButtonClassName,
+              )}
               onClick={() => {
                 if (activeTab === id) {
                   onSelectTab(null);
@@ -107,7 +116,15 @@ export function UtilityTabbedPanel<P extends Record<string, Panel>>({
       {layout === "horizontal"
         ? activePanel?.render()
         : activePanel && (
-            <div className={styles.vertical} style={{ flexShrink: 1, minHeight: 0, paddingBottom: 4 }}>
+            <div
+              className={styles.vertical}
+              style={{
+                flexShrink: 1,
+                minHeight: 0,
+
+                // paddingBottom: 4
+              }}
+            >
               {activePanel.render()}
             </div>
           )}
@@ -141,13 +158,13 @@ const useStyles = createUseStyles({
     // paddingBottom: "128px",
   },
   panelVertical: {
-    paddingTop: "4px",
+    // paddingTop: "4px",
   },
   panelCollapsedHorizontal: {
     width: "22px",
   },
   panelCollapsedVertical: {
-    height: "16px",
+    height: "14px",
   },
   panelExpanded: {
     // maxWidth: "220px",
@@ -161,9 +178,10 @@ const useStyles = createUseStyles({
     display: "flex",
     flexGrow: 1,
     alignItems: "stretch",
+    paddingBottom: 4,
   },
   bottomPanelTabs: {
-    paddingTop: "4px",
+    // paddingTop: "4px",
     alignSelf: "stretch",
     // alignItems: "center",
   },

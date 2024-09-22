@@ -43,7 +43,7 @@ export function ProjectEditor({ project }: { project: AudioProject }) {
       }
 
       return { size, projectAudioFiles };
-    }, [projectPackage])
+    }, [projectPackage]),
   );
 
   const items: ListEntry<AudioPackage>[] = useMemo(() => {

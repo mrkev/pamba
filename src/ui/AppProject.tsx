@@ -1,21 +1,23 @@
+import classNames from "classnames";
 import { useEffect, useState } from "react";
 import { usePrimitive } from "structured-state";
-import { modifierState, useSingletonKeyboardModifierState } from "../ModifierState";
 import { useDocumentKeyboardEvents } from "../input/useDocumentKeyboardEvents";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioRecorder } from "../lib/AudioRecorder";
 import { AudioRenderer } from "../lib/AudioRenderer";
 import { AudioProject } from "../lib/project/AudioProject";
+import { modifierState, useSingletonKeyboardModifierState } from "../ModifierState";
 import { BottomPanel } from "./BottomPanel";
 import { DebugContent } from "./DebugData";
+import { ToolHeader } from "./header/ToolHeader";
+import { TransportControl } from "./header/TransportControl";
 import { Help, History, Settings } from "./history";
 import { Library } from "./Library";
 import { ProjectEditor } from "./ProjectEditor";
 import { TimelineView } from "./TimelineView";
 import { UtilityTabbedPanel } from "./UtilityTabbedPanel";
-import { ToolHeader } from "./header/ToolHeader";
-import { TransportControl } from "./header/TransportControl";
-import { doPrompt } from "./PromptDialog";
+import { useLinkedState } from "../lib/state/LinkedState";
+import { createUseStyles } from "react-jss";
 
 function useStopPlaybackOnUnmount(renderer: AudioRenderer) {
   useEffect(() => {
@@ -30,6 +32,7 @@ function useStopPlaybackOnUnmount(renderer: AudioRenderer) {
 // TODO: useLocalStorage out here
 
 export function AppProject({ project }: { project: AudioProject }) {
+  const styles = useStyles();
   const renderer = appEnvironment.renderer;
   const [recorder] = useState(() => new AudioRecorder(project, renderer));
 
@@ -38,6 +41,7 @@ export function AppProject({ project }: { project: AudioProject }) {
   useStopPlaybackOnUnmount(renderer);
   const [activeSidePanel, setActiveSidePanel] = usePrimitive(appEnvironment.activeSidePanel);
   const [activeBottomPanel, setActiveBottomPanel] = usePrimitive(appEnvironment.activeBottomPanel);
+  const [activePanel] = useLinkedState(project.activePanel);
 
   return (
     <>
@@ -56,6 +60,11 @@ export function AppProject({ project }: { project: AudioProject }) {
           activeTab={activeSidePanel}
           onSelectTab={setActiveSidePanel}
           dividerPosition={"right"}
+          onMouseDownCapture={() => project.activePanel.set("sidebar")}
+          className={classNames(
+            styles.sidebarPanel,
+            activePanel === "sidebar" ? styles.sidebarPanelActive : styles.sidebarPanelInactive,
+          )}
           panels={{
             library: {
               icon: <i className="ri-folder-3-line" style={{ paddingRight: 2 }}></i>,
@@ -91,6 +100,11 @@ export function AppProject({ project }: { project: AudioProject }) {
         onSelectTab={setActiveBottomPanel as any}
         dividerPosition={"top"}
         expandedSize={295}
+        onMouseDownCapture={() => project.activePanel.set("secondary")}
+        className={classNames(
+          styles.secondaryPanel,
+          activePanel === "secondary" ? styles.secondaryPanelActive : styles.secondaryPanelInactive,
+        )}
         extraControls={
           <TransportControl style={{ marginTop: 2 }} project={project} renderer={renderer} recorder={recorder} />
         }
@@ -149,6 +163,29 @@ export function AppProject({ project }: { project: AudioProject }) {
     </>
   );
 }
+
+const useStyles = createUseStyles({
+  secondaryPanel: {
+    margin: "4px 4px 4px 4px",
+    paddingTop: "4px",
+    borderRadius: "3px",
+  },
+  secondaryPanelInactive: {},
+  secondaryPanelActive: {
+    background: "#343434",
+    paddingTop: "4px",
+  },
+
+  sidebarPanel: {
+    // margin: "4px 4px 4px 4px",
+    paddingTop: "4px",
+    // borderRadius: "3px",
+  },
+  sidebarPanelInactive: {},
+  sidebarPanelActive: {
+    background: "#343434",
+  },
+});
 
 function A({ href }: { href: string }) {
   return (

@@ -30,18 +30,37 @@ export function TimelineView({
   const axisContainerRef = useRef<HTMLDivElement | null>(null);
   const tracks = useContainer(project.allTracks);
   const [viewportStartPx] = useLinkedState(project.viewportStartPx);
+  const [activePanel] = useLinkedState(project.activePanel);
+
   useAxisContainerMouseEvents(project, axisContainerRef);
 
   return (
-    <div id="container" className={classNames(classes.container, "scrollbar-track")}>
-      <div ref={axisContainerRef} className={classes.axisContainer}>
+    <div
+      id="container"
+      onMouseDownCapture={() => project.activePanel.set("primary")}
+      className={classNames(classes.container, "scrollbar-track")}
+    >
+      <div
+        ref={axisContainerRef}
+        className={classes.axisContainer}
+        style={{
+          borderTop: activePanel === "primary" ? "4px solid var(--timeline-text)" : "4px solid var(--timeline-tick)",
+        }}
+      >
         <Axis project={project} isHeader />
         <LoopMarkers project={project} />
         <CursorSelection track={null} project={project} leftOffset={-viewportStartPx} />
         {/* <TimelineCursor project={project} isHeader /> */}
       </div>
       {/* 1. Track header overhang (bounce button) */}
-      <div className={classes.axisSpacer}>
+      <div
+        className={classes.axisSpacer}
+        style={
+          {
+            // background: activePanel === "primary" ? "var(--timeline-text)" : undefined,
+          }
+        }
+      >
         {/* <button
           style={{ position: "absolute", left: "4px" }}
           onClick={() => {
