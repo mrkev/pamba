@@ -31,7 +31,6 @@
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-jss": "^10.10.0",
-    "react-merge-refs": "^2.1.1",
     "remixicon": "^4.3.0",
     "rollup": "^4.22.2",
     "rollup-plugin-polyfill-node": "^0.13.0",
@@ -74,7 +73,8 @@
     "web-audio-peak-meter": "^3.1.0"
   },
   "prettier": {
-    "printWidth": 120
+    "printWidth": 120,
+    "trailingComma": "all"
   },
   "engines": {
     "node": ">=18.10"

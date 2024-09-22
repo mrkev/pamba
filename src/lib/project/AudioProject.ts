@@ -102,7 +102,7 @@ export class AudioProject {
     (factor: number) =>
       scaleLinear()
         .domain([0, 1])
-        .range([0, 1 * factor]) as XScale
+        .range([0, 1 * factor]) as XScale,
   );
   // factor 2: 1sec => 2px
   // factor 3: 1sec => 3px
@@ -113,7 +113,7 @@ export class AudioProject {
     (factor: number, startPx: number) =>
       scaleLinear()
         .domain([0, 1])
-        .range([0 + startPx, 1 * factor + startPx]) as XScale
+        .range([0 + startPx, 1 * factor + startPx]) as XScale,
   );
 
   constructor(
@@ -123,7 +123,7 @@ export class AudioProject {
     tempo: number,
     loopStart: TimelineT,
     loopEnd: TimelineT,
-    loopOnPlayback: boolean
+    loopOnPlayback: boolean,
   ) {
     this.projectId = projectId;
     this.allTracks = SArray.create(tracks);
@@ -161,7 +161,7 @@ export class AudioProject {
   }
 
   public canEditTrack(project: AudioProject, track: MidiTrack | AudioTrack | StandardTrack<any>) {
-    return !project.lockedTracks.has(track); // todo: also check if audio is playing
+    return !project.lockedTracks.has(track) && !appEnvironment.renderer.analizedPlayer.isAudioPlaying;
   }
 
   public compareTime(a: TimelineT, op: "<" | ">" | "=", b: TimelineT): boolean {
@@ -175,7 +175,7 @@ export class AudioProject {
     project: AudioProject,
     position: "top" | "bottom" = "top",
     track?: AudioTrack,
-    player?: AnalizedPlayer
+    player?: AnalizedPlayer,
   ): AudioTrack {
     const newTrack = track ?? AudioTrack.of();
     if (position === "top") {

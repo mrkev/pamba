@@ -15,6 +15,7 @@ import { TimelineView } from "./TimelineView";
 import { UtilityTabbedPanel } from "./UtilityTabbedPanel";
 import { ToolHeader } from "./header/ToolHeader";
 import { TransportControl } from "./header/TransportControl";
+import { doPrompt } from "./PromptDialog";
 
 function useStopPlaybackOnUnmount(renderer: AudioRenderer) {
   useEffect(() => {

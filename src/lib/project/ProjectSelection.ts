@@ -67,6 +67,19 @@ export class ProjectSelection {
         break;
       }
       case "tracks": {
+        if (appEnvironment.renderer.analizedPlayer.isAudioPlaying) {
+          // todo: some sort of alert or feedback, can't edit tracks while playing?
+          break;
+        }
+
+        const selectedTracks = new Set(selected.tracks);
+        const noneLocked = project.lockedTracks.isDisjointFrom(selectedTracks);
+
+        if (!noneLocked) {
+          alert("some tracks are locked!");
+          break;
+        }
+
         // TODO: if playing don't delete. show track locked?
         for (const track of selected.tracks) {
           console.log("remove", selected);
@@ -103,7 +116,7 @@ export class ProjectSelection {
               project,
               track,
               project.viewport.secsToPulses(selected.startS),
-              project.viewport.secsToPulses(selected.endS)
+              project.viewport.secsToPulses(selected.endS),
             );
           }
         }

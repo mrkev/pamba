@@ -16,6 +16,7 @@ import { PambaWamNodeWindowPanel } from "./PambaWamNodeWindowPanel";
 import { changelog } from "./changelog";
 import { useDocumentEventListener } from "./useEventListener";
 import { utility } from "./utility";
+import { PromptDialog } from "./PromptDialog";
 
 // var w = new TrackThread();
 // var sab = new SharedArrayBuffer(1024);
@@ -35,7 +36,7 @@ export function App(): React.ReactElement {
         e.preventDefault();
       }
     }, []),
-    NON_PASSIVE
+    NON_PASSIVE,
   );
 
   if (projectStatus.status !== "loaded") {
@@ -120,6 +121,7 @@ export function App(): React.ReactElement {
         })}
         {/* <MidiDemo /> */}
         <ConfirmDialog />
+        <PromptDialog />
         <AppProject project={projectStatus.project} />
       </>
     );

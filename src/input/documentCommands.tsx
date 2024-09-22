@@ -171,6 +171,14 @@ export const documentCommands = CommandBlock.create(["Project", "Edit", "Tools",
       .helptext("Paste", "Currently works only with clips")
       .section("Edit"),
 
+    // rename: command(["KeyR", "meta"], async (e, project) => {
+    //   e?.preventDefault();
+    //   e?.stopPropagation();
+    //   return console.log("RENAME");
+    // })
+    //   .helptext("Rename", "Rename selection")
+    //   .section("Project"),
+
     // Tool selection
     // todo: alias KeyM?
     moveTool: command(["KeyV"], (e, project) => {

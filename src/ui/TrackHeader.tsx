@@ -4,18 +4,17 @@ import { createUseStyles } from "react-jss";
 import { useContainer, usePrimitive } from "structured-state";
 import { EFFECT_HEIGHT, TRACK_SEPARATOR_HEIGHT } from "../constants";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
-import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioTrack } from "../lib/AudioTrack";
 import { AudioProject } from "../lib/project/AudioProject";
 import { ProjectSelection } from "../lib/project/ProjectSelection";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { MidiTrack } from "../midi/MidiTrack";
 import { pressedState } from "../pressedState";
+import { doConfirm } from "./ConfirmDialog";
 import { RenamableLabel } from "./RenamableLabel";
 import { UtilityToggle } from "./UtilityToggle";
-import { UtilitySlider, utility } from "./utility";
 import { cx } from "./cx";
-import { doConfirm } from "./ConfirmDialog";
+import { UtilitySlider, utility } from "./utility";
 
 export const TrackHeader = React.memo(function TrackHeader({
   track,
@@ -107,6 +106,16 @@ export const TrackHeader = React.memo(function TrackHeader({
           <button
             className={cx("utilityButton", styles.deleteTrackButton)}
             onClick={async () => {
+              if (player.isAudioPlaying) {
+                // todo: some sort of alert or feedback, can't edit tracks while playing?
+                return;
+              }
+
+              if (project.lockedTracks.has(track)) {
+                alert("track is locked");
+                return;
+              }
+
               if ((await doConfirm(`delete track "${track.name.get()}"?\n\nThis cannot be undone (yet)!`)) === "yes") {
                 AudioProject.removeTrack(project, player, track);
               }
@@ -213,7 +222,7 @@ export const TrackHeader = React.memo(function TrackHeader({
           <button
             className={classNames(utility.button, styles.lockButton)}
             style={isLocked ? { background: "purple", color: "white" } : undefined}
-            title="lock track"
+            title={isLocked ? "unlock track" : "lock track"}
             onClick={function (e) {
               if (isLocked) {
                 lockedTracks.delete(track);

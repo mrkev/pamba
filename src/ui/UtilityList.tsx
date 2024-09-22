@@ -68,7 +68,7 @@ export function UtilityDataList<T>({
             className={classNames(
               classes.listItem,
               disabled && classes.listItemDisabled,
-              item.icon && classes.listItemWithIcon,
+              item.icon && classes.listItemWithIcon
             )}
             key={i}
             draggable={!disableDrag && draggable && !disabled}
@@ -126,6 +126,10 @@ export function UtilityDataList<T>({
           >
             {item.icon}
             {item.title}
+            {/* <input
+              type="text"
+              style={{ fontSize: "inherit", fontWeight: "inherit", border: "none", padding: 0, margin: 0 }}
+            ></input> */}
             <div style={{ flexGrow: 1 }} />
             {item.secondary}
           </div>

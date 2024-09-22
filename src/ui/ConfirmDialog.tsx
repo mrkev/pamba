@@ -108,7 +108,7 @@ export function ConfirmDialog() {
   );
 }
 
-const useStyles = createUseStyles({
+export const useStyles = createUseStyles({
   dialog: {
     fontWeight: 600,
     // borderRadius: 8,
@@ -131,7 +131,6 @@ const useStyles = createUseStyles({
     flexDirection: "row",
     justifyContent: "flex-end",
   },
-
   button: {
     minWidth: 60,
     fontWeight: 600,

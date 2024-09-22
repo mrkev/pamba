@@ -1,6 +1,7 @@
 export const changelog = `
 next
 - improve zoom slider
+- locked tracks can't be deleted
 
 v0.1.7
 - Cmd+L while selecting clip(s) activates loop on their duration
