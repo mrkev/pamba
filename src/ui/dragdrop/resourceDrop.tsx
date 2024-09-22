@@ -16,7 +16,7 @@ export const loadAudioClipIntoTrack = async (
   url: string,
   track: AudioTrack,
   startOffsetSec: number,
-  name: string
+  name: string,
 ): Promise<void> => {
   try {
     if (!project.canEditTrack(project, track)) {
@@ -38,11 +38,11 @@ export async function handleDropOntoAudioTrack(
   track: AudioTrack,
   resource: TransferableResource,
   position: number,
-  project: AudioProject
+  project: AudioProject,
 ) {
   switch (resource.kind) {
     case "WAMAvailablePlugin":
-      ignorePromise(addAvailableWamToTrack(track, resource));
+      ignorePromise(addAvailableWamToTrack(track, resource, "last"));
       break;
     case "AudioPackage.local":
       console.warn("NOT IMEPLEMENTED");
@@ -52,7 +52,7 @@ export async function handleDropOntoAudioTrack(
       ignorePromise(loadAudioClipIntoTrack(project, resource.url, track, startOffsetSec, resource.name));
       break;
     case "fausteffect":
-      ignorePromise(track.dsp.addEffect(resource.id));
+      ignorePromise(track.dsp.addEffect(resource.id, "last"));
       break;
     default:
       exhaustive(resource);
@@ -63,18 +63,18 @@ export async function handleDropOntoMidiTrack(
   track: MidiTrack,
   resource: TransferableResource,
   position: number,
-  project: AudioProject
+  project: AudioProject,
 ) {
   switch (resource.kind) {
     case "WAMAvailablePlugin":
-      ignorePromise(addAvailableWamToTrack(track, resource));
+      ignorePromise(addAvailableWamToTrack(track, resource, "last"));
       break;
     case "AudioPackage.local":
       throw new Error("Can't transfer AudioPackage.local onto MidiTrack");
     case "audio":
       throw new Error("Can't transfer audio onto MidiTrack");
     case "fausteffect":
-      ignorePromise(track.dsp.addEffect(resource.id));
+      ignorePromise(track.dsp.addEffect(resource.id, "last"));
       break;
     default:
       exhaustive(resource);
@@ -88,7 +88,7 @@ export async function handleDropIntoTimeline(resources: TransferableResource[], 
         break;
       case "fausteffect": {
         const track = AudioProject.addAudioTrack(project, "bottom");
-        await track.dsp.addEffect(resource.id);
+        await track.dsp.addEffect(resource.id, "last");
         break;
       }
       case "WAMAvailablePlugin": {
@@ -96,7 +96,7 @@ export async function handleDropIntoTimeline(resources: TransferableResource[], 
           case "a-a": {
             // todo: if multiple of these just create one track with many effects?
             const track = AudioProject.addAudioTrack(project, "bottom");
-            await addAvailableWamToTrack(track, resource);
+            await addAvailableWamToTrack(track, resource, "last");
             break;
           }
           case "-a":

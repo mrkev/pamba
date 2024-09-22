@@ -84,7 +84,7 @@ export function TrackS({
 
       const transferableResources = await getTrackAcceptableDataTransferResources(
         ev.dataTransfer,
-        nullthrows(audioStorage)
+        nullthrows(audioStorage),
       );
 
       if (track instanceof MidiTrack) {
@@ -101,7 +101,7 @@ export function TrackS({
 
       setDraggingOver(null);
     },
-    [audioStorage, draggingOver, project, track]
+    [audioStorage, draggingOver, project, track],
   );
 
   // TODO: replace with the system I use in EffectRack? Where we just set state on wether the transfer if acceptable
@@ -207,6 +207,7 @@ export function TrackS({
           height: TRACK_SEPARATOR_HEIGHT,
         }}
         onMouseDown={(e) => {
+          console.log("MOUSEDOWN HELLo");
           pressedState.set({
             status: "resizing_track",
             clientX: e.clientX,

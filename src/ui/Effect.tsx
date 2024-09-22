@@ -1,6 +1,8 @@
+import { useCallback, useRef } from "react";
 import { createUseStyles } from "react-jss";
 import { SBoolean, usePrimitive } from "structured-state";
 import { UtilityToggle } from "./UtilityToggle";
+import { useEventListener } from "./useEventListener";
 import { utility } from "./utility";
 
 export function Effect({
@@ -8,21 +10,23 @@ export function Effect({
   title,
   onClickBypass,
   onClickRemove,
-  onHeaderClick,
+  onHeaderMouseDown,
   isSelected,
   canDelete,
   canBypass,
   bypass,
+  draggable,
 }: {
   children?: React.ReactNode;
   title: string;
   onClickRemove: () => void;
-  onHeaderClick: () => void;
+  onHeaderMouseDown: () => void;
   onClickBypass: () => void;
   isSelected?: boolean;
   canDelete?: boolean;
   canBypass?: boolean;
   bypass?: SBoolean;
+  draggable?: boolean;
 }) {
   return (
     <div
@@ -37,11 +41,12 @@ export function Effect({
       }}
     >
       <EffectHeader
+        draggable={draggable}
         title={title}
         isSelected={isSelected}
         onClickBypass={onClickBypass}
         onClickRemove={onClickRemove}
-        onHeaderClick={onHeaderClick}
+        onMouseDown={onHeaderMouseDown}
         canDelete={canDelete}
         canBypass={canBypass}
         bypass={bypass}
@@ -52,7 +57,7 @@ export function Effect({
 }
 
 function EffectHeader({
-  onHeaderClick,
+  onMouseDown,
   onClickRemove,
   onClickBypass,
   canDelete,
@@ -60,20 +65,31 @@ function EffectHeader({
   title,
   isSelected,
   bypass,
+  draggable,
 }: {
   onClickRemove?: () => void;
-  onHeaderClick?: () => void;
+  onMouseDown?: (e: MouseEvent) => void;
   onClickBypass?: () => void;
   canDelete?: boolean;
   canBypass?: boolean;
   title: string;
   isSelected?: boolean;
   bypass?: SBoolean;
+  draggable?: boolean;
 }) {
   const styles = useStyles();
+  const headerRef = useRef<HTMLDivElement>(null);
+
+  useEventListener(
+    "mousedown",
+    headerRef,
+    useCallback((e) => onMouseDown?.(e), [onMouseDown]),
+  );
 
   return (
     <div
+      draggable
+      ref={headerRef}
       className={styles.faustTopLevelHeader}
       style={{
         background: isSelected ? "#555" : undefined,
@@ -81,7 +97,6 @@ function EffectHeader({
         flexDirection: "row",
         gap: 4,
       }}
-      onClick={onHeaderClick}
     >
       <div style={{ whiteSpace: "nowrap" }}>{title}</div>
       <div className="spacer"></div>

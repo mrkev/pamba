@@ -92,7 +92,7 @@ export function Library({
         return;
       }
     },
-    [player, project]
+    [player, project],
   );
 
   const items: ListEntry<LibraryItem>[] = useMemo(() => {
@@ -226,7 +226,7 @@ export function Library({
               switch (selected?.status) {
                 case "tracks":
                   const track = nullthrows(selected.tracks.at(0), "no track to add dsp to");
-                  ignorePromise(track.dsp.addEffect(item.data.id));
+                  ignorePromise(track.dsp.addEffect(item.data.id, "last"));
                   break;
                 case "clips":
                 case "effects":
@@ -245,7 +245,7 @@ export function Library({
               switch (selected?.status) {
                 case "tracks":
                   const track = nullthrows(selected.tracks.at(0), "no track to add dsp to");
-                  await addAvailableWamToTrack(track, item.data.plugin);
+                  await addAvailableWamToTrack(track, item.data.plugin, "last");
                   break;
                 case "clips":
                 case "effects":
@@ -271,7 +271,7 @@ export function Library({
           const selection = await doConfirm(
             `Are you sure you want to delete "${item.title}"?\nThis cannot be undone.`,
             "yes",
-            "no"
+            "no",
           );
 
           if (selection === "no" || selection === "cancel") {

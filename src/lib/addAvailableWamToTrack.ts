@@ -9,7 +9,11 @@ import { AudioTrack } from "./AudioTrack";
 /**
  * Adds a WAM dsp to a track
  */
-export async function addAvailableWamToTrack(track: AudioTrack | MidiTrack, wam: WAMAvailablePlugin) {
+export async function addAvailableWamToTrack(
+  track: AudioTrack | MidiTrack,
+  wam: WAMAvailablePlugin,
+  index: number | "first" | "last",
+) {
   const [hostGroupId] = nullthrows(appEnvironment.wamHostGroup.get());
   switch (wam.pluginKind) {
     case "-a":
@@ -19,7 +23,7 @@ export async function addAvailableWamToTrack(track: AudioTrack | MidiTrack, wam:
       const pluginInstance1 = await wam.import.createInstance(hostGroupId, liveAudioContext());
       const pluginDom1 = await pluginInstance1.createGui();
       const module = new PambaWamNode(pluginInstance1, pluginDom1, wam.url);
-      track.dsp.addLoadedWAM(module);
+      track.dsp.addLoadedWAM(module, index);
       break;
     }
     case "m-a": {

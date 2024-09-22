@@ -10,13 +10,14 @@ import { MidiTrack } from "../midi/MidiTrack";
 export function useTrackMouseEvents(
   trackRef: React.RefObject<HTMLDivElement>,
   project: AudioProject,
-  track: AudioTrack | MidiTrack
+  track: AudioTrack | MidiTrack,
 ) {
   useEventListener(
     "mousedown",
     trackRef,
     useCallback(
       (e: MouseEvent) => {
+        console.log("MOSUEDOWN TRAKC");
         if (
           e.target instanceof HTMLElement &&
           (e.target.getAttribute("data-clip-header") === "true" ||
@@ -66,8 +67,8 @@ export function useTrackMouseEvents(
         e.stopPropagation();
         // e.preventDefault();
       },
-      [project, track, trackRef]
-    )
+      [project, track, trackRef],
+    ),
   );
 
   useEventListener(
@@ -86,8 +87,8 @@ export function useTrackMouseEvents(
           pressedState.setDyn((prev) => Object.assign({}, prev, { track }));
         }
       },
-      [project.pointerTool, track]
-    )
+      [project.pointerTool, track],
+    ),
   );
 
   useEventListener(
@@ -97,6 +98,6 @@ export function useTrackMouseEvents(
       // tood: remove tracks from selecting_track_time
 
       console.log("mouse leave");
-    }, [])
+    }, []),
   );
 }

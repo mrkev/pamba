@@ -9,7 +9,7 @@ export default function FaustEffectModule({
   effect,
   onClickRemove,
   onClickBypass,
-  onHeaderClick,
+  onHeaderMouseDown,
   canDelete,
   canBypass,
   isSelected,
@@ -18,7 +18,7 @@ export default function FaustEffectModule({
   style?: React.CSSProperties;
   onClickRemove: (effect: FaustAudioEffect) => void;
   onClickBypass: (effect: FaustAudioEffect) => void;
-  onHeaderClick: (effect: FaustAudioEffect) => void;
+  onHeaderMouseDown: (effect: FaustAudioEffect) => void;
   canDelete: boolean;
   canBypass: boolean;
   isSelected: boolean;
@@ -36,7 +36,7 @@ export default function FaustEffectModule({
         canBypass={canBypass}
         onClickBypass={() => onClickBypass(effect)}
         onClickRemove={() => onClickRemove(effect)}
-        onHeaderClick={() => onHeaderClick(effect)}
+        onHeaderMouseDown={() => onHeaderMouseDown(effect)}
         isSelected={isSelected}
         bypass={effect.bypass}
       >
@@ -54,7 +54,7 @@ export default function FaustEffectModule({
       title={effect.name}
       onClickBypass={() => onClickBypass(effect)}
       onClickRemove={() => onClickRemove(effect)}
-      onHeaderClick={() => onHeaderClick(effect)}
+      onHeaderMouseDown={() => onHeaderMouseDown(effect)}
       canDelete={canDelete}
       isSelected={isSelected}
     >

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import { createUseStyles } from "react-jss";
 import { useContainer, usePrimitive } from "structured-state";
 import { EFFECT_HEIGHT } from "../constants";
@@ -13,13 +13,14 @@ import { ProjectSelection } from "../lib/project/ProjectSelection";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { MidiTrack } from "../midi/MidiTrack";
 import { exhaustive } from "../utils/exhaustive";
+import { nullthrows } from "../utils/nullthrows";
 import { PambaWamNode } from "../wam/PambaWamNode";
 import { Effect } from "./Effect";
 import {
   effectRackCanHandleTransfer,
   getRackAcceptableDataTransferResources,
 } from "./dragdrop/getTrackAcceptableDataTransferResources";
-import { ignorePromise } from "../utils/ignorePromise";
+import { useEventListener } from "./useEventListener";
 
 const useStyles = createUseStyles({
   effectRack: {
@@ -56,21 +57,26 @@ export const EffectRack = React.memo(function EffectRack({
   const rackRef = useRef<HTMLDivElement | null>(null);
   const [isAudioPlaying] = usePrimitive(renderer.isAudioPlaying);
   const [draggingOver, setDraggingOver] = useState<false | "transferable" | "invalid">(false);
+  const dropzonesRef = useRef<(HTMLDivElement | null)[]>([]);
+  const [highlightedDropzone, setHighlightedDropzone] = useState<number | null>(null);
 
-  useEffect(() => {
-    const div = rackRef.current;
-    if (div == null) {
-      return;
-    }
-
-    const onWheel = function (e: WheelEvent) {
+  // prevent wheel from making it to the timeline, so we don't scroll it
+  useEventListener(
+    "wheel",
+    rackRef,
+    useCallback(function (e: WheelEvent) {
       e.stopPropagation();
-    };
-    div.addEventListener("wheel", onWheel, { capture: true });
-    return () => {
-      div.removeEventListener("wheel", onWheel, { capture: true });
-    };
-  }, []);
+    }, []),
+  );
+
+  // prevent mousedown from making it to the timeline, so we don't change the cursor
+  useEventListener(
+    "mousedown",
+    rackRef,
+    useCallback((e) => {
+      e.stopPropagation();
+    }, []),
+  );
 
   const onDrop = useCallback(
     async (ev: React.DragEvent<HTMLDivElement>) => {
@@ -80,99 +86,140 @@ export const EffectRack = React.memo(function EffectRack({
       for (const effectPlugin of transferableResources) {
         switch (effectPlugin.kind) {
           case "WAMAvailablePlugin":
-            ignorePromise(addAvailableWamToTrack(track, effectPlugin));
+            await addAvailableWamToTrack(track, effectPlugin, highlightedDropzone ?? "last");
             break;
           case "fausteffect":
-            ignorePromise(track.dsp.addEffect(effectPlugin.id));
+            await track.dsp.addEffect(effectPlugin.id, highlightedDropzone ?? "last");
             break;
           default:
             exhaustive(effectPlugin);
         }
       }
+      setHighlightedDropzone(null);
       setDraggingOver(false);
     },
-    [track]
+    [highlightedDropzone, track],
   );
 
-  const onDragOver = useCallback(async function allowDrop(ev: React.DragEvent<HTMLDivElement>) {
+  const onDragOver = useCallback(async function allowDrop(e: React.DragEvent<HTMLDivElement>) {
     // For some reason, need to .preventDefault() so onDrop gets called
-    ev.preventDefault();
-    if (!effectRackCanHandleTransfer(ev.dataTransfer)) {
-      ev.dataTransfer.dropEffect = "none";
+    e.preventDefault();
+
+    if (!effectRackCanHandleTransfer(e.dataTransfer)) {
+      e.dataTransfer.dropEffect = "none";
       setDraggingOver("invalid");
-    } else {
-      setDraggingOver("transferable");
+      return;
     }
+
+    let highlight = 0;
+    let dist = Infinity;
+    for (let i = 0; i < dropzonesRef.current.length; i++) {
+      const dropzone = dropzonesRef.current[i];
+      if (dropzone == null) {
+        continue;
+      }
+      const rect = dropzone.getBoundingClientRect();
+      const distance = Math.abs(e.clientX - rect.x);
+      if (distance < dist) {
+        highlight = i;
+      }
+      dist = distance;
+    }
+
+    setHighlightedDropzone(highlight);
+    setDraggingOver("transferable");
   }, []);
+
+  const chain = [
+    <EffectDropzone
+      key={`dropzone-${0}`}
+      showActiveDropzone={highlightedDropzone === 0}
+      ref={(ref) => {
+        dropzonesRef.current[0] = ref;
+      }}
+    />,
+  ];
+  for (let i = 0; i < effects.length; i++) {
+    const effect = nullthrows(effects.at(i));
+    switch (true) {
+      case effect instanceof FaustAudioEffect: {
+        chain.push(
+          <FaustEffectModule
+            key={`effect-${i}`}
+            canDelete={!isAudioPlaying}
+            canBypass={!isAudioPlaying}
+            effect={effect}
+            style={{
+              alignSelf: "stretch",
+              margin: "2px",
+              borderRadius: "2px",
+            }}
+            onClickRemove={() => AudioTrack.removeEffect(track, effect)}
+            onHeaderMouseDown={() => {
+              console.log("FOO");
+              ProjectSelection.selectEffect(project, effect, track);
+            }}
+            onClickBypass={() => AudioTrack.bypassEffect(track, effect)}
+            isSelected={selected?.status === "effects" && selected.test.has(effect)}
+          />,
+        );
+        break;
+      }
+
+      case effect instanceof PambaWamNode: {
+        chain.push(
+          <Effect
+            key={`effect-${i}`}
+            canDelete={!isAudioPlaying}
+            onClickRemove={() => {
+              appEnvironment.openEffects.delete(effect);
+              AudioTrack.removeEffect(track, effect);
+            }}
+            onHeaderMouseDown={() => ProjectSelection.selectEffect(project, effect, track)}
+            onClickBypass={() => AudioTrack.bypassEffect(track, effect)}
+            isSelected={selected?.status === "effects" && selected.test.has(effect)}
+            title={effect.name}
+            draggable
+          >
+            <button onClick={() => appEnvironment.openEffects.add(effect)}>Configure</button>
+          </Effect>,
+        );
+        break;
+      }
+      default:
+        exhaustive(effect);
+    }
+
+    chain.push(
+      <EffectDropzone
+        key={`dropzone-${i + 1}`}
+        showActiveDropzone={highlightedDropzone === i + 1}
+        ref={(ref) => {
+          dropzonesRef.current[i + 1] = ref;
+        }}
+      />,
+    );
+  }
 
   return (
     <>
       <div
+        ref={rackRef}
         style={{
           height: EFFECT_HEIGHT,
-          background:
-            draggingOver === false ? undefined : draggingOver === "invalid" ? undefined : "rgba(23, 43, 23, 0.7)",
+          // background:
+          //   draggingOver === false ? undefined : draggingOver === "invalid" ? undefined : "rgba(23, 43, 23, 0.7)",
         }}
         className={styles.effectRack}
-        onMouseDownCapture={(e) => {
-          e.stopPropagation();
-        }}
-        ref={rackRef}
         onDrop={onDrop}
         onDragOver={onDragOver}
-        onDragLeave={() => setDraggingOver(false)}
+        onDragLeave={() => {
+          setDraggingOver(false);
+          setHighlightedDropzone(null);
+        }}
       >
-        {"↳"}
         {track instanceof MidiTrack && <InstrumentEffect track={track} project={project} renderer={renderer} />}
-
-        {effects.map((effect, i) => {
-          if (effect instanceof FaustAudioEffect) {
-            return (
-              <React.Fragment key={i}>
-                <FaustEffectModule
-                  canDelete={!isAudioPlaying}
-                  canBypass={!isAudioPlaying}
-                  effect={effect}
-                  style={{
-                    alignSelf: "stretch",
-                    margin: "2px",
-                    borderRadius: "2px",
-                  }}
-                  onClickRemove={() => AudioTrack.removeEffect(track, effect)}
-                  onHeaderClick={() => ProjectSelection.selectEffect(project, effect, track)}
-                  onClickBypass={() => AudioTrack.bypassEffect(track, effect)}
-                  isSelected={selected?.status === "effects" && selected.test.has(effect)}
-                />
-                {"→"}
-              </React.Fragment>
-            );
-          }
-
-          if (effect instanceof PambaWamNode) {
-            return (
-              <React.Fragment key={i}>
-                <Effect
-                  canDelete={!isAudioPlaying}
-                  onClickRemove={() => {
-                    appEnvironment.openEffects.delete(effect);
-                    AudioTrack.removeEffect(track, effect);
-                  }}
-                  onHeaderClick={() => ProjectSelection.selectEffect(project, effect, track)}
-                  onClickBypass={() => AudioTrack.bypassEffect(track, effect)}
-                  isSelected={selected?.status === "effects" && selected.test.has(effect)}
-                  title={effect.name}
-                >
-                  <button onClick={() => appEnvironment.openEffects.add(effect)}>Configure</button>
-                </Effect>
-                {/* dropzone */}
-                <div>{"→"}</div>
-              </React.Fragment>
-            );
-          }
-
-          return exhaustive(effect);
-        })}
-
+        {chain}
         <div
           style={{
             alignSelf: "stretch",
@@ -185,18 +232,6 @@ export const EffectRack = React.memo(function EffectRack({
           }}
         >
           Output
-          {/* <meter
-              style={{ transform: "rotate(270deg)" }}
-              id="fuel"
-              min="0"
-              max="100"
-              low={33}
-              high={66}
-              optimum={80}
-              value="50"
-            >
-              at 50/100
-            </meter> */}
         </div>
       </div>
     </>
@@ -212,7 +247,7 @@ function InstrumentEffect({ track }: { track: MidiTrack; project: AudioProject; 
         onClickRemove={() => {
           console.log("CANT REMOVE");
         }}
-        onHeaderClick={() => console.log("TODO")}
+        onHeaderMouseDown={() => console.log("TODO")}
         onClickBypass={() => console.log("TODO")}
         isSelected={false}
         title={instrument.name}
@@ -225,40 +260,16 @@ function InstrumentEffect({ track }: { track: MidiTrack; project: AudioProject; 
   );
 }
 
-function EffectDropzone({ track }: { track: AudioTrack | MidiTrack }) {
-  const [draggingOver, setDraggingOver] = useState<false | "transferable" | "invalid">(false);
-
-  const onDrop = useCallback(
-    async (ev: React.DragEvent<HTMLDivElement>) => {
-      ev.preventDefault();
-      ev.stopPropagation();
-      const transferableResources = await getRackAcceptableDataTransferResources(ev.dataTransfer);
-      for (const effectPlugin of transferableResources) {
-        switch (effectPlugin.kind) {
-          case "WAMAvailablePlugin":
-            ignorePromise(addAvailableWamToTrack(track, effectPlugin));
-            break;
-          case "fausteffect":
-            ignorePromise(track.dsp.addEffect(effectPlugin.id));
-            break;
-          default:
-            exhaustive(effectPlugin);
-        }
-      }
-      setDraggingOver(false);
-    },
-    [track]
+const EffectDropzone = React.forwardRef<
+  HTMLDivElement,
+  {
+    showActiveDropzone?: boolean;
+    initialDropzone?: boolean;
+  }
+>(function EffectDropzone({ showActiveDropzone, initialDropzone }, ref: React.ForwardedRef<HTMLDivElement>) {
+  return (
+    <div ref={ref} style={showActiveDropzone ? { background: "orange" } : undefined}>
+      {initialDropzone ? "↳" : "→"}
+    </div>
   );
-
-  const onDragOver = useCallback(async function allowDrop(ev: React.DragEvent<HTMLDivElement>) {
-    // For some reason, need to .preventDefault() so onDrop gets called
-    ev.preventDefault();
-    if (!effectRackCanHandleTransfer(ev.dataTransfer)) {
-      ev.dataTransfer.dropEffect = "none";
-      setDraggingOver("invalid");
-    } else {
-      setDraggingOver("transferable");
-    }
-  }, []);
-  return <div>{"→"}</div>;
-}
+});

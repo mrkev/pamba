@@ -35,6 +35,7 @@ export function useAxisContainerMouseEvents(
     axisContainer,
     useCallback(
       (e: MouseEvent) => {
+        console.log("MOUSEDOWNAXIS");
         const div = axisContainer.current;
         if (div == null) {
           return;
@@ -76,6 +77,7 @@ export function useTimelineMouseEvents(
     projectDivRef,
     useCallback(
       function mouseDown(e) {
+        console.log("MOUSEDOWN");
         const div = projectDivRef.current;
         if (div == null) {
           return;

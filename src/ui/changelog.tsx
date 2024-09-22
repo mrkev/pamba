@@ -3,6 +3,9 @@ next
 - improve zoom slider
 - locked tracks can't be deleted
 - audio clip details buffer selection
+- ui changes to show active panel
+- can undo clip deletion
+- can drag new effects onto specific positions in track effect rack
 
 v0.1.7
 - Cmd+L while selecting clip(s) activates loop on their duration

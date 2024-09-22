@@ -53,17 +53,18 @@ export class ProjectSelection {
 
     switch (primarySelection.status) {
       case "clips": {
-        for (const { clip, track } of primarySelection.clips) {
-          console.log("remove", primarySelection);
-          if (track instanceof MidiTrack && clip instanceof MidiClip) {
-            AudioProject.removeMidiClip(project, track, clip);
-          } else if (track instanceof AudioTrack && clip instanceof AudioClip) {
-            AudioProject.removeAudioClip(project, track, clip);
-          } else {
-            console.log("TODO, delete mixed!");
+        history.record(() => {
+          for (const { clip, track } of primarySelection.clips) {
+            if (track instanceof MidiTrack && clip instanceof MidiClip) {
+              AudioProject.removeMidiClip(project, track, clip);
+            } else if (track instanceof AudioTrack && clip instanceof AudioClip) {
+              AudioProject.removeAudioClip(project, track, clip);
+            } else {
+              console.warn("TODO, delete mixed!");
+            }
+            project.selected.set(null);
           }
-          project.selected.set(null);
-        }
+        });
         break;
       }
       case "tracks": {
