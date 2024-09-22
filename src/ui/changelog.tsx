@@ -6,6 +6,7 @@ next
 - ui changes to show active panel
 - can undo clip deletion
 - can drag new effects onto specific positions in track effect rack
+- can drag effects between tracks/racks, and reorder
 
 v0.1.7
 - Cmd+L while selecting clip(s) activates loop on their duration

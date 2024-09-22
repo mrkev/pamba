@@ -13,6 +13,7 @@ export default function FaustEffectModule({
   canDelete,
   canBypass,
   isSelected,
+  onDragStart,
 }: {
   effect: FaustAudioEffect;
   style?: React.CSSProperties;
@@ -22,6 +23,7 @@ export default function FaustEffectModule({
   canDelete: boolean;
   canBypass: boolean;
   isSelected: boolean;
+  onDragStart?: (e: React.DragEvent<HTMLDivElement>) => void;
 }) {
   // Use the top-most group as the overall wrapper, with the close button etc
   if ((effect.ui.length === 1 && effect.ui[0].type === "hgroup") || effect.ui[0].type === "vgroup") {
@@ -39,6 +41,7 @@ export default function FaustEffectModule({
         onHeaderMouseDown={() => onHeaderMouseDown(effect)}
         isSelected={isSelected}
         bypass={effect.bypass}
+        onDragStart={onDragStart}
       >
         <div style={groupStyle}>
           {items.map((item, i) => {
@@ -57,6 +60,7 @@ export default function FaustEffectModule({
       onHeaderMouseDown={() => onHeaderMouseDown(effect)}
       canDelete={canDelete}
       isSelected={isSelected}
+      onDragStart={onDragStart}
     >
       {effect.ui.map((item, i) => {
         return <FaustItem key={i} item={item} effect={effect} arrPos={i} />;

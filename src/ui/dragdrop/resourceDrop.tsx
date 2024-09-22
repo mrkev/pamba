@@ -10,6 +10,7 @@ import { MidiTrack } from "../../midi/MidiTrack";
 import { exhaustive } from "../../utils/exhaustive";
 import { ignorePromise } from "../../utils/ignorePromise";
 import { TransferableResource } from "./getTrackAcceptableDataTransferResources";
+import { nullthrows } from "../../utils/nullthrows";
 
 export const loadAudioClipIntoTrack = async (
   project: AudioProject,
@@ -52,7 +53,22 @@ export async function handleDropOntoAudioTrack(
       ignorePromise(loadAudioClipIntoTrack(project, resource.url, track, startOffsetSec, resource.name));
       break;
     case "fausteffect":
-      ignorePromise(track.dsp.addEffect(resource.id, "last"));
+      ignorePromise(track.dsp.addFaustEffect(resource.id, "last"));
+      break;
+    case "effectinstance":
+      const srcTrack = nullthrows(
+        project.allTracks.at(resource.trackIndex),
+        `no track at index ${resource.trackIndex}`,
+      );
+      const effectInstance = nullthrows(
+        srcTrack.dsp.effects.at(resource.effectIndex),
+        `track ${resource.trackIndex} has no effect at index ${resource.effectIndex}`,
+      );
+
+      // remove effect from source track
+      srcTrack.dsp.effects.splice(resource.effectIndex, 1);
+      // insert where appropriate
+      track.dsp.addEffect(effectInstance, "last");
       break;
     default:
       exhaustive(resource);
@@ -74,21 +90,36 @@ export async function handleDropOntoMidiTrack(
     case "audio":
       throw new Error("Can't transfer audio onto MidiTrack");
     case "fausteffect":
-      ignorePromise(track.dsp.addEffect(resource.id, "last"));
+      ignorePromise(track.dsp.addFaustEffect(resource.id, "last"));
+      break;
+    case "effectinstance":
+      const srcTrack = nullthrows(
+        project.allTracks.at(resource.trackIndex),
+        `no track at index ${resource.trackIndex}`,
+      );
+      const effectInstance = nullthrows(
+        srcTrack.dsp.effects.at(resource.effectIndex),
+        `track ${resource.trackIndex} has no effect at index ${resource.effectIndex}`,
+      );
+
+      // remove effect from source track
+      srcTrack.dsp.effects.splice(resource.effectIndex, 1);
+      // insert where appropriate
+      track.dsp.addEffect(effectInstance, "last");
       break;
     default:
       exhaustive(resource);
   }
 }
 
-export async function handleDropIntoTimeline(resources: TransferableResource[], project: AudioProject) {
+export async function handleDropOntoTimeline(resources: TransferableResource[], project: AudioProject) {
   for (const resource of resources) {
     switch (resource.kind) {
       case "AudioPackage.local":
         break;
       case "fausteffect": {
         const track = AudioProject.addAudioTrack(project, "bottom");
-        await track.dsp.addEffect(resource.id, "last");
+        await track.dsp.addFaustEffect(resource.id, "last");
         break;
       }
       case "WAMAvailablePlugin": {
@@ -122,8 +153,50 @@ export async function handleDropIntoTimeline(resources: TransferableResource[], 
         await loadAudioClipIntoTrack(project, resource.url, track, 0, resource.name);
 
         break;
+      case "effectinstance":
+        throw new Error("effectinstance, not implemented");
       default:
         exhaustive(resource);
     }
+  }
+}
+
+export async function handleDropOntoEffectRack(
+  resource: TransferableResource,
+  chainPosition: number | null,
+  track: AudioTrack | MidiTrack,
+  project: AudioProject,
+) {
+  switch (resource.kind) {
+    case "WAMAvailablePlugin":
+      await addAvailableWamToTrack(track, resource, chainPosition ?? "last");
+      break;
+    case "fausteffect":
+      await track.dsp.addFaustEffect(resource.id, chainPosition ?? "last");
+      break;
+    case "effectinstance": {
+      const srcTrack = nullthrows(
+        project.allTracks.at(resource.trackIndex),
+        `no track at index ${resource.trackIndex}`,
+      );
+      const effectInstance = nullthrows(
+        srcTrack.dsp.effects.at(resource.effectIndex),
+        `track ${resource.trackIndex} has no effect at index ${resource.effectIndex}`,
+      );
+
+      // remove effect from source track
+      srcTrack.dsp.effects.splice(resource.effectIndex, 1);
+      // insert where appropriate
+      track.dsp.addEffect(effectInstance, chainPosition ?? "last");
+      break;
+    }
+
+    // Shouldn't happen, cause resources are those returned by getRackAcceptableDataTransferResources
+    case "AudioPackage.local":
+      throw new Error("Can't transfer AudioPackage.local onto EffectRack");
+    case "audio":
+      throw new Error("Can't transfer audio onto EffectRack");
+    default:
+      exhaustive(resource);
   }
 }

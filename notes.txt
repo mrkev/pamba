@@ -1,6 +1,12 @@
 - structured-state todo:
   - expose map, set
 
+top prio:
+- reorder tracks
+- reorder effects
+- dirty state for project
+- right-click messes up dragging state
+
 todo:
 - loop clips
 - peak meters
@@ -47,6 +53,7 @@ NAME:
   - cephei.app available
 webdaw.app
 webdaw.pro
+minidaw.app
 
 notepad
 - really good midi editing

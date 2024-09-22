@@ -7,7 +7,6 @@ import FaustEffectModule from "../dsp/ui/FaustEffectModule";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioRenderer } from "../lib/AudioRenderer";
 import { AudioTrack } from "../lib/AudioTrack";
-import { addAvailableWamToTrack } from "../lib/addAvailableWamToTrack";
 import { AudioProject } from "../lib/project/AudioProject";
 import { ProjectSelection } from "../lib/project/ProjectSelection";
 import { useLinkedState } from "../lib/state/LinkedState";
@@ -20,6 +19,8 @@ import {
   effectRackCanHandleTransfer,
   getRackAcceptableDataTransferResources,
 } from "./dragdrop/getTrackAcceptableDataTransferResources";
+import { handleDropOntoEffectRack } from "./dragdrop/resourceDrop";
+import { transferEffectInstance } from "./dragdrop/setTransferData";
 import { useEventListener } from "./useEventListener";
 
 const useStyles = createUseStyles({
@@ -78,27 +79,35 @@ export const EffectRack = React.memo(function EffectRack({
     }, []),
   );
 
+  const onDragStart = useCallback(
+    (ev: React.DragEvent, effectIndex: number) => {
+      const trackIndex = project.allTracks.indexOf(track);
+      if (trackIndex < 0) {
+        throw new Error("track not found in project");
+      }
+      transferEffectInstance(ev.dataTransfer, {
+        kind: "effectinstance",
+        trackIndex,
+        effectIndex,
+      });
+    },
+    [project.allTracks, track],
+  );
+
   const onDrop = useCallback(
     async (ev: React.DragEvent<HTMLDivElement>) => {
       ev.preventDefault();
       ev.stopPropagation();
       const transferableResources = await getRackAcceptableDataTransferResources(ev.dataTransfer);
-      for (const effectPlugin of transferableResources) {
-        switch (effectPlugin.kind) {
-          case "WAMAvailablePlugin":
-            await addAvailableWamToTrack(track, effectPlugin, highlightedDropzone ?? "last");
-            break;
-          case "fausteffect":
-            await track.dsp.addEffect(effectPlugin.id, highlightedDropzone ?? "last");
-            break;
-          default:
-            exhaustive(effectPlugin);
-        }
+
+      for (const resource of transferableResources) {
+        await handleDropOntoEffectRack(resource, highlightedDropzone, track, project);
       }
+
       setHighlightedDropzone(null);
       setDraggingOver(false);
     },
-    [highlightedDropzone, track],
+    [highlightedDropzone, project, track],
   );
 
   const onDragOver = useCallback(async function allowDrop(e: React.DragEvent<HTMLDivElement>) {
@@ -145,6 +154,9 @@ export const EffectRack = React.memo(function EffectRack({
       case effect instanceof FaustAudioEffect: {
         chain.push(
           <FaustEffectModule
+            onDragStart={(ev) => {
+              onDragStart(ev, i);
+            }}
             key={`effect-${i}`}
             canDelete={!isAudioPlaying}
             canBypass={!isAudioPlaying}
@@ -179,7 +191,9 @@ export const EffectRack = React.memo(function EffectRack({
             onClickBypass={() => AudioTrack.bypassEffect(track, effect)}
             isSelected={selected?.status === "effects" && selected.test.has(effect)}
             title={effect.name}
-            draggable
+            onDragStart={(ev) => {
+              onDragStart(ev, i);
+            }}
           >
             <button onClick={() => appEnvironment.openEffects.add(effect)}>Configure</button>
           </Effect>,

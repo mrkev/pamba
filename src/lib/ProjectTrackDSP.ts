@@ -89,28 +89,22 @@ export class ProjectTrackDSP<T extends AbstractClip<any>> extends DSPNode<null> 
   }
 
   //////////////////// EFFECTS //////////////////////
-  async addEffect(effectId: FaustEffectID, index: number | "first" | "last") {
+  async addFaustEffect(effectId: FaustEffectID, index: number | "first" | "last") {
     const effect = await FaustAudioEffect.create(liveAudioContext(), effectId);
     if (effect == null) {
       return;
     }
 
+    this.addEffect(effect, index);
+  }
+
+  addEffect(effect: PambaWamNode | FaustAudioEffect, index: number | "first" | "last") {
     if (index === "last") {
       this.effects.push(effect);
     } else if (index === "first") {
       this.effects.unshift(effect);
     } else {
       this.effects.splice(index, 0, effect);
-    }
-  }
-
-  addLoadedWAM(wam: PambaWamNode, index: number | "first" | "last") {
-    if (index === "last") {
-      this.effects.push(wam);
-    } else if (index === "first") {
-      this.effects.unshift(wam);
-    } else {
-      this.effects.splice(index, 0, wam);
     }
   }
 

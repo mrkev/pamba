@@ -226,7 +226,7 @@ export function Library({
               switch (selected?.status) {
                 case "tracks":
                   const track = nullthrows(selected.tracks.at(0), "no track to add dsp to");
-                  ignorePromise(track.dsp.addEffect(item.data.id, "last"));
+                  ignorePromise(track.dsp.addFaustEffect(item.data.id, "last"));
                   break;
                 case "clips":
                 case "effects":

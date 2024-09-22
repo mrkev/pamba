@@ -207,7 +207,6 @@ export function TrackS({
           height: TRACK_SEPARATOR_HEIGHT,
         }}
         onMouseDown={(e) => {
-          console.log("MOUSEDOWN HELLo");
           pressedState.set({
             status: "resizing_track",
             clientX: e.clientX,

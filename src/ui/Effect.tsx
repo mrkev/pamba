@@ -15,7 +15,7 @@ export function Effect({
   canDelete,
   canBypass,
   bypass,
-  draggable,
+  onDragStart,
 }: {
   children?: React.ReactNode;
   title: string;
@@ -26,7 +26,7 @@ export function Effect({
   canDelete?: boolean;
   canBypass?: boolean;
   bypass?: SBoolean;
-  draggable?: boolean;
+  onDragStart?: (e: React.DragEvent<HTMLDivElement>) => void;
 }) {
   return (
     <div
@@ -41,7 +41,6 @@ export function Effect({
       }}
     >
       <EffectHeader
-        draggable={draggable}
         title={title}
         isSelected={isSelected}
         onClickBypass={onClickBypass}
@@ -50,6 +49,7 @@ export function Effect({
         canDelete={canDelete}
         canBypass={canBypass}
         bypass={bypass}
+        onDragStart={onDragStart}
       />
       {children}
     </div>
@@ -65,7 +65,7 @@ function EffectHeader({
   title,
   isSelected,
   bypass,
-  draggable,
+  onDragStart,
 }: {
   onClickRemove?: () => void;
   onMouseDown?: (e: MouseEvent) => void;
@@ -75,7 +75,7 @@ function EffectHeader({
   title: string;
   isSelected?: boolean;
   bypass?: SBoolean;
-  draggable?: boolean;
+  onDragStart?: (e: React.DragEvent<HTMLDivElement>) => void;
 }) {
   const styles = useStyles();
   const headerRef = useRef<HTMLDivElement>(null);
@@ -88,7 +88,8 @@ function EffectHeader({
 
   return (
     <div
-      draggable
+      draggable={onDragStart != null}
+      onDragStart={onDragStart}
       ref={headerRef}
       className={styles.faustTopLevelHeader}
       style={{

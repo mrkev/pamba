@@ -17,7 +17,6 @@ export function useTrackMouseEvents(
     trackRef,
     useCallback(
       (e: MouseEvent) => {
-        console.log("MOSUEDOWN TRAKC");
         if (
           e.target instanceof HTMLElement &&
           (e.target.getAttribute("data-clip-header") === "true" ||

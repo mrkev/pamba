@@ -14,6 +14,7 @@ export class PambaWamNode extends DSPNode {
   override inputNode(): AudioNode {
     return this.module.audioNode;
   }
+
   override outputNode(): AudioNode | DSPNode<AudioNode> {
     return this.module.audioNode;
   }
@@ -68,7 +69,7 @@ export class PambaWamNode extends DSPNode {
 
   override async cloneToOfflineContext(
     context: OfflineAudioContext,
-    offlineContextInfo: AudioContextInfo
+    offlineContextInfo: AudioContextInfo,
   ): Promise<PambaWamNode | null> {
     const state = await this.getState();
     const {

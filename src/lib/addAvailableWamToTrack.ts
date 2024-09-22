@@ -23,7 +23,7 @@ export async function addAvailableWamToTrack(
       const pluginInstance1 = await wam.import.createInstance(hostGroupId, liveAudioContext());
       const pluginDom1 = await pluginInstance1.createGui();
       const module = new PambaWamNode(pluginInstance1, pluginDom1, wam.url);
-      track.dsp.addLoadedWAM(module, index);
+      track.dsp.addEffect(module, index);
       break;
     }
     case "m-a": {

@@ -12,7 +12,7 @@ import { useLinkedState } from "../lib/state/LinkedState";
 import { nullthrows } from "../utils/nullthrows";
 import { Axis } from "./Axis";
 import { getTrackAcceptableDataTransferResources } from "./dragdrop/getTrackAcceptableDataTransferResources";
-import { handleDropIntoTimeline } from "./dragdrop/resourceDrop";
+import { handleDropOntoTimeline } from "./dragdrop/resourceDrop";
 import { TimelineCursor } from "./TimelineCursor";
 import { TrackS } from "./TrackS";
 import { useEventListener } from "./useEventListener";
@@ -111,9 +111,9 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
           });
         }
       },
-      [project.scaleFactor, project.viewport, project.viewportStartPx]
+      [project.scaleFactor, project.viewport, project.viewportStartPx],
     ),
-    { capture: false }
+    { capture: false },
   );
 
   useTimelineMouseEvents(project, projectDivRef);
@@ -124,7 +124,7 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
       ({ width }: { width?: number; height?: number }) => {
         project.viewport.projectDivWidth.set(width ?? 0);
       },
-      [project.viewport.projectDivWidth]
+      [project.viewport.projectDivWidth],
     ),
   });
 
@@ -149,10 +149,10 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
 
       const resources = await getTrackAcceptableDataTransferResources(
         ev.dataTransfer,
-        nullthrows(audioStorage, "error: audio storage not available")
+        nullthrows(audioStorage, "error: audio storage not available"),
       );
 
-      await handleDropIntoTimeline(resources, project);
+      await handleDropOntoTimeline(resources, project);
 
       // const url = await getDroppedAudioURL(audioStorage, ev.dataTransfer);
 
@@ -165,7 +165,7 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
       // }
       setDraggingOver(false);
     },
-    [audioStorage, project]
+    [audioStorage, project],
   );
 
   const classes = useStyles();
@@ -177,11 +177,13 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
       onDrop={onDrop}
       // For some reason, need to .preventDefault() so onDrop gets called
       onDragOver={function allowDrop(ev) {
+        // For some reason, need to .preventDefault() so onDrop gets called
+        ev.preventDefault();
+
         const newVal = ev.target instanceof HTMLDivElement && ev.target === projectDivRef.current;
         if (newVal != draggingOver) {
           setDraggingOver(newVal);
         }
-        ev.preventDefault();
       }}
       onDragLeave={() => {
         setDraggingOver(false);
