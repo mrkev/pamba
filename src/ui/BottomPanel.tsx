@@ -38,7 +38,7 @@ export function BottomPanel({
     testref,
     useCallback((kind) => {
       console.log(kind);
-    }, [])
+    }, []),
   );
 
   switch (primarySelection?.kind) {

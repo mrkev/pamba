@@ -1,21 +1,16 @@
 import { scaleLinear } from "d3-scale";
-import React, { useCallback, useRef } from "react";
+import React, { useCallback } from "react";
 import { history, useContainer } from "structured-state";
-import { modifierState } from "../ModifierState";
 import { CLIP_HEIGHT } from "../constants";
-import { appEnvironment } from "../lib/AppEnvironment";
+import { Seconds } from "../lib/AbstractClip";
 import type { AudioClip } from "../lib/AudioClip";
 import type { AudioTrack } from "../lib/AudioTrack";
 import { ProjectTrack } from "../lib/ProjectTrack";
 import type { AudioProject, XScale } from "../lib/project/AudioProject";
 import { useSubscribeToSubbableMutationHashable } from "../lib/state/LinkedMap";
-import { useLinkedState } from "../lib/state/LinkedState";
-import { pressedState } from "../pressedState";
 import { exhaustive } from "../utils/exhaustive";
 import { StandardClip } from "./StandardClip";
-import { useEventListener } from "./useEventListener";
-import { Seconds } from "../lib/AbstractClip";
-// import { dataWaveformToCanvas } from "../lib/waveformAsync";
+import { clipMouseDownToMove, clipMouseDownToResize } from "./clipMouse";
 
 export function ClipA({
   clip,
@@ -31,12 +26,8 @@ export function ClipA({
   track: AudioTrack | null; // null if clip is being rendered for move
   editable?: boolean;
 }) {
-  const headerRef = useRef<HTMLDivElement>(null);
-  // const width = project.viewport.secsToPx(clip.clipLengthSec);
-  // const left = project.viewport.secsToPx(clip.timelineStartSec);
   const totalBufferWidth = project.viewport.secsToPx(clip.bufferLength);
   const bufferOffsetPx = project.viewport.secsToPx(clip.bufferOffset);
-  const [tool] = useLinkedState(project.pointerTool);
   const height = CLIP_HEIGHT - 3; // to clear the bottom track separator gridlines
 
   const tStart = useContainer(clip.timelineStart);
@@ -45,92 +36,39 @@ export function ClipA({
   useSubscribeToSubbableMutationHashable(clip);
 
   function onMouseDownToResize(e: React.MouseEvent<HTMLDivElement>, from: "start" | "end") {
-    e.stopPropagation();
-    if (tool !== "move" || track == null) {
+    const tool = project.pointerTool.get();
+    if (tool !== "move" || !editable || track == null) {
       return;
     }
-
-    pressedState.set({
-      status: "resizing_clip",
-      clip,
-      originalBufferOffset: clip.bufferOffset,
-      originalClipStart: clip.timelineStart.clone(),
-      originalClipLength: clip.timelineLength.clone(),
-      from,
-      clientX: e.clientX,
-      clientY: e.clientY,
-      inHistory: false,
-      track,
-    });
+    clipMouseDownToResize(e, { kind: "audio", clip, track }, from);
   }
 
   const onMouseDownToMove = useCallback(
     function (e: MouseEvent) {
-      if (tool !== "move" || track == null) {
+      const tool = project.pointerTool.get();
+      if (tool !== "move" || !editable || track == null) {
         return;
       }
-
-      if (!editable) {
-        return;
-      }
-
-      if (e.button !== 0) {
-        return;
-      }
-
-      pressedState.set({
-        status: "moving_clip",
-        clientX: e.clientX,
-        clientY: e.clientY,
-        clip,
-        track,
-        originalTrack: track,
-        originalClipStart: clip.timelineStart.clone(),
-        inHistory: false,
-      });
-
-      project.selected.setDyn((prev) => {
-        const selectAdd = modifierState.meta || modifierState.shift;
-        if (selectAdd && prev !== null && prev.status === "clips") {
-          prev.clips.push({ kind: "audio", clip, track });
-          prev.test.add(clip);
-          prev.test.add(track);
-          return { ...prev };
-        } else {
-          return {
-            status: "clips",
-            clips: [{ kind: "audio", clip, track }],
-            test: new Set([clip, track]),
-          };
-        }
-      });
-
-      project.selectionWidth.set(null);
+      clipMouseDownToMove(e, { kind: "audio", clip, track }, project);
     },
-    [clip, editable, project.selected, project.selectionWidth, tool, track],
-  );
-
-  useEventListener(
-    "dblclick",
-    headerRef,
-    useCallback(() => {
-      appEnvironment.activeBottomPanel.set("editor");
-    }, []),
+    [clip, editable, project, track],
   );
 
   function onClipClick(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
-    const div = e.currentTarget;
-    if (!(div instanceof HTMLDivElement)) {
+    if (!editable || track == null) {
       return;
     }
-    if (!editable || track == null) {
+
+    const tool = project.pointerTool.get();
+    const div = e.currentTarget;
+    if (!(div instanceof HTMLDivElement)) {
       return;
     }
 
     switch (tool) {
       case "move":
         break;
-      case "slice": // TODO: BROKEN
+      case "slice":
         history.record(() => {
           const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
           const secFromStartOfClip = project.viewport.pxToSecs(pxFromStartOfClip);
@@ -176,6 +114,7 @@ export function ClipA({
   const left = project.viewport.secsToPx(tStart.secs(project));
   return (
     <StandardClip
+      editable={editable}
       clip={clip}
       isSelected={isSelected}
       onMouseDownToResize={onMouseDownToResize}

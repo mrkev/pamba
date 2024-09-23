@@ -27,6 +27,21 @@ export function clipResizeEndSec(clip: AudioClip, newLengthSec: number, project:
   }
 }
 
+export function clipResizeEndPulses(clip: MidiClip, newLengthPulses: number, originalEndPulses: number, snap: boolean) {
+  // We can't trim a clip to end before it's beggining
+  // note: we don't clamp because midi clips can grow as long as we want them to
+  const newClipEnd = Math.min(0, newLengthPulses);
+
+  if (!snap) {
+    clip.timelineLength.set(newLengthPulses, "pulses");
+  } else {
+    const steppedToTick = stepNumber(newClipEnd, PPQN);
+    const steppedToOriginalEnd = stepNumber(newLengthPulses, PPQN * 4, originalEndPulses);
+    const result = returnClosest(newLengthPulses, steppedToTick, steppedToOriginalEnd);
+    clip.timelineLength.set(result, "pulses");
+  }
+}
+
 export function clipResizeStartSec(
   clip: AudioClip,
   newBufferOffset: number,

@@ -1,6 +1,6 @@
 import { useState } from "react";
+import { usePrimitive } from "structured-state";
 import { AudioProject } from "../lib/project/AudioProject";
-import { useLinkedState } from "../lib/state/LinkedState";
 import { ignorePromise } from "../utils/ignorePromise";
 import { UploadButton } from "./FormButtons";
 import { utility } from "./utility";
@@ -13,7 +13,7 @@ export function UploadAudioButton({
   loadClip?: (url: string, name?: string) => Promise<void>;
 }) {
   const [uploadStatus, setUploadStatus] = useState<"idle" | "uploading">("idle");
-  const [audioStorage] = useLinkedState(project.audioStorage);
+  const [audioStorage] = usePrimitive(project.audioStorage);
 
   return (
     audioStorage && (

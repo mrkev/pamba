@@ -11,7 +11,7 @@ export function StandardClip({
   clip,
   isSelected,
   style = {},
-  editable = true,
+  editable,
   onMouseDownToResize,
   onMouseDownToMove,
   onClipClick,
@@ -22,7 +22,7 @@ export function StandardClip({
   clip: AudioClip | MidiClip;
   isSelected: boolean;
   style?: React.CSSProperties;
-  editable?: boolean;
+  editable: boolean;
   onMouseDownToResize: (e: React.MouseEvent<HTMLDivElement>, from: "start" | "end") => void;
   onMouseDownToMove: (e: MouseEvent) => void;
   onClipClick: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;

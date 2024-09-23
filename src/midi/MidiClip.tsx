@@ -39,6 +39,10 @@ export class MidiClip extends Structured<SMidiClip, typeof MidiClip> implements 
   readonly notes: SArray<Note>; // ordered by tick (start)
   readonly detailedViewport: MidiViewport;
 
+  // todo: as of now, unused. midi can be trimmed like audio though.
+  public bufferOffset: Pulses = 0 as Pulses;
+  readonly bufferLength: Pulses = 0 as Pulses;
+
   override serialize(): SMidiClip {
     return {
       kind: "MidiClip",

@@ -1,7 +1,7 @@
 import classNames from "classnames";
 import React, { useRef, useState } from "react";
+import { usePrimitive } from "structured-state";
 import { AudioProject } from "../lib/project/AudioProject";
-import { useLinkedState } from "../lib/state/LinkedState";
 import { useEventListener } from "./useEventListener";
 
 export type OptionObj<T extends string, F> = {
@@ -35,7 +35,7 @@ export function AudioFileUploadDropzone({
 }: React.ComponentPropsWithoutRef<"div"> & { project: AudioProject; className?: string }) {
   const [status, setStatus] = useState<"idle" | "dragover" | "loading">("idle");
   const divRef = useRef<HTMLDivElement>(null);
-  const [audioStorage] = useLinkedState(project.audioStorage);
+  const [audioStorage] = usePrimitive(project.audioStorage);
 
   useEventListener("dragover", divRef, (e) => {
     if (!audioStorage) {

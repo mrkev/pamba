@@ -7,6 +7,7 @@ import { AudioTrack } from "../lib/AudioTrack";
 import {
   clipMovePPQN,
   clipMoveSec,
+  clipResizeEndPulses,
   clipResizeEndSec,
   clipResizeStartSec,
   pointMovePulses,
@@ -348,6 +349,16 @@ export function useTimelineMouseEvents(
             const deltaX = e.clientX - pressed.clientX;
 
             if (pressed.clip instanceof MidiClip) {
+              const opDeltaXPulses = project.viewport.pxToPulses(deltaX);
+              const originalClipLengthPulses = pressed.originalClipLength.pulses(project);
+
+              if (pressed.from === "end") {
+                const newLength = originalClipLengthPulses + opDeltaXPulses;
+                const originalEndPulses =
+                  pressed.clip.timelineStart.pulses(project) + pressed.clip.timelineLength.pulses(project);
+                clipResizeEndPulses(pressed.clip, newLength, originalEndPulses, snap);
+              }
+
               throw new Error("MidiClip unimplemented");
             } else if (pressed.clip instanceof AudioClip) {
               const opDeltaXSecs = project.viewport.pxToSecs(deltaX);

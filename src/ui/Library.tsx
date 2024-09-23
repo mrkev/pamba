@@ -3,6 +3,7 @@ import { createUseStyles } from "react-jss";
 import { usePrimitive } from "structured-state";
 import { LIBRARY_SEARCH_INPUT_ID } from "../constants";
 import { AudioPackage } from "../data/AudioPackage";
+import { FAUST_EFFECTS, FaustEffectID } from "../dsp/FAUST_EFFECTS";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import { WAMAvailablePlugin, appEnvironment } from "../lib/AppEnvironment";
 import { AudioClip } from "../lib/AudioClip";
@@ -14,7 +15,6 @@ import { addAvailableWamToTrack } from "../lib/addAvailableWamToTrack";
 import { AudioProject } from "../lib/project/AudioProject";
 import { useLinkedArrayMaybe } from "../lib/state/LinkedArray";
 import { useLinkedMap } from "../lib/state/LinkedMap";
-import { useLinkedState } from "../lib/state/LinkedState";
 import { pressedState } from "../pressedState";
 import { exhaustive } from "../utils/exhaustive";
 import { ignorePromise } from "../utils/ignorePromise";
@@ -23,12 +23,11 @@ import { doConfirm } from "./ConfirmDialog";
 import { UploadAudioButton } from "./UploadAudioButton";
 import { ListEntry, UtilityDataList } from "./UtilityList";
 import { closeProject } from "./header/ToolHeader";
-import { FAUST_EFFECTS, FaustEffectID } from "../dsp/FAUST_EFFECTS";
 
 const STATIC_AUDIO_FILES = ["drums.mp3", "clav.mp3", "bassguitar.mp3", "horns.mp3", "leadguitar.mp3"];
 
 function useAudioLibrary(project: AudioProject, filter: string): (string | AudioPackage)[] {
-  const [audioStorage] = useLinkedState(project.audioStorage);
+  const [audioStorage] = usePrimitive(project.audioStorage);
   const remoteAudio = useLinkedArrayMaybe(audioStorage?.remoteFiles ?? null);
   const [localAudio] = useLinkedMap(appEnvironment.localFiles.audioLib.state);
   const audioLibrary = [...STATIC_AUDIO_FILES, ...(remoteAudio ?? []), ...localAudio.values()];

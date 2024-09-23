@@ -1,6 +1,6 @@
 import type { ScaleLinear } from "d3-scale";
 import { scaleLinear } from "d3-scale";
-import { SArray, SSet } from "structured-state";
+import { SArray, SPrimitive, SSet } from "structured-state";
 import { ulid } from "ulid";
 import { DEFAULT_TEMPO, SOUND_FONT_URL, liveAudioContext } from "../../constants";
 import { getFirebaseStorage } from "../../firebase/getFirebase";
@@ -39,7 +39,7 @@ import { TimelineT, time } from "./TimelineT";
 
 export type XScale = ScaleLinear<number, number>;
 
-export type Tool = "move" | "trimStart" | "trimEnd" | "slice";
+export type PointerTool = "move" | "trimStart" | "trimEnd" | "slice";
 export type SecondaryTool = "move" | "draw";
 export type Panel = "primary" | "secondary" | "sidebar";
 
@@ -48,16 +48,17 @@ export type AxisMeasure = "tempo" | "time";
 
 export class AudioProject {
   readonly projectId: string;
-  readonly projectName: LinkedState<string>;
+  readonly projectName: SPrimitive<string>;
 
+  // settings //
+  readonly tempo: SPrimitive<number>;
+  readonly timeSignature = SPrimitive.of([4, 4] as const); // TODO: serialize
+  readonly primaryAxis = SPrimitive.of<AxisMeasure>("tempo"); // TODO: serialize
+  readonly snapToGrid = SPrimitive.of(true); // per project setting?
+
+  // systems //
   readonly viewport: ProjectViewportUtil;
-  readonly audioStorage = LinkedState.of<AudioStorage | null>(null);
-
-  readonly isRecording = LinkedState.of(false); // environment?
-  readonly tempo: LinkedState<number>;
-  readonly timeSignature = LinkedState.of([4, 4] as const); // TODO: serialize
-  readonly primaryAxis = LinkedState.of<AxisMeasure>("tempo"); // TODO: serialize
-  readonly snapToGrid = LinkedState.of(true); // per project setting?
+  readonly audioStorage = SPrimitive.of<AudioStorage | null>(null);
 
   // Tracks //
   readonly allTracks: SArray<AudioTrack | MidiTrack>;
@@ -70,7 +71,7 @@ export class AudioProject {
   readonly armedTrack = LinkedState.of<AudioTrack | MidiTrack | null>(null);
 
   // Pointer //
-  readonly pointerTool = LinkedState.of<Tool>("move");
+  readonly pointerTool = LinkedState.of<PointerTool>("move");
   readonly panelTool = LinkedState.of<SecondaryTool>("move");
   // the width of the selection at the playback cursor
   // TODO: Rename cursor time width or something?
@@ -128,8 +129,8 @@ export class AudioProject {
     this.projectId = projectId;
     this.allTracks = SArray.create(tracks);
     this.viewport = new ProjectViewportUtil(this);
-    this.projectName = LinkedState.of(projectName);
-    this.tempo = LinkedState.of(tempo);
+    this.projectName = SPrimitive.of(projectName);
+    this.tempo = SPrimitive.of(tempo);
     this.loopStart = loopStart;
     this.loopEnd = loopEnd;
     this.loopOnPlayback = LinkedState.of(loopOnPlayback);

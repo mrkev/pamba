@@ -51,7 +51,7 @@ export function TrackS({
   const [height] = usePrimitive(track.height);
   const [activeTrack] = useLinkedState(project.activeTrack);
   const lockedTracks = useContainer(project.lockedTracks);
-  const [audioStorage] = useLinkedState(project.audioStorage);
+  const [audioStorage] = usePrimitive(project.audioStorage);
   const trackRef = useRef<HTMLDivElement>(null);
   const [draggingOver, setDraggingOver] = useState<number | null>(null);
   const locked = lockedTracks.has(track);

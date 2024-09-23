@@ -3,6 +3,7 @@ import { createUseStyles } from "react-jss";
 import { AudioProject, AxisMeasure } from "../lib/project/AudioProject";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { SECS_IN_MIN } from "../midi/MidiClip";
+import { usePrimitive } from "structured-state";
 
 const formatter = new Intl.NumberFormat("en-US", {
   useGrouping: false,
@@ -129,9 +130,9 @@ export function Axis({ project, isHeader = false }: { project: AudioProject; isH
   const styles = useStyles();
   const [viewportStartPx] = useLinkedState(project.viewportStartPx);
   const [projectDivWidth] = useLinkedState(project.viewport.projectDivWidth);
-  const [tempo] = useLinkedState(project.tempo);
-  const [timeSignature] = useLinkedState(project.timeSignature);
-  const [primaryAxis] = useLinkedState(project.primaryAxis);
+  const [tempo] = usePrimitive(project.tempo);
+  const [timeSignature] = usePrimitive(project.timeSignature);
+  const [primaryAxis] = usePrimitive(project.primaryAxis);
   const [_] = useLinkedState(project.scaleFactor); // for updating when changing scale
 
   const timeTicksS = getTimeTickData(project, viewportStartPx, projectDivWidth);

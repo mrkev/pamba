@@ -1,8 +1,8 @@
 import classNames from "classnames";
 import { useState } from "react";
+import { usePrimitive } from "structured-state";
 import { AudioProject } from "../lib/project/AudioProject";
 import { TimeUnit, TimelineT } from "../lib/project/TimelineT";
-import { useLinkedState } from "../lib/state/LinkedState";
 import { exhaustive } from "../utils/exhaustive";
 
 const UNITS = ["pulses", "seconds", "bars"] as const;
@@ -22,7 +22,7 @@ export function TimelineTEditor({
   // TODO: min value, max value
 }) {
   const [unit, setUnit] = useState<TimeUnit>(defaultUnit ?? t.u);
-  useLinkedState(project.tempo); // to re-render on tempo changes
+  usePrimitive(project.tempo); // to re-render on tempo changes
 
   // console.log(t);
   // TODO: add up/down arrows

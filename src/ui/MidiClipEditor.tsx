@@ -63,7 +63,7 @@ export function MidiClipEditor({
   const [pxPerPulse, setPxPerPulse] = usePrimitive(clip.detailedViewport.pxPerPulse);
   const [secondarySel] = useLinkedState(project.secondarySelection);
   const [panelTool] = useLinkedState(project.panelTool);
-  const [bpm] = useLinkedState(project.tempo);
+  const [bpm] = usePrimitive(project.tempo);
   const timelineLen = useContainer(clip.timelineLength);
 
   useSubscribeToSubbableMutationHashable(clip);
@@ -143,7 +143,7 @@ export function MidiClipEditor({
         ctx.scale(1, 1);
       },
       // TODO: rn need pxPerPulse for updating
-      [clip.detailedViewport, clip.lengthPulses, noteHeight, pxPerPulse],
+      [clip.detailedViewport, clip.lengthPulses, noteHeight],
     ),
   );
 

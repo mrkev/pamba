@@ -8,7 +8,6 @@ import { AudioRecorder } from "../../lib/AudioRecorder";
 import { AudioRenderer } from "../../lib/AudioRenderer";
 import { ProjectPersistance } from "../../lib/ProjectPersistance";
 import { AudioProject } from "../../lib/project/AudioProject";
-import { useLinkedMap } from "../../lib/state/LinkedMap";
 import { useLinkedState } from "../../lib/state/LinkedState";
 import { doConfirm } from "../ConfirmDialog";
 import { RenamableLabel } from "../RenamableLabel";
@@ -78,7 +77,7 @@ export function PlaybeatTime({ project, player }: { project: AudioProject; playe
       ctx.clearRect(0, 0, playbeatCanvasRef.current.width, 100);
       ctx.fillText(String(`${bar}.${beat}.${high}`), 6, 26);
     },
-    [project.tempo, project.timeSignature]
+    [project.tempo, project.timeSignature],
   );
 
   return (
@@ -143,12 +142,12 @@ export function ToolHeader({
   recorder: AudioRecorder;
 }) {
   const classes = useStyles();
-  const [tempo] = useLinkedState(project.tempo);
-  const [snapToGrid] = useLinkedState(project.snapToGrid);
+  const [tempo] = usePrimitive(project.tempo);
+  const [snapToGrid] = usePrimitive(project.snapToGrid);
   const [loopPlayback] = useLinkedState(project.loopOnPlayback);
-  const [inputDevices] = useLinkedMap(recorder.audioInputDevices);
-  const [selectedDevice] = useLinkedState(recorder.currentInput);
-  const [projectName] = useLinkedState(project.projectName);
+  // const [inputDevices] = useLinkedMap(recorder.audioInputDevices);
+  // const [selectedDevice] = useLinkedState(recorder.currentInput);
+  const [projectName] = usePrimitive(project.projectName);
   const [isAudioPlaying] = usePrimitive(renderer.isAudioPlaying);
   const [recorderStatus] = useLinkedState(recorder.status);
   const isRecording = recorderStatus === "recording";

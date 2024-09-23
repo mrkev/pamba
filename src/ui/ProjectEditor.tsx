@@ -6,6 +6,7 @@ import { AudioProject } from "../lib/project/AudioProject";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { pAll } from "../utils/ignorePromise";
 import { ListEntry, UtilityDataList } from "./UtilityList";
+import { usePrimitive } from "structured-state";
 
 const STATUS_PENDING = { status: "pending" } as const;
 
@@ -29,7 +30,7 @@ function useAsync<T>(promise: Promise<T>): AsyncResult<T> {
 }
 
 export function ProjectEditor({ project }: { project: AudioProject }) {
-  const [name] = useLinkedState(project.projectName);
+  const [name] = usePrimitive(project.projectName);
   const [projectPackage] = useLinkedState(appEnvironment.projectPacakge);
   const results = useAsync(
     useMemo(async () => {

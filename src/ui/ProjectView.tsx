@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { createUseStyles } from "react-jss";
-import { useContainer } from "structured-state";
+import { useContainer, usePrimitive } from "structured-state";
 import useResizeObserver from "use-resize-observer";
 import { useTimelineMouseEvents } from "../input/useProjectMouseEvents";
 import { AudioRenderer } from "../lib/AudioRenderer";
@@ -52,7 +52,7 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
   const projectDivRef = useRef<HTMLDivElement | null>(null);
   const dspExpandedTracks = useContainer(project.dspExpandedTracks);
   const [draggingOver, setDraggingOver] = useState<boolean>(false);
-  const [audioStorage] = useLinkedState(project.audioStorage);
+  const [audioStorage] = usePrimitive(project.audioStorage);
   const [viewportStartPx] = useLinkedState(project.viewportStartPx);
   const tracks = useContainer(project.allTracks);
   const playbackPosDiv = useRef<null | HTMLDivElement>(null);

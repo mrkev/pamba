@@ -1,25 +1,25 @@
 import React, { useCallback } from "react";
 import { useContainer } from "structured-state";
-import { modifierState } from "../ModifierState";
 import type { AudioProject } from "../lib/project/AudioProject";
-import { PrimarySelectionState } from "../lib/project/SelectionState";
 import { useSubscribeToSubbableMutationHashable } from "../lib/state/LinkedMap";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { MidiClip } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
-import { pressedState } from "../pressedState";
 import { StandardClip } from "./StandardClip";
+import { clipMouseDownToMove, clipMouseDownToResize } from "./clipMouse";
 
 export function ClipM({
   clip,
   isSelected,
   project,
   track,
+  editable = true,
 }: {
   clip: MidiClip;
   isSelected: boolean;
   project: AudioProject;
   track: MidiTrack | null; // null if clip is being rendered for move
+  editable?: boolean;
 }) {
   const notes = useContainer(clip.notes);
   // const startTrimmedWidth = project.viewport.secsToPx(clip.trimStartSec);
@@ -33,65 +33,24 @@ export function ClipM({
 
   const onMouseDownToResize = useCallback(
     (e: React.MouseEvent<HTMLDivElement>, from: "start" | "end") => {
-      e.stopPropagation();
-      if (tool !== "move" || track == null) {
+      const tool = project.pointerTool.get();
+      if (tool !== "move" || !editable || track == null) {
         return;
       }
-
-      pressedState.set({
-        status: "resizing_clip",
-        clip,
-        originalBufferOffset: -1, // TODO: midi notes offsest
-        originalClipStart: clip.timelineStart.clone(),
-        originalClipLength: clip.timelineLength.clone(),
-        from,
-        clientX: e.clientX,
-        clientY: e.clientY,
-        inHistory: false,
-        track,
-      });
+      clipMouseDownToResize(e, { kind: "midi", clip, track }, from);
     },
-    [clip, tool, track],
+    [clip, editable, project.pointerTool, track],
   );
 
   const onMouseDownToMove = useCallback(
     (e: MouseEvent) => {
-      if (tool !== "move" || track == null) {
+      const tool = project.pointerTool.get();
+      if (tool !== "move" || !editable || track == null) {
         return;
       }
-
-      pressedState.set({
-        // TODO: move clip in pulses state? or abstract unit away?
-        status: "moving_clip",
-        clientX: e.clientX,
-        clientY: e.clientY,
-        clip,
-        track,
-        originalTrack: track,
-        originalClipStart: clip.timelineStart.clone(),
-        inHistory: false,
-      });
-
-      project.selected.setDyn((prev): PrimarySelectionState | null => {
-        const selectAdd = modifierState.meta || modifierState.shift;
-        if (selectAdd && prev !== null && prev.status === "clips") {
-          prev.clips.push({ kind: "midi", clip, track });
-          prev.test.add(clip);
-          prev.test.add(track);
-          return { ...prev };
-        } else {
-          return {
-            status: "clips",
-            clips: [{ kind: "midi", clip, track }],
-            test: new Set([clip, track]),
-          };
-        }
-      });
-
-      project.selectionWidth.set(null);
-      e.stopPropagation();
+      clipMouseDownToMove(e, { kind: "midi", clip, track }, project);
     },
-    [clip, project.selected, project.selectionWidth, tool, track],
+    [clip, editable, project, track],
   );
 
   const onClipClick = useCallback((e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
@@ -118,6 +77,7 @@ export function ClipM({
   return (
     <StandardClip
       clip={clip}
+      editable={editable}
       isSelected={isSelected}
       onMouseDownToResize={onMouseDownToResize}
       onMouseDownToMove={onMouseDownToMove}
