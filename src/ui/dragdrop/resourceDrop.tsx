@@ -42,18 +42,21 @@ export async function handleDropOntoAudioTrack(
   project: AudioProject,
 ) {
   switch (resource.kind) {
+    case "trackinstance":
+      console.warn("can't drop a trackinstance onto an audio track");
+      break;
     case "WAMAvailablePlugin":
-      ignorePromise(addAvailableWamToTrack(track, resource, "last"));
+      await addAvailableWamToTrack(track, resource, "last");
       break;
     case "AudioPackage.local":
       console.warn("NOT IMEPLEMENTED");
       break;
     case "audio":
       const startOffsetSec = project.viewport.pxToSecs(position);
-      ignorePromise(loadAudioClipIntoTrack(project, resource.url, track, startOffsetSec, resource.name));
+      await loadAudioClipIntoTrack(project, resource.url, track, startOffsetSec, resource.name);
       break;
     case "fausteffect":
-      ignorePromise(track.dsp.addFaustEffect(resource.id, "last"));
+      await track.dsp.addFaustEffect(resource.id, "last");
       break;
     case "effectinstance":
       const srcTrack = nullthrows(
@@ -82,6 +85,8 @@ export async function handleDropOntoMidiTrack(
   project: AudioProject,
 ) {
   switch (resource.kind) {
+    case "trackinstance":
+      throw new Error("Can't transfer trackinstance onto MidiTrack");
     case "WAMAvailablePlugin":
       ignorePromise(addAvailableWamToTrack(track, resource, "last"));
       break;
@@ -115,6 +120,8 @@ export async function handleDropOntoMidiTrack(
 export async function handleDropOntoTimeline(resources: TransferableResource[], project: AudioProject) {
   for (const resource of resources) {
     switch (resource.kind) {
+      case "trackinstance":
+        throw new Error("Can't transfer trackinstance onto timeline");
       case "AudioPackage.local":
         break;
       case "fausteffect": {
@@ -168,6 +175,8 @@ export async function handleDropOntoEffectRack(
   project: AudioProject,
 ) {
   switch (resource.kind) {
+    case "trackinstance":
+      throw new Error("Can't transfer trackinstance onto effect rack");
     case "WAMAvailablePlugin":
       await addAvailableWamToTrack(track, resource, chainPosition ?? "last");
       break;
@@ -196,6 +205,37 @@ export async function handleDropOntoEffectRack(
       throw new Error("Can't transfer AudioPackage.local onto EffectRack");
     case "audio":
       throw new Error("Can't transfer audio onto EffectRack");
+    default:
+      exhaustive(resource);
+  }
+}
+
+export async function handleDropOntoTrackHeaderContainer(
+  resource: TransferableResource,
+  positionToDropInto: number | null,
+  project: AudioProject,
+) {
+  switch (resource.kind) {
+    case "trackinstance": {
+      const srcTrack = nullthrows(
+        project.allTracks.at(resource.trackIndex),
+        `no track at index ${resource.trackIndex}`,
+      );
+
+      // remove track from project
+      project.allTracks.splice(resource.trackIndex, 1);
+      // insert where appropriate
+      project.allTracks.splice(positionToDropInto ?? project.allTracks.length, 0, srcTrack);
+
+      break;
+    }
+
+    case "WAMAvailablePlugin":
+    case "fausteffect":
+    case "effectinstance":
+    case "AudioPackage.local":
+    case "audio":
+      throw new Error(`Can't transfer ${resource.kind} onto track header`);
     default:
       exhaustive(resource);
   }

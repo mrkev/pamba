@@ -6,6 +6,7 @@ import { MidiClip } from "./midi/MidiClip";
 import { MidiTrack } from "./midi/MidiTrack";
 import { Note } from "./midi/SharedMidiTypes";
 import { LibraryItem } from "./ui/Library";
+import { PambaDataTransferResourceKind } from "./ui/dragdrop/getTrackAcceptableDataTransferResources";
 
 export type CursorState =
   | Readonly<{
@@ -21,8 +22,8 @@ export type CursorState =
       inHistory: boolean;
     }>
   | Readonly<{
-      status: "dragging_library_item";
-      libraryItem: LibraryItem;
+      status: "dragging_transferable";
+      kind: PambaDataTransferResourceKind;
     }>
   | Readonly<{
       status: "selecting_global_time";

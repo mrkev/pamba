@@ -15,13 +15,12 @@ import { exhaustive } from "../utils/exhaustive";
 import { nullthrows } from "../utils/nullthrows";
 import { PambaWamNode } from "../wam/PambaWamNode";
 import { Effect } from "./Effect";
-import {
-  effectRackCanHandleTransfer,
-  getRackAcceptableDataTransferResources,
-} from "./dragdrop/getTrackAcceptableDataTransferResources";
+import { getRackAcceptableDataTransferResources } from "./dragdrop/getTrackAcceptableDataTransferResources";
+import { effectRackCanHandleTransfer } from "./dragdrop/canHandleTransfer";
 import { handleDropOntoEffectRack } from "./dragdrop/resourceDrop";
 import { transferEffectInstance } from "./dragdrop/setTransferData";
 import { useEventListener } from "./useEventListener";
+import { pressedState } from "../pressedState";
 
 const useStyles = createUseStyles({
   effectRack: {
@@ -106,6 +105,7 @@ export const EffectRack = React.memo(function EffectRack({
 
       setHighlightedDropzone(null);
       setDraggingOver(false);
+      pressedState.set(null);
     },
     [highlightedDropzone, project, track],
   );

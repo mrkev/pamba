@@ -1,8 +1,6 @@
 import classNames from "classnames";
 import { useRef } from "react";
 import { createUseStyles } from "react-jss";
-import { useContainer } from "structured-state";
-import { MIN_TRACK_HEIGHT, TRACK_HEADER_WIDTH } from "../constants";
 import { documentCommands } from "../input/documentCommands";
 import { useAxisContainerMouseEvents } from "../input/useProjectMouseEvents";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
@@ -13,9 +11,8 @@ import { Axis } from "./Axis";
 import { CursorSelection } from "./CursorSelection";
 import { LoopMarkers } from "./LoopMarkers";
 import { ProjectView } from "./ProjectView";
-import { TrackHeader } from "./TrackHeader";
+import { TrackHeaderContainer } from "./TrackHeaderContainer";
 import { UtilityMenu } from "./UtilityMenu";
-import { utility } from "./utility";
 
 export function TimelineView({
   project,
@@ -28,7 +25,6 @@ export function TimelineView({
 }) {
   const classes = useStyles();
   const axisContainerRef = useRef<HTMLDivElement | null>(null);
-  const tracks = useContainer(project.allTracks);
   const [viewportStartPx] = useLinkedState(project.viewportStartPx);
   const [activePanel] = useLinkedState(project.activePanel);
 
@@ -85,32 +81,7 @@ export function TimelineView({
       <ProjectView project={project} renderer={renderer} />
 
       {/* 3. Track headers */}
-      <div className={classes.trackHeaders}>
-        {tracks.map((track, i) => {
-          return (
-            <TrackHeader key={i} track={track} project={project} player={player} trackNumber={tracks.length - i} />
-          );
-        })}
-        {/* extra space */}
-        <div
-          style={{
-            height: MIN_TRACK_HEIGHT * 2,
-            position: "relative",
-            padding: "8px 8px",
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
-          <button
-            className={utility.button}
-            onClick={async () => {
-              documentCommands.execById("createAudioTrack", project);
-            }}
-          >
-            new track
-          </button>
-        </div>
-      </div>
+      <TrackHeaderContainer project={project} player={player} />
     </div>
   );
 }
@@ -145,19 +116,10 @@ const useStyles = createUseStyles({
     alignItems: "center",
     flexDirection: "row",
     justifyContent: "space-evenly",
-    borderBottom: "1px solid var(--axis-spacer-headers-separator)",
+    // borderBottom: "1px solid var(--axis-spacer-headers-separator)",
     position: "sticky",
     top: 0,
     zIndex: 2,
-  },
-  trackHeaders: {
-    position: "sticky",
-    right: 0,
-    zIndex: 1,
-    display: "flex",
-    flexDirection: "column",
-    width: TRACK_HEADER_WIDTH,
-    flexShrink: 0,
   },
   axisContainer: {
     position: "sticky",

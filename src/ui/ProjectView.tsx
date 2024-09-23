@@ -16,6 +16,7 @@ import { handleDropOntoTimeline } from "./dragdrop/resourceDrop";
 import { TimelineCursor } from "./TimelineCursor";
 import { TrackS } from "./TrackS";
 import { useEventListener } from "./useEventListener";
+import { pressedState } from "../pressedState";
 
 export async function getDroppedAudioURL(audioStorage: AudioStorage | null, dataTransfer: DataTransfer) {
   if (audioStorage == null) {
@@ -164,6 +165,7 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
       //   AudioProject.addAudioTrack(project, undefined, track, "bottom");
       // }
       setDraggingOver(false);
+      pressedState.set(null);
     },
     [audioStorage, project],
   );

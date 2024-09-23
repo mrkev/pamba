@@ -20,10 +20,8 @@ import { ClipM } from "./ClipM";
 import { CursorSelection } from "./CursorSelection";
 import { EffectRack } from "./EffectRack";
 import { LibraryItem } from "./Library";
-import {
-  getTrackAcceptableDataTransferResources,
-  trackCanHandleTransfer,
-} from "./dragdrop/getTrackAcceptableDataTransferResources";
+import { getTrackAcceptableDataTransferResources } from "./dragdrop/getTrackAcceptableDataTransferResources";
+import { trackCanHandleTransfer } from "./dragdrop/canHandleTransfer";
 import { handleDropOntoAudioTrack, handleDropOntoMidiTrack } from "./dragdrop/resourceDrop";
 
 function clientXToTrackX(trackElem: HTMLDivElement | null, clientX: number) {
@@ -67,13 +65,8 @@ export function TrackS({
   const [audioStorage] = useLinkedState(project.audioStorage);
   const trackRef = useRef<HTMLDivElement>(null);
   const [draggingOver, setDraggingOver] = useState<number | null>(null);
-
+  const [dragStatus, setDragStatus] = useState<false | "invalid" | "transferable">(false);
   const locked = lockedTracks.has(track);
-
-  // const [, setStateCounter] = useState(0);
-  // const rerender = useCallback(function () {
-  //   setStateCounter((x) => x + 1);
-  // }, []);
 
   useTrackMouseEvents(trackRef, project, track);
 
@@ -100,16 +93,20 @@ export function TrackS({
       }
 
       setDraggingOver(null);
+      pressedState.set(null);
     },
     [audioStorage, draggingOver, project, track],
   );
 
   // TODO: replace with the system I use in EffectRack? Where we just set state on wether the transfer if acceptable
   // in onDragOver, via the mime types of ev.dataTransfer?
-  const darkenOnDrag =
-    pressed != null &&
-    pressed.status === "dragging_library_item" &&
-    (draggingOver == null || !trackCanHandleLibraryItem(track, pressed.libraryItem));
+  // todo: darken when dragging effect instances in too
+  // const darkenOnDrag =
+  //   pressed != null &&
+  //   pressed.status === "dragging_library_item" &&
+  //   (draggingOver == null || !trackCanHandleLibraryItem(track, pressed.libraryItem));
+
+  const darkenOnDrag = pressed != null && pressed.status === "dragging_transferable" && draggingOver == null;
 
   return (
     <>
@@ -117,21 +114,25 @@ export function TrackS({
         ref={trackRef}
         className={classNames(locked && styles.locked)}
         onDrop={onDrop}
-        // For some reason, need to .preventDefault() so onDrop gets called
-        onDragOver={function allowDrop(ev) {
-          const draggedOffsetPx = clientXToTrackX(trackRef.current, ev.clientX);
+        onDragOver={function allowDrop(e) {
+          // For some reason, need to .preventDefault() so onDrop gets called
+          e.preventDefault();
+
+          const draggedOffsetPx = clientXToTrackX(trackRef.current, e.clientX);
           setDraggingOver(draggedOffsetPx);
 
           // console.log("trackCanHandleTransfer", trackCanHandleTransfer(track, ev.dataTransfer));
 
-          if (!trackCanHandleTransfer(track, ev.dataTransfer)) {
-            ev.dataTransfer.dropEffect = "none";
+          if (!trackCanHandleTransfer(track, e.dataTransfer)) {
+            e.dataTransfer.dropEffect = "none";
+            setDragStatus("invalid");
+          } else {
+            setDragStatus("transferable");
           }
-
-          ev.preventDefault();
         }}
         onDragLeave={() => {
           setDraggingOver(null);
+          setDragStatus(false);
         }}
         style={{
           position: "relative",
@@ -168,8 +169,8 @@ export function TrackS({
         {/* RENDER DRAG DROP MARKER */}
         {/* note: only for audio */}
         {pressed &&
-          pressed.status === "dragging_library_item" &&
-          pressed.libraryItem.kind === "audio" &&
+          pressed.status === "dragging_transferable" &&
+          (pressed.kind === "application/pamba.audio" || pressed.kind === "application/pamba.rawaudio") &&
           draggingOver != null && (
             <div
               style={{

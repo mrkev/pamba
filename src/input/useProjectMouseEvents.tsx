@@ -169,8 +169,8 @@ export function useTimelineMouseEvents(
             pressedState.set(null);
             break;
           }
-          case "dragging_library_item": {
-            // Seems more reliable to end "dragging_library_item" in the dragged
+          case "dragging_transferable": {
+            // Seems more reliable to end "dragging_transferable" in the dragged
             // div's onDragEnd, so we end it there instead.
             // pressedState.set(null);
             break;
@@ -310,7 +310,7 @@ export function useTimelineMouseEvents(
 
             break;
           }
-          case "dragging_library_item": {
+          case "dragging_transferable": {
             break;
           }
 

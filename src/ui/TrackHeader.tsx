@@ -21,12 +21,14 @@ export const TrackHeader = React.memo(function TrackHeader({
   trackNumber,
   project,
   player,
+  onDragStart,
 }: {
   track: AudioTrack | MidiTrack;
   // TODO: make a property of the track?
   trackNumber: number;
   project: AudioProject;
   player: AnalizedPlayer;
+  onDragStart?: (e: React.DragEvent<HTMLDivElement>) => void;
 }) {
   const styles = useStyles();
   const [gain, setGain] = useState<number>(track.dsp.getCurrentGain().value);
@@ -51,6 +53,7 @@ export const TrackHeader = React.memo(function TrackHeader({
 
   function onMouseDownToResize(e: React.MouseEvent<HTMLDivElement>) {
     e.stopPropagation();
+    e.preventDefault();
 
     pressedState.set({
       status: "resizing_track",
@@ -63,13 +66,15 @@ export const TrackHeader = React.memo(function TrackHeader({
 
   return (
     <div
+      draggable
       style={{
-        background: isSelected ? "rgba(0,0,0,0.5)" : "none",
+        background: isSelected ? "#222324" : "var(--background)",
         position: "relative",
-        borderBottom: `${TRACK_SEPARATOR_HEIGHT}px solid var(--track-separator)`,
+        // borderBottom: `${TRACK_SEPARATOR_HEIGHT}px solid var(--track-separator)`,
         cursor: "pointer",
       }}
       onClick={() => ProjectSelection.selectTrack(project, track)}
+      onDragStart={onDragStart}
     >
       <div
         style={{
@@ -79,6 +84,7 @@ export const TrackHeader = React.memo(function TrackHeader({
           userSelect: "none",
           display: "flex",
           flexDirection: "column",
+
           // borderBottom: isDspExpanded ? `${TRACK_SEPARATOR_HEIGHT}px solid #444444` : undefined,
         }}
       >
@@ -307,6 +313,7 @@ export const TrackHeader = React.memo(function TrackHeader({
       ) : null}
       <div
         style={{
+          // background: "red",
           background: "rgba(0,0,0,0)",
           height: TRACK_SEPARATOR_HEIGHT * 2,
           bottom: -TRACK_SEPARATOR_HEIGHT * 1.5,
@@ -315,7 +322,7 @@ export const TrackHeader = React.memo(function TrackHeader({
           width: "100%",
           cursor: "ns-resize",
         }}
-        onMouseDown={onMouseDownToResize}
+        onMouseDownCapture={onMouseDownToResize}
       ></div>
     </div>
   );
@@ -359,4 +366,26 @@ const useStyles = createUseStyles({
     fontSize: "19px",
     padding: "4px 3px 0px 3px",
   },
+});
+
+export const TrackHeaderSeparator = React.forwardRef<
+  HTMLDivElement,
+  { showActiveDropzone?: boolean; firstDropzone?: boolean }
+>(function TrackHeaderSeparator({ showActiveDropzone, firstDropzone }, ref) {
+  return (
+    <div
+      ref={ref}
+      style={{
+        height: firstDropzone ? 1 : TRACK_SEPARATOR_HEIGHT,
+        backgroundColor: showActiveDropzone
+          ? "orange"
+          : firstDropzone
+          ? "var(--axis-spacer-headers-separator)"
+          : "var(--track-separator)",
+
+        position: "relative",
+        top: firstDropzone ? -1 : undefined,
+      }}
+    />
+  );
 });

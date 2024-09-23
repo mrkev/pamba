@@ -2,21 +2,20 @@ import { AudioPackage } from "../../data/AudioPackage";
 import { localAudioPackage } from "../../data/urlProtocol";
 import { validateFaustEffectId } from "../../dsp/FAUST_EFFECTS";
 import { WAMAvailablePlugin, appEnvironment } from "../../lib/AppEnvironment";
-import { AudioTrack } from "../../lib/AudioTrack";
 import { AudioStorage } from "../../lib/project/AudioStorage";
-import { MidiTrack } from "../../midi/MidiTrack";
-import { exhaustive } from "../../utils/exhaustive";
 import { LibraryItem } from "../Library";
 
-type PambaDataTransferResourceKind =
+export type PambaDataTransferResourceKind =
   | "application/pamba.project"
   | "application/pamba.audio"
   | "application/pamba.rawaudio"
   | "application/pamba.wam"
   | "application/pamba.fausteffect"
-  | "application/pamba.effectinstance";
+  | "application/pamba.effectinstance"
+  | "application/pamba.trackinstance";
 
 export type EffectInstanceTransferResource = { kind: "effectinstance"; trackIndex: number; effectIndex: number };
+export type TrackInstanceTransferResource = { kind: "trackinstance"; trackIndex: number };
 
 export type TransferableResource =
   | AudioPackage
@@ -25,39 +24,9 @@ export type TransferableResource =
   | FaustEffectLibraryItem
   // todo: in some future, change for an effect instance uuid. it's safer and works
   // if the memory state changes while the drag is happening for some reason
-  | EffectInstanceTransferResource;
-
-export function hasResouceKind(dataTransfer: DataTransfer, ...kinds: PambaDataTransferResourceKind[]) {
-  // console.log(dataTransfer.types);
-  for (const kind of kinds) {
-    if (dataTransfer.types.indexOf(kind) > -1) {
-      return true;
-    }
-  }
-  return false;
-}
-
-export function trackCanHandleTransfer(track: AudioTrack | MidiTrack, dataTransfer: DataTransfer) {
-  if (track instanceof MidiTrack) {
-    return hasResouceKind(
-      dataTransfer,
-      "application/pamba.wam",
-      "application/pamba.fausteffect",
-      "application/pamba.effectinstance",
-    );
-  } else if (track instanceof AudioTrack) {
-    return hasResouceKind(
-      dataTransfer,
-      "application/pamba.audio",
-      "application/pamba.rawaudio",
-      "application/pamba.wam",
-      "application/pamba.fausteffect",
-      "application/pamba.effectinstance",
-    );
-  } else {
-    exhaustive(track);
-  }
-}
+  | EffectInstanceTransferResource
+  // todo: same as above, in some future change for a uuid
+  | TrackInstanceTransferResource;
 
 export async function getRackAcceptableDataTransferResources(
   dataTransfer: DataTransfer,
@@ -69,17 +38,42 @@ export async function getRackAcceptableDataTransferResources(
   );
 }
 
-export function effectRackCanHandleTransfer(dataTransfer: DataTransfer) {
-  return hasResouceKind(
-    dataTransfer,
-    "application/pamba.wam",
-    "application/pamba.fausteffect",
-    "application/pamba.effectinstance",
-  );
-}
-
 export type AudioLibraryItem = Extract<LibraryItem, { kind: "audio" }>;
 export type FaustEffectLibraryItem = Extract<LibraryItem, { kind: "fausteffect" }>;
+
+export async function getTrackHeaderContainerAcceptableDataTransferResources(dataTransfer: DataTransfer) {
+  const resultingResources: TransferableResource[] = [];
+  // eslint-disable-next-line prefer-const
+  let handledInternalFormat = false;
+
+  // Internal Track
+  // eslint-disable-next-line prefer-const
+  let data = dataTransfer.getData("application/pamba.trackinstance");
+  if (data !== "") {
+    // for an an existing track instance, data is a json object
+    // telling us the track index where the track can currently be found
+    const locator = JSON.parse(data) as TrackInstanceTransferResource;
+    resultingResources.push(locator);
+  }
+
+  if (handledInternalFormat) {
+    return resultingResources;
+  }
+
+  // we didn't handle an internal format, so we handle files
+  for (const file of dataTransfer.files) {
+    // // todo: parallel uploads?
+    // // todo: what if audio already in library?
+    // // todo: formats other than audio
+    // const result = await audioStorage.uploadToLibrary(file);
+    // if (result instanceof Error) {
+    //   throw result;
+    // }
+    // resultingResources.push(result);
+  }
+
+  return resultingResources;
+}
 
 export async function getTrackAcceptableDataTransferResources(
   dataTransfer: DataTransfer,

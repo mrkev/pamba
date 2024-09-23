@@ -168,7 +168,7 @@ export function DebugContent({ project }: { project: AudioProject }) {
           <br />
           Selected: {stringOfSelected(selected)}
           <br />
-          Pressed: {pressed?.status}
+          Pressed: {pressed?.status} {pressed?.status === "dragging_transferable" && pressed.kind}
           <br />
           Active Track: {activeTrack?.name.get()}
         </div>
