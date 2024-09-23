@@ -16,8 +16,6 @@ export type CursorState =
       clip: AudioClip | MidiClip;
       track: AudioTrack | MidiTrack;
       originalTrack: AudioTrack | MidiTrack;
-      originalClipStartOffsetSec: number;
-      originalClipEndOffsetSec: number;
       originalClipStart: TimelineT;
       inHistory: boolean;
     }>
@@ -45,10 +43,9 @@ export type CursorState =
   | Readonly<{
       status: "resizing_clip";
       from: "start" | "end";
-      originalClipLength: number;
-      originalClipTimelineStartSec: number;
+      originalClipStart: TimelineT;
+      originalClipLength: TimelineT;
       originalBufferOffset: number;
-      originalTimelineStartSec: number;
       clip: AudioClip | MidiClip;
       track: AudioTrack | MidiTrack;
       clientX: number;

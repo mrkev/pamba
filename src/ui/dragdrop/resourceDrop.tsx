@@ -26,7 +26,7 @@ export const loadAudioClipIntoTrack = async (
     const clip = await AudioClip.fromURL(url, name);
     history.record(() => {
       // load clip
-      clip.timelineStartSec = secs(startOffsetSec);
+      clip.timelineStart.set(startOffsetSec, "seconds");
       ProjectTrack.addClip(project, track, clip);
     });
   } catch (e) {

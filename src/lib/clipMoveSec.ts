@@ -57,7 +57,7 @@ export function clipResizeStartSec(
 export function clipMoveSec(
   clip: AudioClip,
   newOffsetSec: number,
-  originalStartOffsetSec: number,
+  originalStart: TimelineT,
   project: AudioProject,
   snap: boolean,
 ) {
@@ -67,19 +67,26 @@ export function clipMoveSec(
     const tempo = project.tempo.get();
     const tickBeatLength = getOneTickLen(project, tempo);
     const steppedToTick = stepNumber(newOffsetSec, tickBeatLength);
-    const steppedToOriginalStart = stepNumber(newOffsetSec, tickBeatLength, originalStartOffsetSec);
+    const steppedToOriginalStart = stepNumber(newOffsetSec, tickBeatLength, originalStart.secs(project));
     const result = returnClosest(newOffsetSec, steppedToTick, steppedToOriginalStart);
     clip.timelineStart.set(result, "seconds");
   }
 }
 
-export function clipMovePPQN(clip: MidiClip, newOffsetPulses: number, project: AudioProject, snap: boolean) {
+export function clipMovePPQN(
+  clip: MidiClip,
+  newOffsetPulses: number,
+  originalStart: TimelineT,
+  project: AudioProject,
+  snap: boolean,
+) {
   if (!snap) {
     clip.timelineStart.set(newOffsetPulses, "pulses");
   } else {
-    // todo: snap arg to snap to larger grid, vs just PPQN
-    const pulses = stepNumber(newOffsetPulses, PPQN);
-    clip.timelineStart.set(pulses, "pulses");
+    const steppedToTick = stepNumber(newOffsetPulses, PPQN);
+    const steppedToOriginalStart = stepNumber(newOffsetPulses, PPQN * 4, originalStart.pulses(project));
+    const result = returnClosest(newOffsetPulses, steppedToTick, steppedToOriginalStart);
+    clip.timelineStart.set(result, "pulses");
   }
 }
 

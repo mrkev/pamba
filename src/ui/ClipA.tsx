@@ -3,7 +3,6 @@ import React, { useCallback, useRef } from "react";
 import { history, useContainer } from "structured-state";
 import { modifierState } from "../ModifierState";
 import { CLIP_HEIGHT } from "../constants";
-import { secs } from "../lib/AbstractClip";
 import { appEnvironment } from "../lib/AppEnvironment";
 import type { AudioClip } from "../lib/AudioClip";
 import type { AudioTrack } from "../lib/AudioTrack";
@@ -53,14 +52,9 @@ export function ClipA({
     pressedState.set({
       status: "resizing_clip",
       clip,
-      // IDEA: just clone and have the original clip at hand
-      originalClipLength: clip.clipLengthSec,
-      originalClipTimelineStartSec: tStart.secs(project),
       originalBufferOffset: clip.bufferOffset,
-      originalTimelineStartSec: tStart.secs(project),
-      // originalClipEndPosSec: clip.trimEndSec,
-      // originalClipStartPosSec: clip.trimStartSec,
-      // originalClipOffsetSec: clip.timelineStartSec,
+      originalClipStart: clip.timelineStart.clone(),
+      originalClipLength: clip.timelineLength.clone(),
       from,
       clientX: e.clientX,
       clientY: e.clientY,
@@ -86,8 +80,6 @@ export function ClipA({
         clip,
         track,
         originalTrack: track,
-        originalClipStartOffsetSec: tStart.secs(project),
-        originalClipEndOffsetSec: clip.timelineEndSec,
         originalClipStart: clip.timelineStart.clone(),
         inHistory: false,
       });

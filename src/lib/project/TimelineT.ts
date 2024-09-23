@@ -187,6 +187,10 @@ export class TimelineT extends Structured<STimelineT, typeof TimelineT> {
         exhaustive(this.u);
     }
   }
+
+  override toString() {
+    return `${this.t.toFixed(2)}${this.u}`;
+  }
 }
 
 export function time(t: number, u: "pulses" | "seconds"): TimelineT {

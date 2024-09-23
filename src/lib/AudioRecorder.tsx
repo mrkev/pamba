@@ -61,7 +61,7 @@ export class AudioRecorder {
       console.log("LOAD CLIP", this.project.cursorPos.get());
       // load clip
       const clip = await AudioClip.fromAudioPackage(audioPackage);
-      clip.timelineStartSec = secs(this.project.cursorPos.get());
+      clip.timelineStart.set(this.project.cursorPos.get(), "seconds");
 
       const armedTrack = this.project.armedTrack.get();
       if (armedTrack == null) {

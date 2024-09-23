@@ -3,7 +3,6 @@ import "./mockWebAudio";
 import { AudioBuffer } from "standardized-audio-context-mock";
 import { describe, expect, it } from "vitest";
 import { AudioClip } from "../AudioClip";
-import { secs } from "../AbstractClip";
 
 function clip(startOffset: number, endOffset: number) {
   const buffer = new AudioBuffer({ length: 44100 * 15, sampleRate: 44100 });
@@ -17,7 +16,7 @@ function clip(startOffset: number, endOffset: number) {
 describe("timelineStartSec", () => {
   it("changing timelineStartSec moves the clip", () => {
     const foo = clip(0, 1);
-    foo.timelineStartSec = secs(10);
+    foo.timelineStart.set(10, "seconds");
 
     expect(foo.timelineStartSec).toBe(10);
     expect(foo.timelineEndSec).toBe(11);

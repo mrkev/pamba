@@ -95,8 +95,7 @@ export function useTrackMouseEvents(
     trackRef,
     useCallback(() => {
       // tood: remove tracks from selecting_track_time
-
-      console.log("mouse leave");
+      // console.log("mouse leave");
     }, []),
   );
 }

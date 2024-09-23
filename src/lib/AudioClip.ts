@@ -70,7 +70,7 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
     // note: can't change bufferURL, length. They're readonly to the audio buffer. Should be ok
     // cause audio buffer never changes, and all clips that replace this one will be the same buffer
     this.bufferOffset = secs(json.bufferOffset);
-    this.timelineStartSec = secs(json.timelineStartSec);
+    this.timelineStart.set(json.timelineStartSec, "seconds");
     this.timelineLength.set(json.clipLengthSec, "seconds"); // TODO: can I use .set in replace?
   }
 
@@ -117,9 +117,6 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
     }
 
     this.bufferOffset = secs(bufferOffset);
-    // this.timelineStartSec = secs(timelineStartSec);
-    // this.clipLengthSec = secs(clipLengthSec);
-
     this.timelineStart = time(timelineStartSec, "seconds");
     this.timelineLength = time(clipLengthSec, "seconds");
 
@@ -131,16 +128,16 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
     return this.timelineLength.ensureSecs();
   }
 
-  set clipLengthSec(s: number) {
-    this.timelineLength.set(s, "seconds");
-  }
-
   get timelineStartSec() {
     return this.timelineStart.ensureSecs();
   }
 
-  set timelineStartSec(s: number) {
-    this.timelineStart.set(s, "seconds");
+  public timelineStartFr() {
+    return this.secToFr(this.timelineStart.ensureSecs());
+  }
+
+  public clipLengthFr() {
+    return this.secToFr(this.timelineLength.ensureSecs());
   }
 
   static async fromAudioPackage(
@@ -234,12 +231,12 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
   override toString() {
     return `ts:${this.timelineStartSec.toFixed(2)} |~bo:${this.bufferOffset.toFixed(2)}~["${
       this._id
-    }", cl:${this.clipLengthSec.toFixed(2)} ]`;
+    }", cl:${this.timelineLength.toString()} ]`;
   }
 
   public trimStartAddingTime(addedTime: number) {
     this.featuredMutation(() => {
-      this.timelineStartSec = (this.timelineStartSec + addedTime) as Seconds;
+      this.timelineStart.set(this.timelineStartSec + addedTime, "seconds");
       this.bufferOffset = (this.bufferOffset + addedTime) as Seconds;
       // this.clipLengthSec = (this.clipLengthSec - addedTime) as Seconds;
       this.timelineLength.set(this.clipLengthSec - addedTime, "seconds");
@@ -247,7 +244,7 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
   }
 
   get timelineEndSec() {
-    return this.timelineStartSec + this.clipLengthSec;
+    return this.timelineStart.ensureSecs() + this.timelineLength.ensureSecs();
   }
 
   set timelineEndSec(newEnd: number) {
@@ -321,29 +318,13 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
     return this.secToFr(this.bufferLength);
   }
 
-  // Offset relates to the clip in the timeline
-  // Pos referes to the position the audio-clip plays in an audio file
-  get startOffsetFr() {
-    return this.secToFr(this.timelineStartSec);
-  }
-
-  set startOffsetFr(frs: number) {
-    this.featuredMutation(() => {
-      this.timelineStartSec = this.frToSec(frs);
-    });
-  }
-
   // on the timeline, the x position where + width (duration)
   get endOffsetFr() {
-    return this.startOffsetFr + this.durationFr;
+    return this.timelineStartFr() + this.clipLengthFr();
   }
 
   get trimStartFr() {
     return this.secToFr(this.bufferOffset);
-  }
-
-  get durationFr() {
-    return this.secToFr(this.clipLengthSec);
   }
 
   // interface AbstractClip
@@ -354,7 +335,7 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
 
   _setTimelineStartU(num: Seconds): void {
     this.featuredMutation(() => {
-      this.timelineStartSec = num;
+      this.timelineStart.set(num, "seconds");
     });
   }
 
@@ -384,7 +365,7 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
     }
 
     const delta = newTimelineSec - this.timelineStartSec;
-    this.timelineStartSec = newTimelineSec as Seconds;
+    this.timelineStart.set(newTimelineSec, "seconds");
     this.bufferOffset = (this.bufferOffset + delta) as Seconds;
     // this.clipLengthSec = (this.clipLengthSec - delta) as Seconds;
     this.timelineLength.set(this.clipLengthSec - delta, "seconds");

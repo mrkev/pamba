@@ -306,18 +306,18 @@ export function useTimelineMouseEvents(
 
             if (pressed.clip instanceof AudioClip) {
               const deltaXSecs = project.viewport.pxToSecs(deltaX);
-              const newOffset = Math.max(0, pressed.originalClipStartOffsetSec + deltaXSecs);
-              clipMoveSec(pressed.clip, newOffset, pressed.originalClipStartOffsetSec, project, snap);
-            } else {
-              // todo: newOffset as pulses
+              const newOffset = Math.max(0, pressed.originalClipStart.secs(project) + deltaXSecs);
+              clipMoveSec(pressed.clip, newOffset, pressed.originalClipStart, project, snap);
+            } else if (pressed.clip instanceof MidiClip) {
               const deltaXPulses = project.viewport.pxToPulses(deltaX);
               const newOffset = Math.max(0, pressed.originalClipStart.pulses(project) + deltaXPulses);
-              clipMovePPQN(pressed.clip, newOffset, project, snap);
+              clipMovePPQN(pressed.clip, newOffset, pressed.originalClipStart, project, snap);
+            } else {
+              exhaustive(pressed.clip);
             }
 
             // Hacking around the readonly
             (pressed as any).inHistory = true;
-
             break;
           }
           case "dragging_transferable": {
@@ -332,42 +332,44 @@ export function useTimelineMouseEvents(
           }
 
           case "resizing_clip": {
-            const opDeltaXSecs = project.viewport.pxToSecs(e.clientX - pressed.clientX);
-            if (pressed.clip instanceof MidiClip) {
-              throw new Error("MidiClip unimplemented");
-            }
-
             if (!pressed.inHistory) {
               history.push([pressed.clip]);
             }
 
             const snap = e.metaKey ? !project.snapToGrid.get() : project.snapToGrid.get();
+            const deltaX = e.clientX - pressed.clientX;
 
-            if (pressed.from === "end") {
-              const newLength = pressed.originalClipLength + opDeltaXSecs;
-              clipResizeEndSec(pressed.clip, newLength, project, snap);
-            } else if (pressed.from === "start") {
-              const newClipLength = clamp(
-                // zero length is minimum
-                0,
-                pressed.originalClipLength - opDeltaXSecs,
-                // since trimming from start, max is going back all the way to zero
-                pressed.originalClipLength + pressed.originalBufferOffset,
-              );
+            if (pressed.clip instanceof MidiClip) {
+              throw new Error("MidiClip unimplemented");
+            } else if (pressed.clip instanceof AudioClip) {
+              const opDeltaXSecs = project.viewport.pxToSecs(deltaX);
+              const originalClipLengthSecs = pressed.originalClipLength.secs(project);
 
-              const delta = pressed.originalClipLength - newClipLength;
+              if (pressed.from === "end") {
+                const newLength = originalClipLengthSecs + opDeltaXSecs;
+                clipResizeEndSec(pressed.clip, newLength, project, snap);
+              } else if (pressed.from === "start") {
+                const newClipLength = clamp(
+                  // zero length is minimum
+                  0,
+                  originalClipLengthSecs - opDeltaXSecs,
+                  // since trimming from start, max is going back all the way to zero
+                  originalClipLengthSecs + pressed.originalBufferOffset,
+                );
 
-              const newTimelineStartSec = pressed.originalTimelineStartSec + delta;
-              const newBufferOffset = pressed.originalBufferOffset + delta;
-              clipResizeStartSec(pressed.clip, newBufferOffset, newTimelineStartSec, newClipLength, project, snap);
+                const delta = originalClipLengthSecs - newClipLength;
+                const newTimelineStartSec = pressed.originalClipStart.secs(project) + delta;
+                const newBufferOffset = pressed.originalBufferOffset + delta;
+                clipResizeStartSec(pressed.clip, newBufferOffset, newTimelineStartSec, newClipLength, project, snap);
+              } else {
+                exhaustive(pressed.from);
+              }
             } else {
-              exhaustive(pressed.from);
+              exhaustive(pressed.clip);
             }
 
             // NOTE: hacking away the readonly
             (pressed as any).inHistory = true;
-
-            pressed.clip._notifyChange();
             break;
           }
 

@@ -5,7 +5,7 @@ import type { AudioProject } from "../lib/project/AudioProject";
 import { PrimarySelectionState } from "../lib/project/SelectionState";
 import { useSubscribeToSubbableMutationHashable } from "../lib/state/LinkedMap";
 import { useLinkedState } from "../lib/state/LinkedState";
-import { MidiClip, pulsesToSec } from "../midi/MidiClip";
+import { MidiClip } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
 import { pressedState } from "../pressedState";
 import { StandardClip } from "./StandardClip";
@@ -21,7 +21,6 @@ export function ClipM({
   project: AudioProject;
   track: MidiTrack | null; // null if clip is being rendered for move
 }) {
-  const [bpm] = useLinkedState(project.tempo);
   const notes = useContainer(clip.notes);
   // const startTrimmedWidth = project.viewport.secsToPx(clip.trimStartSec);
   const [tool] = useLinkedState(project.pointerTool);
@@ -35,23 +34,24 @@ export function ClipM({
   const onMouseDownToResize = useCallback(
     (e: React.MouseEvent<HTMLDivElement>, from: "start" | "end") => {
       e.stopPropagation();
-      if (tool !== "move") {
+      if (tool !== "move" || track == null) {
         return;
       }
 
-      // pressedState.set({
-      //   status: "resizing_clip",
-      //   clip,
-      //   // IDEA: just clone and have the original clip at hand
-      //   originalClipEndPosSec: clip.trimEndSec,
-      //   originalClipStartPosSec: clip.trimStartSec,
-      //   originalClipOffsetSec: clip.startOffsetSec,
-      //   from,
-      //   clientX: e.clientX,
-      //   clientY: e.clientY,
-      // });
+      pressedState.set({
+        status: "resizing_clip",
+        clip,
+        originalBufferOffset: -1, // TODO: midi notes offsest
+        originalClipStart: clip.timelineStart.clone(),
+        originalClipLength: clip.timelineLength.clone(),
+        from,
+        clientX: e.clientX,
+        clientY: e.clientY,
+        inHistory: false,
+        track,
+      });
     },
-    [tool],
+    [clip, tool, track],
   );
 
   const onMouseDownToMove = useCallback(
@@ -68,8 +68,6 @@ export function ClipM({
         clip,
         track,
         originalTrack: track,
-        originalClipStartOffsetSec: pulsesToSec(clip.startOffsetPulses, bpm),
-        originalClipEndOffsetSec: pulsesToSec(clip._timelineEndU, bpm),
         originalClipStart: clip.timelineStart.clone(),
         inHistory: false,
       });
@@ -93,7 +91,7 @@ export function ClipM({
       project.selectionWidth.set(null);
       e.stopPropagation();
     },
-    [bpm, clip, project.selected, project.selectionWidth, tool, track],
+    [clip, project.selected, project.selectionWidth, tool, track],
   );
 
   const onClipClick = useCallback((e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {

@@ -50,7 +50,7 @@ export function doPaste(project: AudioProject) {
 
           if (track instanceof AudioTrack && clip instanceof AudioClip) {
             const clone = clip.clone();
-            clone.timelineStartSec = secs(project.cursorPos.get());
+            clip.timelineStart.set(project.cursorPos.get(), "seconds");
 
             ProjectTrack.addClip(project, track, clone);
             if (lastOffset < clone.timelineEndSec) {

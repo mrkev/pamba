@@ -79,7 +79,7 @@ export type SPambaWamNode = {
 };
 
 export async function serializable(
-  obj: FaustAudioEffect | PambaWamNode
+  obj: FaustAudioEffect | PambaWamNode,
 ): Promise<SFaustAudioEffect | SFaustAudioEffect>;
 export async function serializable(obj: AudioProject): Promise<SAudioProject>;
 export async function serializable(obj: AudioTrack | MidiTrack): Promise<SAudioTrack | SMidiTrack>;
@@ -87,7 +87,7 @@ export async function serializable(obj: AudioClip): Promise<SAudioClip>;
 export async function serializable(obj: MidiClip): Promise<SMidiClip>;
 export async function serializable(obj: MidiInstrument): Promise<SMidiInstrument>;
 export async function serializable(
-  obj: AudioClip | AudioTrack | MidiClip | MidiTrack | AudioProject | FaustAudioEffect | PambaWamNode | MidiInstrument
+  obj: AudioClip | AudioTrack | MidiClip | MidiTrack | AudioProject | FaustAudioEffect | PambaWamNode | MidiInstrument,
 ): Promise<
   | SAudioClip
   | SAudioTrack
@@ -99,14 +99,14 @@ export async function serializable(
   | SMidiInstrument
 > {
   if (obj instanceof AudioClip) {
-    const { name, bufferURL, bufferOffset, timelineStartSec, clipLengthSec } = obj;
+    const { name, bufferURL, bufferOffset, timelineStartSec, timelineLength } = obj;
     return {
       kind: "AudioClip",
       name: name.get(),
       bufferURL,
       bufferOffset,
       timelineStartSec,
-      clipLengthSec,
+      clipLengthSec: timelineLength.ensureSecs(),
     };
   }
 
@@ -185,7 +185,7 @@ export async function construct(
     | SAudioProject
     | SFaustAudioEffect
     | SPambaWamNode
-    | SMidiInstrument
+    | SMidiInstrument,
 ): Promise<
   AudioClip | MidiClip | AudioTrack | MidiTrack | AudioProject | FaustAudioEffect | PambaWamNode | MidiInstrument
 > {
@@ -228,7 +228,7 @@ export async function construct(
         tempo,
         TimelineT.construct(loopStart),
         TimelineT.construct(loopEnd),
-        loopOnPlayback
+        loopOnPlayback,
       );
     }
     case "FaustAudioEffect": {
@@ -243,7 +243,7 @@ export async function construct(
       const [wamHostGroupId] = nullthrows(appEnvironment.wamHostGroup.get(), "wam host not initialized yet!");
       const pambaWamNode = nullthrows(
         await PambaWamNode.fromURL(pluginURL, wamHostGroupId, liveAudioContext()),
-        "could not create PambaWamNode"
+        "could not create PambaWamNode",
       );
       await pambaWamNode.setState(state);
       return pambaWamNode;

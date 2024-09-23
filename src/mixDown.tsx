@@ -11,7 +11,7 @@ export function mixDown(clipList: ReadonlyArray<AudioClip>, numberOfChannels = 2
   // TODO: make start offset aware, so not all clips start at 0:00
   let totalLength = 0;
   for (const clip of clipList) {
-    const end = clip.durationFr + clip.startOffsetFr;
+    const end = clip.clipLengthFr() + clip.timelineStartFr();
     if (end > totalLength) {
       totalLength = end;
     }
@@ -39,8 +39,8 @@ export function mixDown(clipList: ReadonlyArray<AudioClip>, numberOfChannels = 2
       const channelSrc = clip.numberOfChannels === 1 ? 0 : channel;
       const clipBuffer = clip.buffer.getChannelData(channelSrc);
       //last is loop for updating/summing the track buffer with the final mix buffer
-      for (let j = 0; j < clip.durationFr; j++) {
-        buffer[j + clip.startOffsetFr] += clipBuffer[j + clip.trimStartFr];
+      for (let j = 0; j < clip.clipLengthFr(); j++) {
+        buffer[j + clip.timelineStartFr()] += clipBuffer[j + clip.trimStartFr];
       }
     }
   }
