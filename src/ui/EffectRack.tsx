@@ -15,12 +15,12 @@ import { exhaustive } from "../utils/exhaustive";
 import { nullthrows } from "../utils/nullthrows";
 import { PambaWamNode } from "../wam/PambaWamNode";
 import { Effect } from "./Effect";
-import { getRackAcceptableDataTransferResources } from "./dragdrop/getTrackAcceptableDataTransferResources";
 import { effectRackCanHandleTransfer } from "./dragdrop/canHandleTransfer";
+import { getRackAcceptableDataTransferResources } from "./dragdrop/getTrackAcceptableDataTransferResources";
 import { handleDropOntoEffectRack } from "./dragdrop/resourceDrop";
 import { transferEffectInstance } from "./dragdrop/setTransferData";
+import { useDropzoneBehaviour } from "./dragdrop/useDropzoneBehaviour";
 import { useEventListener } from "./useEventListener";
-import { pressedState } from "../pressedState";
 
 const useStyles = createUseStyles({
   effectRack: {
@@ -56,7 +56,6 @@ export const EffectRack = React.memo(function EffectRack({
   const [selected] = useLinkedState(project.selected);
   const rackRef = useRef<HTMLDivElement | null>(null);
   const [isAudioPlaying] = usePrimitive(renderer.isAudioPlaying);
-  const [draggingOver, setDraggingOver] = useState<false | "transferable" | "invalid">(false);
   const dropzonesRef = useRef<(HTMLDivElement | null)[]>([]);
   const [highlightedDropzone, setHighlightedDropzone] = useState<number | null>(null);
 
@@ -78,6 +77,47 @@ export const EffectRack = React.memo(function EffectRack({
     }, []),
   );
 
+  useDropzoneBehaviour(
+    rackRef,
+    effectRackCanHandleTransfer,
+
+    useCallback(function dragOver(e: DragEvent) {
+      let highlight = 0;
+      let dist = Infinity;
+      for (let i = 0; i < dropzonesRef.current.length; i++) {
+        const dropzone = dropzonesRef.current[i];
+        if (dropzone == null) {
+          continue;
+        }
+        const rect = dropzone.getBoundingClientRect();
+        const distance = Math.abs(e.clientX - rect.x);
+        if (distance < dist) {
+          highlight = i;
+        }
+        dist = distance;
+      }
+
+      setHighlightedDropzone(highlight);
+    }, []),
+
+    useCallback(function dragLeave() {
+      setHighlightedDropzone(null);
+    }, []),
+
+    useCallback(
+      async function drop(ev: DragEvent) {
+        setHighlightedDropzone(null);
+        if (ev.dataTransfer != null) {
+          const transferableResources = await getRackAcceptableDataTransferResources(ev.dataTransfer);
+          for (const resource of transferableResources) {
+            await handleDropOntoEffectRack(resource, highlightedDropzone, track, project);
+          }
+        }
+      },
+      [highlightedDropzone, project, track],
+    ),
+  );
+
   const onDragStart = useCallback(
     (ev: React.DragEvent, effectIndex: number) => {
       const trackIndex = project.allTracks.indexOf(track);
@@ -92,52 +132,6 @@ export const EffectRack = React.memo(function EffectRack({
     },
     [project.allTracks, track],
   );
-
-  const onDrop = useCallback(
-    async (ev: React.DragEvent<HTMLDivElement>) => {
-      ev.preventDefault();
-      ev.stopPropagation();
-      const transferableResources = await getRackAcceptableDataTransferResources(ev.dataTransfer);
-
-      for (const resource of transferableResources) {
-        await handleDropOntoEffectRack(resource, highlightedDropzone, track, project);
-      }
-
-      setHighlightedDropzone(null);
-      setDraggingOver(false);
-      pressedState.set(null);
-    },
-    [highlightedDropzone, project, track],
-  );
-
-  const onDragOver = useCallback(async function allowDrop(e: React.DragEvent<HTMLDivElement>) {
-    // For some reason, need to .preventDefault() so onDrop gets called
-    e.preventDefault();
-
-    if (!effectRackCanHandleTransfer(e.dataTransfer)) {
-      e.dataTransfer.dropEffect = "none";
-      setDraggingOver("invalid");
-      return;
-    }
-
-    let highlight = 0;
-    let dist = Infinity;
-    for (let i = 0; i < dropzonesRef.current.length; i++) {
-      const dropzone = dropzonesRef.current[i];
-      if (dropzone == null) {
-        continue;
-      }
-      const rect = dropzone.getBoundingClientRect();
-      const distance = Math.abs(e.clientX - rect.x);
-      if (distance < dist) {
-        highlight = i;
-      }
-      dist = distance;
-    }
-
-    setHighlightedDropzone(highlight);
-    setDraggingOver("transferable");
-  }, []);
 
   const chain = [
     <EffectDropzone
@@ -225,12 +219,6 @@ export const EffectRack = React.memo(function EffectRack({
           //   draggingOver === false ? undefined : draggingOver === "invalid" ? undefined : "rgba(23, 43, 23, 0.7)",
         }}
         className={styles.effectRack}
-        onDrop={onDrop}
-        onDragOver={onDragOver}
-        onDragLeave={() => {
-          setDraggingOver(false);
-          setHighlightedDropzone(null);
-        }}
       >
         {track instanceof MidiTrack && <InstrumentEffect track={track} project={project} renderer={renderer} />}
         {chain}

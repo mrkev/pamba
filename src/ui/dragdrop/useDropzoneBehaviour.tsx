@@ -4,7 +4,7 @@ import { useEventListener } from "../useEventListener";
 
 export function useDropzoneBehaviour(
   containerRef: RefObject<HTMLDivElement>,
-  canHandleTransfer: (dataTransfer: DataTransfer | null) => boolean,
+  canHandleTransfer: (dataTransfer: DataTransfer) => boolean,
   dragOver?: (e: DragEvent) => void,
   dragLeave?: (e: DragEvent) => void,
   drop?: (e: DragEvent) => Promise<void> | void,

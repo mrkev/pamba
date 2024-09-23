@@ -25,9 +25,9 @@ export function TrackHeaderContainer({ project, player }: { project: AudioProjec
 
   useAxisContainerMouseEvents(project, axisContainerRef);
 
-  const [draggingOverTrackHeaderContainer] = useDropzoneBehaviour(
+  useDropzoneBehaviour(
     containerRef,
-    (dataTransfer: DataTransfer | null) => dataTransfer != null && trackHeaderContainerCanHandleTransfer(dataTransfer),
+    trackHeaderContainerCanHandleTransfer,
     useCallback(function dragOver(e: DragEvent) {
       let highlight = 0;
       let dist = Infinity;
@@ -54,16 +54,14 @@ export function TrackHeaderContainer({ project, player }: { project: AudioProjec
 
     useCallback(
       async function drop(e: DragEvent) {
-        if (e.dataTransfer == null) {
-          return;
-        }
-
-        const transferableResources = await getTrackHeaderContainerAcceptableDataTransferResources(e.dataTransfer);
-        for (const resource of transferableResources) {
-          await handleDropOntoTrackHeaderContainer(resource, highlightedDropzone, project);
-        }
-
         setHighlightedDropzone(null);
+
+        if (e.dataTransfer != null) {
+          const transferableResources = await getTrackHeaderContainerAcceptableDataTransferResources(e.dataTransfer);
+          for (const resource of transferableResources) {
+            await handleDropOntoTrackHeaderContainer(resource, highlightedDropzone, project);
+          }
+        }
       },
       [highlightedDropzone, project],
     ),

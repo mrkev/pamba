@@ -12,33 +12,22 @@ import { useLinkedState } from "../lib/state/LinkedState";
 import { MidiClip } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
 import { pressedState } from "../pressedState";
-import { exhaustive } from "../utils/exhaustive";
 import { nullthrows } from "../utils/nullthrows";
 import { ClipA } from "./ClipA";
 import { ClipInvalid } from "./ClipInvalid";
 import { ClipM } from "./ClipM";
 import { CursorSelection } from "./CursorSelection";
 import { EffectRack } from "./EffectRack";
-import { LibraryItem } from "./Library";
-import { getTrackAcceptableDataTransferResources } from "./dragdrop/getTrackAcceptableDataTransferResources";
 import { trackCanHandleTransfer } from "./dragdrop/canHandleTransfer";
+import { getTrackAcceptableDataTransferResources } from "./dragdrop/getTrackAcceptableDataTransferResources";
 import { handleDropOntoAudioTrack, handleDropOntoMidiTrack } from "./dragdrop/resourceDrop";
+import { useDropzoneBehaviour } from "./dragdrop/useDropzoneBehaviour";
 
 function clientXToTrackX(trackElem: HTMLDivElement | null, clientX: number) {
   if (trackElem == null) {
     return 0;
   }
   return clientX + trackElem.scrollLeft - trackElem.getBoundingClientRect().x;
-}
-
-function trackCanHandleLibraryItem(track: AudioTrack | MidiTrack, libraryItem: LibraryItem) {
-  if (track instanceof MidiTrack) {
-    return libraryItem.kind === "wam" || libraryItem.kind === "fausteffect";
-  } else if (track instanceof AudioTrack) {
-    return libraryItem.kind === "audio" || libraryItem.kind === "wam" || libraryItem.kind === "fausteffect";
-  } else {
-    exhaustive(track);
-  }
 }
 
 /** Standard Track Renderer */
@@ -65,46 +54,49 @@ export function TrackS({
   const [audioStorage] = useLinkedState(project.audioStorage);
   const trackRef = useRef<HTMLDivElement>(null);
   const [draggingOver, setDraggingOver] = useState<number | null>(null);
-  const [dragStatus, setDragStatus] = useState<false | "invalid" | "transferable">(false);
   const locked = lockedTracks.has(track);
 
   useTrackMouseEvents(trackRef, project, track);
 
-  const onDrop = useCallback(
-    async function onDropNewAudio(ev: React.DragEvent<HTMLDivElement>) {
-      ev.preventDefault();
-      ev.stopPropagation();
+  useDropzoneBehaviour(
+    trackRef,
+    (dataTransfer: DataTransfer) => trackCanHandleTransfer(track, dataTransfer),
+    useCallback(function dragOver(e: DragEvent) {
+      const draggedOffsetPx = clientXToTrackX(trackRef.current, e.clientX);
+      setDraggingOver(draggedOffsetPx);
+    }, []),
 
-      const transferableResources = await getTrackAcceptableDataTransferResources(
-        ev.dataTransfer,
-        nullthrows(audioStorage),
-      );
-
-      if (track instanceof MidiTrack) {
-        for (const resource of transferableResources) {
-          await handleDropOntoMidiTrack(track, resource, draggingOver ?? 0, project);
-        }
-      } else if (track instanceof AudioTrack) {
-        for (const resource of transferableResources) {
-          await handleDropOntoAudioTrack(track, resource, draggingOver ?? 0, project);
-        }
-      } else {
-        throw new Error("Unknown track kind");
-      }
-
+    useCallback(function dragLeave() {
       setDraggingOver(null);
-      pressedState.set(null);
-    },
-    [audioStorage, draggingOver, project, track],
-  );
+    }, []),
 
-  // TODO: replace with the system I use in EffectRack? Where we just set state on wether the transfer if acceptable
-  // in onDragOver, via the mime types of ev.dataTransfer?
-  // todo: darken when dragging effect instances in too
-  // const darkenOnDrag =
-  //   pressed != null &&
-  //   pressed.status === "dragging_library_item" &&
-  //   (draggingOver == null || !trackCanHandleLibraryItem(track, pressed.libraryItem));
+    useCallback(
+      async function drop(ev: DragEvent) {
+        if (ev.dataTransfer == null) {
+          return;
+        }
+
+        const transferableResources = await getTrackAcceptableDataTransferResources(
+          ev.dataTransfer,
+          nullthrows(audioStorage),
+        );
+
+        if (track instanceof MidiTrack) {
+          for (const resource of transferableResources) {
+            await handleDropOntoMidiTrack(track, resource, draggingOver ?? 0, project);
+          }
+        } else if (track instanceof AudioTrack) {
+          for (const resource of transferableResources) {
+            await handleDropOntoAudioTrack(track, resource, draggingOver ?? 0, project);
+          }
+        } else {
+          throw new Error("Unknown track kind");
+        }
+        setDraggingOver(null);
+      },
+      [audioStorage, draggingOver, project, track],
+    ),
+  );
 
   const darkenOnDrag = pressed != null && pressed.status === "dragging_transferable" && draggingOver == null;
 
@@ -113,27 +105,6 @@ export function TrackS({
       <div
         ref={trackRef}
         className={classNames(locked && styles.locked)}
-        onDrop={onDrop}
-        onDragOver={function allowDrop(e) {
-          // For some reason, need to .preventDefault() so onDrop gets called
-          e.preventDefault();
-
-          const draggedOffsetPx = clientXToTrackX(trackRef.current, e.clientX);
-          setDraggingOver(draggedOffsetPx);
-
-          // console.log("trackCanHandleTransfer", trackCanHandleTransfer(track, ev.dataTransfer));
-
-          if (!trackCanHandleTransfer(track, e.dataTransfer)) {
-            e.dataTransfer.dropEffect = "none";
-            setDragStatus("invalid");
-          } else {
-            setDragStatus("transferable");
-          }
-        }}
-        onDragLeave={() => {
-          setDraggingOver(null);
-          setDragStatus(false);
-        }}
         style={{
           position: "relative",
           height: height - TRACK_SEPARATOR_HEIGHT,
