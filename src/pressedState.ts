@@ -5,7 +5,6 @@ import { STimelineT, TimelineT } from "./lib/project/TimelineT";
 import { MidiClip } from "./midi/MidiClip";
 import { MidiTrack } from "./midi/MidiTrack";
 import { Note } from "./midi/SharedMidiTypes";
-import { LibraryItem } from "./ui/Library";
 import { PambaDataTransferResourceKind } from "./ui/dragdrop/getTrackAcceptableDataTransferResources";
 
 export type CursorState =
@@ -19,6 +18,7 @@ export type CursorState =
       originalTrack: AudioTrack | MidiTrack;
       originalClipStartOffsetSec: number;
       originalClipEndOffsetSec: number;
+      originalClipStart: TimelineT;
       inHistory: boolean;
     }>
   | Readonly<{

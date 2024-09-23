@@ -51,7 +51,7 @@ export function ClipM({
       //   clientY: e.clientY,
       // });
     },
-    [tool]
+    [tool],
   );
 
   const onMouseDownToMove = useCallback(
@@ -70,6 +70,7 @@ export function ClipM({
         originalTrack: track,
         originalClipStartOffsetSec: pulsesToSec(clip.startOffsetPulses, bpm),
         originalClipEndOffsetSec: pulsesToSec(clip._timelineEndU, bpm),
+        originalClipStart: clip.timelineStart.clone(),
         inHistory: false,
       });
 
@@ -92,7 +93,7 @@ export function ClipM({
       project.selectionWidth.set(null);
       e.stopPropagation();
     },
-    [bpm, clip, project.selected, project.selectionWidth, tool, track]
+    [bpm, clip, project.selected, project.selectionWidth, tool, track],
   );
 
   const onClipClick = useCallback((e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {

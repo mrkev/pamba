@@ -30,16 +30,14 @@ export function secsToPulses(secs: number, bpm: number) {
 }
 
 export class MidiClip extends Structured<SMidiClip, typeof MidiClip> implements AbstractClip<Pulses> {
+  // constants
   readonly unit = "pulse";
-  // StandardClip
+  // MidiClip
   readonly name: SString;
-
-  readonly notes: SArray<Note>; // ordered by tick (start)
-  // public lengthPulses: Pulses;
-  // private _startOffsetPulses: Pulses;
-  readonly detailedViewport: MidiViewport;
   readonly timelineStart: TimelineT;
   readonly timelineLength: TimelineT;
+  readonly notes: SArray<Note>; // ordered by tick (start)
+  readonly detailedViewport: MidiViewport;
 
   override serialize(): SMidiClip {
     return {

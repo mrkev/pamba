@@ -71,7 +71,6 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
     // cause audio buffer never changes, and all clips that replace this one will be the same buffer
     this.bufferOffset = secs(json.bufferOffset);
     this.timelineStartSec = secs(json.timelineStartSec);
-    // this.clipLengthSec = secs(json.clipLengthSec);
     this.timelineLength.set(json.clipLengthSec, "seconds"); // TODO: can I use .set in replace?
   }
 
@@ -84,7 +83,7 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
       json.bufferURL,
       json.bufferOffset,
       json.timelineStartSec,
-      json.clipLengthSec
+      json.clipLengthSec,
     );
   }
 
@@ -94,7 +93,7 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
     bufferURL: string,
     bufferOffset: number,
     timelineStartSec: number,
-    clipLengthSec: number
+    clipLengthSec: number,
   ) {
     super();
     // TODO: make missing clips their own class, without buffer info props. They serialize to SAudioClip too
@@ -146,7 +145,7 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
 
   static async fromAudioPackage(
     audioPackage: AudioPackage,
-    dimensions?: { bufferOffset: number; timelineStartSec: number; clipLengthSec: number }
+    dimensions?: { bufferOffset: number; timelineStartSec: number; clipLengthSec: number },
   ) {
     const buffer = await loadSoundFromAudioPackage(staticAudioContext(), audioPackage);
     const bufferOffset = dimensions?.bufferOffset ?? 0;
@@ -159,14 +158,14 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
       audioPackage.url().toString(),
       bufferOffset,
       timelineStartSec,
-      clipLengthSec
+      clipLengthSec,
     );
   }
 
   static async fromURL(
     url: string,
     name?: string,
-    dimensions?: { bufferOffset: number; timelineStartSec: number; clipLengthSec: number }
+    dimensions?: { bufferOffset: number; timelineStartSec: number; clipLengthSec: number },
   ) {
     const buffer = await loadSound(staticAudioContext(), url);
     const bufferOffset = dimensions?.bufferOffset ?? 0;
@@ -178,7 +177,7 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
   async fromMissingMedia(
     url: string,
     dimensions: { bufferOffset: number; timelineStartSec: number; clipLengthSec: number },
-    name?: string
+    name?: string,
   ) {
     const bufferOffset = dimensions?.bufferOffset;
     const timelineStartSec = dimensions?.timelineStartSec;
@@ -190,7 +189,7 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
       url,
       bufferOffset,
       timelineStartSec,
-      clipLengthSec
+      clipLengthSec,
     );
   }
 
@@ -198,7 +197,7 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
     buffer: AudioBuffer,
     url: string, // necessary to serialize
     name?: string,
-    dimensions?: { bufferOffset: number; timelineStartSec: number; clipLengthSec: number }
+    dimensions?: { bufferOffset: number; timelineStartSec: number; clipLengthSec: number },
   ) {
     const bufferOffset = dimensions?.bufferOffset ?? 0;
     const timelineStartSec = dimensions?.timelineStartSec ?? 0;
@@ -214,7 +213,7 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
       this.bufferURL,
       this.bufferOffset,
       this.timelineStartSec,
-      this.timelineLength.ensureSecs()
+      this.timelineLength.ensureSecs(),
     );
     return newClip;
   }
@@ -252,7 +251,7 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
   }
 
   set timelineEndSec(newEnd: number) {
-    const newLen = newEnd - this.timelineStartSec;
+    const newLen = newEnd - this.timelineStart.ensureSecs();
 
     if (newLen <= 0) {
       throw new Error("New clip length can't be <= zero");
@@ -270,7 +269,7 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
       console.log(
         newEnd,
         this.timelineStartSec + this.bufferLength - this.bufferOffset,
-        `${this.timelineStartSec} + ${this.bufferLength} - ${this.bufferOffset}`
+        `${this.timelineStartSec} + ${this.bufferLength} - ${this.bufferOffset}`,
       );
       throw new Error("new end too long");
       // TODO: make newEnd = this.timelineStartSec + this.lengthSec + this.bufferOffset

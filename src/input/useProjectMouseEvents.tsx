@@ -4,17 +4,23 @@ import { MIN_TRACK_HEIGHT } from "../constants";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioTrack } from "../lib/AudioTrack";
-import { clipMovePPQN, clipMoveSec, clipResizeEndSec, pointMovePulses, pointMoveSec } from "../lib/clipMoveSec";
+import {
+  clipMovePPQN,
+  clipMoveSec,
+  clipResizeEndSec,
+  clipResizeStartSec,
+  pointMovePulses,
+  pointMoveSec,
+} from "../lib/clipMoveSec";
 import { AudioProject } from "../lib/project/AudioProject";
 import { snapped } from "../lib/project/ProjectViewportUtil";
+import { ProjectTrack } from "../lib/ProjectTrack";
 import { MidiClip } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
 import { pressedState } from "../pressedState";
 import { useDocumentEventListener, useEventListener } from "../ui/useEventListener";
 import { exhaustive } from "../utils/exhaustive";
 import { clamp } from "../utils/math";
-import { secs } from "../lib/AbstractClip";
-import { ProjectTrack } from "../lib/ProjectTrack";
 
 export function timelineSecs(e: MouseEvent, projectDiv: HTMLDivElement, project: AudioProject) {
   const viewportStartPx = project.viewportStartPx.get();
@@ -297,11 +303,15 @@ export function useTimelineMouseEvents(
             // metaKey flips it
             const snap = e.metaKey ? !project.snapToGrid.get() : project.snapToGrid.get();
             const deltaX = e.clientX - pressed.clientX;
-            const deltaXSecs = project.viewport.pxToSecs(deltaX);
-            const newOffset = Math.max(0, pressed.originalClipStartOffsetSec + deltaXSecs);
+
             if (pressed.clip instanceof AudioClip) {
+              const deltaXSecs = project.viewport.pxToSecs(deltaX);
+              const newOffset = Math.max(0, pressed.originalClipStartOffsetSec + deltaXSecs);
               clipMoveSec(pressed.clip, newOffset, pressed.originalClipStartOffsetSec, project, snap);
             } else {
+              // todo: newOffset as pulses
+              const deltaXPulses = project.viewport.pxToPulses(deltaX);
+              const newOffset = Math.max(0, pressed.originalClipStart.pulses(project) + deltaXPulses);
               clipMovePPQN(pressed.clip, newOffset, project, snap);
             }
 
@@ -331,8 +341,9 @@ export function useTimelineMouseEvents(
               history.push([pressed.clip]);
             }
 
+            const snap = e.metaKey ? !project.snapToGrid.get() : project.snapToGrid.get();
+
             if (pressed.from === "end") {
-              const snap = e.metaKey ? !project.snapToGrid.get() : project.snapToGrid.get();
               const newLength = pressed.originalClipLength + opDeltaXSecs;
               clipResizeEndSec(pressed.clip, newLength, project, snap);
             } else if (pressed.from === "start") {
@@ -346,25 +357,9 @@ export function useTimelineMouseEvents(
 
               const delta = pressed.originalClipLength - newClipLength;
 
-              const newBufferOffset = clamp(
-                // let's not allow extending the beginning back before 0
-                0,
-                pressed.originalBufferOffset + opDeltaXSecs,
-                // Can't trim past the length of the clip
-                pressed.originalBufferOffset + pressed.originalClipLength,
-              );
-              // console.log("NBO", newBufferOffset, pressed.originalClipLength);
-              // const newTimelineStartSec = clamp(
-              //   pressed.originalTimelineStartSec - pressed.originalBufferOffset,
-              //   pressed.originalTimelineStartSec + opDeltaXSecs,
-              //   pressed.originalTimelineStartSec + pressed.originalClipLength,
-              // );
-
               const newTimelineStartSec = pressed.originalTimelineStartSec + delta;
-
-              pressed.clip.bufferOffset = secs(newBufferOffset);
-              pressed.clip.timelineStartSec = secs(newTimelineStartSec);
-              pressed.clip.clipLengthSec = secs(newClipLength);
+              const newBufferOffset = pressed.originalBufferOffset + delta;
+              clipResizeStartSec(pressed.clip, newBufferOffset, newTimelineStartSec, newClipLength, project, snap);
             } else {
               exhaustive(pressed.from);
             }

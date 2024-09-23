@@ -1,4 +1,7 @@
 export const changelog = `
+next
+- resizing a clip from start can snap to grid
+
 v0.1.8
 - improve zoom slider
 - locked tracks can't be deleted

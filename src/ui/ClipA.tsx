@@ -88,6 +88,7 @@ export function ClipA({
         originalTrack: track,
         originalClipStartOffsetSec: tStart.secs(project),
         originalClipEndOffsetSec: clip.timelineEndSec,
+        originalClipStart: clip.timelineStart.clone(),
         inHistory: false,
       });
 
@@ -109,7 +110,7 @@ export function ClipA({
 
       project.selectionWidth.set(null);
     },
-    [clip, editable, project.selected, project.selectionWidth, tool, track]
+    [clip, editable, project.selected, project.selectionWidth, tool, track],
   );
 
   useEventListener(
@@ -117,7 +118,7 @@ export function ClipA({
     headerRef,
     useCallback(() => {
       appEnvironment.activeBottomPanel.set("editor");
-    }, [])
+    }, []),
   );
 
   function onClipClick(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
@@ -152,8 +153,7 @@ export function ClipA({
       case "trimEnd": {
         const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
         const secsFromStartPos = project.viewport.pxToSecs(pxFromStartOfClip);
-        clip.clipLengthSec = secs(secsFromStartPos);
-        clip._notifyChange();
+        clip.timelineLength.set(secsFromStartPos, "seconds");
         break;
       }
       default:
@@ -164,7 +164,7 @@ export function ClipA({
   const backgroundImageData = clip.getWaveformDataURL(
     // totalBufferWidth,
     1000,
-    CLIP_HEIGHT
+    CLIP_HEIGHT,
   );
 
   const width = project.viewport.secsToPx(tLen.secs(project));

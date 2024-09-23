@@ -20,10 +20,7 @@ export function AudioClipBufferView({
   project: AudioProject;
   player: AnalizedPlayer;
 }) {
-  // const containerRef = useRef<HTMLDivElement>(null);
-  // const backgroundRef = useRef<HTMLCanvasElement>(null);
   const waveformRef = useRef<HTMLCanvasElement>(null);
-  // const styles = useStyles();
   const playbackDiv = useRef<HTMLDivElement>(null);
   const [playbackPos] = usePrimitive(player.playbackPos);
   const [cursorPos] = useLinkedState(project.cursorPos);
@@ -35,15 +32,8 @@ export function AudioClipBufferView({
 
   // for waveform
   const [scrollLeftPx] = usePrimitive(clip.detailedViewport.scrollLeftPx);
-
   const [pxPerSec] = usePrimitive(clip.detailedViewport.pxPerSecScale);
   const [lockPlayback] = usePrimitive(clip.detailedViewport.lockPlayback);
-
-  // for waveform GPU
-  // const [waveformStartFr, setWaveformStartFr] = useState(0);
-  // const [scale, setScale] = useState(80);
-  // const frPerPx = getRealScale(pxPerSec);
-  // console.log("frPerPx", frPerPx, "pxPerSec", pxPerSec);
   const waveformStartFr = Math.max(scrollLeftPx / pxPerSec, 0) * clip.sampleRate;
 
   useSubscribeToSubbableMutationHashable(clip);
@@ -130,19 +120,22 @@ export function AudioClipBufferView({
       [clip.detailedViewport, clip.sampleRate],
     ),
 
-    useCallback(function mouseUp() {
-      const selLenFr = clip.detailedViewport.selectionWidthFr.get();
-      if (selLenFr == null) {
-        return;
-      }
+    useCallback(
+      function mouseUp() {
+        const selLenFr = clip.detailedViewport.selectionWidthFr.get();
+        if (selLenFr == null) {
+          return;
+        }
 
-      project.secondarySelection.set({
-        status: "audioTime",
-        startS: project.cursorPos.get(),
-        lengthFr: selLenFr,
-      });
-      pressedState.set(null);
-    }, []),
+        project.secondarySelection.set({
+          status: "audioTime",
+          startS: project.cursorPos.get(),
+          lengthFr: selLenFr,
+        });
+        pressedState.set(null);
+      },
+      [clip.detailedViewport.selectionWidthFr, project.cursorPos, project.secondarySelection],
+    ),
   );
 
   // console.log("SCSL", scale);

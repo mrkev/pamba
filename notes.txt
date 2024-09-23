@@ -86,4 +86,4 @@ StandardClip
   - AudioClipContent
     .start, length
   - MidiClipContent
-    length
+    .start, length

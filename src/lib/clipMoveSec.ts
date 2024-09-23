@@ -1,4 +1,4 @@
-import { MidiClip, secsToPulses } from "../midi/MidiClip";
+import { MidiClip } from "../midi/MidiClip";
 import { getOneTickLen } from "../ui/Axis";
 import { clamp, returnClosest, stepNumber } from "../utils/math";
 import { PPQN } from "../wam/pianorollme/MIDIConfiguration";
@@ -7,28 +7,23 @@ import { AudioClip } from "./AudioClip";
 import { AudioProject } from "./project/AudioProject";
 import { TimelineT } from "./project/TimelineT";
 
-export function clipResizeEndSec(clip: AudioClip, newLength: number, project: AudioProject, snap: boolean) {
+export function clipResizeEndSec(clip: AudioClip, newLengthSec: number, project: AudioProject, snap: boolean) {
   const newClipEnd = clamp(
     // We can't trim a clip to end before it's beggining
     0,
-    newLength,
+    newLengthSec,
     // and also prevent it from extending beyond its original length
     clip.bufferLength - clip.bufferOffset,
   );
 
   if (!snap) {
-    clip.clipLengthSec = secs(newClipEnd);
-    console.log("no snap");
+    clip.timelineLength.set(newLengthSec, "seconds");
   } else {
     const tempo = project.tempo.get();
     const tickBeatLength = getOneTickLen(project, tempo);
     const steppedToTick = stepNumber(newClipEnd, tickBeatLength);
     // TODO: add original location too as tick too
-    if (clip.clipLengthSec !== steppedToTick) {
-      clip.clipLengthSec = secs(steppedToTick);
-      clip._notifyChange();
-      console.log("snap");
-    }
+    clip.timelineLength.set(steppedToTick, "seconds");
   }
 }
 
@@ -40,27 +35,22 @@ export function clipResizeStartSec(
   project: AudioProject,
   snap: boolean,
 ) {
-  const newClipEnd = 0; // TODO
   if (!snap) {
     clip.bufferOffset = secs(newBufferOffset);
-    clip.timelineStartSec = secs(newTimelineStartSec);
-    clip.clipLengthSec = secs(newClipLength);
+    clip.timelineStart.set(newTimelineStartSec, "seconds");
+    clip.timelineLength.set(newClipLength, "seconds");
   } else {
     const tempo = project.tempo.get();
     const tickBeatLength = getOneTickLen(project, tempo);
-    const steppedToTick = stepNumber(newClipEnd, tickBeatLength);
-    // TODO: add original location too
-    if (
-      clip.clipLengthSec !== steppedToTick ||
-      clip.timelineStartSec !== newTimelineStartSec ||
-      clip.bufferOffset !== newBufferOffset
-    ) {
-      clip.bufferOffset = secs(newBufferOffset);
-      clip.timelineStartSec = secs(newTimelineStartSec);
-      clip.clipLengthSec = secs(newClipLength);
-      clip._notifyChange();
-      console.log("snap");
-    }
+    const startStepped = stepNumber(newTimelineStartSec, tickBeatLength);
+
+    const delta = startStepped - newTimelineStartSec;
+    const bufferOffsetStepped = newBufferOffset + delta;
+    const lengthStepped = newClipLength + delta;
+
+    clip.bufferOffset = secs(bufferOffsetStepped);
+    clip.timelineStart.set(startStepped, "seconds");
+    clip.timelineLength.set(lengthStepped, "seconds");
   }
 }
 
@@ -72,34 +62,24 @@ export function clipMoveSec(
   snap: boolean,
 ) {
   if (!snap) {
-    clip.timelineStartSec = secs(newOffsetSec);
-    clip._notifyChange();
+    clip.timelineStart.set(newOffsetSec, "seconds");
   } else {
     const tempo = project.tempo.get();
     const tickBeatLength = getOneTickLen(project, tempo);
     const steppedToTick = stepNumber(newOffsetSec, tickBeatLength);
     const steppedToOriginalStart = stepNumber(newOffsetSec, tickBeatLength, originalStartOffsetSec);
     const result = returnClosest(newOffsetSec, steppedToTick, steppedToOriginalStart);
-    clip.timelineStartSec = secs(result);
-    clip._notifyChange();
+    clip.timelineStart.set(result, "seconds");
   }
 }
 
-export function clipMovePPQN(clip: MidiClip, newOffsetSec: number, project: AudioProject, snap: boolean) {
-  // todo: snap arg to snap to larger grid, vs PPQN
-  const bpm = project.tempo.get();
-
+export function clipMovePPQN(clip: MidiClip, newOffsetPulses: number, project: AudioProject, snap: boolean) {
   if (!snap) {
-    const pulses = secsToPulses(newOffsetSec, bpm);
-    clip.setStartOffsetPulses(pulses);
-    clip._notifyChange();
+    clip.timelineStart.set(newOffsetPulses, "pulses");
   } else {
-    const tempo = project.tempo.get();
-    const oneBeatLen = 60 / tempo;
-    const actualNewOffsetSec = stepNumber(newOffsetSec, oneBeatLen);
-    const pulses = secsToPulses(actualNewOffsetSec, bpm);
-    clip.setStartOffsetPulses(pulses);
-    clip._notifyChange();
+    // todo: snap arg to snap to larger grid, vs just PPQN
+    const pulses = stepNumber(newOffsetPulses, PPQN);
+    clip.timelineStart.set(pulses, "pulses");
   }
 }
 

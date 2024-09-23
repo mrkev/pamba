@@ -46,7 +46,6 @@ export function FaustGroup({
   effect: FaustAudioEffect;
   isFirstItem?: boolean;
 }) {
-  console.log("isFirstItem", isFirstItem);
   const { items, label, type } = item;
   const styles = useStyles();
   const groupStyle = faustGroupStyle(type);

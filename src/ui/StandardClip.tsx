@@ -1,11 +1,11 @@
 import React, { useCallback, useRef } from "react";
+import { createUseStyles } from "react-jss";
 import { usePrimitive } from "structured-state";
 import { appEnvironment } from "../lib/AppEnvironment";
 import type { AudioClip } from "../lib/AudioClip";
 import { useSubscribeToSubbableMutationHashable } from "../lib/state/LinkedMap";
 import { MidiClip } from "../midi/MidiClip";
 import { useEventListener } from "./useEventListener";
-import { createUseStyles } from "react-jss";
 
 export function StandardClip({
   clip,
@@ -50,19 +50,12 @@ export function StandardClip({
 
   return (
     <div
+      className={styles.clip}
       onClick={onClipClick}
       style={{
-        backgroundColor: "var(--clip-color)",
         width: width,
-        height: "100%",
-        userSelect: "none",
         border: border,
-        boxSizing: "border-box",
-        color: "white",
         pointerEvents: editable ? "all" : "none",
-        display: "flex",
-        flexDirection: "column",
-        position: "absolute",
         left,
         ...style,
       }}
@@ -134,5 +127,15 @@ const useStyles = createUseStyles({
     overflow: "hidden",
     flexShrink: 0,
     paddingBottom: "0px 0px 1px 0px",
+  },
+  clip: {
+    backgroundColor: "var(--clip-color)",
+    height: "100%",
+    userSelect: "none",
+    boxSizing: "border-box",
+    color: "white",
+    display: "flex",
+    flexDirection: "column",
+    position: "absolute",
   },
 });
