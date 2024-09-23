@@ -1,5 +1,5 @@
 export const changelog = `
-next
+v0.1.8
 - improve zoom slider
 - locked tracks can't be deleted
 - audio clip details buffer selection

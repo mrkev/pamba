@@ -126,7 +126,6 @@ const useStyles = createUseStyles({
     top: 0,
     left: 0,
     zIndex: 2,
-    borderBottom: "1px solid var(--axis-timeline-separator)",
     background: "var(--timeline-bg)",
   },
 });

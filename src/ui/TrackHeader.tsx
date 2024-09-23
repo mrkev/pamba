@@ -311,10 +311,13 @@ export const TrackHeader = React.memo(function TrackHeader({
           </select> */}
         </div>
       ) : null}
+
       <div
         style={{
           // background: "red",
           background: "rgba(0,0,0,0)",
+          // todo; instead of setting z-index 5, can I just use the track separator component for this?
+          zIndex: 5,
           height: TRACK_SEPARATOR_HEIGHT * 2,
           bottom: -TRACK_SEPARATOR_HEIGHT * 1.5,
           position: "absolute",
