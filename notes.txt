@@ -5,7 +5,7 @@ top prio:
 x reorder tracks
 x reorder effects
 - dirty state for project
-- right-click messes up dragging state
+x right-click messes up dragging state
 
 todo:
 - loop clips

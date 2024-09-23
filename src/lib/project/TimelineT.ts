@@ -189,7 +189,7 @@ export class TimelineT extends Structured<STimelineT, typeof TimelineT> {
   }
 
   override toString() {
-    return `${this.t.toFixed(2)}${this.u}`;
+    return `${this.t.toFixed(2)}${this.u.substring(0, 3)}`;
   }
 }
 

@@ -37,6 +37,10 @@ export function useTrackMouseEvents(
           return;
         }
 
+        if (e.button !== 0) {
+          return;
+        }
+
         const position = {
           x: e.clientX + div.scrollLeft - div.getBoundingClientRect().x,
           y: e.clientY + div.scrollTop - div.getBoundingClientRect().y,

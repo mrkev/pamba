@@ -50,6 +50,10 @@ export function useAxisContainerMouseEvents(
           return;
         }
 
+        if (e.button !== 0) {
+          return;
+        }
+
         const viewportStartPx = project.viewportStartPx.get();
         const position = {
           x: e.clientX + div.scrollLeft - div.getBoundingClientRect().x,
@@ -88,6 +92,10 @@ export function useTimelineMouseEvents(
         }
 
         if (project.pointerTool.get() !== "move") {
+          return;
+        }
+
+        if (e.button !== 0) {
           return;
         }
 

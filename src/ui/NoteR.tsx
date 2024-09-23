@@ -36,6 +36,10 @@ export function NoteR({
     divRef,
     useCallback(
       (e: MouseEvent) => {
+        if (e.button !== 0) {
+          return;
+        }
+
         // if (editable === true)
         switch (panelTool) {
           case "draw": {

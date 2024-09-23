@@ -68,9 +68,6 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
 
   override replace(json: SAudioClip): void {
     this.name.set(json.name);
-
-    console.log("REPLACE", this, json);
-
     // note: can't change bufferURL, length. They're readonly to the audio buffer. Should be ok
     // cause audio buffer never changes, and all clips that replace this one will be the same buffer
     this.bufferOffset = secs(json.bufferOffset);
@@ -130,14 +127,6 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
 
   get timelineStartSec() {
     return this.timelineStart.ensureSecs();
-  }
-
-  public timelineStartFr() {
-    return this.secToFr(this.timelineStart.ensureSecs());
-  }
-
-  public clipLengthFr() {
-    return this.secToFr(this.timelineLength.ensureSecs());
   }
 
   static async fromAudioPackage(
@@ -228,22 +217,6 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
     return waveform;
   }
 
-  override toString() {
-    return `ts:${this.timelineStartSec.toFixed(2)} |~bo:${this.bufferOffset.toFixed(2)}~["${
-      this._id
-    }", cl:${this.timelineLength.toString()} ]`;
-  }
-
-  public trimStartAddingTime(addedTime: number) {
-    this.featuredMutation(() => {
-      const timelineStartSec = this.timelineStart.ensureSecs();
-      this.timelineStart.set(timelineStartSec + addedTime, "seconds");
-      this.bufferOffset = (this.bufferOffset + addedTime) as Seconds;
-      const clipLengthSec = this.timelineLength.ensureSecs();
-      this.timelineLength.set(clipLengthSec - addedTime, "seconds");
-    });
-  }
-
   getTimelineEndSec() {
     return this.timelineStart.ensureSecs() + this.timelineLength.ensureSecs();
   }
@@ -290,6 +263,14 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
 
   public bufferOffsetFr() {
     return this.secToFr(this.bufferOffset);
+  }
+
+  public timelineStartFr() {
+    return this.secToFr(this.timelineStart.ensureSecs());
+  }
+
+  public clipLengthFr() {
+    return this.secToFr(this.timelineLength.ensureSecs());
   }
 
   // interface AbstractClip
@@ -351,5 +332,13 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
       return 10_000; // todo
     }
     return this.buffer.length / this.buffer.sampleRate;
+  }
+
+  // etc
+  override toString() {
+    const start = this.timelineStart.toString();
+    const bo = this.bufferOffset.toFixed(2);
+    const len = this.timelineLength.toString();
+    return `[AudioClip.${this._id}, start:${start}, bo:${bo}, len:${len}]`;
   }
 }

@@ -14,6 +14,7 @@ import { pressedState } from "../pressedState";
 import { exhaustive } from "../utils/exhaustive";
 import { StandardClip } from "./StandardClip";
 import { useEventListener } from "./useEventListener";
+import { Seconds } from "../lib/AbstractClip";
 // import { dataWaveformToCanvas } from "../lib/waveformAsync";
 
 export function ClipA({
@@ -70,6 +71,10 @@ export function ClipA({
       }
 
       if (!editable) {
+        return;
+      }
+
+      if (e.button !== 0) {
         return;
       }
 
@@ -137,8 +142,16 @@ export function ClipA({
         const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
         const asSec = project.viewport.pxToSecs(pxFromStartOfClip);
         project.cursorPos.set(tStart.secs(project) + asSec);
+
         void history.record(() => {
-          clip.trimStartAddingTime(asSec);
+          const timelineStartSec = clip.timelineStart.ensureSecs();
+          const clipLengthSec = clip.timelineLength.ensureSecs();
+
+          clip.featuredMutation(() => {
+            clip.timelineStart.set(timelineStartSec + asSec, "seconds");
+            clip.timelineLength.set(clipLengthSec - asSec, "seconds");
+            clip.bufferOffset = (clip.bufferOffset + asSec) as Seconds;
+          });
         });
         break;
       }
