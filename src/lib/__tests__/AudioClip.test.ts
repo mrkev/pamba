@@ -19,30 +19,27 @@ describe("timelineStartSec", () => {
     foo.timelineStart.set(10, "seconds");
 
     expect(foo.timelineStartSec).toBe(10);
-    expect(foo.timelineEndSec).toBe(11);
-    expect(foo.trimStartSec).toBe(0);
-    expect(foo.trimEndSec).toBe(1);
+    expect(foo.getTimelineEndSec()).toBe(11);
+    expect(foo.bufferOffset).toBe(0);
   });
 });
 
 describe("endOffsetSec", () => {
   it("setting when clip offset is 0", () => {
     const foo = clip(0, 10);
-    foo.timelineEndSec = 5;
+    foo.setTimelineEndSec(5);
 
     expect(foo.timelineStartSec).toBe(0);
-    expect(foo.timelineEndSec).toBe(5);
-    expect(foo.trimStartSec).toBe(0);
-    expect(foo.trimEndSec).toBe(5);
+    expect(foo.getTimelineEndSec()).toBe(5);
+    expect(foo.bufferOffset).toBe(0);
   });
 
   it("setting when clip offset isn't 0", () => {
     const foo = clip(2, 6);
-    foo.timelineEndSec = 5;
+    foo.setTimelineEndSec(5);
 
     expect(foo.timelineStartSec).toBe(2);
-    expect(foo.timelineEndSec).toBe(5);
-    expect(foo.trimStartSec).toBe(0);
-    expect(foo.trimEndSec).toBe(3);
+    expect(foo.getTimelineEndSec()).toBe(5);
+    expect(foo.bufferOffset).toBe(0);
   });
 });

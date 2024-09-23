@@ -323,5 +323,6 @@ export class ClipPositioning {
     readonly timelineStart: TimelineT,
     readonly timelineLength: TimelineT,
     readonly contentOffset: TimelineT,
+    readonly contentLength: TimelineT,
   ) {}
 }

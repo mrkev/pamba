@@ -34,7 +34,7 @@ export function ClipA({
   // const width = project.viewport.secsToPx(clip.clipLengthSec);
   // const left = project.viewport.secsToPx(clip.timelineStartSec);
   const totalBufferWidth = project.viewport.secsToPx(clip.bufferLength);
-  const startTrimmedWidth = project.viewport.secsToPx(clip.trimStartSec);
+  const bufferOffsetPx = project.viewport.secsToPx(clip.bufferOffset);
   const [tool] = useLinkedState(project.pointerTool);
   const height = CLIP_HEIGHT - 3; // to clear the bottom track separator gridlines
 
@@ -173,7 +173,7 @@ export function ClipA({
       style={{
         backgroundSize: `${totalBufferWidth}px ${height - 10}px`,
         backgroundImage: "url('" + backgroundImageData + "')",
-        backgroundPosition: `${startTrimmedWidth * -1}px center`,
+        backgroundPosition: `${bufferOffsetPx * -1}px center`,
         backgroundRepeat: "no-repeat",
         imageRendering: "pixelated",
       }}

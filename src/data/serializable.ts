@@ -99,13 +99,13 @@ export async function serializable(
   | SMidiInstrument
 > {
   if (obj instanceof AudioClip) {
-    const { name, bufferURL, bufferOffset, timelineStartSec, timelineLength } = obj;
+    const { name, bufferURL, bufferOffset, timelineStart, timelineLength } = obj;
     return {
       kind: "AudioClip",
       name: name.get(),
       bufferURL,
       bufferOffset,
-      timelineStartSec,
+      timelineStartSec: timelineStart.ensureSecs(),
       clipLengthSec: timelineLength.ensureSecs(),
     };
   }

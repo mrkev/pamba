@@ -1,14 +1,13 @@
-import { AudioTrack } from "../AudioTrack";
-import { AudioClip } from "../AudioClip";
 import { FaustAudioEffect } from "../../dsp/FaustAudioEffect";
-import { PambaWamNode } from "../../wam/PambaWamNode";
-import { MidiTrack } from "../../midi/MidiTrack";
 import { MidiClip, pulsesToSec } from "../../midi/MidiClip";
-import { LinkedState } from "../state/LinkedState";
-import { AudioProject } from "./AudioProject";
-import { exhaustive } from "../state/Subbable";
-import { secs } from "../AbstractClip";
+import { MidiTrack } from "../../midi/MidiTrack";
+import { PambaWamNode } from "../../wam/PambaWamNode";
+import { AudioClip } from "../AudioClip";
+import { AudioTrack } from "../AudioTrack";
 import { ProjectTrack } from "../ProjectTrack";
+import { LinkedState } from "../state/LinkedState";
+import { exhaustive } from "../state/Subbable";
+import { AudioProject } from "./AudioProject";
 
 export type ClipboardState =
   | {
@@ -53,8 +52,8 @@ export function doPaste(project: AudioProject) {
             clip.timelineStart.set(project.cursorPos.get(), "seconds");
 
             ProjectTrack.addClip(project, track, clone);
-            if (lastOffset < clone.timelineEndSec) {
-              lastOffset = clone.timelineEndSec;
+            if (lastOffset < clone.getTimelineEndSec()) {
+              lastOffset = clone.getTimelineEndSec();
             }
 
             continue;

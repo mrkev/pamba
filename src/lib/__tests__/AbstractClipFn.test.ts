@@ -77,9 +77,9 @@ describe("deleteTime", () => {
 
     expect(all.length).toBe(2);
     expect(all.at(0)?.timelineStartSec).toBe(0);
-    expect(all.at(0)?.timelineEndSec).toBe(1);
+    expect(all.at(0)?.getTimelineEndSec()).toBe(1);
     expect(all.at(1)?.timelineStartSec).toBe(2);
-    expect(all.at(1)?.timelineEndSec).toBe(3);
+    expect(all.at(1)?.getTimelineEndSec()).toBe(3);
   });
 });
 
@@ -130,7 +130,7 @@ describe("addClip", () => {
 
     expect(all).toContain(foo);
     expect(all.indexOf(foo)).toEqual(1);
-    expect(all.at(0)?.timelineEndSec).toEqual(5);
+    expect(all.at(0)?.getTimelineEndSec()).toEqual(5);
   });
 
   it("adds correctly simple overlap at start", () => {
@@ -141,7 +141,7 @@ describe("addClip", () => {
     expect(all).toContain(foo);
     expect(all.indexOf(foo)).toEqual(0);
     expect(all.at(1)?.timelineStartSec).toEqual(10);
-    expect(all.at(1)?.timelineEndSec).toEqual(15);
+    expect(all.at(1)?.getTimelineEndSec()).toEqual(15);
   });
 
   it("adds correctly when wide overlap over another clip", () => {
@@ -162,7 +162,7 @@ describe("addClip", () => {
 
     expect(all).toContain(foo);
     expect(all.length).toBe(3);
-    expect(all.at(0)?.timelineEndSec).toBe(2);
+    expect(all.at(0)?.getTimelineEndSec()).toBe(2);
     expect(all.at(2)?.timelineStartSec).toBe(8);
   });
 });
@@ -175,9 +175,9 @@ describe("splitClip", () => {
 
     expect(all.length).toBe(2);
     expect(all.at(0)?.timelineStartSec).toBe(0);
-    expect(all.at(0)?.timelineEndSec).toBe(5);
+    expect(all.at(0)?.getTimelineEndSec()).toBe(5);
     expect(all.at(1)?.timelineStartSec).toBe(5);
-    expect(all.at(1)?.timelineEndSec).toBe(10);
+    expect(all.at(1)?.getTimelineEndSec()).toBe(10);
   });
 
   it("returns the two clips", () => {
@@ -190,9 +190,9 @@ describe("splitClip", () => {
     expect(all).toContain(before);
     expect(all).toContain(after);
     expect(before.timelineStartSec).toBe(0);
-    expect(before.timelineEndSec).toBe(5);
+    expect(before.getTimelineEndSec()).toBe(5);
     expect(after.timelineStartSec).toBe(5);
-    expect(after.timelineEndSec).toBe(10);
+    expect(after.getTimelineEndSec()).toBe(10);
   });
 
   it("splits a clip with start offset, chained", () => {
@@ -203,10 +203,10 @@ describe("splitClip", () => {
 
     expect(all.length).toBe(3);
     expect(all.at(0)?.timelineStartSec).toBe(2);
-    expect(all.at(0)?.timelineEndSec).toBe(4);
+    expect(all.at(0)?.getTimelineEndSec()).toBe(4);
     expect(all.at(1)?.timelineStartSec).toBe(4);
-    expect(all.at(1)?.timelineEndSec).toBe(6);
+    expect(all.at(1)?.getTimelineEndSec()).toBe(6);
     expect(all.at(2)?.timelineStartSec).toBe(6);
-    expect(all.at(2)?.timelineEndSec).toBe(8);
+    expect(all.at(2)?.getTimelineEndSec()).toBe(8);
   });
 });

@@ -24,7 +24,7 @@ export class AudioRenderer {
 
   constructor(
     /** */
-    public analizedPlayer: AnalizedPlayer
+    public analizedPlayer: AnalizedPlayer,
   ) {}
 
   /**
@@ -52,7 +52,7 @@ export class AudioRenderer {
     tracks: ReadonlyArray<AudioTrack | MidiTrack>,
     tempo: number,
     startSec: number = 0,
-    endSec?: number
+    endSec?: number,
   ): Promise<AudioBuffer> {
     let end = endSec;
     // If no end is provided, bounce to the full duration of the track. We go
@@ -61,8 +61,8 @@ export class AudioRenderer {
       for (const track of tracks) {
         for (const clip of track.clips._getRaw()) {
           if (clip instanceof AudioClip) {
-            end = end == null || clip.timelineEndSec > end ? clip.timelineEndSec : end;
-            console.log("endOffsetSec", clip.timelineEndSec, end);
+            end = end == null || clip.getTimelineEndSec() > end ? clip.getTimelineEndSec() : end;
+            console.log("endOffsetSec", clip.getTimelineEndSec(), end);
           } else if (clip instanceof MidiClip) {
             const endOffsetSec = pulsesToSec(clip._timelineEndU, tempo);
             end = end == null || endOffsetSec > end ? endOffsetSec : end;
@@ -92,7 +92,7 @@ export class AudioRenderer {
     const trackDests = await Promise.all(
       tracks.map((track) => {
         return track.prepareForBounce(offlineAudioContext, offlineContextInfo);
-      })
+      }),
     );
 
     for (const trackDest of trackDests) {

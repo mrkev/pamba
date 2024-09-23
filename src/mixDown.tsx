@@ -40,7 +40,7 @@ export function mixDown(clipList: ReadonlyArray<AudioClip>, numberOfChannels = 2
       const clipBuffer = clip.buffer.getChannelData(channelSrc);
       //last is loop for updating/summing the track buffer with the final mix buffer
       for (let j = 0; j < clip.clipLengthFr(); j++) {
-        buffer[j + clip.timelineStartFr()] += clipBuffer[j + clip.trimStartFr];
+        buffer[j + clip.timelineStartFr()] += clipBuffer[j + clip.bufferOffsetFr()];
       }
     }
   }

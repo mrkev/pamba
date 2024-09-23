@@ -15,11 +15,11 @@ import { TimelineT, time } from "./project/TimelineT";
 //                        [~~~|====== clip ========|~~~]
 // bufferLength:          +----------------------------+
 // bufferOffset:          +---+
+//                          + | - // buffer offset positive, means we cut form clip start, negative is invalid
+// trimEndSec:            +------------------------+ // doesn't exist anymore
 // +--timelineStartSec--------+
 // clipLength                 +--------------------+
 // +--timelineEndSec-------------------------------+
-// trimEndSec:            +------------------------+
-// trimStartSec:          +---+
 //
 // These properties represent media that has a certain length (in frames), but has
 // been trimmed to be of another length.
@@ -30,7 +30,6 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
   readonly numberOfChannels: number;
   readonly bufferURL: string;
   readonly sampleRate: number; // how many frames per second
-  readonly bufferLength: Seconds; // seconds, whole buffer
 
   // status, from construction
   readonly status: "ready" | "missing";
@@ -43,7 +42,12 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
   readonly name: SPrimitive<string>;
   readonly timelineStart: TimelineT; // on the timeline, the x position
   readonly timelineLength: TimelineT; // length of the clip on the timeline
+
+  //
+  // min is 0, max is duration
   public bufferOffset: Seconds; // todo: make linked state
+  readonly bufferLength: Seconds; // seconds, whole buffer
+
   // public clipLengthSec: Seconds; // TODO: incorporate?
 
   // unused
@@ -122,10 +126,6 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
 
     this.name = SPrimitive.of(name);
     this.bufferURL = bufferURL;
-  }
-
-  get clipLengthSec() {
-    return this.timelineLength.ensureSecs();
   }
 
   get timelineStartSec() {
@@ -236,18 +236,19 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
 
   public trimStartAddingTime(addedTime: number) {
     this.featuredMutation(() => {
-      this.timelineStart.set(this.timelineStartSec + addedTime, "seconds");
+      const timelineStartSec = this.timelineStart.ensureSecs();
+      this.timelineStart.set(timelineStartSec + addedTime, "seconds");
       this.bufferOffset = (this.bufferOffset + addedTime) as Seconds;
-      // this.clipLengthSec = (this.clipLengthSec - addedTime) as Seconds;
-      this.timelineLength.set(this.clipLengthSec - addedTime, "seconds");
+      const clipLengthSec = this.timelineLength.ensureSecs();
+      this.timelineLength.set(clipLengthSec - addedTime, "seconds");
     });
   }
 
-  get timelineEndSec() {
+  getTimelineEndSec() {
     return this.timelineStart.ensureSecs() + this.timelineLength.ensureSecs();
   }
 
-  set timelineEndSec(newEnd: number) {
+  setTimelineEndSec(newEnd: number) {
     const newLen = newEnd - this.timelineStart.ensureSecs();
 
     if (newLen <= 0) {
@@ -277,33 +278,6 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
     });
   }
 
-  //
-  // min is 0, max is duration
-  // always < trimEndSec
-  get trimStartSec() {
-    return this.bufferOffset;
-  }
-
-  //
-  // min is 0, max is duration.
-  // always is > trimStartSec
-  get trimEndSec() {
-    return this.clipLengthSec - this.bufferOffset;
-  }
-
-  set trimEndSec(s: number) {
-    let trimEnd = s;
-    if (trimEnd > this.bufferLength + this.bufferOffset) {
-      trimEnd = this.bufferLength + this.bufferOffset;
-    } else if (s < 0) {
-      throw new Error("Can't set trimEndSec to be less than 0");
-    }
-
-    this.featuredMutation(() => {
-      this.timelineEndSec = this.bufferTimelineStartSec() + trimEnd;
-    });
-  }
-
   // Frames units
 
   private secToFr(sec: number): number {
@@ -314,38 +288,28 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
     return (fr / this.sampleRate) as Seconds;
   }
 
-  get lengthFr(): number {
-    return this.secToFr(this.bufferLength);
-  }
-
-  // on the timeline, the x position where + width (duration)
-  get endOffsetFr() {
-    return this.timelineStartFr() + this.clipLengthFr();
-  }
-
-  get trimStartFr() {
+  public bufferOffsetFr() {
     return this.secToFr(this.bufferOffset);
   }
 
   // interface AbstractClip
 
   get _timelineStartU(): Seconds {
-    return this.timelineStartSec as Seconds;
+    const timelineStartSec = this.timelineStart.ensureSecs();
+    return timelineStartSec as Seconds;
   }
 
   _setTimelineStartU(num: Seconds): void {
-    this.featuredMutation(() => {
-      this.timelineStart.set(num, "seconds");
-    });
+    this.timelineStart.set(num, "seconds");
   }
 
   get _timelineEndU(): Seconds {
-    return this.timelineEndSec as Seconds;
+    return this.getTimelineEndSec() as Seconds;
   }
 
   _setTimelineEndU(num: number): void {
     this.featuredMutation(() => {
-      this.timelineEndSec = num;
+      this.setTimelineEndSec(num);
     });
   }
 
@@ -364,21 +328,22 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
       throw new Error(`trimming past end time: ${newTimelineSec} > ${this.bufferTimelineEndSec()}`);
     }
 
-    const delta = newTimelineSec - this.timelineStartSec;
+    const timelineStartSec = this.timelineStart.ensureSecs();
+    const delta = newTimelineSec - timelineStartSec;
     this.timelineStart.set(newTimelineSec, "seconds");
     this.bufferOffset = (this.bufferOffset + delta) as Seconds;
-    // this.clipLengthSec = (this.clipLengthSec - delta) as Seconds;
-    this.timelineLength.set(this.clipLengthSec - delta, "seconds");
+    const clipLengthSec = this.timelineLength.ensureSecs();
+    this.timelineLength.set(clipLengthSec - delta, "seconds");
   }
 
   // Buffer
 
   private bufferTimelineStartSec() {
-    return this.timelineStartSec - this.bufferOffset;
+    return this.timelineStart.ensureSecs() - this.bufferOffset;
   }
 
   private bufferTimelineEndSec() {
-    return this.timelineStartSec - this.bufferOffset + this.bufferLength;
+    return this.timelineStart.ensureSecs() - this.bufferOffset + this.bufferLength;
   }
 
   public bufferLenSec(): number {
