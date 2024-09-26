@@ -67,16 +67,16 @@ export class AudioProject {
   readonly lockedTracks = SSet.create<AudioTrack | MidiTrack | StandardTrack<any>>();
   // much like live, there's always an active track. Logic is a great model since
   // the active track is clearly discernable in spite of multi-track selection.
-  readonly activeTrack = LinkedState.of<AudioTrack | MidiTrack | null>(null);
-  readonly armedTrack = LinkedState.of<AudioTrack | MidiTrack | null>(null);
+  readonly activeTrack = SPrimitive.of<AudioTrack | MidiTrack | null>(null);
+  readonly armedTrack = SPrimitive.of<AudioTrack | MidiTrack | null>(null);
 
   // Pointer //
-  readonly pointerTool = LinkedState.of<PointerTool>("move");
-  readonly panelTool = LinkedState.of<SecondaryTool>("move");
+  readonly pointerTool = SPrimitive.of<PointerTool>("move");
+  readonly panelTool = SPrimitive.of<SecondaryTool>("move");
   // the width of the selection at the playback cursor
   // TODO: Rename cursor time width or something?
-  readonly selectionWidth = LinkedState.of<number | null>(null);
-  readonly cursorPos = LinkedState.of(0);
+  readonly selectionWidth = SPrimitive.of<number | null>(null);
+  readonly cursorPos = SPrimitive.of(0);
   readonly cursorTracks = SSet.create<AudioTrack | MidiTrack>();
   // ^^ TODO: a weak linked set might be a good idea
 

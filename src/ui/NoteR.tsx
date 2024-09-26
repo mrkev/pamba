@@ -26,7 +26,7 @@ export function NoteR({
   const [secondarySel] = useLinkedState(project.secondarySelection);
   const [noteHeight] = usePrimitive(viewport.pxNoteHeight);
   const divRef = useRef<HTMLDivElement>(null);
-  const [panelTool] = useLinkedState(project.panelTool);
+  const [panelTool] = usePrimitive(project.panelTool);
 
   const [tick, num, duration, velocity] = note;
   const selected = secondarySel?.status === "notes" && secondarySel.notes.has(note);

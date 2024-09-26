@@ -1,6 +1,7 @@
 import { WamDescriptor } from "@webaudiomodules/api";
 import { FirebaseApp } from "firebase/app";
 import { Auth, User, getAuth } from "firebase/auth";
+import { DirtyObserver, array } from "structured-state";
 import { FIREBASE_ENABLED, WAM_PLUGINS } from "../constants";
 import { AudioPackage } from "../data/AudioPackage";
 import { ProjectPackage } from "../data/ProjectPackage";
@@ -20,6 +21,8 @@ import { LinkedMap } from "./state/LinkedMap";
 import { LinkedSet } from "./state/LinkedSet";
 import { LinkedState } from "./state/LinkedState";
 import { exhaustive } from "./state/Subbable";
+
+const dummyObj = array();
 
 export type WAMAvailablePlugin = {
   kind: "WAMAvailablePlugin";
@@ -46,12 +49,13 @@ export class AppEnvironment {
   readonly localFiles: LocalFilesystem = new LocalFilesystem();
   // Project
   readonly projectStatus: LinkedState<ProjectState>;
+  public projectDirtyObserver: DirtyObserver;
   readonly projectPacakge: LinkedState<ProjectPackage | null>; // null if never saved
   // UI
   readonly openEffects: LinkedSet<DSPNode | MidiInstrument>;
   readonly activeSidePanel = LocalSPrimitive.create<"library" | "project" | "history" | "settings" | "help" | null>(
     "side-panel-active",
-    "library"
+    "library",
   );
   readonly activeBottomPanel = LocalSPrimitive.create<"editor" | "debug" | "about" | null>("bottom-panel-active", null);
 
@@ -71,6 +75,15 @@ export class AppEnvironment {
 
     this.projectStatus = LinkedState.of<ProjectState>({ status: "idle" });
     this.projectPacakge = LinkedState.of<ProjectPackage | null>(null); // null if never saved
+    this.projectDirtyObserver = new DirtyObserver(dummyObj, "clean");
+  }
+
+  public loadProject(project: AudioProject) {
+    appEnvironment.projectStatus.set({
+      status: "loaded",
+      project,
+    });
+    this.projectDirtyObserver = new DirtyObserver(project.allTracks, "clean");
   }
 
   async initAsync(liveAudioContext: AudioContext) {
@@ -85,7 +98,7 @@ export class AppEnvironment {
           return;
         }
         this.wamPlugins.set(url, plugin);
-      })
+      }),
     );
     this.wamStatus.set("ready");
 
@@ -142,7 +155,7 @@ export class AppEnvironment {
 
     if (projectStatus.project.projectId !== projectId) {
       throw new Error(
-        `Can't load audio outside current project: project: ${projectStatus.project.projectId}, path: ${path}`
+        `Can't load audio outside current project: project: ${projectStatus.project.projectId}, path: ${path}`,
       );
     }
 

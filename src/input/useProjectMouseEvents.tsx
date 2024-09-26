@@ -357,9 +357,11 @@ export function useTimelineMouseEvents(
                 const originalEndPulses =
                   pressed.clip.timelineStart.pulses(project) + pressed.clip.timelineLength.pulses(project);
                 clipResizeEndPulses(pressed.clip, newLength, originalEndPulses, snap);
+              } else if (pressed.from === "start") {
+                throw new Error("MidiClip unimplemented");
+              } else {
+                exhaustive(pressed.from);
               }
-
-              throw new Error("MidiClip unimplemented");
             } else if (pressed.clip instanceof AudioClip) {
               const opDeltaXSecs = project.viewport.pxToSecs(deltaX);
               const originalClipLengthSecs = pressed.originalClipLength.secs(project);

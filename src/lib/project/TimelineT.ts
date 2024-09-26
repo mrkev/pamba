@@ -38,7 +38,7 @@ export class TimelineT extends Structured<STimelineT, typeof TimelineT> {
     if (u != null) {
       this.u = u;
     }
-    this._notifyChange();
+    this.notifyChange();
   }
 
   public replaceWith(b: TimelineT) {

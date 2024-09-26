@@ -14,8 +14,8 @@ export function CursorSelection({
   track: AudioTrack | MidiTrack | null;
   leftOffset?: number;
 }) {
-  const [cursorPos] = useLinkedState(project.cursorPos);
-  const [selectionWidth] = useLinkedState(project.selectionWidth);
+  const [cursorPos] = usePrimitive(project.cursorPos);
+  const [selectionWidth] = usePrimitive(project.selectionWidth);
   const cursorTracks = useContainer(project.cursorTracks);
   const [selected] = useLinkedState(project.selected);
   const [pressed] = usePrimitive(pressedState);

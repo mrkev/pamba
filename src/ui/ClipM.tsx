@@ -2,7 +2,6 @@ import React, { useCallback } from "react";
 import { useContainer } from "structured-state";
 import type { AudioProject } from "../lib/project/AudioProject";
 import { useSubscribeToSubbableMutationHashable } from "../lib/state/LinkedMap";
-import { useLinkedState } from "../lib/state/LinkedState";
 import { MidiClip } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
 import { StandardClip } from "./StandardClip";
@@ -23,7 +22,6 @@ export function ClipM({
 }) {
   const notes = useContainer(clip.notes);
   // const startTrimmedWidth = project.viewport.secsToPx(clip.trimStartSec);
-  const [tool] = useLinkedState(project.pointerTool);
   const width = project.viewport.pulsesToPx(clip.timelineLength.ensurePulses());
   const left = Math.floor(project.viewport.pulsesToPx(clip.startOffsetPulses));
 

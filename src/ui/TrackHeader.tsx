@@ -40,8 +40,8 @@ export const TrackHeader = React.memo(function TrackHeader({
   const [trackName, setTrackName] = usePrimitive(track.name);
   const [height] = usePrimitive(track.height);
   const [selected] = useLinkedState(project.selected);
-  const [activeTrack] = useLinkedState(project.activeTrack);
-  const [armedTrack] = useLinkedState(project.armedTrack);
+  const [activeTrack] = usePrimitive(project.activeTrack);
+  const [armedTrack] = usePrimitive(project.armedTrack);
 
   const isSelected = selected !== null && selected.status === "tracks" && selected.test.has(track);
   const isSolod = solodTracks.has(track);

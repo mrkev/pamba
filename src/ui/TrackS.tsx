@@ -49,7 +49,7 @@ export function TrackS({
   const [selected] = useLinkedState(project.selected);
   const clips = useContainer(track.clips);
   const [height] = usePrimitive(track.height);
-  const [activeTrack] = useLinkedState(project.activeTrack);
+  const [activeTrack] = usePrimitive(project.activeTrack);
   const lockedTracks = useContainer(project.lockedTracks);
   const [audioStorage] = usePrimitive(project.audioStorage);
   const trackRef = useRef<HTMLDivElement>(null);

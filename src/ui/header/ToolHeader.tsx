@@ -1,9 +1,11 @@
 import { useCallback, useRef } from "react";
 import { createUseStyles } from "react-jss";
 import { usePrimitive } from "structured-state";
+import { useSubscribeToSubbableMutationHashable } from "structured-state";
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from "../../constants";
 import { documentCommands } from "../../input/documentCommands";
 import { AnalizedPlayer } from "../../lib/AnalizedPlayer";
+import { appEnvironment } from "../../lib/AppEnvironment";
 import { AudioRecorder } from "../../lib/AudioRecorder";
 import { AudioRenderer } from "../../lib/AudioRenderer";
 import { ProjectPersistance } from "../../lib/ProjectPersistance";
@@ -152,6 +154,10 @@ export function ToolHeader({
   const [recorderStatus] = useLinkedState(recorder.status);
   const isRecording = recorderStatus === "recording";
 
+  const dirty = appEnvironment.projectDirtyObserver.dirtyState() !== "clean";
+  useSubscribeToSubbableMutationHashable(appEnvironment.projectDirtyObserver.flag, undefined, false);
+  useSubscribeToSubbableMutationHashable(project.allTracks, undefined, true);
+
   return (
     <div className={classes.headerContainer}>
       {/* foo */}
@@ -257,6 +263,7 @@ export function ToolHeader({
           {/* <TransportControl project={project} renderer={renderer} recorder={recorder} /> */}
           <div style={{ flexGrow: 1 }}></div>
           <span title="current open project">
+            {dirty ? "*" : ""}
             <i className="ri-file-music-line" />
             <RenamableLabel
               style={{ padding: "0px 2px" }}

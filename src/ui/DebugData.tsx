@@ -48,79 +48,13 @@ export function stringOfSelected(sel: PrimarySelectionState | null): string {
   return JSON.stringify(sel);
 }
 
-function DebugData({ project }: { project: AudioProject }) {
-  const [selected] = useLinkedState(project.selected);
-  const [cursorPos] = useLinkedState(project.cursorPos);
-  const [selectionWidth] = useLinkedState(project.selectionWidth);
-  const tracks = useContainer(project.allTracks);
-  const [pressed] = usePrimitive(pressedState);
-  const [activeTrack] = useLinkedState(project.activeTrack);
-  const cursorTracks = useContainer(project.cursorTracks);
-  const [open, setOpen] = useLocalStorage<boolean>("debugDataOpen", false);
-  const [viewportStartPx] = useLinkedState(project.viewportStartPx);
-  const [projectDivWidth] = useLinkedState(project.viewport.projectDivWidth);
-
-  if (window.location.host.indexOf("localhost") === -1) {
-    return null;
-  }
-
-  const allState = tracks
-    .map((track, i) => {
-      return `Track ${i}:\n${ProjectTrack.toString(track)}\n`;
-    })
-    .join("\n");
-
-  return (
-    <details
-      open={open}
-      onToggle={() => setOpen((p) => !p)}
-      style={{
-        fontSize: 12,
-        position: "absolute",
-        bottom: 0,
-        left: 100,
-        background: "rgba(233,233,233,0.7)",
-        border: "1px solid black",
-        color: "black",
-      }}
-    >
-      <summary style={{ cursor: "pointer" }}>Debug</summary>
-      <pre>
-        |{viewportStartPx}px -{projectDivWidth}-
-      </pre>
-      <div>
-        Cursor: {cursorPos} {selectionWidth} <br />
-        Cursor Tracks: {[...cursorTracks.values()].map((track) => `${track.name.get()}`)}
-        <hr></hr>
-        <br />
-        Selected: {stringOfSelected(selected)}
-        <br />
-        <pre>Pressed: {serializedPressed(pressed)}</pre>
-        <br />
-        Active Track: {activeTrack?.name.get()}
-      </div>
-      <pre>{allState}</pre>
-    </details>
-  );
-}
-
-function serializedPressed(pressed: CursorState | null) {
-  console.log("FOO");
-  switch (pressed?.status) {
-    case "moving_timeline_points":
-      return JSON.stringify(pressed, null, 2);
-    default:
-      return pressed?.status;
-  }
-}
-
 export function DebugContent({ project }: { project: AudioProject }) {
   const [selected] = useLinkedState(project.selected);
-  const [cursorPos] = useLinkedState(project.cursorPos);
-  const [selectionWidth] = useLinkedState(project.selectionWidth);
+  const [cursorPos] = usePrimitive(project.cursorPos);
+  const [selectionWidth] = usePrimitive(project.selectionWidth);
   const tracks = useContainer(project.allTracks);
   const [pressed] = usePrimitive(pressedState);
-  const [activeTrack] = useLinkedState(project.activeTrack);
+  const [activeTrack] = usePrimitive(project.activeTrack);
   const cursorTracks = useContainer(project.cursorTracks);
   const [viewportStartPx] = useLinkedState(project.viewportStartPx);
   const [projectDivWidth] = useLinkedState(project.viewport.projectDivWidth);

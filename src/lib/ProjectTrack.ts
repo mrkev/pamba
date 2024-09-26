@@ -79,7 +79,7 @@ export class ProjectTrack {
     const notifyClips = deleteTime(start, end, track.clips);
     notifyClips.forEach((clip) => {
       console.log("clip", clip);
-      clip._notifyChange();
+      clip.notifyChange();
     });
   }
 

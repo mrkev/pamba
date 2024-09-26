@@ -22,9 +22,9 @@ export function TransportControl({
 }) {
   const cursorCanvasRef = useRef<HTMLCanvasElement>(null);
   const [isAudioPlaying] = usePrimitive(renderer.isAudioPlaying);
-  const [selectionWidth] = useLinkedState(project.selectionWidth);
+  const [selectionWidth] = usePrimitive(project.selectionWidth);
   const [recorderStatus] = useLinkedState(recorder.status);
-  const [cursorPos] = useLinkedState(project.cursorPos);
+  const [cursorPos] = usePrimitive(project.cursorPos);
   const isRecording = recorderStatus === "recording";
 
   useEffect(() => {
@@ -78,13 +78,13 @@ export function PlaybackControl({
   recorder: AudioRecorder;
 }) {
   const tracks = useContainer(project.allTracks);
-  const [armedTrack] = useLinkedState(project.armedTrack);
+  const [armedTrack] = usePrimitive(project.armedTrack);
   const [isAudioPlaying] = usePrimitive(renderer.isAudioPlaying);
   const [recorderStatus] = useLinkedState(recorder.status);
   const isRecording = recorderStatus === "recording";
   const isTrackArmed = armedTrack != null;
-  const [selectionWidth] = useLinkedState(project.selectionWidth);
-  const [cursorPos] = useLinkedState(project.cursorPos);
+  const [selectionWidth] = usePrimitive(project.selectionWidth);
+  const [cursorPos] = usePrimitive(project.cursorPos);
 
   return (
     <div style={{ display: "flex", flexDirection: "row", ...style }}>

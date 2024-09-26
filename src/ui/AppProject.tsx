@@ -1,6 +1,6 @@
 import classNames from "classnames";
 import { useEffect, useState } from "react";
-import { usePrimitive } from "structured-state";
+import { useDirtyTracker, usePrimitive } from "structured-state";
 import { useDocumentKeyboardEvents } from "../input/useDocumentKeyboardEvents";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioRecorder } from "../lib/AudioRecorder";

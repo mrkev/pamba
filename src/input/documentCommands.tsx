@@ -5,14 +5,14 @@ import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioRenderer } from "../lib/AudioRenderer";
 import { ProjectPersistance } from "../lib/ProjectPersistance";
 import { AudioProject } from "../lib/project/AudioProject";
-import { ProjectSelection } from "../lib/project/ProjectSelection";
 import { doPaste } from "../lib/project/ClipboardState";
+import { ProjectSelection } from "../lib/project/ProjectSelection";
+import { clipsLimits } from "../lib/project/timeline";
 import { pressedState } from "../pressedState";
 import { exhaustive } from "../utils/exhaustive";
 import { ignorePromise } from "../utils/ignorePromise";
-import { CommandBlock } from "./Command";
 import { nullthrows } from "../utils/nullthrows";
-import { clipsLimits } from "../lib/project/timeline";
+import { CommandBlock } from "./Command";
 
 export const documentCommands = CommandBlock.create(["Project", "Edit", "Tools", "Playback"] as const, (command) => {
   return {
@@ -237,10 +237,7 @@ export const documentCommands = CommandBlock.create(["Project", "Edit", "Tools",
     // Debugging
     createSampleProject: command(["KeyS", "meta", "shift"], async () => {
       const project = await ProjectPersistance.sampleProject();
-      appEnvironment.projectStatus.set({
-        status: "loaded",
-        project,
-      });
+      appEnvironment.loadProject(project);
     }),
 
     // Other

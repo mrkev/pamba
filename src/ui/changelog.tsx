@@ -2,6 +2,7 @@ export const changelog = `
 next
 - resizing a clip from start can snap to grid
 - can resize midi clip from end
+- improvements to undo
 
 v0.1.8
 - improve zoom slider

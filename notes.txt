@@ -1,10 +1,11 @@
 - structured-state todo:
-  - expose map, set
+  x expose map, set
+  x state is not a tree, it's a graph: container should be a set, and updates should be done with tokens to avoid cycles
 
 top prio:
 x reorder tracks
 x reorder effects
-- dirty state for project
+x dirty state for project
 x right-click messes up dragging state
 
 todo:

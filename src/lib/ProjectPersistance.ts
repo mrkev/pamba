@@ -5,9 +5,10 @@ import { AudioClip } from "./AudioClip";
 import { ProjectTrack } from "./ProjectTrack";
 import { AudioProject } from "./project/AudioProject";
 
-export class ProjectPersistance {
+export abstract class ProjectPersistance {
   static async doSave(project: AudioProject) {
     await appEnvironment.localFiles.saveProject(project);
+    appEnvironment.projectDirtyObserver.markClean();
     window.localStorage.setItem("pamba.project.open_id", project.projectId);
   }
 
@@ -24,7 +25,8 @@ export class ProjectPersistance {
   static async openLastProject(localFiles: LocalFilesystem) {
     const projects = await localFiles.projectLib.getAll();
     if (projects.length === 0) {
-      appEnvironment.projectStatus.set({ status: "loaded", project: await this.sampleProject() });
+      const sampleProject = await this.sampleProject();
+      appEnvironment.loadProject(sampleProject);
       return;
     }
 
@@ -48,7 +50,7 @@ export class ProjectPersistance {
       return;
     }
 
-    appEnvironment.projectStatus.set({ status: "loaded", project: ProjectPersistance.emptyProject() });
+    appEnvironment.loadProject(ProjectPersistance.emptyProject());
     appEnvironment.projectPacakge.set(null);
     console.log("OPENED EMPTY PROJECT");
   }
@@ -64,7 +66,7 @@ export class ProjectPersistance {
     if (!(projectPackage instanceof ProjectPackage)) {
       alert(`issue opening project: ${projectPackage}`);
       // On error create and open empty project:
-      appEnvironment.projectStatus.set({ status: "loaded", project: ProjectPersistance.emptyProject() });
+      appEnvironment.loadProject(ProjectPersistance.emptyProject());
       appEnvironment.projectPacakge.set(null);
       return;
     }
@@ -73,12 +75,12 @@ export class ProjectPersistance {
     if (!(project instanceof AudioProject)) {
       alert(`issue opening project: ${project.status}`);
       // On error create and open empty project:
-      appEnvironment.projectStatus.set({ status: "loaded", project: ProjectPersistance.emptyProject() });
+      appEnvironment.loadProject(ProjectPersistance.emptyProject());
       appEnvironment.projectPacakge.set(null);
       return;
     }
 
-    appEnvironment.projectStatus.set({ status: "loaded", project: project });
+    appEnvironment.loadProject(project);
     appEnvironment.projectPacakge.set(projectPackage);
   }
 

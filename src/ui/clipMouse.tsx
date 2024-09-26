@@ -1,12 +1,10 @@
 import type { AudioClip } from "../lib/AudioClip";
 import type { AudioTrack } from "../lib/AudioTrack";
-import type { AudioProject, PointerTool } from "../lib/project/AudioProject";
-import { ProjectTrack } from "../lib/ProjectTrack";
+import type { AudioProject } from "../lib/project/AudioProject";
 import { MidiClip } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
 import { modifierState } from "../ModifierState";
 import { pressedState } from "../pressedState";
-import { history, useContainer } from "structured-state";
 
 // import { dataWaveformToCanvas } from "../lib/waveformAsync";
 type ClipTrackCombo =

@@ -62,7 +62,7 @@ export function MidiClipEditor({
   const [noteHeight, setNoteHeight] = usePrimitive(clip.detailedViewport.pxNoteHeight);
   const [pxPerPulse, setPxPerPulse] = usePrimitive(clip.detailedViewport.pxPerPulse);
   const [secondarySel] = useLinkedState(project.secondarySelection);
-  const [panelTool] = useLinkedState(project.panelTool);
+  const [panelTool] = usePrimitive(project.panelTool);
   const [bpm] = usePrimitive(project.tempo);
   const timelineLen = useContainer(clip.timelineLength);
 

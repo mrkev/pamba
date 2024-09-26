@@ -93,7 +93,7 @@ export class MidiClip extends Structured<SMidiClip, typeof MidiClip> implements 
 
   static addNote(clip: MidiClip, tick: number, num: number, duration: number, velocity: number) {
     addOrderedNote(clip.notes, [tick, num, duration, velocity]);
-    clip._notifyChange();
+    clip.notifyChange();
   }
 
   static addNoteAndUpdateTrackPlayback(
@@ -106,12 +106,12 @@ export class MidiClip extends Structured<SMidiClip, typeof MidiClip> implements 
   ) {
     // TODO
     addOrderedNote(clip.notes, [tick, num, duration, velocity]);
-    clip._notifyChange();
+    clip.notifyChange();
   }
 
   static removeNote(clip: MidiClip, note: Note) {
     clip.notes.remove(note);
-    clip._notifyChange();
+    clip.notifyChange();
   }
 
   // Good for now, works long term?

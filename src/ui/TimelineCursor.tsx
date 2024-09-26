@@ -1,11 +1,11 @@
+import { usePrimitive } from "structured-state";
 import { AudioProject } from "../lib/project/AudioProject";
 import { useDerivedState } from "../lib/state/DerivedState";
-import { useLinkedState } from "../lib/state/LinkedState";
 
 export function TimelineCursor({ project, isHeader }: { project: AudioProject; isHeader?: boolean }) {
   const secsToPx = useDerivedState(project.secsToPx);
-  const [cursorPos] = useLinkedState(project.cursorPos);
-  const [selectionWidthRaw] = useLinkedState(project.selectionWidth);
+  const [cursorPos] = usePrimitive(project.cursorPos);
+  const [selectionWidthRaw] = usePrimitive(project.selectionWidth);
   const selectionWidth = selectionWidthRaw == null ? 0 : selectionWidthRaw;
   if (isHeader) {
     const left = selectionWidth >= 0 ? secsToPx(cursorPos) : secsToPx(cursorPos + selectionWidth);

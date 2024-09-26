@@ -1,12 +1,11 @@
-import { getGlobalState, useContainer } from "structured-state";
+import { getGlobalState, useContainer, usePrimitive } from "structured-state";
+import { documentCommands } from "../../input/documentCommands";
 import { AudioProject } from "../../lib/project/AudioProject";
-import { useLinkedState } from "../../lib/state/LinkedState";
 import { utility } from "../utility";
 import { UtilityToggle } from "../UtilityToggle";
-import { documentCommands } from "../../input/documentCommands";
 
 export function ToolSelector({ project }: { project: AudioProject }) {
-  const [tool] = useLinkedState(project.pointerTool);
+  const [tool] = usePrimitive(project.pointerTool);
   const history = useContainer(getGlobalState().history);
 
   return (

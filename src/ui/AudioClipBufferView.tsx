@@ -5,7 +5,6 @@ import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioProject } from "../lib/project/AudioProject";
 import { useSubscribeToSubbableMutationHashable } from "../lib/state/LinkedMap";
-import { useLinkedState } from "../lib/state/LinkedState";
 import { pressedState } from "../pressedState";
 import { nullthrows } from "../utils/nullthrows";
 import { useEventListener } from "./useEventListener";
@@ -23,7 +22,7 @@ export function AudioClipBufferView({
   const waveformRef = useRef<HTMLCanvasElement>(null);
   const playbackDiv = useRef<HTMLDivElement>(null);
   const [playbackPos] = usePrimitive(player.playbackPos);
-  const [cursorPos] = useLinkedState(project.cursorPos);
+  const [cursorPos] = usePrimitive(project.cursorPos);
   const [selectionWidthFr] = usePrimitive(clip.detailedViewport.selectionWidthFr);
   const selectionWidthPx = clip.detailedViewport.frToPx(
     selectionWidthFr == null ? 0 : selectionWidthFr,

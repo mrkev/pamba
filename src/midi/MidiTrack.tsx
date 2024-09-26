@@ -64,7 +64,7 @@ export class MidiTrack extends Structured<SMidiTrack, typeof MidiTrack> implemen
     const [groupId] = nullthrows(appEnvironment.wamHostGroup.get());
     const pianoRoll = await PianoRollModule.createInstance<PianoRollNode>(groupId, liveAudioContext());
     await (pianoRoll as PianoRollModule).sequencer.setState(SAMPLE_STATE);
-    return new MidiTrack(name, pianoRoll, instrument, clips ?? []);
+    return Structured.create(MidiTrack, name, pianoRoll, instrument, clips ?? []);
   }
 
   // TODO: OLD INSTRUMENT ISN'T BEING PROPERLY REMOVED

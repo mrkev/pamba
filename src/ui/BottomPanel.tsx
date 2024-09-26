@@ -13,6 +13,7 @@ import { AudioClipEditor } from "./AudioClipEditor";
 import { MidiClipEditor } from "./MidiClipEditor";
 import { TrackEditor } from "./TrackEditor";
 import { useMousePressMove } from "./useEventListener";
+import { usePrimitive } from "structured-state";
 
 type BottomPanelDisplay =
   | { kind: "AudioClip"; clip: AudioClip; track: AudioTrack }
@@ -29,7 +30,7 @@ export function BottomPanel({
   player: AnalizedPlayer;
   renderer: AudioRenderer;
 }) {
-  const [activeTrack] = useLinkedState(project.activeTrack);
+  const [activeTrack] = usePrimitive(project.activeTrack);
   const [selected] = useLinkedState(project.selected);
   const primarySelection = getValidEditorSelection(selected);
 
