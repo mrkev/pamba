@@ -3,13 +3,12 @@
   "version": "0.1.8",
   "private": true,
   "//notes": [
-    "previously used \"@shren/faust-ui\": \"1.1.2\"",
     "svgo for types in vite-plugin-svgr"
   ],
   "dependencies": {
     "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
     "@esbuild-plugins/node-modules-polyfill": "^0.2.2",
-    "@grame/faustwasm": "^0.2.3",
+    "@grame/faustwasm": "^0.6.4",
     "@shren/typed-event-emitter": "1.1.1",
     "@types/audiobuffer-to-wav": "1.0.4",
     "@types/dom-mediacapture-record": "1.0.19",

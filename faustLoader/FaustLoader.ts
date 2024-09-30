@@ -1,10 +1,10 @@
 import { readFile } from "fs/promises";
 import * as path from "path";
+import { PluginContext } from "rollup";
 import * as tmp from "tmp-promise";
 import { DirectoryResult } from "tmp-promise";
-import type { ResolvedConfig, Rollup } from "vite";
-import { faustLoaderImpl } from "./faustLoder";
-import { PluginContext } from "rollup";
+import type { ResolvedConfig } from "vite";
+import { faustLoaderWasmImpl } from "./faustLoaderWasm";
 
 const isDsp = (id: string) => /\.(dsp)$/.test(id);
 
@@ -87,7 +87,6 @@ export class FaustLoader {
       this.workDir = tmp.dir();
 
       const workDir = await this.workDir;
-      // const faust2wasmPath = path.resolve(__dirname, "./faust2appls");
       // await fs.copy(faust2wasmPath, workDir.path);
       this.resConfig.logger.info("\n[load] Created workdir at: " + workDir.path);
     }
@@ -118,7 +117,7 @@ export class FaustLoader {
 
     const name = path.parse(id).name;
     const src = await readFile(id, { encoding: "utf-8" });
-    const files = await faustLoaderImpl(emitFile, name, src, await this.workDir);
+    const files = await faustLoaderWasmImpl(emitFile, name, src, await this.workDir);
 
     // If building, store the paths to the built files
 
