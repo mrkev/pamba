@@ -1,27 +1,27 @@
 import { fixupConfigRules, fixupPluginRules } from "@eslint/compat";
-import react from "eslint-plugin-react";
+import { FlatCompat } from "@eslint/eslintrc";
+import eslint from "@eslint/js";
 import typescriptEslint from "@typescript-eslint/eslint-plugin";
+import react from "eslint-plugin-react";
 import reactHooks from "eslint-plugin-react-hooks";
-import tsParser from "@typescript-eslint/parser";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import js from "@eslint/js";
-import { FlatCompat } from "@eslint/eslintrc";
 import tseslint from "typescript-eslint";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const compat = new FlatCompat({
   baseDirectory: __dirname,
-  recommendedConfig: js.configs.recommended,
-  allConfig: js.configs.all,
+  recommendedConfig: eslint.configs.recommended,
+  allConfig: eslint.configs.all,
 });
 
 export default tseslint.config(
+  eslint.configs.recommended,
   ...tseslint.configs.recommended,
   {
     ignores: [
-      "**/vite.config.mts",
+      "vite.config.mts",
       "faustLoader/**/*",
       "src/midi/**/*",
       "public",
@@ -45,7 +45,6 @@ export default tseslint.config(
         SharedArrayBuffer: "readonly",
       },
 
-      parser: tsParser,
       ecmaVersion: "latest",
       sourceType: "module",
 
@@ -62,8 +61,13 @@ export default tseslint.config(
 
     rules: {
       "no-useless-concat": "off",
+      "no-undef": "off",
+      "no-fallthrough": "off",
+      "no-case-declarations": "off",
+      // "for-direction": "off",
+      "@typescript-eslint/no-unused-expressions": "off",
       "@typescript-eslint/no-floating-promises": "error",
-
+      "@typescript-eslint/no-this-alias": "off",
       "@typescript-eslint/no-unused-vars": [
         "warn",
         {
@@ -74,6 +78,7 @@ export default tseslint.config(
         },
       ],
 
+      "@typescript-eslint/no-unnecessary-type-constraint": "off",
       "@typescript-eslint/explicit-function-return-type": "off",
       "object-shorthand": "off",
       "@typescript-eslint/no-confusing-void-expression": "off",
@@ -92,5 +97,5 @@ export default tseslint.config(
       "react/react-in-jsx-scope": "off",
       "react/no-unescaped-entities": "off",
     },
-  }
+  },
 );

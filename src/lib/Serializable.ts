@@ -17,10 +17,7 @@ export class Serializable {
       return `[${serialized.join(",")}]`;
     }
 
-    if (
-      val instanceof Object &&
-      (val as any).__proto__.constructor === Object
-    ) {
+    if (val instanceof Object && (val as any).__proto__.constructor === Object) {
       const entries = Object.entries(val)
         .map(([okey, oval]) => {
           const serialized = Serializable.serializePrimitive(oval);
@@ -38,10 +35,7 @@ export class Serializable {
       return val.__serialize();
     }
 
-    if (
-      val instanceof Object &&
-      typeof (val as any).__serialize === "function"
-    ) {
+    if (val instanceof Object && typeof (val as any).__serialize === "function") {
       return (val as any).__serialize();
     }
 
@@ -52,7 +46,7 @@ export class Serializable {
     const acc: Record<string, unknown> = {};
     for (const key in this) {
       // skip loop if the property is from prototype
-      if (!this.hasOwnProperty(key)) continue;
+      if (!Object.prototype.hasOwnProperty.call(this, key)) continue;
 
       acc[key] = this[key];
       acc.__c = this.constructor.name;

@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 
-export default function MultiProvider({
+function MultiProvider({
   components,
   children,
 }: {
@@ -9,7 +9,7 @@ export default function MultiProvider({
 }): React.ReactElement {
   return useMemo(() => {
     let result: React.ReactElement = components.length === 0 ? <>{children}</> : (children as any);
-    for (let i = components.length - 1; i > -1; i++) {
+    for (let i = components.length - 1; i > -1; i--) {
       const Component = components[i];
       result = <Component>{result}</Component>;
     }
