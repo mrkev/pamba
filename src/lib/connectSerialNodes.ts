@@ -1,8 +1,8 @@
-import { DSPNode } from "../dsp/DSPNode";
+import { DSPStep } from "../dsp/DSPNode";
 import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
 import { DSP } from "./DSP";
 
-export function connectSerialNodes(chain: Array<TrackedAudioNode | DSPNode<TrackedAudioNode>>): void {
+export function connectSerialNodes(chain: Array<TrackedAudioNode | DSPStep<TrackedAudioNode>>): void {
   if (chain.length < 2) {
     return;
   }
@@ -10,7 +10,7 @@ export function connectSerialNodes(chain: Array<TrackedAudioNode | DSPNode<Track
   for (let i = 1; chain[i] != null; i++) {
     const nextNode = chain[i];
 
-    if (nextNode instanceof DSPNode && nextNode.bypass != null && nextNode.bypass.get() === true) {
+    if (nextNode instanceof DSPStep && nextNode.bypass != null && nextNode.bypass.get() === true) {
       continue;
     }
 
@@ -25,7 +25,7 @@ export function connectSerialNodes(chain: Array<TrackedAudioNode | DSPNode<Track
   }
 }
 
-export function disconnectSerialNodes(chain: Array<TrackedAudioNode | DSPNode<TrackedAudioNode>>): void {
+export function disconnectSerialNodes(chain: Array<TrackedAudioNode | DSPStep<TrackedAudioNode>>): void {
   if (chain.length < 2) {
     return;
   }
@@ -33,7 +33,7 @@ export function disconnectSerialNodes(chain: Array<TrackedAudioNode | DSPNode<Tr
   for (let i = 1; chain[i] != null; i++) {
     const nextNode = chain[i];
 
-    if (nextNode instanceof DSPNode && nextNode.bypass != null && nextNode.bypass.get() === true) {
+    if (nextNode instanceof DSPStep && nextNode.bypass != null && nextNode.bypass.get() === true) {
       continue;
     }
 

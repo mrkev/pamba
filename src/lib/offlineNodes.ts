@@ -1,11 +1,12 @@
-import { string } from "structured-state";
+import { boolean, string } from "structured-state";
 import { liveAudioContext } from "../constants";
-import { DSPNode } from "../dsp/DSPNode";
+import { DSPStep } from "../dsp/DSPNode";
 import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
 
-export class PBGainNode extends DSPNode<TrackedAudioNode> {
+export class PBGainNode extends DSPStep<TrackedAudioNode> {
   override name = string("PBGainNode");
   override effectId: string = "PBGainNode";
+  override bypass = boolean(false);
 
   readonly node: TrackedAudioNode<GainNode>;
   readonly gain: AudioParam;

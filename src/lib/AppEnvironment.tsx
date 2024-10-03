@@ -6,7 +6,7 @@ import { FIREBASE_ENABLED, WAM_PLUGINS } from "../constants";
 import { AudioPackage } from "../data/AudioPackage";
 import { ProjectPackage } from "../data/ProjectPackage";
 import { LocalFilesystem } from "../data/localFilesystem";
-import type { DSPNode } from "../dsp/DSPNode";
+import type { DSPStep } from "../dsp/DSPNode";
 import { FAUST_EFFECTS } from "../dsp/FAUST_EFFECTS";
 import { initFirebaseApp } from "../firebase/firebaseConfig";
 import type { MidiInstrument } from "../midi/MidiInstrument";
@@ -52,7 +52,7 @@ export class AppEnvironment {
   public projectDirtyObserver: DirtyObserver;
   readonly projectPacakge: LinkedState<ProjectPackage | null>; // null if never saved
   // UI
-  readonly openEffects: LinkedSet<DSPNode | MidiInstrument>;
+  readonly openEffects: LinkedSet<DSPStep | MidiInstrument>;
   readonly activeSidePanel = LocalSPrimitive.create<"library" | "project" | "history" | "settings" | "help" | null>(
     "side-panel-active",
     "library",

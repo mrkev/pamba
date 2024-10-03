@@ -1,14 +1,16 @@
-import { string } from "structured-state";
+import { boolean, string } from "structured-state";
 import { CANVAS_HEIGHT, CANVAS_WIDTH, liveAudioContext, sampleSize } from "../constants";
-import { DSPNode } from "../dsp/DSPNode";
+import { DSPStep } from "../dsp/DSPNode";
 import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
 
 /**
  * Given a canvas, draws an oscilloscope waveform on it
  */
-export class OscilloscopeNode extends DSPNode<TrackedAudioNode> {
+export class OscilloscopeNode extends DSPStep<TrackedAudioNode> {
   override readonly name = string("OscilloscopeNode");
-  override cloneToOfflineContext(context: OfflineAudioContext): Promise<DSPNode<TrackedAudioNode> | null> {
+  override bypass = boolean(false);
+
+  override cloneToOfflineContext(context: OfflineAudioContext): Promise<DSPStep<TrackedAudioNode> | null> {
     throw new Error("OscilloscopeNode: cloneToOfflineContext: Method not implemented.");
   }
   override effectId: string = "OscilloscopeNode";

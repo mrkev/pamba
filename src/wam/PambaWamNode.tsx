@@ -1,17 +1,18 @@
 import { WamNode as IWamNode } from "@webaudiomodules/api";
+import { boolean, SString, string } from "structured-state";
 import type { WebAudioModule } from "../../packages/sdk/dist";
-import { DSPNode } from "../dsp/DSPNode";
+import { DSPStep } from "../dsp/DSPNode";
+import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
 import { AudioContextInfo } from "../lib/initAudioContext";
 import { LinkedState } from "../lib/state/LinkedState";
 import { Position } from "./WindowPanel";
 import { WAMImport } from "./wam";
-import { SString, string } from "structured-state";
-import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
 
-export class PambaWamNode extends DSPNode {
+export class PambaWamNode extends DSPStep {
   override name: SString;
   override effectId: string;
   readonly url: string;
+  override bypass = boolean(false);
 
   override inputNode(): TrackedAudioNode {
     return this.node;

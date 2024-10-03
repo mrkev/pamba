@@ -7,7 +7,7 @@ import type {
   IFaustMonoWebAudioNode,
 } from "@grame/faustwasm";
 import { SBoolean, SMap, SString, string } from "structured-state";
-import { DSPNode } from "./DSPNode";
+import { DSPStep } from "./DSPNode";
 import { TrackedAudioNode } from "./TrackedAudioNode";
 import { FAUST_EFFECTS, FaustEffectID } from "./FAUST_EFFECTS";
 
@@ -34,12 +34,12 @@ export interface LayoutTypeMap {
   radio: FaustUIInputItem;
 }
 
-export class FaustAudioEffect extends DSPNode<TrackedAudioNode> {
+export class FaustAudioEffect extends DSPStep<TrackedAudioNode> {
   private readonly faustNode: TrackedAudioNode<IFaustMonoWebAudioNode>;
-  readonly effectId: FaustEffectID;
-  readonly ui: FaustUIDescriptor;
-  readonly name: SString;
-  readonly params: SMap<string, number>;
+  public readonly effectId: FaustEffectID;
+  public readonly ui: FaustUIDescriptor;
+  public readonly name: SString;
+  public readonly params: SMap<string, number>;
 
   // TODO: serialize
   override readonly bypass = SBoolean.create(false);

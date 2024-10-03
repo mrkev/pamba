@@ -1,15 +1,10 @@
-import { boolean } from "structured-state";
-
 /**
  * A wrapper for WebAudio's AudioNode, that keeps track of destinations.
  * Otherwise, calling audioNode.disconnect(dest) throws if dest is not a destination
  * of audioNode
- *
- * Also includes other goodies like bypass (todo)
  */
 export class TrackedAudioNode<T extends AudioNode = AudioNode> {
   readonly _destinations = new Set<TrackedAudioNode>();
-  readonly bypass = boolean(false);
   constructor(private readonly node: T) {}
 
   public get() {

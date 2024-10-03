@@ -1,6 +1,6 @@
-import { SArray, SString } from "structured-state";
+import { boolean, SArray, SString } from "structured-state";
 import { liveAudioContext } from "../constants";
-import { DSPNode } from "../dsp/DSPNode";
+import { DSPStep } from "../dsp/DSPNode";
 import { FaustEffectID } from "../dsp/FAUST_EFFECTS";
 import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
 import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
@@ -12,13 +12,14 @@ import { connectSerialNodes, disconnectSerialNodes } from "./connectSerialNodes"
 import { PBGainNode } from "./offlineNodes";
 import { StandardTrack } from "./ProjectTrack";
 
-export class ProjectTrackDSP<T extends AbstractClip<any>> extends DSPNode<null> {
+export class ProjectTrackDSP<T extends AbstractClip<any>> extends DSPStep<null> {
   // DSP
   public readonly effects: SArray<FaustAudioEffect | PambaWamNode>;
   // The "volume" of the track
   public readonly gainNode: PBGainNode;
   // Hidden gain node, just for solo-ing tracks.
   public readonly _hiddenGainNode: PBGainNode;
+  override bypass = boolean(false);
 
   override readonly effectId = "builtin:ProjectTrackNode";
   override name: SString;
@@ -38,7 +39,7 @@ export class ProjectTrackDSP<T extends AbstractClip<any>> extends DSPNode<null> 
     return this._hiddenGainNode.outputNode();
   }
 
-  override cloneToOfflineContext(_context: OfflineAudioContext): Promise<DSPNode<TrackedAudioNode> | null> {
+  override cloneToOfflineContext(_context: OfflineAudioContext): Promise<DSPStep<TrackedAudioNode> | null> {
     throw new Error("AudioTrack: DSPNode: can't cloneToOfflineContext.");
   }
 
