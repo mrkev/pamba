@@ -8,6 +8,7 @@ import { SMidiInstrument } from "../data/serializable";
 import { LibraryItem } from "../ui/Library";
 import { liveAudioContext } from "../constants";
 import { SString, string } from "structured-state";
+import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
 
 export class MidiInstrument extends DSPNode<null> {
   override effectId: string;
@@ -16,13 +17,15 @@ export class MidiInstrument extends DSPNode<null> {
 
   // WAM
   readonly module: WebAudioModule<WamNode>;
+  readonly node: TrackedAudioNode<WamNode>;
+
   public dom: Element | null;
 
   override inputNode(): null {
     return null;
   }
-  override outputNode(): AudioNode | DSPNode<AudioNode> {
-    return this.module.audioNode;
+  override outputNode(): TrackedAudioNode {
+    return this.node;
   }
 
   serialize(): SMidiInstrument {
@@ -38,6 +41,7 @@ export class MidiInstrument extends DSPNode<null> {
   constructor(module: WebAudioModule<WamNode>, url: string) {
     super();
     this.module = module;
+    this.node = TrackedAudioNode.of(this.module.audioNode);
     this.effectId = this.module.moduleId;
     this.name = string(this.module.descriptor.name);
     this.dom = null;

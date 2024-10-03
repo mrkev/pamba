@@ -5,6 +5,7 @@ import { AudioTrack } from "./AudioTrack";
 import { ProjectTrackDSP } from "./ProjectTrackDSP";
 import { AudioContextInfo } from "./initAudioContext";
 import type { AudioProject } from "./project/AudioProject";
+import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
 
 // TODO: move these things out of the abstract class
 export interface StandardTrack<T extends AbstractClip<any>> {
@@ -18,7 +19,7 @@ export interface StandardTrack<T extends AbstractClip<any>> {
   readonly clips: SSchemaArray<T>;
 
   prepareForPlayback(project: AudioProject, context: AudioContext, startingAt: number): void;
-  prepareForBounce(context: OfflineAudioContext, offlineContextInfo: AudioContextInfo): Promise<AudioNode>;
+  prepareForBounce(context: OfflineAudioContext, offlineContextInfo: AudioContextInfo): Promise<TrackedAudioNode>;
 
   // NOTE: needs to be called right after .prepareForPlayback
   startPlayback(tempo: number, context: BaseAudioContext, offset?: number): void;

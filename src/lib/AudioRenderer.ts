@@ -9,6 +9,7 @@ import { AudioTrack } from "./AudioTrack";
 import { initAudioContext } from "./initAudioContext";
 import { AudioProject } from "./project/AudioProject";
 import { SPrimitive } from "structured-state";
+import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
 
 function getOfflineAudioContext(lenSec: number) {
   return new OfflineAudioContext({
@@ -86,8 +87,8 @@ export class AudioRenderer {
 
     const offlineAudioContext = getOfflineAudioContext(end - startSec);
     const offlineContextInfo = await initAudioContext(offlineAudioContext);
-    const offlineMixDownNode: AudioWorkletNode = new AudioWorkletNode(offlineAudioContext, "mix-down-processor");
-    offlineMixDownNode.connect(offlineAudioContext.destination);
+    const offlineMixDownNode = TrackedAudioNode.of(new AudioWorkletNode(offlineAudioContext, "mix-down-processor"));
+    offlineMixDownNode.get().connect(offlineAudioContext.destination); // todo: get().connect vs connect(x.get())?
 
     const trackDests = await Promise.all(
       tracks.map((track) => {

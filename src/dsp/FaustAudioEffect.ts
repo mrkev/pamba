@@ -8,6 +8,7 @@ import type {
 } from "@grame/faustwasm";
 import { SBoolean, SMap, SString, string } from "structured-state";
 import { DSPNode } from "./DSPNode";
+import { TrackedAudioNode } from "./TrackedAudioNode";
 import { FAUST_EFFECTS, FaustEffectID } from "./FAUST_EFFECTS";
 
 export type ProcessorLoader = (
@@ -33,8 +34,8 @@ export interface LayoutTypeMap {
   radio: FaustUIInputItem;
 }
 
-export class FaustAudioEffect extends DSPNode<AudioNode> {
-  private readonly faustNode: IFaustMonoWebAudioNode;
+export class FaustAudioEffect extends DSPNode<TrackedAudioNode> {
+  private readonly faustNode: TrackedAudioNode<IFaustMonoWebAudioNode>;
   readonly effectId: FaustEffectID;
   readonly ui: FaustUIDescriptor;
   readonly name: SString;
@@ -51,7 +52,7 @@ export class FaustAudioEffect extends DSPNode<AudioNode> {
   ) {
     super();
     this.effectId = effectId;
-    this.faustNode = faustNode;
+    this.faustNode = TrackedAudioNode.of(faustNode);
     this.ui = dspMeta.ui;
     this.name = string(dspMeta.name);
     this.params = SMap.create(new Map(params));
@@ -59,20 +60,20 @@ export class FaustAudioEffect extends DSPNode<AudioNode> {
       // Note: `node.getParams` will return an
       // outdated value until playback happens.
       // On playback the value will be correct though.
-      this.faustNode.setParamValue(address, value);
+      this.faustNode.get().setParamValue(address, value);
     }
   }
 
-  override inputNode(): AudioNode {
+  override inputNode(): TrackedAudioNode {
     return this.faustNode;
   }
-  override outputNode(): AudioNode | DSPNode<AudioNode> {
+  override outputNode(): TrackedAudioNode {
     return this.faustNode;
   }
 
   public setParam(address: string, value: number): void {
     this.params.set(address, value);
-    this.faustNode.setParamValue(address, value);
+    this.faustNode.get().setParamValue(address, value);
   }
 
   public getParam(address: string): number {
@@ -84,11 +85,7 @@ export class FaustAudioEffect extends DSPNode<AudioNode> {
   }
 
   public destroy() {
-    this.faustNode.destroy();
-  }
-
-  public accessAudioNode(): AudioNode {
-    return this.faustNode;
+    this.faustNode.get().destroy();
   }
 
   async getAllParamValues(): Promise<Array<[address: string, value: number]>> {

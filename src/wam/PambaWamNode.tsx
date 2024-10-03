@@ -6,22 +6,24 @@ import { LinkedState } from "../lib/state/LinkedState";
 import { Position } from "./WindowPanel";
 import { WAMImport } from "./wam";
 import { SString, string } from "structured-state";
+import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
 
 export class PambaWamNode extends DSPNode {
   override name: SString;
   override effectId: string;
   readonly url: string;
 
-  override inputNode(): AudioNode {
-    return this.module.audioNode;
+  override inputNode(): TrackedAudioNode {
+    return this.node;
   }
 
-  override outputNode(): AudioNode | DSPNode<AudioNode> {
-    return this.module.audioNode;
+  override outputNode(): TrackedAudioNode {
+    return this.node;
   }
 
   // WAM
   readonly module: WebAudioModule<IWamNode>;
+  readonly node: TrackedAudioNode<IWamNode>;
   readonly dom: Element;
 
   // Window Panel
@@ -43,6 +45,7 @@ export class PambaWamNode extends DSPNode {
   constructor(module: WebAudioModule<IWamNode>, dom: Element, url: string) {
     super();
     this.module = module;
+    this.node = TrackedAudioNode.of(module.audioNode);
     this.dom = dom;
     this.effectId = this.module.moduleId;
     this.name = string(this.module.descriptor.name);

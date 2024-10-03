@@ -1,10 +1,12 @@
 import { DSPNode } from "../dsp/DSPNode";
+import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
+import { DSP } from "./DSP";
 
-export function connectSerialNodes(chain: (AudioNode | DSPNode<AudioNode>)[]): void {
+export function connectSerialNodes(chain: Array<TrackedAudioNode | DSPNode<TrackedAudioNode>>): void {
   if (chain.length < 2) {
     return;
   }
-  let currentNode = chain[0];
+  let currentStep = chain[0];
   for (let i = 1; chain[i] != null; i++) {
     const nextNode = chain[i];
 
@@ -18,20 +20,30 @@ export function connectSerialNodes(chain: (AudioNode | DSPNode<AudioNode>)[]): v
     // console.log(nextNode);
     // console.groupEnd();
 
-    if (currentNode instanceof AudioNode && nextNode instanceof AudioNode) {
-      currentNode.connect(nextNode);
-      currentNode = nextNode;
+    DSP.outputOf(currentStep).connect(DSP.inputOf(nextNode));
+    currentStep = nextNode;
+  }
+}
+
+export function disconnectSerialNodes(chain: Array<TrackedAudioNode | DSPNode<TrackedAudioNode>>): void {
+  if (chain.length < 2) {
+    return;
+  }
+  let currentStep = chain[0];
+  for (let i = 1; chain[i] != null; i++) {
+    const nextNode = chain[i];
+
+    if (nextNode instanceof DSPNode && nextNode.bypass != null && nextNode.bypass.get() === true) {
       continue;
     }
-    if (currentNode instanceof AudioNode && nextNode instanceof DSPNode) {
-      currentNode.connect(nextNode.inputNode());
-      currentNode = nextNode;
-      continue;
-    }
-    if (currentNode instanceof DSPNode) {
-      currentNode.connect(nextNode);
-      currentNode = nextNode;
-      continue;
-    }
+
+    // console.groupCollapsed(`Connected: ${currentNode.constructor.name} -> ${nextNode.constructor.name}`);
+    // console.log(currentNode);
+    // console.log("-->");
+    // console.log(nextNode);
+    // console.groupEnd();
+
+    DSP.outputOf(currentStep).disconnect(DSP.inputOf(nextNode));
+    currentStep = nextNode;
   }
 }

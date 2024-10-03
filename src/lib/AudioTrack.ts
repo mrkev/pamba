@@ -3,6 +3,7 @@ import { SPrimitive, SSchemaArray, Structured } from "structured-state";
 import { CLIP_HEIGHT } from "../constants";
 import { SAudioTrack } from "../data/serializable";
 import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
+import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
 import { MidiTrack } from "../midi/MidiTrack";
 import { mixDown } from "../mixDown";
 import { PambaWamNode } from "../wam/PambaWamNode";
@@ -23,7 +24,7 @@ export class AudioTrack extends Structured<SAudioTrack, typeof AudioTrack> imple
   // private thread_UNUSED = new TrackThread();
 
   // if audo is playing, this is the soruce with the playing buffer
-  private playingSource: AudioBufferSourceNode | null;
+  private playingSource: TrackedAudioNode<AudioBufferSourceNode> | null;
 
   override serialize(): SAudioTrack {
     return {
@@ -86,15 +87,15 @@ export class AudioTrack extends Structured<SAudioTrack, typeof AudioTrack> imple
   // [ Out Node ]
   prepareForPlayback(project: AudioProject, context: AudioContext, startingAt: number): void {
     // We need to keep a reference to our source node for play/pause
-    this.playingSource = this.getSourceNode(context);
+    this.playingSource = TrackedAudioNode.of(this.getSourceNode(context));
     this.dsp.connectToDSPForPlayback(this.playingSource);
     if (AudioProject.playbackWillLoop(project, startingAt)) {
-      this.playingSource.loop = true;
-      this.playingSource.loopStart = project.loopStart.secs(project);
-      this.playingSource.loopEnd = project.loopEnd.secs(project);
-      console.log(`looping`, this.playingSource.loopStart, this.playingSource.loopEnd);
+      this.playingSource.get().loop = true;
+      this.playingSource.get().loopStart = project.loopStart.secs(project);
+      this.playingSource.get().loopEnd = project.loopEnd.secs(project);
+      console.log(`looping`, this.playingSource.get().loopStart, this.playingSource.get().loopEnd);
     } else {
-      this.playingSource.loop = false;
+      this.playingSource.get().loop = false;
     }
   }
 
@@ -103,11 +104,14 @@ export class AudioTrack extends Structured<SAudioTrack, typeof AudioTrack> imple
     if (!this.playingSource) {
       throw new Error("Track is not ready for playback!");
     }
-    this.playingSource.start(0, offset); // Play the sound now
+    this.playingSource.get().start(0, offset); // Play the sound now
   }
 
-  async prepareForBounce(context: OfflineAudioContext, offlineContextInfo: AudioContextInfo): Promise<AudioNode> {
-    this.playingSource = this.getSourceNode(context);
+  async prepareForBounce(
+    context: OfflineAudioContext,
+    offlineContextInfo: AudioContextInfo,
+  ): Promise<TrackedAudioNode> {
+    this.playingSource = TrackedAudioNode.of(this.getSourceNode(context));
 
     const effectNodes = await Promise.all(
       this.dsp.effects._getRaw().map(async (effect) => {
@@ -138,7 +142,7 @@ export class AudioTrack extends Structured<SAudioTrack, typeof AudioTrack> imple
       return;
     }
 
-    this.playingSource.stop(0);
+    this.playingSource.get().stop(0);
     this.dsp.disconnectDSPAfterPlayback(this.playingSource);
   }
 

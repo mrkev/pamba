@@ -6,6 +6,7 @@ import { Seconds } from "./AbstractClip";
 import { AudioTrack } from "./AudioTrack";
 import { OscilloscopeNode } from "./OscilloscopeNode";
 import { AudioProject } from "./project/AudioProject";
+import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
 
 // sbwNode.onInitialized = () => {
 //   oscillator.connect(sbwNode).connect(context.destination);
@@ -20,8 +21,8 @@ export class AnalizedPlayer {
   private readonly oscilloscope = new OscilloscopeNode();
 
   // Nodes
-  private readonly playbackTimeNode: ScriptProcessorNode;
-  private readonly mixDownNode: AudioWorkletNode;
+  private readonly playbackTimeNode: TrackedAudioNode<ScriptProcessorNode>;
+  private readonly mixDownNode: TrackedAudioNode<AudioWorkletNode>;
   // private readonly noiseNode: AudioWorkletNode = new AudioWorkletNode(liveAudioContext, "white-noise-processor");
   public isAudioPlaying: boolean = false;
   private cursorAtPlaybackStart: number = 0;
@@ -52,14 +53,17 @@ export class AnalizedPlayer {
 
   drawPlaybeatTime: ((playbackTime: number) => void) | null = null;
 
+  readonly destination: TrackedAudioNode<AudioDestinationNode>;
+
   constructor(liveAudioContext: AudioContext) {
-    this.playbackTimeNode = liveAudioContext.createScriptProcessor(sampleSize, 1, 1);
-    this.mixDownNode = new AudioWorkletNode(liveAudioContext, "mix-down-processor");
-    this.mixDownNode.connect(liveAudioContext.destination);
+    this.destination = TrackedAudioNode.of(liveAudioContext.destination);
+    this.playbackTimeNode = TrackedAudioNode.of(liveAudioContext.createScriptProcessor(sampleSize, 1, 1));
+    this.mixDownNode = TrackedAudioNode.of(new AudioWorkletNode(liveAudioContext, "mix-down-processor"));
+    this.mixDownNode.connect(this.destination);
     this.mixDownNode.connect(this.playbackTimeNode);
     this.mixDownNode.connect(this.oscilloscope.inputNode());
 
-    this.playbackTimeNode.onaudioprocess = () => {
+    this.playbackTimeNode.get().onaudioprocess = () => {
       // draw the display if the audio is playing
       if (this.isAudioPlaying === true) {
         // TODO: Raf here to amortize/debounce onaudioprocess being called multiple times? ADD TO OSCILLOSCOPE????
@@ -109,8 +113,8 @@ export class AnalizedPlayer {
     console.log("play tracks");
 
     // Need to connect to dest, otherwrise audio just doesn't flow through. This adds nothing, just silence though
-    this.oscilloscope.connect(liveAudioContext.destination);
-    this.playbackTimeNode.connect(liveAudioContext.destination);
+    this.oscilloscope.connect(this.destination);
+    this.playbackTimeNode.connect(this.destination);
 
     this.cursorAtPlaybackStart = cursorPos;
     const loop = AudioProject.playbackWillLoop(project, cursorPos)
@@ -175,7 +179,7 @@ export class AnalizedPlayer {
       track.dsp.disconnect(this.mixDownNode);
     }
     this.isAudioPlaying = false;
-    this.playbackTimeNode.disconnect(liveAudioContext.destination);
-    this.oscilloscope.disconnect(liveAudioContext.destination);
+    this.playbackTimeNode.disconnect(this.destination);
+    this.oscilloscope.disconnect(this.destination);
   }
 }

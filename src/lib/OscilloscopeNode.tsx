@@ -1,40 +1,41 @@
 import { string } from "structured-state";
 import { CANVAS_HEIGHT, CANVAS_WIDTH, liveAudioContext, sampleSize } from "../constants";
 import { DSPNode } from "../dsp/DSPNode";
+import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
 
 /**
  * Given a canvas, draws an oscilloscope waveform on it
  */
-export class OscilloscopeNode extends DSPNode {
+export class OscilloscopeNode extends DSPNode<TrackedAudioNode> {
   override readonly name = string("OscilloscopeNode");
-  override cloneToOfflineContext(context: OfflineAudioContext): Promise<DSPNode<AudioNode> | null> {
+  override cloneToOfflineContext(context: OfflineAudioContext): Promise<DSPNode<TrackedAudioNode> | null> {
     throw new Error("OscilloscopeNode: cloneToOfflineContext: Method not implemented.");
   }
   override effectId: string = "OscilloscopeNode";
   private readonly amplitudeArray: Uint8Array = new Uint8Array();
-  private readonly analyserNode = liveAudioContext().createAnalyser();
-  private readonly javascriptNode = liveAudioContext().createScriptProcessor(sampleSize, 1, 1);
+  private readonly analyserNode = TrackedAudioNode.of(liveAudioContext().createAnalyser());
+  private readonly javascriptNode = TrackedAudioNode.of(liveAudioContext().createScriptProcessor(sampleSize, 1, 1));
   public canvasCtx: CanvasRenderingContext2D | null = null;
 
-  public override inputNode(): AudioNode {
+  public override inputNode(): TrackedAudioNode {
     return this.analyserNode;
   }
 
-  public override outputNode(): AudioNode {
+  public override outputNode(): TrackedAudioNode {
     return this.javascriptNode;
   }
 
   constructor() {
     super();
     // Create the array for the data values
-    this.amplitudeArray = new Uint8Array(this.analyserNode.frequencyBinCount);
+    this.amplitudeArray = new Uint8Array(this.analyserNode.get().frequencyBinCount);
     // Setup the event handler that is triggered every time enough samples have been collected
     // trigger the audio analysis and draw the results
-    this.javascriptNode.onaudioprocess = this.onAduioProcess;
+    this.javascriptNode.get().onaudioprocess = this.onAduioProcess;
   }
 
   private onAduioProcess = () => {
-    this.analyserNode.getByteTimeDomainData(this.amplitudeArray);
+    this.analyserNode.get().getByteTimeDomainData(this.amplitudeArray);
     this.drawTimeDomain(this.amplitudeArray);
   };
 

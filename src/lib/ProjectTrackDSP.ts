@@ -1,13 +1,14 @@
-import { SArray, SPrimitive, SString } from "structured-state";
+import { SArray, SString } from "structured-state";
 import { liveAudioContext } from "../constants";
 import { DSPNode } from "../dsp/DSPNode";
 import { FaustEffectID } from "../dsp/FAUST_EFFECTS";
 import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
+import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
 import { nullthrows } from "../utils/nullthrows";
 import { PambaWamNode } from "../wam/PambaWamNode";
 import { AbstractClip } from "./AbstractClip";
 import { appEnvironment } from "./AppEnvironment";
-import { connectSerialNodes } from "./connectSerialNodes";
+import { connectSerialNodes, disconnectSerialNodes } from "./connectSerialNodes";
 import { PBGainNode } from "./offlineNodes";
 import { StandardTrack } from "./ProjectTrack";
 
@@ -34,14 +35,14 @@ export class ProjectTrackDSP<T extends AbstractClip<any>> extends DSPNode<null> 
   }
 
   override outputNode() {
-    return this._hiddenGainNode;
+    return this._hiddenGainNode.outputNode();
   }
 
-  override cloneToOfflineContext(_context: OfflineAudioContext): Promise<DSPNode<AudioNode> | null> {
+  override cloneToOfflineContext(_context: OfflineAudioContext): Promise<DSPNode<TrackedAudioNode> | null> {
     throw new Error("AudioTrack: DSPNode: can't cloneToOfflineContext.");
   }
 
-  connectToDSPForPlayback(source: AudioNode): void {
+  connectToDSPForPlayback(source: TrackedAudioNode): void {
     // We need to keep a reference to our source node for play/pause
     const effectNodes = this.effects._getRaw();
     connectSerialNodes([
@@ -53,20 +54,23 @@ export class ProjectTrackDSP<T extends AbstractClip<any>> extends DSPNode<null> 
     ]);
   }
 
-  disconnectDSPAfterPlayback(source: AudioNode): void {
+  disconnectDSPAfterPlayback(source: TrackedAudioNode): void {
     const chain = [
       // foo
       source,
       ...this.effects._getRaw(),
-      this.gainNode,
+      this.gainNode.node,
       this._hiddenGainNode.node,
     ];
 
-    for (let i = 0; i < chain.length - 1; i++) {
-      const currentNode = chain[i];
-      const nextNode = chain[i + 1];
-      currentNode.disconnect(nextNode);
-    }
+    disconnectSerialNodes(chain);
+
+    // for (let i = 0; i < chain.length - 1; i++) {
+    //   const currentNode = chain[i];
+    //   const nextNode = chain[i + 1];
+
+    //   currentNode.disconnect(nextNode);
+    // }
   }
 
   ////////////////////// GAIN ///////////////////////

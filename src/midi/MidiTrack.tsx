@@ -12,6 +12,7 @@ import { PianoRollModule, PianoRollNode } from "../wam/pianorollme/PianoRollNode
 import { MidiClip } from "./MidiClip";
 import { MidiInstrument } from "./MidiInstrument";
 import type { PianoRollProcessorMessage, SimpleMidiClip } from "./SharedMidiTypes";
+import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
 
 export class MidiTrack extends Structured<SMidiTrack, typeof MidiTrack> implements StandardTrack<MidiClip> {
   public readonly name: SPrimitive<string>;
@@ -126,13 +127,13 @@ export class MidiTrack extends Structured<SMidiTrack, typeof MidiTrack> implemen
     this.pianoRoll.sequencer.port.postMessage(message);
 
     // connect effect chain
-    this.dsp.connectToDSPForPlayback(this.instrument.get().module.audioNode);
+    this.dsp.connectToDSPForPlayback(this.instrument.get().node);
   }
 
   async prepareForBounce(
     context: OfflineAudioContext,
     offlineContextInfo: Readonly<{ wamHostGroup: [id: string, key: string] }>,
-  ): Promise<AudioNode> {
+  ): Promise<TrackedAudioNode> {
     const {
       wamHostGroup: [groupId],
     } = offlineContextInfo;

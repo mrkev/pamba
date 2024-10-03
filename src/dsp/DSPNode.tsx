@@ -1,52 +1,32 @@
-import { IFaustMonoWebAudioNode } from "@grame/faustwasm";
+import { type SBoolean, type SPrimitive } from "structured-state";
+import { DSP } from "../lib/DSP";
 import type { AudioContextInfo } from "../lib/initAudioContext";
-import type { SBoolean, SPrimitive } from "structured-state";
+import type { TrackedAudioNode } from "./TrackedAudioNode";
 
-export abstract class DSPNode<I extends AudioNode | null = AudioNode> {
-  readonly _destinations: Set<AudioNode | DSPNode> = new Set();
+/** todo, eventaully make an interface probably */
+export abstract class DSPNode<I extends TrackedAudioNode | null = TrackedAudioNode> {
   readonly bypass: null | SBoolean = null;
 
   abstract readonly effectId: string;
   abstract name: SPrimitive<string>;
 
   abstract inputNode(): I;
-  abstract outputNode(): AudioNode | DSPNode;
+  abstract outputNode(): TrackedAudioNode;
 
   abstract cloneToOfflineContext(
     context: OfflineAudioContext,
     offlineContextInfo: AudioContextInfo,
   ): Promise<DSPNode | null>;
 
-  public connect(audioNode: AudioNode | IFaustMonoWebAudioNode | DSPNode<AudioNode>): void {
-    if (this._destinations.has(audioNode)) {
-      console.warn("Destination already connected");
-      return;
-    }
-    this._destinations.add(audioNode);
-    if (audioNode instanceof AudioNode) {
-      this.outputNode().connect(audioNode);
-    } else {
-      this.outputNode().connect(audioNode.inputNode());
-    }
+  public connect(dest: TrackedAudioNode | DSPNode<TrackedAudioNode>): void {
+    this.outputNode().connect(DSP.inputOf(dest));
   }
 
-  public disconnect(audioNode: AudioNode | DSPNode<AudioNode>) {
-    if (!this._destinations.has(audioNode)) {
-      console.warn("Can't disconnect destination that's not present");
-      return;
-    }
-
-    if (audioNode instanceof AudioNode) {
-      this.outputNode().disconnect(audioNode);
-    } else {
-      this.outputNode().disconnect(audioNode.inputNode());
-    }
-    this._destinations.delete(audioNode);
+  public disconnect(dest: TrackedAudioNode | DSPNode<TrackedAudioNode>) {
+    this.outputNode().disconnect(DSP.inputOf(dest));
   }
 
   public disconnectAll() {
-    for (const dest of this._destinations) {
-      this.disconnect(dest);
-    }
+    this.outputNode().disconnectAll();
   }
 }
