@@ -1,6 +1,6 @@
 import type { FaustUIInputItem } from "@grame/faustwasm";
 import React from "react";
-import { useLinkedMap } from "../../lib/state/LinkedMap";
+import { useContainer } from "structured-state";
 import { nullthrows } from "../../utils/nullthrows";
 import { FaustAudioEffect } from "../FaustAudioEffect";
 
@@ -17,7 +17,7 @@ export function FaustSlider({
   const { label, index, min, max, step, address } = item;
 
   // observe the map to be notified of changes
-  const [params] = useLinkedMap(effect.params);
+  const params = useContainer(effect.params);
   // TODO: handle, disable control, show error state?
   const value = nullthrows(params.get(address), `Invalid address for effect param: ${address}`);
 

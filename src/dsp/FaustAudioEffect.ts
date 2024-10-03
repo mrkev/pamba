@@ -1,12 +1,18 @@
-import type { FaustUIGroup, FaustUIInputItem, FaustUIOutputItem, IFaustMonoWebAudioNode } from "@grame/faustwasm";
-import { boolean } from "structured-state";
-import { LinkedMap } from "../lib/state/LinkedMap";
+import type {
+  FaustDspMeta,
+  FaustUIDescriptor,
+  FaustUIGroup,
+  FaustUIInputItem,
+  FaustUIOutputItem,
+  IFaustMonoWebAudioNode,
+} from "@grame/faustwasm";
+import { SBoolean, SMap } from "structured-state";
 import { DSPNode } from "./DSPNode";
-import { FaustEffectID, FAUST_EFFECTS } from "./FAUST_EFFECTS";
+import { FAUST_EFFECTS, FaustEffectID } from "./FAUST_EFFECTS";
 
 export type ProcessorLoader = (
-  context: BaseAudioContext
-) => Promise<{ faustNode: IFaustMonoWebAudioNode; dspMeta: any } | null | undefined>;
+  context: BaseAudioContext,
+) => Promise<{ faustNode: IFaustMonoWebAudioNode; dspMeta: FaustDspMeta } | null | undefined>;
 
 // from: https://github.com/Fr0stbyteR/faust-ui/blob/7665c7a754b4f856a5b60b7148963e263bf45e14/src/types.d.ts#L23
 export interface LayoutTypeMap {
@@ -27,67 +33,49 @@ export interface LayoutTypeMap {
   radio: FaustUIInputItem;
 }
 
-type TFaustUIItem = LayoutTypeMap[keyof LayoutTypeMap];
-
-export interface INodeData {
-  compile_options: string;
-  filename: string;
-  include_pathnames: Array<string>;
-  inputs: number;
-  library_list: Array<string>;
-  meta: Array<any>;
-  name: string;
-  outputs: number;
-  size: number;
-  ui: Array<TFaustUIItem>;
-  version: string;
-}
-
-export type FaustNodeSetParamFn = (address: string, value: number) => void;
-
 export class FaustAudioEffect extends DSPNode<AudioNode> {
-  private readonly node: IFaustMonoWebAudioNode;
+  private readonly faustNode: IFaustMonoWebAudioNode;
   readonly effectId: FaustEffectID;
-  readonly ui: Array<TFaustUIItem>;
+  readonly ui: FaustUIDescriptor;
   readonly name: string;
-  readonly params: LinkedMap<string, number>;
+  readonly params: SMap<string, number>;
 
   // TODO: serialize
-  override readonly bypass = boolean(false);
+  override readonly bypass = SBoolean.create(false);
 
   private constructor(
     faustNode: IFaustMonoWebAudioNode,
-    nodeData: INodeData,
+    dspMeta: FaustDspMeta,
     effectId: FaustEffectID,
-    params: Array<[string, number]>
+    params: Array<[string, number]>,
   ) {
     super();
     this.effectId = effectId;
-    this.node = faustNode;
-    this.ui = nodeData.ui;
-    this.name = nodeData.name;
-    this.params = LinkedMap.create(new Map(params));
+    this.faustNode = faustNode;
+    this.ui = dspMeta.ui;
+    this.name = dspMeta.name;
+    this.params = SMap.create(new Map(params));
     for (const [address, value] of params) {
       // Note: `node.getParams` will return an
       // outdated value until playback happens.
       // On playback the value will be correct though.
-      this.node.setParamValue(address, value);
+      this.faustNode.setParamValue(address, value);
     }
   }
 
   override inputNode(): AudioNode {
-    return this.node;
+    return this.faustNode;
   }
   override outputNode(): AudioNode | DSPNode<AudioNode> {
-    return this.node;
+    return this.faustNode;
   }
 
-  setParam(address: string, value: number): void {
+  public setParam(address: string, value: number): void {
     this.params.set(address, value);
-    this.node.setParamValue(address, value);
+    this.faustNode.setParamValue(address, value);
   }
 
-  getParam(address: string): number {
+  public getParam(address: string): number {
     const value = this.params.get(address);
     if (value == null) {
       throw new Error(`Invalid address for effect param: ${address}`);
@@ -96,11 +84,11 @@ export class FaustAudioEffect extends DSPNode<AudioNode> {
   }
 
   public destroy() {
-    this.node.destroy();
+    this.faustNode.destroy();
   }
 
   public accessAudioNode(): AudioNode {
-    return this.node;
+    return this.faustNode;
   }
 
   async getAllParamValues(): Promise<Array<[address: string, value: number]>> {
@@ -115,21 +103,21 @@ export class FaustAudioEffect extends DSPNode<AudioNode> {
   static async create(
     context: BaseAudioContext,
     id: keyof typeof FAUST_EFFECTS,
-    initialParamValues?: Array<[address: string, value: number]>
+    initialParamValues?: Array<[address: string, value: number]>,
   ): Promise<FaustAudioEffect | null> {
     const mod: { default: ProcessorLoader } = await FAUST_EFFECTS[id]();
     const creator = mod.default;
     const result = await creator(context);
-    if (!result) {
+    if (result == null) {
       return null;
     }
 
-    const { faustNode: node, dspMeta: _ } = result;
+    const { faustNode: node, dspMeta } = result;
+
     // By default faust nodes seem to be created with channelCountMode = "explicit"
     // We need "max", not only because it's what makes sense, but also so it works
     // automatically with the rest of the DSP chain
     node.channelCountMode = "max";
-    const nodeData: INodeData = JSON.parse((node as any).getJSON());
 
     const useParamValues =
       // Provided param values
@@ -139,7 +127,7 @@ export class FaustAudioEffect extends DSPNode<AudioNode> {
         return [key, node.getParamValue(key)];
       });
 
-    const effect = new this(node, nodeData, id, useParamValues);
+    const effect = new this(node, dspMeta, id, useParamValues);
     return effect;
   }
 

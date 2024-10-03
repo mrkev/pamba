@@ -16,6 +16,7 @@
     "@types/node": "22.7.4",
     "@types/react": "18.3.10",
     "@types/react-dom": "18.3.0",
+    "@types/webmidi": "^2.1.0",
     "@webaudiomodules/api": "^2.0.0-alpha.6",
     "@webaudiomodules/sdk": "^0.0.12",
     "@webgpu/types": "^0.1.47",

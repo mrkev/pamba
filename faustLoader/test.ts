@@ -1,4 +1,4 @@
-import { writeFileSync } from "fs";
+import { existsSync, mkdirSync, writeFileSync } from "fs";
 import { resolve } from "path";
 import { faustLoaderWasmImpl } from "./faustLoaderWasm";
 
@@ -13,13 +13,17 @@ import("stdfaust.lib");
 process = dm.dattorro_rev_demo;
 `;
 
-const testPath = resolve(`${__dirname}/testtmp`);
+const TEST_DIR = resolve(`${__dirname}/testtmp`);
 
 main().catch(console.error);
 async function main() {
+  if (!existsSync(TEST_DIR)) {
+    mkdirSync(TEST_DIR);
+  }
+
   faustLoaderWasmImpl(
     (name: string, source: string | Uint8Array, contentType?: string) => {
-      writeFileSync(resolve(testPath, name), source);
+      writeFileSync(resolve(TEST_DIR, name), source);
       console.log("//// emitFile", name, source.length, contentType);
       return "__VITE_ASSET__TEST";
     },

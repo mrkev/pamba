@@ -1,9 +1,13 @@
+import { IFaustMonoWebAudioNode } from "@grame/faustwasm";
 import type { AudioContextInfo } from "../lib/initAudioContext";
 import type { SBoolean, SPrimitive } from "structured-state";
 
 export abstract class DSPNode<I extends AudioNode | null = AudioNode> {
-  private readonly destinations: Set<AudioNode | DSPNode> = new Set();
-  public readonly bypass: null | SBoolean = null;
+  readonly _destinations: Set<AudioNode | DSPNode> = new Set();
+  readonly bypass: null | SBoolean = null;
+
+  abstract readonly effectId: string;
+  abstract name: string | SPrimitive<string>;
 
   abstract inputNode(): I;
   abstract outputNode(): AudioNode | DSPNode;
@@ -13,15 +17,12 @@ export abstract class DSPNode<I extends AudioNode | null = AudioNode> {
     offlineContextInfo: AudioContextInfo,
   ): Promise<DSPNode | null>;
 
-  abstract readonly effectId: string;
-  abstract name: string | SPrimitive<string>;
-
-  public connect(audioNode: AudioNode | DSPNode<AudioNode>): void {
-    if (this.destinations.has(audioNode)) {
+  public connect(audioNode: AudioNode | IFaustMonoWebAudioNode | DSPNode<AudioNode>): void {
+    if (this._destinations.has(audioNode)) {
       console.warn("Destination already connected");
       return;
     }
-    this.destinations.add(audioNode);
+    this._destinations.add(audioNode);
     if (audioNode instanceof AudioNode) {
       this.outputNode().connect(audioNode);
     } else {
@@ -30,7 +31,7 @@ export abstract class DSPNode<I extends AudioNode | null = AudioNode> {
   }
 
   public disconnect(audioNode: AudioNode | DSPNode<AudioNode>) {
-    if (!this.destinations.has(audioNode)) {
+    if (!this._destinations.has(audioNode)) {
       console.warn("Can't disconnect destination that's not present");
       return;
     }
@@ -40,11 +41,11 @@ export abstract class DSPNode<I extends AudioNode | null = AudioNode> {
     } else {
       this.outputNode().disconnect(audioNode.inputNode());
     }
-    this.destinations.delete(audioNode);
+    this._destinations.delete(audioNode);
   }
 
   public disconnectAll() {
-    for (const dest of this.destinations) {
+    for (const dest of this._destinations) {
       this.disconnect(dest);
     }
   }
