@@ -7,7 +7,7 @@ export abstract class DSPNode<I extends AudioNode | null = AudioNode> {
   readonly bypass: null | SBoolean = null;
 
   abstract readonly effectId: string;
-  abstract name: string | SPrimitive<string>;
+  abstract name: SPrimitive<string>;
 
   abstract inputNode(): I;
   abstract outputNode(): AudioNode | DSPNode;

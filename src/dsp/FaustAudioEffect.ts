@@ -6,7 +6,7 @@ import type {
   FaustUIOutputItem,
   IFaustMonoWebAudioNode,
 } from "@grame/faustwasm";
-import { SBoolean, SMap } from "structured-state";
+import { SBoolean, SMap, SString, string } from "structured-state";
 import { DSPNode } from "./DSPNode";
 import { FAUST_EFFECTS, FaustEffectID } from "./FAUST_EFFECTS";
 
@@ -37,7 +37,7 @@ export class FaustAudioEffect extends DSPNode<AudioNode> {
   private readonly faustNode: IFaustMonoWebAudioNode;
   readonly effectId: FaustEffectID;
   readonly ui: FaustUIDescriptor;
-  readonly name: string;
+  readonly name: SString;
   readonly params: SMap<string, number>;
 
   // TODO: serialize
@@ -53,7 +53,7 @@ export class FaustAudioEffect extends DSPNode<AudioNode> {
     this.effectId = effectId;
     this.faustNode = faustNode;
     this.ui = dspMeta.ui;
-    this.name = dspMeta.name;
+    this.name = string(dspMeta.name);
     this.params = SMap.create(new Map(params));
     for (const [address, value] of params) {
       // Note: `node.getParams` will return an

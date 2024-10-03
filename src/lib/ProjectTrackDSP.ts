@@ -1,4 +1,4 @@
-import { SArray, SPrimitive } from "structured-state";
+import { SArray, SPrimitive, SString } from "structured-state";
 import { liveAudioContext } from "../constants";
 import { DSPNode } from "../dsp/DSPNode";
 import { FaustEffectID } from "../dsp/FAUST_EFFECTS";
@@ -20,7 +20,7 @@ export class ProjectTrackDSP<T extends AbstractClip<any>> extends DSPNode<null> 
   public readonly _hiddenGainNode: PBGainNode;
 
   override readonly effectId = "builtin:ProjectTrackNode";
-  override name: string | SPrimitive<string>;
+  override name: SString;
   constructor(private readonly track: StandardTrack<T>, effects: (FaustAudioEffect | PambaWamNode)[]) {
     super();
     this.name = track.name;

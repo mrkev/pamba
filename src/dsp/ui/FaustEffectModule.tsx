@@ -33,7 +33,7 @@ export default function FaustEffectModule({
 
     return (
       <Effect
-        title={label}
+        title={effect.name}
         canDelete={canDelete}
         canBypass={canBypass}
         onClickBypass={() => onClickBypass(effect)}

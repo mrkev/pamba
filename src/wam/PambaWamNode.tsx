@@ -5,9 +5,10 @@ import { AudioContextInfo } from "../lib/initAudioContext";
 import { LinkedState } from "../lib/state/LinkedState";
 import { Position } from "./WindowPanel";
 import { WAMImport } from "./wam";
+import { SString, string } from "structured-state";
 
 export class PambaWamNode extends DSPNode {
-  override name: string;
+  override name: SString;
   override effectId: string;
   readonly url: string;
 
@@ -44,7 +45,7 @@ export class PambaWamNode extends DSPNode {
     this.module = module;
     this.dom = dom;
     this.effectId = this.module.moduleId;
-    this.name = this.module.descriptor.name;
+    this.name = string(this.module.descriptor.name);
     this.url = url;
   }
 
