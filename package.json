@@ -21,6 +21,7 @@
     "@webaudiomodules/sdk": "^0.0.12",
     "@webgpu/types": "^0.1.47",
     "audiobuffer-to-wav": "1.0.0",
+    "burns-audio-wam": "file:../../burns-audio-wam",
     "classnames": "^2.5.1",
     "d3": "7.9.0",
     "d3-axis": "3.0.0",

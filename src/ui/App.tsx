@@ -13,10 +13,10 @@ import { PambaWamNode } from "../wam/PambaWamNode";
 import { AppProject } from "./AppProject";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { PambaWamNodeWindowPanel } from "./PambaWamNodeWindowPanel";
+import { PromptDialog } from "./PromptDialog";
 import { changelog } from "./changelog";
 import { useDocumentEventListener } from "./useEventListener";
 import { utility } from "./utility";
-import { PromptDialog } from "./PromptDialog";
 
 // var w = new TrackThread();
 // var sab = new SharedArrayBuffer(1024);

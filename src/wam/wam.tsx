@@ -1,16 +1,17 @@
-import { WamNode as IWamNode, WebAudioModule as IWebAudioModule, WamDescriptor } from "@webaudiomodules/api";
+import { WamNode as IWamNode, WebAudioModule as IWebAudioModule } from "@webaudiomodules/api";
 import React, { useEffect, useRef, useState } from "react";
 import type { WebAudioModule } from "../../packages/sdk/dist";
-import { PambaWamNode } from "./PambaWamNode";
 import { WAMAvailablePlugin } from "../lib/AppEnvironment";
 import { MidiInstrument } from "../midi/MidiInstrument";
+import { importFetch } from "../utils/importModule";
+import { PambaWamNode } from "./PambaWamNode";
 
 export type WAMImport = {
   prototype: WebAudioModule;
   createInstance<Node extends IWamNode = IWamNode>(
     groupId: string,
     audioContext: BaseAudioContext,
-    initialState?: any
+    initialState?: any,
   ): Promise<WebAudioModule<Node>>;
   new <Node extends IWamNode = IWamNode>(groupId: string, audioContext: BaseAudioContext): WebAudioModule<Node>;
 } & Pick<typeof IWebAudioModule, "isWebAudioModuleConstructor">;
@@ -69,7 +70,7 @@ export const WamInstrumentContent = React.memo(function WamInstrumentContentImpl
 
 export async function fetchWam(
   pluginUrl: string,
-  kind: "-m" | "-a" | "m-a" | "a-a"
+  kind: "-m" | "-a" | "m-a" | "a-a",
 ): Promise<WAMAvailablePlugin | null> {
   console.log("WAM: LOADING fromURLlllll", pluginUrl);
   const rawModule = await import(/* @vite-ignore */ pluginUrl);

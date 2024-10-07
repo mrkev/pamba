@@ -1,11 +1,13 @@
 import classNames from "classnames";
 import { useEffect, useState } from "react";
-import { useDirtyTracker, usePrimitive } from "structured-state";
+import { createUseStyles } from "react-jss";
+import { usePrimitive } from "structured-state";
 import { useDocumentKeyboardEvents } from "../input/useDocumentKeyboardEvents";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioRecorder } from "../lib/AudioRecorder";
 import { AudioRenderer } from "../lib/AudioRenderer";
 import { AudioProject } from "../lib/project/AudioProject";
+import { useLinkedState } from "../lib/state/LinkedState";
 import { modifierState, useSingletonKeyboardModifierState } from "../ModifierState";
 import { BottomPanel } from "./BottomPanel";
 import { DebugContent } from "./DebugData";
@@ -16,8 +18,6 @@ import { Library } from "./Library";
 import { ProjectEditor } from "./ProjectEditor";
 import { TimelineView } from "./TimelineView";
 import { UtilityTabbedPanel } from "./UtilityTabbedPanel";
-import { useLinkedState } from "../lib/state/LinkedState";
-import { createUseStyles } from "react-jss";
 
 function useStopPlaybackOnUnmount(renderer: AudioRenderer) {
   useEffect(() => {
