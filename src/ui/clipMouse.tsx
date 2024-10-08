@@ -31,9 +31,11 @@ export function clipMouseDownToMove(e: MouseEvent, cliptrack: ClipTrackCombo, pr
   project.selected.setDyn((prev) => {
     const selectAdd = modifierState.meta || modifierState.shift;
     if (selectAdd && prev !== null && prev.status === "clips") {
-      prev.clips.push(cliptrack);
-      prev.test.add(clip);
-      prev.test.add(track);
+      if (!prev.test.has(clip)) {
+        prev.clips.push(cliptrack);
+        prev.test.add(clip);
+        prev.test.add(track);
+      }
       return { ...prev };
     } else {
       return {
