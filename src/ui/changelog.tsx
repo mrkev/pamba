@@ -3,6 +3,9 @@ next
 - resizing a clip from start can snap to grid
 - can resize midi clip from end
 - improvements to undo
+- midi clips render midi notes in timeline
+- faster intialization
+- zoom level and timeline scroll position is preserved on project save
 
 v0.1.8
 - improve zoom slider

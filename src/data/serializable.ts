@@ -32,6 +32,7 @@ export type SMidiClip = Readonly<{
   lengthPulses: number;
   notes: readonly Note[];
   viewport: SMidiViewport;
+  bufferTimelineStart: number;
 }>;
 
 export type SAudioTrack = {
@@ -63,6 +64,8 @@ export type SAudioProject = {
   loopStart: STimelineT;
   loopEnd: STimelineT;
   loopOnPlayback: boolean;
+  scaleFactor: number;
+  viewportStartPx: number;
 };
 
 export type SFaustAudioEffect = {
@@ -147,6 +150,8 @@ export async function serializable(
       loopStart: obj.loopStart.serialize(),
       loopEnd: obj.loopEnd.serialize(),
       loopOnPlayback: obj.loopOnPlayback.get(),
+      scaleFactor: obj.scaleFactor.get(),
+      viewportStartPx: obj.viewportStartPx.get(),
     };
   }
 
@@ -220,7 +225,7 @@ export async function construct(
 
     case "AudioProject": {
       const tracks = await Promise.all(rep.tracks.map((clip) => construct(clip)));
-      const { projectId, projectName, tempo, loopStart, loopEnd, loopOnPlayback } = rep;
+      const { projectId, projectName, tempo, loopStart, loopEnd, loopOnPlayback, scaleFactor, viewportStartPx } = rep;
       return new AudioProject(
         tracks,
         projectId,
@@ -229,6 +234,8 @@ export async function construct(
         TimelineT.construct(loopStart),
         TimelineT.construct(loopEnd),
         loopOnPlayback,
+        scaleFactor,
+        viewportStartPx,
       );
     }
     case "FaustAudioEffect": {

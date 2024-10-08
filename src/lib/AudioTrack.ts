@@ -26,6 +26,9 @@ export class AudioTrack extends Structured<SAudioTrack, typeof AudioTrack> imple
   // if audo is playing, this is the soruce with the playing buffer
   private playingSource: TrackedAudioNode<AudioBufferSourceNode> | null;
 
+  // if audio is being recorded, this is the clip it's being recorded into
+  public readonly recordingClip: AudioClip | null = null;
+
   override serialize(): SAudioTrack {
     return {
       kind: "AudioTrack",
@@ -37,6 +40,7 @@ export class AudioTrack extends Structured<SAudioTrack, typeof AudioTrack> imple
       name: this.name.get(),
     };
   }
+
   override replace(json: SAudioTrack): void {
     throw new Error("Method not implemented.");
   }

@@ -94,28 +94,16 @@ export class AudioProject {
 
   // the zoom level. min scale is 0.64, max is 1000.
   // Px per second. Therefore, small = zoom out. big = zoom in.
-  readonly scaleFactor = LinkedState.of(10);
+  readonly scaleFactor: LinkedState<number>;
   // the "left" CSS position for the first second visible in the project div
-  readonly viewportStartPx = LinkedState.of(0);
+  readonly viewportStartPx: LinkedState<number>;
   // 1 sec corresponds to 10 px
-  readonly secsToPx = DerivedState.from(
-    [this.scaleFactor],
-    (factor: number) =>
-      scaleLinear()
-        .domain([0, 1])
-        .range([0, 1 * factor]) as XScale,
-  );
+  readonly secsToPx: DerivedState<(factor: number) => XScale>;
   // factor 2: 1sec => 2px
   // factor 3: 1sec => 3px
   // etc
 
-  readonly secsToViewportPx = DerivedState.from(
-    [this.scaleFactor, this.viewportStartPx],
-    (factor: number, startPx: number) =>
-      scaleLinear()
-        .domain([0, 1])
-        .range([0 + startPx, 1 * factor + startPx]) as XScale,
-  );
+  readonly secsToViewportPx: DerivedState<(factor: number, startPx: number) => XScale>;
 
   constructor(
     tracks: (AudioTrack | MidiTrack)[],
@@ -125,6 +113,8 @@ export class AudioProject {
     loopStart: TimelineT,
     loopEnd: TimelineT,
     loopOnPlayback: boolean,
+    scaleFactor: number,
+    viewportStartPx: number,
   ) {
     this.projectId = projectId;
     this.allTracks = SArray.create(tracks);
@@ -134,6 +124,22 @@ export class AudioProject {
     this.loopStart = loopStart;
     this.loopEnd = loopEnd;
     this.loopOnPlayback = LinkedState.of(loopOnPlayback);
+    this.scaleFactor = LinkedState.of(scaleFactor);
+    this.viewportStartPx = LinkedState.of(viewportStartPx);
+    this.secsToPx = DerivedState.from(
+      [this.scaleFactor],
+      (factor: number) =>
+        scaleLinear()
+          .domain([0, 1])
+          .range([0, 1 * factor]) as XScale,
+    );
+    this.secsToViewportPx = DerivedState.from(
+      [this.scaleFactor, this.viewportStartPx],
+      (factor: number, startPx: number) =>
+        scaleLinear()
+          .domain([0, 1])
+          .range([0 + startPx, 1 * factor + startPx]) as XScale,
+    );
     // so it initializes after app environment is initialized
     setTimeout(() => ignorePromise(this.asyncInits()), 0);
   }
@@ -158,7 +164,7 @@ export class AudioProject {
 
   static create() {
     const id = ulid();
-    return new this([], id, "untitled", DEFAULT_TEMPO, time(0, "pulses"), time(PPQN * 4, "pulses"), false);
+    return new this([], id, "untitled", DEFAULT_TEMPO, time(0, "pulses"), time(PPQN * 4, "pulses"), false, 10, 0);
   }
 
   public canEditTrack(project: AudioProject, track: MidiTrack | AudioTrack | StandardTrack<any>) {

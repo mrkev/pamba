@@ -1,15 +1,9 @@
 import { useEffect } from "react";
-import { AnalizedPlayer } from "../lib/AnalizedPlayer";
-import { AudioRenderer } from "../lib/AudioRenderer";
 import { AudioProject } from "../lib/project/AudioProject";
 import { MidiTrack } from "../midi/MidiTrack";
 import { documentCommands } from "./documentCommands";
 
-export function useDocumentKeyboardEvents(
-  project: AudioProject,
-  player: AnalizedPlayer,
-  renderer: AudioRenderer,
-): void {
+export function useDocumentKeyboardEvents(project: AudioProject): void {
   useEffect(() => {
     function keydownEvent(e: KeyboardEvent) {
       // console.log("Doc keydown", e.code);
@@ -80,5 +74,5 @@ export function useDocumentKeyboardEvents(
       document.removeEventListener("keypress", keypressEvent);
       document.removeEventListener("keyup", keyupEvent);
     };
-  }, [player, project, renderer]);
+  }, [project]);
 }

@@ -309,12 +309,14 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
       throw new Error(`trimming past end time: ${newTimelineSec} > ${this.bufferTimelineEndSec()}`);
     }
 
-    const timelineStartSec = this.timelineStart.ensureSecs();
-    const delta = newTimelineSec - timelineStartSec;
-    this.timelineStart.set(newTimelineSec, "seconds");
-    this.bufferOffset = (this.bufferOffset + delta) as Seconds;
-    const clipLengthSec = this.timelineLength.ensureSecs();
-    this.timelineLength.set(clipLengthSec - delta, "seconds");
+    this.featuredMutation(() => {
+      const timelineStartSec = this.timelineStart.ensureSecs();
+      const delta = newTimelineSec - timelineStartSec;
+      this.timelineStart.set(newTimelineSec, "seconds");
+      this.bufferOffset = (this.bufferOffset + delta) as Seconds;
+      const clipLengthSec = this.timelineLength.ensureSecs();
+      this.timelineLength.set(clipLengthSec - delta, "seconds");
+    });
   }
 
   // Buffer

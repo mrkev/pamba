@@ -99,7 +99,8 @@ export class MidiViewport extends Structured<SMidiViewport, typeof MidiViewport>
   }
 
   clone() {
-    return new MidiViewport(
+    return Structured.create(
+      MidiViewport,
       this.pxPerPulse.get(),
       this.pxNoteHeight.get(),
       this.scrollLeftPx.get(),
@@ -115,7 +116,7 @@ export class MidiViewport extends Structured<SMidiViewport, typeof MidiViewport>
   }
 
   static construct(json: SMidiViewport): MidiViewport {
-    return new this(json.pxPerPulse, json.pxNoteHeight, json.scrollLeft, json.scrollTop);
+    return Structured.create(MidiViewport, json.pxPerPulse, json.pxNoteHeight, json.scrollLeft, json.scrollTop);
   }
 
   constructor(pxPerPulse: number, pxNoteHeight: number, scrollLeft: number, scrollTop: number) {

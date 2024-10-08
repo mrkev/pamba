@@ -53,7 +53,7 @@ export class ProjectSelection {
 
     switch (primarySelection.status) {
       case "clips": {
-        history.record(() => {
+        history.record("remove clip(s)", () => {
           for (const { clip, track } of primarySelection.clips) {
             if (track instanceof MidiTrack && clip instanceof MidiClip) {
               AudioProject.removeMidiClip(project, track, clip);
@@ -98,7 +98,7 @@ export class ProjectSelection {
         break;
       }
       case "time": {
-        history.record(() => {
+        history.record("delete time selection", () => {
           for (const track of project.allTracks) {
             deleteTime(project, track, primarySelection.startS, primarySelection.endS);
           }
@@ -109,7 +109,7 @@ export class ProjectSelection {
         for (const track of primarySelection.tracks) {
           if (track instanceof AudioTrack) {
             // TODO: move history.record(...) up to the command level as possible
-            history.record(() => {
+            history.record("delete track time", () => {
               ProjectTrack.deleteTime(project, track, primarySelection.startS, primarySelection.endS);
             });
           } else if (track instanceof MidiTrack) {

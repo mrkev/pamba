@@ -29,7 +29,6 @@ export function ClipA({
   const totalBufferWidth = project.viewport.secsToPx(clip.bufferLength);
   const bufferOffsetPx = project.viewport.secsToPx(clip.bufferOffset);
   const height = CLIP_HEIGHT - 3; // to clear the bottom track separator gridlines
-
   const tStart = useContainer(clip.timelineStart);
   const tLen = useContainer(clip.timelineLength);
 
@@ -69,7 +68,7 @@ export function ClipA({
       case "move":
         break;
       case "slice":
-        history.record(() => {
+        history.record("slice clip", () => {
           const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
           const secFromStartOfClip = project.viewport.pxToSecs(pxFromStartOfClip);
           const secFromTimelineStart = tStart.secs(project) + secFromStartOfClip;
@@ -81,7 +80,7 @@ export function ClipA({
         const asSec = project.viewport.pxToSecs(pxFromStartOfClip);
         project.cursorPos.set(tStart.secs(project) + asSec);
 
-        void history.record(() => {
+        history.record("trim start of clip", () => {
           const timelineStartSec = clip.timelineStart.ensureSecs();
           const clipLengthSec = clip.timelineLength.ensureSecs();
 
@@ -94,9 +93,13 @@ export function ClipA({
         break;
       }
       case "trimEnd": {
-        const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
-        const secsFromStartPos = project.viewport.pxToSecs(pxFromStartOfClip);
-        clip.timelineLength.set(secsFromStartPos, "seconds");
+        history.record("trip end of clip", () => {
+          clip.featuredMutation(() => {
+            const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
+            const secsFromStartPos = project.viewport.pxToSecs(pxFromStartOfClip);
+            clip.timelineLength.set(secsFromStartPos, "seconds");
+          });
+        });
         break;
       }
       default:
@@ -150,7 +153,7 @@ function _ClipAutomation({ clip, secsToPx }: { clip: AudioClip; secsToPx: XScale
   };
 
   return (
-    <svg style={{}}>
+    <svg>
       {clip.gainAutomation.map(({ time, value }, i) => {
         const [x1, y1] = [secsToPx(time), valToPcnt(value)];
         const { time: time2, value: value2 } = clip.gainAutomation[i + 1] || {

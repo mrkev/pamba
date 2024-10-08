@@ -72,6 +72,15 @@ export function ClipM({
     // }
   }, []);
 
+  const [backgroundImageData, imgHeight] = clip.buffer.getMidiDataURL(
+    // totalBufferWidth,
+    1000,
+  );
+
+  const totalBufferWidth = project.viewport.secsToPx(clip.buffer.len.secs(project));
+  // const height = CLIP_HEIGHT - 3; // to clear the bottom track separator gridlines
+  const bufferOffsetPx = 0; //  project.viewport.secsToPx(clip.bufferOffset);
+
   return (
     <StandardClip
       clip={clip}
@@ -82,7 +91,13 @@ export function ClipM({
       onClipClick={onClipClick}
       width={width}
       left={left}
-      style={{}}
+      style={{
+        backgroundSize: `${totalBufferWidth}px min(100%, ${imgHeight * 5}px)`,
+        backgroundImage: "url('" + backgroundImageData + "')",
+        backgroundPosition: `${bufferOffsetPx * -1}px center`,
+        backgroundRepeat: "no-repeat",
+        imageRendering: "pixelated",
+      }}
     >
       {notes.length}
     </StandardClip>

@@ -1,5 +1,4 @@
 import { history } from "structured-state";
-import { secs } from "../../lib/AbstractClip";
 import { addAvailableWamToTrack } from "../../lib/addAvailableWamToTrack";
 import { AudioClip } from "../../lib/AudioClip";
 import { AudioTrack } from "../../lib/AudioTrack";
@@ -9,8 +8,8 @@ import { MidiInstrument } from "../../midi/MidiInstrument";
 import { MidiTrack } from "../../midi/MidiTrack";
 import { exhaustive } from "../../utils/exhaustive";
 import { ignorePromise } from "../../utils/ignorePromise";
-import { TransferableResource } from "./getTrackAcceptableDataTransferResources";
 import { nullthrows } from "../../utils/nullthrows";
+import { TransferableResource } from "./getTrackAcceptableDataTransferResources";
 
 export const loadAudioClipIntoTrack = async (
   project: AudioProject,
@@ -24,7 +23,7 @@ export const loadAudioClipIntoTrack = async (
       return;
     }
     const clip = await AudioClip.fromURL(url, name);
-    history.record(() => {
+    history.record("insert audio clip", () => {
       // load clip
       clip.timelineStart.set(startOffsetSec, "seconds");
       ProjectTrack.addClip(project, track, clip);

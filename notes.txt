@@ -1,4 +1,4 @@
-- structured-state todo:
+x structured-state todo:
   x expose map, set
   x state is not a tree, it's a graph: container should be a set, and updates should be done with tokens to avoid cycles
 
@@ -7,6 +7,10 @@ x reorder tracks
 x reorder effects
 x dirty state for project
 x right-click messes up dragging state
+
+top prio:
+- bounce to track
+- drag clip to outside browser?
 
 todo:
 - loop clips
@@ -18,7 +22,7 @@ x files in project
 
 substate
 - redo
-- dirty
+x dirty
 
 lowpri:
 - consolidate audio

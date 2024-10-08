@@ -18,8 +18,8 @@ import { useDrawOnCanvas } from "./useDrawOnCanvas";
 import { useEventListener } from "./useEventListener";
 import { ClipPropsEditor } from "./ClipPropsEditor";
 import { MidiTrack } from "../midi/MidiTrack";
+import { TOTAL_VERTICAL_NOTES } from "../constants";
 
-const TOTAL_VERTICAL_NOTES = 128;
 const DEFAULT_NOTE_DURATION = 6;
 const CLIP_TOTAL_BARS = 4;
 const CANVAS_SCALE = Math.floor(window.devicePixelRatio);
@@ -257,7 +257,7 @@ export function MidiClipEditor({
             break;
           }
           case "draw": {
-            void history.record(() => {
+            void history.record("draw note", () => {
               if (prevNote != null) {
                 // removal handled in note
                 // clip.removeNote(prevNote);

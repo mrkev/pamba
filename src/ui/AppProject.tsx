@@ -37,7 +37,7 @@ export function AppProject({ project }: { project: AudioProject }) {
   const [recorder] = useState(() => new AudioRecorder(project, renderer));
 
   useSingletonKeyboardModifierState(modifierState);
-  useDocumentKeyboardEvents(project, renderer.analizedPlayer, renderer);
+  useDocumentKeyboardEvents(project);
   useStopPlaybackOnUnmount(renderer);
   const [activeSidePanel, setActiveSidePanel] = usePrimitive(appEnvironment.activeSidePanel);
   const [activeBottomPanel, setActiveBottomPanel] = usePrimitive(appEnvironment.activeBottomPanel);

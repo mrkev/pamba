@@ -1,7 +1,7 @@
 import { WamDescriptor } from "@webaudiomodules/api";
 import { FirebaseApp } from "firebase/app";
 import { Auth, User, getAuth } from "firebase/auth";
-import { DirtyObserver, array } from "structured-state";
+import { DirtyObserver, SPrimitive, array } from "structured-state";
 import { FIREBASE_ENABLED, WAM_PLUGINS } from "../constants";
 import { AudioPackage } from "../data/AudioPackage";
 import { ProjectPackage } from "../data/ProjectPackage";
@@ -36,6 +36,8 @@ export type WAMAvailablePlugin = {
 type ProjectState = { status: "idle" } | { status: "loading" } | { status: "loaded"; project: AudioProject };
 
 export class AppEnvironment {
+  readonly status = SPrimitive.of<"initing" | "ready">("initing");
+  public readyPromise: Promise<void>;
   // Firebase
   readonly firebaseApp: FirebaseApp | null;
   readonly firebaseAuth: Auth | null;
@@ -63,6 +65,7 @@ export class AppEnvironment {
   renderer: AudioRenderer = null as any; // TODO: do this in a way that avoids the null?
 
   constructor() {
+    console.log("app environment init");
     if (FIREBASE_ENABLED) {
       this.firebaseApp = initFirebaseApp();
       this.firebaseAuth = getAuth(this.firebaseApp);
@@ -76,6 +79,13 @@ export class AppEnvironment {
     this.projectStatus = LinkedState.of<ProjectState>({ status: "idle" });
     this.projectPacakge = LinkedState.of<ProjectPackage | null>(null); // null if never saved
     this.projectDirtyObserver = new DirtyObserver(dummyObj, "clean");
+    this.readyPromise = new Promise((res) => {
+      this.status._subscriptors.add(() => {
+        if (this.status.get() === "ready") {
+          res();
+        }
+      });
+    });
   }
 
   public loadProject(project: AudioProject) {
@@ -87,6 +97,7 @@ export class AppEnvironment {
   }
 
   async initAsync(liveAudioContext: AudioContext) {
+    console.log("app environment asnyc init");
     const [audioContextInfo] = await Promise.all([initAudioContext(liveAudioContext)]);
 
     // Init wam host
@@ -107,10 +118,11 @@ export class AppEnvironment {
 
     await this.localFiles.projectLib._initState();
     await this.localFiles.audioLib._initState();
+    this.status.set("ready");
     // once plugins have been loaded, so they're available to the project
-    if (this.projectStatus.get().status === "loading") {
-      await ProjectPersistance.openLastProject(this.localFiles);
-    }
+    // if (this.projectStatus.get().status === "loading") {
+    //   await ProjectPersistance.openLastProject(this.localFiles);
+    // }
   }
 
   public async loadAudio(path: string): Promise<AudioPackage> {

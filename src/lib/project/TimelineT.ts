@@ -116,7 +116,7 @@ export class TimelineT extends Structured<STimelineT, typeof TimelineT> {
   }
 
   clone() {
-    return new TimelineT(this.t, this.u);
+    return Structured.create(TimelineT, this.t, this.u);
   }
 
   add(p: TimelineT, project: AudioProject) {

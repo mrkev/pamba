@@ -306,7 +306,7 @@ export function useTimelineMouseEvents(
         switch (pressed.status) {
           case "moving_clip": {
             if (!pressed.inHistory) {
-              history.push([pressed.clip]);
+              history.push("move clip", [pressed.clip]);
             }
 
             // metaKey flips it
@@ -342,7 +342,7 @@ export function useTimelineMouseEvents(
 
           case "resizing_clip": {
             if (!pressed.inHistory) {
-              history.push([pressed.clip]);
+              history.push("resize clip", [pressed.clip]);
             }
 
             const snap = e.metaKey ? !project.snapToGrid.get() : project.snapToGrid.get();
@@ -363,25 +363,27 @@ export function useTimelineMouseEvents(
                 exhaustive(pressed.from);
               }
             } else if (pressed.clip instanceof AudioClip) {
-              const opDeltaXSecs = project.viewport.pxToSecs(deltaX);
+              const changeSecs = project.viewport.pxToSecs(deltaX);
               const originalClipLengthSecs = pressed.originalClipLength.secs(project);
 
               if (pressed.from === "end") {
-                const newLength = originalClipLengthSecs + opDeltaXSecs;
+                const newLength = originalClipLengthSecs + changeSecs;
                 clipResizeEndSec(pressed.clip, newLength, project, snap);
               } else if (pressed.from === "start") {
-                const newClipLength = clamp(
+                const newLength = clamp(
                   // zero length is minimum
                   0,
-                  originalClipLengthSecs - opDeltaXSecs,
+                  originalClipLengthSecs - changeSecs,
                   // since trimming from start, max is going back all the way to zero
                   originalClipLengthSecs + pressed.originalBufferOffset,
                 );
 
-                const delta = originalClipLengthSecs - newClipLength;
-                const newTimelineStartSec = pressed.originalClipStart.secs(project) + delta;
-                const newBufferOffset = pressed.originalBufferOffset + delta;
-                clipResizeStartSec(pressed.clip, newBufferOffset, newTimelineStartSec, newClipLength, project, snap);
+                const effectiveChange = originalClipLengthSecs - newLength;
+                // console.log(changeSecs, newLength, effectiveChange);
+
+                const newTimelineStartSec = pressed.originalClipStart.secs(project) + effectiveChange;
+                const newBufferOffset = pressed.originalBufferOffset + effectiveChange;
+                clipResizeStartSec(pressed.clip, newLength, newBufferOffset, newTimelineStartSec, project, snap);
               } else {
                 exhaustive(pressed.from);
               }

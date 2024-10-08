@@ -44,24 +44,24 @@ export function clipResizeEndPulses(clip: MidiClip, newLengthPulses: number, ori
 
 export function clipResizeStartSec(
   clip: AudioClip,
+  newClipLengthS: number,
   newBufferOffset: number,
   newTimelineStartSec: number,
-  newClipLength: number,
   project: AudioProject,
   snap: boolean,
 ) {
   if (!snap) {
     clip.bufferOffset = secs(newBufferOffset);
     clip.timelineStart.set(newTimelineStartSec, "seconds");
-    clip.timelineLength.set(newClipLength, "seconds");
+    clip.timelineLength.set(newClipLengthS, "seconds");
   } else {
     const tempo = project.tempo.get();
     const tickBeatLength = getOneTickLen(project, tempo);
     const startStepped = stepNumber(newTimelineStartSec, tickBeatLength);
 
-    const delta = startStepped - newTimelineStartSec;
-    const bufferOffsetStepped = newBufferOffset + delta;
-    const lengthStepped = newClipLength + delta;
+    const delta2 = startStepped - newTimelineStartSec;
+    const bufferOffsetStepped = newBufferOffset + delta2;
+    const lengthStepped = newClipLengthS - delta2;
 
     clip.bufferOffset = secs(bufferOffsetStepped);
     clip.timelineStart.set(startStepped, "seconds");

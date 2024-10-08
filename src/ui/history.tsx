@@ -22,8 +22,7 @@ export function History({ project }: { project: AudioProject }) {
       <UtilityDataList
         items={history.map((entry) => {
           return {
-            title: entry.id,
-            secondary: entry.objects.size,
+            title: entry.name,
             data: entry,
           };
         })}

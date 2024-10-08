@@ -12,6 +12,7 @@ import { mutable } from "../utils/types";
 import { PPQN } from "../wam/pianorollme/MIDIConfiguration";
 import { MidiTrack } from "./MidiTrack";
 import type { Note } from "./SharedMidiTypes";
+import { dataURLForMidiBuffer } from "../utils/midiimg";
 
 export const SECS_IN_MIN = 60;
 
@@ -29,6 +30,31 @@ export function secsToPulses(secs: number, bpm: number) {
   return Math.floor((secs * PPQN * bpm) / SECS_IN_MIN);
 }
 
+export class MidiBuffer {
+  constructor(
+    // ordered by tick (start)
+    readonly notes: SArray<Note>,
+    readonly len: TimelineT,
+  ) {}
+
+  private readonly memodMidiDataURL: Map<string, { width: number; height: number; data: string }> = new Map();
+  clearCache() {
+    this.memodMidiDataURL.clear();
+  }
+
+  getMidiDataURL(width: number): [string, number] {
+    const key = `${width}`;
+    const val = this.memodMidiDataURL.get(key);
+    if (val != null) {
+      return [val.data, val.height];
+    }
+
+    const [img, height] = dataURLForMidiBuffer(width, this);
+    this.memodMidiDataURL.set(key, { width, height, data: img });
+    return [img, height];
+  }
+}
+
 export class MidiClip extends Structured<SMidiClip, typeof MidiClip> implements AbstractClip<Pulses> {
   // constants
   readonly unit = "pulse";
@@ -39,9 +65,12 @@ export class MidiClip extends Structured<SMidiClip, typeof MidiClip> implements 
   readonly notes: SArray<Note>; // ordered by tick (start)
   readonly detailedViewport: MidiViewport;
 
+  public bufferOffset: number = 0; // TODO: this is here just for types
+
   // todo: as of now, unused. midi can be trimmed like audio though.
-  public bufferOffset: Pulses = 0 as Pulses;
-  readonly bufferLength: Pulses = 0 as Pulses;
+  public bufferTimelineStart: TimelineT;
+  public buffer: MidiBuffer;
+  // readonly bufferLength: Pulses = 0 as Pulses;
 
   override serialize(): SMidiClip {
     return {
@@ -51,6 +80,7 @@ export class MidiClip extends Structured<SMidiClip, typeof MidiClip> implements 
       lengthPulses: this.timelineLength.ensurePulses(), // todo: replace for serialized timelinet to avoid ensurePulses
       notes: this.notes._getRaw(),
       viewport: this.detailedViewport.serialize(),
+      bufferTimelineStart: this.bufferTimelineStart.ensurePulses(),
     };
   }
 
@@ -60,17 +90,32 @@ export class MidiClip extends Structured<SMidiClip, typeof MidiClip> implements 
 
   static construct(json: SMidiClip): MidiClip {
     const viewport = json.viewport ? MidiViewport.construct(json.viewport) : new MidiViewport(10, 10, 0, 0);
-    return new MidiClip(json.name, json.startOffsetPulses, json.lengthPulses, json.notes, viewport);
+    return new MidiClip(
+      json.name,
+      json.startOffsetPulses,
+      json.lengthPulses,
+      json.notes,
+      viewport,
+      json.bufferTimelineStart,
+    );
   }
 
-  static of(name: string, startOffsetPulses: number, lengthPulses: number, notes: Note[], viewport?: MidiViewport) {
-    return s.Structured.create(
+  static of(
+    name: string,
+    startOffsetPulses: number,
+    lengthPulses: number,
+    notes: Note[],
+    viewport?: MidiViewport,
+    bufferTimelineStart?: number,
+  ) {
+    return Structured.create(
       MidiClip,
       name,
       startOffsetPulses,
       lengthPulses,
       notes,
-      viewport ?? new MidiViewport(10, 10, 0, 0),
+      viewport ?? Structured.create(MidiViewport, 10, 10, 0, 0),
+      bufferTimelineStart ?? startOffsetPulses,
     );
   }
 
@@ -80,19 +125,23 @@ export class MidiClip extends Structured<SMidiClip, typeof MidiClip> implements 
     lengthPulses: number,
     notes: readonly Note[],
     viewport: MidiViewport,
+    bufferTimelineStart: number,
   ) {
     super();
     this.name = SString.create(name);
     this.notes = SArray.create(mutablearr(notes));
+    this.bufferTimelineStart = time(bufferTimelineStart, "pulses");
     // this.lengthPulses = lengthPulses as Pulses;
     // this._startOffsetPulses = startOffsetPulses as Pulses;
     this.timelineStart = time(startOffsetPulses, "pulses");
     this.timelineLength = time(lengthPulses, "pulses");
     this.detailedViewport = viewport;
+    this.buffer = new MidiBuffer(this.notes, this.timelineLength);
   }
 
   static addNote(clip: MidiClip, tick: number, num: number, duration: number, velocity: number) {
     addOrderedNote(clip.notes, [tick, num, duration, velocity]);
+    clip.buffer.clearCache();
     clip.notifyChange();
   }
 
@@ -111,6 +160,7 @@ export class MidiClip extends Structured<SMidiClip, typeof MidiClip> implements 
 
   static removeNote(clip: MidiClip, note: Note) {
     clip.notes.remove(note);
+    clip.buffer.clearCache();
     clip.notifyChange();
   }
 
@@ -174,12 +224,14 @@ export class MidiClip extends Structured<SMidiClip, typeof MidiClip> implements 
   }
 
   clone(): MidiClip {
-    const newClip = new MidiClip(
+    const newClip = Structured.create(
+      MidiClip,
       this.name.get(),
       this.startOffsetPulses,
       this.timelineLength.ensurePulses(),
       mutable(this.notes._getRaw()),
       this.detailedViewport.clone(),
+      this.bufferTimelineStart.ensurePulses(),
     );
     return newClip;
   }

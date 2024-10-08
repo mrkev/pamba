@@ -17,6 +17,7 @@ import { PromptDialog } from "./PromptDialog";
 import { changelog } from "./changelog";
 import { useDocumentEventListener } from "./useEventListener";
 import { utility } from "./utility";
+import { ProjectPersistance } from "../lib/ProjectPersistance";
 
 // var w = new TrackThread();
 // var sab = new SharedArrayBuffer(1024);
@@ -137,8 +138,10 @@ function InitButtion() {
         <button
           className={utility.button}
           onClick={async () => {
+            await appEnvironment.readyPromise; //resolves when done initializing
             appEnvironment.projectStatus.set({ status: "loading" });
-            ignorePromise(init());
+            // ignorePromise(init());
+            await ProjectPersistance.openLastProject(appEnvironment.localFiles);
           }}
         >
           Continue
@@ -161,15 +164,15 @@ function InitButtion() {
   }
 }
 
-async function init() {
-  try {
-    await wait(1);
-    await appEnvironment.initAsync(liveAudioContext());
-  } catch (e) {
-    console.trace(e);
-  }
-}
+// async function init() {
+//   try {
+//     await wait(1);
+//     await appEnvironment.initAsync(liveAudioContext());
+//   } catch (e) {
+//     console.trace(e);
+//   }
+// }
 
-async function wait(ms: number) {
-  return new Promise((res) => setTimeout(res, ms));
-}
+// async function wait(ms: number) {
+//   return new Promise((res) => setTimeout(res, ms));
+// }
