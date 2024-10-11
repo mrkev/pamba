@@ -100,7 +100,7 @@ export class MidiClip extends Structured<SMidiClip, typeof MidiClip> implements 
   }
 
   static construct(json: SMidiClip): MidiClip {
-    const viewport = json.viewport ? MidiViewport.construct(json.viewport) : new MidiViewport(10, 10, 0, 0);
+    const viewport = json.viewport ? MidiViewport.construct(json.viewport) : MidiViewport.of(10, 10, 0, 0);
     return new MidiClip(
       json.name,
       json.startOffsetPulses,
@@ -125,7 +125,7 @@ export class MidiClip extends Structured<SMidiClip, typeof MidiClip> implements 
       startOffsetPulses,
       lengthPulses,
       notes,
-      viewport ?? Structured.create(MidiViewport, 10, 10, 0, 0),
+      viewport ?? MidiViewport.of(10, 10, 0, 0),
       bufferTimelineStart ?? startOffsetPulses,
     );
   }

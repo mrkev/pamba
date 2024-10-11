@@ -9,22 +9,29 @@ export type SMidiViewport = {
 };
 
 export class MidiViewport extends Structured<SMidiViewport, typeof MidiViewport> {
-  readonly pxPerPulse: SNumber;
-  readonly pxNoteHeight: SNumber;
-  readonly scrollLeftPx: SNumber;
-  readonly scrollTopPx: SNumber;
   readonly lockPlayback = boolean(false);
 
-  constructor(pxPerPulse: number, pxNoteHeight: number, scrollLeft: number, scrollTop: number) {
+  constructor(
+    readonly pxPerPulse: SNumber,
+    readonly pxNoteHeight: SNumber,
+    readonly scrollLeftPx: SNumber,
+    readonly scrollTopPx: SNumber,
+  ) {
     super();
-    this.pxPerPulse = number(pxPerPulse);
-    this.pxNoteHeight = number(pxNoteHeight);
-    this.scrollLeftPx = number(scrollLeft);
-    this.scrollTopPx = number(scrollTop);
+  }
+
+  static of(pxPerPulse: number, pxNoteHeight: number, scrollLeftPx: number, scrollTopPx: number) {
+    return Structured.create(
+      MidiViewport,
+      number(pxPerPulse),
+      number(pxNoteHeight),
+      number(scrollLeftPx),
+      number(scrollTopPx),
+    );
   }
 
   static construct(json: SMidiViewport): MidiViewport {
-    return Structured.create(MidiViewport, json.pxPerPulse, json.pxNoteHeight, json.scrollLeft, json.scrollTop);
+    return MidiViewport.of(json.pxPerPulse, json.pxNoteHeight, json.scrollLeft, json.scrollTop);
   }
 
   override serialize(): SMidiViewport {
@@ -55,10 +62,10 @@ export class MidiViewport extends Structured<SMidiViewport, typeof MidiViewport>
   clone() {
     return Structured.create(
       MidiViewport,
-      this.pxPerPulse.get(),
-      this.pxNoteHeight.get(),
-      this.scrollLeftPx.get(),
-      this.scrollTopPx.get(),
+      number(this.pxPerPulse.get()),
+      number(this.pxNoteHeight.get()),
+      number(this.scrollLeftPx.get()),
+      number(this.scrollTopPx.get()),
     );
   }
 

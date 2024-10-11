@@ -1,5 +1,14 @@
-import * as s from "structured-state";
-import { SPrimitive, SSchemaArray, Structured } from "structured-state";
+import {
+  arrayOf,
+  number,
+  PrimitiveKind,
+  SNumber,
+  SSchemaArray,
+  SString,
+  string,
+  Structured,
+  StructuredKind,
+} from "structured-state";
 import { CLIP_HEIGHT } from "../constants";
 import { SAudioTrack } from "../data/serializable";
 import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
@@ -15,10 +24,7 @@ import { AudioContextInfo } from "./initAudioContext";
 import { AudioProject } from "./project/AudioProject";
 
 export class AudioTrack extends Structured<SAudioTrack, typeof AudioTrack> implements StandardTrack<AudioClip> {
-  public readonly name: SPrimitive<string>;
   public readonly dsp: ProjectTrackDSP<AudioClip>;
-  public readonly clips: SSchemaArray<AudioClip>;
-  public readonly height: SPrimitive<number>;
 
   // For background processing
   // private thread_UNUSED = new TrackThread();
@@ -28,6 +34,21 @@ export class AudioTrack extends Structured<SAudioTrack, typeof AudioTrack> imple
 
   // if audio is being recorded, this is the clip it's being recorded into
   public readonly recordingClip: AudioClip | null = null;
+
+  constructor(
+    readonly name: SString,
+    readonly clips: SSchemaArray<AudioClip>,
+    effects: (FaustAudioEffect | PambaWamNode)[],
+    readonly height: SNumber,
+  ) {
+    super();
+    this.playingSource = null;
+    this.dsp = new ProjectTrackDSP(this, effects);
+  }
+
+  static of(name: string, clips: AudioClip[], effects: (FaustAudioEffect | PambaWamNode)[], height: number) {
+    return Structured.create(AudioTrack, string(name), arrayOf([AudioClip as any], clips), effects, number(height));
+  }
 
   override serialize(): SAudioTrack {
     return {
@@ -41,7 +62,7 @@ export class AudioTrack extends Structured<SAudioTrack, typeof AudioTrack> imple
     };
   }
 
-  override autoSimplify(): Record<string, s.StructuredKind | s.PrimitiveKind> {
+  override autoSimplify(): Record<string, StructuredKind | PrimitiveKind> {
     return {
       kind: "AudioTrack",
       clips: this.clips,
@@ -62,31 +83,11 @@ export class AudioTrack extends Structured<SAudioTrack, typeof AudioTrack> imple
     const clips = sClips.map((clip) => AudioClip.construct(clip));
     // TODO: effects
     // const effects = await Promise.all(sEffects.map((effect) => construct(effect)));
-    return AudioTrack.of({ name, clips, effects: [], height });
+    return AudioTrack.of(name, clips, [], height);
   }
 
-  constructor(name: string, clips: AudioClip[], effects: (FaustAudioEffect | PambaWamNode)[], height: number) {
-    super();
-    this.clips = s.arrayOf([AudioClip as any], clips);
-    this.playingSource = null;
-    this.dsp = new ProjectTrackDSP(this, effects);
-    this.name = SPrimitive.of(name);
-    this.height = SPrimitive.of<number>(height);
-  }
-
-  static of(props?: {
-    name?: string;
-    clips?: AudioClip[];
-    effects?: (FaustAudioEffect | PambaWamNode)[];
-    height?: number;
-  }) {
-    return Structured.create(
-      AudioTrack,
-      props?.name ?? "Audio",
-      props?.clips ?? [],
-      props?.effects ?? [],
-      props?.height ?? CLIP_HEIGHT,
-    );
+  static empty() {
+    return Structured.create(AudioTrack, string("Audio"), arrayOf([AudioClip as any], []), [], number(CLIP_HEIGHT));
   }
 
   //////////// Playback ////////////
@@ -174,7 +175,7 @@ export class AudioTrack extends Structured<SAudioTrack, typeof AudioTrack> imple
 
   // New track with a single clip
   static fromClip(project: AudioProject, clip: AudioClip) {
-    const track = AudioTrack.of();
+    const track = AudioTrack.empty();
     ProjectTrack.addClip(project, track, clip);
     return track;
   }

@@ -184,7 +184,7 @@ export class AudioProject {
     track?: AudioTrack,
     player?: AnalizedPlayer,
   ): AudioTrack {
-    const newTrack = track ?? AudioTrack.of();
+    const newTrack = track ?? AudioTrack.empty();
     if (position === "top") {
       project.allTracks.unshift(newTrack);
     } else {
