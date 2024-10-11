@@ -6,6 +6,7 @@ next
 - midi clips render midi notes in timeline
 - faster intialization
 - zoom level and timeline scroll position is preserved on project save
+- improvements to undo
 
 v0.1.8
 - improve zoom slider

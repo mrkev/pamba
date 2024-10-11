@@ -1,4 +1,5 @@
-import { useCallback, useRef } from "react";
+import { useRef } from "react";
+import { usePrimitive } from "structured-state";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioRenderer } from "../lib/AudioRenderer";
@@ -12,8 +13,6 @@ import { exhaustive } from "../utils/exhaustive";
 import { AudioClipEditor } from "./AudioClipEditor";
 import { MidiClipEditor } from "./MidiClipEditor";
 import { TrackEditor } from "./TrackEditor";
-import { useMousePressMove } from "./useEventListener";
-import { usePrimitive } from "structured-state";
 
 type BottomPanelDisplay =
   | { kind: "AudioClip"; clip: AudioClip; track: AudioTrack }
@@ -35,12 +34,12 @@ export function BottomPanel({
   const primarySelection = getValidEditorSelection(selected);
 
   const testref = useRef<HTMLDivElement>(null);
-  useMousePressMove(
-    testref,
-    useCallback((kind) => {
-      console.log(kind);
-    }, []),
-  );
+  // useMousePressMove(
+  //   testref,
+  //   useCallback((kind) => {
+  //     console.log(kind);
+  //   }, []),
+  // );
 
   switch (primarySelection?.kind) {
     case null:

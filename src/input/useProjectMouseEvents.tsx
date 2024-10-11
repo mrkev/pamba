@@ -157,29 +157,36 @@ export function useTimelineMouseEvents(
         const { status } = pressed;
         switch (status) {
           case "moving_clip": {
-            // console.log("HEREHERE", e.target);
-            if (
-              pressed.track instanceof AudioTrack &&
-              pressed.originalTrack instanceof AudioTrack &&
-              pressed.clip instanceof AudioClip
-            ) {
-              ProjectTrack.moveClip(project, pressed.clip, pressed.originalTrack, pressed.track);
-            } else if (
-              pressed.track instanceof MidiTrack &&
-              pressed.originalTrack instanceof MidiTrack &&
-              pressed.clip instanceof MidiClip
-            ) {
-              ProjectTrack.deleteTime(
-                project,
-                pressed.track,
-                pressed.clip.startOffsetPulses,
-                pressed.clip._timelineEndU,
-              );
-              ProjectTrack.removeClip(project, pressed.originalTrack, pressed.clip);
-              ProjectTrack.addClip(project, pressed.track, pressed.clip);
-            } else {
-              console.warn("mouseup: moving_clip: can't operate");
-            }
+            history.record("move clip", () => {
+              const clipPreview = pressed.clipForRendering;
+              console.log("clone tstart is", clipPreview.timelineStart._id);
+              console.log("clip at", pressed.clip.timelineStart.toString());
+              pressed.clip.timelineStart.replaceWith(clipPreview.timelineStart);
+
+              // console.log("HEREHERE", e.target);
+              if (
+                pressed.track instanceof AudioTrack &&
+                pressed.originalTrack instanceof AudioTrack &&
+                pressed.clip instanceof AudioClip
+              ) {
+                ProjectTrack.moveClip(project, pressed.clip, pressed.originalTrack, pressed.track);
+              } else if (
+                pressed.track instanceof MidiTrack &&
+                pressed.originalTrack instanceof MidiTrack &&
+                pressed.clip instanceof MidiClip
+              ) {
+                ProjectTrack.deleteTime(
+                  project,
+                  pressed.track,
+                  pressed.clip.startOffsetPulses,
+                  pressed.clip._timelineEndU,
+                );
+                ProjectTrack.removeClip(project, pressed.originalTrack, pressed.clip);
+                ProjectTrack.addClip(project, pressed.track, pressed.clip);
+              } else {
+                console.warn("mouseup: moving_clip: can't operate");
+              }
+            });
 
             pressedState.set(null);
             break;
@@ -295,6 +302,7 @@ export function useTimelineMouseEvents(
     "mousemove",
     useCallback(
       function mouseMove(e: MouseEvent) {
+        // TODO: clone clip, render cloned when dragging, move original onmouseup with history
         const pressed = pressedState.get();
         if (!pressed) {
           return;
@@ -305,28 +313,24 @@ export function useTimelineMouseEvents(
 
         switch (pressed.status) {
           case "moving_clip": {
-            if (!pressed.inHistory) {
-              history.push("move clip", [pressed.clip]);
-            }
-
             // metaKey flips it
             const snap = e.metaKey ? !project.snapToGrid.get() : project.snapToGrid.get();
             const deltaX = e.clientX - pressed.clientX;
 
-            if (pressed.clip instanceof AudioClip) {
+            const previewClip = pressed.clipForRendering;
+
+            if (previewClip instanceof AudioClip) {
               const deltaXSecs = project.viewport.pxToSecs(deltaX);
               const newOffset = Math.max(0, pressed.originalClipStart.secs(project) + deltaXSecs);
-              clipMoveSec(pressed.clip, newOffset, pressed.originalClipStart, project, snap);
-            } else if (pressed.clip instanceof MidiClip) {
+              clipMoveSec(previewClip, newOffset, pressed.originalClipStart, project, snap);
+            } else if (previewClip instanceof MidiClip) {
               const deltaXPulses = project.viewport.pxToPulses(deltaX);
               const newOffset = Math.max(0, pressed.originalClipStart.pulses(project) + deltaXPulses);
-              clipMovePPQN(pressed.clip, newOffset, pressed.originalClipStart, project, snap);
+              clipMovePPQN(previewClip, newOffset, pressed.originalClipStart, project, snap);
             } else {
-              exhaustive(pressed.clip);
+              exhaustive(previewClip);
             }
 
-            // Hacking around the readonly
-            (pressed as any).inHistory = true;
             break;
           }
           case "dragging_transferable": {

@@ -6,10 +6,11 @@ import { AudioProject } from "../lib/project/AudioProject";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { Note } from "../midi/SharedMidiTypes";
 import { MidiViewport } from "./AudioViewport";
-import { useEventListener } from "./useEventListener";
+import { useEventListener, useMousePressMove } from "./useEventListener";
 import { pressedState } from "../pressedState";
 import { modifierState } from "../ModifierState";
 import { MidiClip } from "../midi/MidiClip";
+import { exhaustive } from "../utils/exhaustive";
 
 export function NoteR({
   clip,
@@ -31,29 +32,20 @@ export function NoteR({
   const [tick, num, duration, velocity] = note;
   const selected = secondarySel?.status === "notes" && secondarySel.notes.has(note);
 
-  useEventListener(
-    "mousedown",
+  useMousePressMove(
     divRef,
     useCallback(
-      (e: MouseEvent) => {
+      (e) => {
         if (e.button !== 0) {
-          return;
+          return "done";
         }
-
         // if (editable === true)
         switch (panelTool) {
           case "draw": {
             MidiClip.removeNote(clip, note);
-            break;
+            return "done";
           }
           case "move": {
-            project.secondarySelection.set({ status: "notes", notes: new Set([note]) });
-            pressedState.set({
-              status: "moving_notes",
-              clientX: e.clientX,
-              clientY: e.clientY,
-              notes: new Set([note]),
-            });
             project.secondarySelection.setDyn((prev) => {
               const selectAdd = modifierState.meta || modifierState.shift;
               if (selectAdd && prev !== null && prev.status === "notes") {
@@ -66,35 +58,100 @@ export function NoteR({
                 };
               }
             });
-            document.addEventListener("mousemove", onNoteMoveMouseMove);
-            document.addEventListener("mouseup", function onMouseUp() {
-              pressedState.set(null);
-              document.removeEventListener("mouseup", onMouseUp);
-              document.removeEventListener("mousemove", onNoteMoveMouseMove);
-            });
-            break;
+            return {
+              clientX: e.clientX,
+              clientY: e.clientY,
+              notes: new Set([note]),
+            };
           }
-        }
-
-        function onNoteMoveMouseMove(e: MouseEvent) {
-          // pressedState.set(null);
-
-          const pressed = pressedState.get();
-          if (!pressed || pressed.status != "moving_notes") {
-            return;
-          }
-          const deltaX = e.clientX - pressed.clientX;
-          const deltaY = e.clientY - pressed.clientY;
-
-          const deltaXPulses = Math.floor(clip.detailedViewport.pxToPulses(deltaX));
-          const deltaYNotes = Math.floor(clip.detailedViewport.pxToVerticalNotes(deltaY));
-
-          console.log("moving", deltaXPulses);
+          default:
+            exhaustive(panelTool);
         }
       },
       [clip, note, panelTool, project.secondarySelection],
     ),
+    useCallback((meta, e) => {
+      console.log(meta, e);
+      // pressedState.set(null);
+
+      // const pressed = pressedState.get();
+      // if (!pressed || pressed.status != "moving_notes") {
+      //   return;
+      // }
+      const deltaX = e.clientX - meta.mousedown.clientX;
+      const deltaY = e.clientY - meta.mousedown.clientY;
+
+      const deltaXPulses = Math.floor(clip.detailedViewport.pxToPulses(deltaX));
+      const deltaYNotes = Math.floor(clip.detailedViewport.pxToVerticalNotes(deltaY));
+
+      console.log("moving", deltaXPulses);
+    }, []),
   );
+
+  // useEventListener(
+  //   "mousedown",
+  //   divRef,
+  //   useCallback(
+  //     (e: MouseEvent) => {
+  //       if (e.button !== 0) {
+  //         return;
+  //       }
+
+  //       // if (editable === true)
+  //       switch (panelTool) {
+  //         case "draw": {
+  //           MidiClip.removeNote(clip, note);
+  //           break;
+  //         }
+  //         case "move": {
+  //           project.secondarySelection.set({ status: "notes", notes: new Set([note]) });
+  //           pressedState.set({
+  //             status: "moving_notes",
+  //             clientX: e.clientX,
+  //             clientY: e.clientY,
+  //             notes: new Set([note]),
+  //           });
+  //           project.secondarySelection.setDyn((prev) => {
+  //             const selectAdd = modifierState.meta || modifierState.shift;
+  //             if (selectAdd && prev !== null && prev.status === "notes") {
+  //               prev.notes.add(note);
+  //               return { ...prev };
+  //             } else {
+  //               return {
+  //                 status: "notes",
+  //                 notes: new Set([note]),
+  //               };
+  //             }
+  //           });
+  //           document.addEventListener("mousemove", onNoteMoveMouseMove);
+  //           document.addEventListener("mouseup", function onMouseUp() {
+  //             pressedState.set(null);
+  //             document.removeEventListener("mouseup", onMouseUp);
+  //             document.removeEventListener("mousemove", onNoteMoveMouseMove);
+  //           });
+  //           break;
+  //         }
+  //       }
+
+  //       function onNoteMoveMouseMove(e: MouseEvent) {
+  //         // pressedState.set(null);
+
+  //         const pressed = pressedState.get();
+  //         if (!pressed || pressed.status != "moving_notes") {
+  //           return;
+  //         }
+  //         const deltaX = e.clientX - pressed.clientX;
+  //         const deltaY = e.clientY - pressed.clientY;
+
+  //         const deltaXPulses = Math.floor(clip.detailedViewport.pxToPulses(deltaX));
+  //         const deltaYNotes = Math.floor(clip.detailedViewport.pxToVerticalNotes(deltaY));
+
+  //         console.log("moving", deltaXPulses);
+  //       }
+  //     },
+  //     [clip, note, panelTool, project.secondarySelection],
+  //   ),
+  // );
 
   return (
     <div

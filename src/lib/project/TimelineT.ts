@@ -3,10 +3,12 @@ import { pulsesToSec, secsToPulses } from "../../midi/MidiClip";
 import { Pulses, Seconds } from "../AbstractClip";
 import { exhaustive } from "../state/Subbable";
 import { AudioProject } from "./AudioProject";
-
-export type STimelineT = Readonly<{ t: number; u: TimeUnit }>;
+import { StructuredKind, PrimitiveKind } from "structured-state/dist/StructuredKinds";
 
 export type TimeUnit = "pulses" | "seconds" | "bars";
+
+export type STimelineT = Readonly<{ t: number; u: TimeUnit }>;
+type AutoTimelineT = STimelineT;
 
 // TODO: assuming constant 4/4
 const PULSES_PER_BAR = 6 * 4;
@@ -16,7 +18,11 @@ const PULSES_PER_BAR = 6 * 4;
 // 4 beats = 1 bar
 
 export class TimelineT extends Structured<STimelineT, typeof TimelineT> {
-  constructor(private t: number, public u: TimeUnit) {
+  constructor(
+    // time and unit
+    private t: number,
+    public u: TimeUnit,
+  ) {
     super();
   }
 
@@ -24,9 +30,20 @@ export class TimelineT extends Structured<STimelineT, typeof TimelineT> {
     return { t: this.t, u: this.u };
   }
 
+  override autoSimplify(): Record<string, StructuredKind | PrimitiveKind> {
+    return { t: this.t, u: this.u };
+  }
+
+  // experimental
+  static autoConstruct(serialized: AutoTimelineT): TimelineT {
+    return Structured.create(TimelineT, serialized.t, serialized.u);
+  }
+
   override replace({ t, u }: STimelineT): void {
+    console.log("replace", t, u);
     this.t = t;
     this.u = u;
+    console.log("t is now", this.t, this._id, this._id);
   }
 
   static construct({ t, u }: STimelineT): TimelineT {
@@ -34,11 +51,12 @@ export class TimelineT extends Structured<STimelineT, typeof TimelineT> {
   }
 
   public set(t: number, u?: TimeUnit) {
-    this.t = t;
-    if (u != null) {
-      this.u = u;
-    }
-    this.notifyChange();
+    this.featuredMutation(() => {
+      this.t = t;
+      if (u != null) {
+        this.u = u;
+      }
+    });
   }
 
   public replaceWith(b: TimelineT) {
@@ -120,20 +138,24 @@ export class TimelineT extends Structured<STimelineT, typeof TimelineT> {
   }
 
   add(p: TimelineT, project: AudioProject) {
-    if (this.u === p.u) {
-      this.t += p.t;
-    } else {
-      this.t += p.asUnit(this.u, project);
-    }
+    this.featuredMutation(() => {
+      if (this.u === p.u) {
+        this.t += p.t;
+      } else {
+        this.t += p.asUnit(this.u, project);
+      }
+    });
     return this;
   }
 
   subtract(p: TimelineT, project: AudioProject) {
-    if (this.u === p.u) {
-      this.t -= p.t;
-    } else {
-      this.t -= p.asUnit(this.u, project);
-    }
+    this.featuredMutation(() => {
+      if (this.u === p.u) {
+        this.t -= p.t;
+      } else {
+        this.t -= p.asUnit(this.u, project);
+      }
+    });
     return this;
   }
 
@@ -159,7 +181,9 @@ export class TimelineT extends Structured<STimelineT, typeof TimelineT> {
   }
 
   operate(op: (x: number) => number) {
-    this.t = op(this.t);
+    this.featuredMutation(() => {
+      this.t = op(this.t);
+    });
     return this;
   }
 
@@ -189,7 +213,7 @@ export class TimelineT extends Structured<STimelineT, typeof TimelineT> {
   }
 
   override toString() {
-    return `${this.t.toFixed(2)}${this.u.substring(0, 3)}`;
+    return `TT.${this._id}(${this.t.toFixed(2)}${this.u.substring(0, 3)})`;
   }
 }
 

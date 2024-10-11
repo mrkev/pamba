@@ -17,6 +17,7 @@ export type CursorState =
       track: AudioTrack | MidiTrack;
       originalTrack: AudioTrack | MidiTrack;
       originalClipStart: TimelineT;
+      clipForRendering: AudioClip | MidiClip;
       inHistory: boolean;
     }>
   | Readonly<{

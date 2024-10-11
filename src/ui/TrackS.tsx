@@ -115,7 +115,7 @@ export function TrackS({
       >
         {/* RENDER CLIPS */}
         {clips.map((clip, i) => {
-          if (pressed && pressed.status === "moving_clip" && pressed.track !== track && pressed.clip === clip) {
+          if (pressed && pressed.status === "moving_clip" && pressed.clip === clip) {
             return null;
           }
           const isSelected = selected !== null && selected.status === "clips" && selected.test.has(clip);
@@ -160,12 +160,12 @@ export function TrackS({
         {pressed &&
           pressed.status === "moving_clip" &&
           pressed.track === track &&
-          (track instanceof AudioTrack && pressed.clip instanceof AudioClip ? (
-            <ClipA clip={pressed.clip} isSelected={true} project={project} track={null} />
-          ) : track instanceof MidiTrack && pressed.clip instanceof MidiClip ? (
-            <ClipM clip={pressed.clip} isSelected={true} track={null} project={project} />
+          (track instanceof AudioTrack && pressed.clipForRendering instanceof AudioClip ? (
+            <ClipA clip={pressed.clipForRendering} isSelected={true} project={project} track={null} />
+          ) : track instanceof MidiTrack && pressed.clipForRendering instanceof MidiClip ? (
+            <ClipM clip={pressed.clipForRendering} isSelected={true} track={null} project={project} />
           ) : (
-            <ClipInvalid clip={pressed.clip} project={project} />
+            <ClipInvalid clip={pressed.clipForRendering} project={project} />
           ))}
       </div>
 

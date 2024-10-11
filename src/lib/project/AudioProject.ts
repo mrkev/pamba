@@ -243,7 +243,7 @@ export class AudioProject {
       project.armedTrack.set(null);
     }
 
-    // Update from trakc state
+    // Update from track state
     project.cursorTracks.delete(track);
     project.solodTracks.delete(track);
     project.lockedTracks.delete(track);

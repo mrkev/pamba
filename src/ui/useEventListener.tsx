@@ -1,5 +1,6 @@
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 
+/** Adds an event listener to a ref */
 export function useEventListener<K extends keyof HTMLElementEventMap, T extends HTMLElement>(
   type: K,
   ref: React.RefObject<T> | React.MutableRefObject<T>,
@@ -21,6 +22,7 @@ export function useEventListener<K extends keyof HTMLElementEventMap, T extends 
 
 type EventMap<T> = T extends Document ? DocumentEventMap : T extends HTMLElement ? HTMLElementEventMap : never;
 
+/** Adds an event listener to document */
 export function useDocumentEventListener<K extends keyof DocumentEventMap>(
   type: K,
   listener: (this: HTMLElement, ev: EventMap<Document>[K]) => any,
@@ -34,37 +36,40 @@ export function useDocumentEventListener<K extends keyof DocumentEventMap>(
   }, [listener, options, type]);
 }
 
-export function useMousePressMove<T extends HTMLElement>(
-  ref: React.RefObject<T> | React.MutableRefObject<T>,
-  listener: (kind: "mousedown" | "mousemove" | "mouseup", ev: MouseEvent) => void,
-  options?: AddEventListenerOptions,
+export type MousePressMoveMeta<T extends Record<string, unknown> | void> = {
+  event: "mousemove" | "mouseup";
+  mousedown: T;
+};
+
+export function useMousePressMove<T extends Record<string, unknown>>(
+  elemRef: React.RefObject<HTMLElement> | React.MutableRefObject<HTMLElement>,
+  mousedown: (ev: MouseEvent) => T | "done",
+  listener: (metadata: MousePressMoveMeta<T>, ev: MouseEvent) => void,
 ): void {
-  const { capture, once, passive, signal } = options ?? {};
-  useEffect(() => {
-    const elem = ref.current;
-    if (elem == null) {
-      return;
-    }
+  useEventListener(
+    "mousedown",
+    elemRef,
+    useCallback(
+      function onMouseDown(e) {
+        const result = mousedown(e);
+        if (result === "done") {
+          return;
+        }
 
-    function onMouseMove(e: MouseEvent) {
-      listener("mousemove", e);
-    }
+        const mouseMoveMeta = { event: "mousemove", mousedown: result } as const;
+        function onMouseMove(e: MouseEvent) {
+          listener(mouseMoveMeta, e);
+        }
 
-    function onMouseUp(e: MouseEvent) {
-      document.removeEventListener("mousemove", onMouseMove);
-      document.removeEventListener("mouseup", onMouseUp);
-      listener("mouseup", e);
-    }
+        document.addEventListener("mousemove", onMouseMove);
 
-    function onMouseDown(e: MouseEvent) {
-      document.addEventListener("mousemove", onMouseMove);
-      document.addEventListener("mouseup", onMouseUp);
-      listener("mousedown", e);
-    }
-
-    elem.addEventListener("mousedown", onMouseDown, { capture, once, passive, signal });
-    return () => {
-      elem.removeEventListener("mousedown", onMouseDown, { capture });
-    };
-  }, [capture, listener, once, passive, ref, signal]);
+        document.addEventListener("mouseup", function onMouseUp(e) {
+          listener({ event: "mouseup", mousedown: result }, e);
+          document.removeEventListener("mouseup", onMouseUp);
+          document.removeEventListener("mousemove", onMouseMove);
+        });
+      },
+      [listener, mousedown],
+    ),
+  );
 }

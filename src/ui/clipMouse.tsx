@@ -17,6 +17,11 @@ export function clipMouseDownToMove(e: MouseEvent, cliptrack: ClipTrackCombo, pr
     return;
   }
 
+  const clipForRendering = clip.clone();
+
+  console.log("clip tstart is", clip.timelineStart._id);
+  console.log("clone tstart is", clipForRendering.timelineStart._id);
+
   pressedState.set({
     status: "moving_clip",
     clientX: e.clientX,
@@ -25,6 +30,7 @@ export function clipMouseDownToMove(e: MouseEvent, cliptrack: ClipTrackCombo, pr
     track,
     originalTrack: track,
     originalClipStart: clip.timelineStart.clone(),
+    clipForRendering,
     inHistory: false,
   });
 

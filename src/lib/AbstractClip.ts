@@ -255,7 +255,7 @@ export function moveClip<Clip extends AbstractClip<U>, U extends Pulses | Second
     throw new Error("moving in empty array");
   }
 
-  const newArr = [];
+  const newArr: Clip[] = [];
 
   let placed = false;
   let removed = false;
@@ -284,7 +284,7 @@ export function moveClip<Clip extends AbstractClip<U>, U extends Pulses | Second
     newArr.push(clip);
   }
 
-  clips._replace(newArr);
+  clips._replace(() => newArr);
 
   assertClipInvariants(clips);
   return clips;

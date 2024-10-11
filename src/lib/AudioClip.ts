@@ -1,4 +1,4 @@
-import { SPrimitive, Structured } from "structured-state";
+import { S, SString, Structured, init, string } from "structured-state";
 import { staticAudioContext } from "../constants";
 import { AudioPackage } from "../data/AudioPackage";
 import { SAudioClip } from "../data/serializable";
@@ -9,6 +9,22 @@ import { AbstractClip, Seconds, secs } from "./AbstractClip";
 import { SharedAudioBuffer } from "./SharedAudioBuffer";
 import { SOUND_LIB_FOR_HISTORY, loadSound, loadSoundFromAudioPackage } from "./loadSound";
 import { TimelineT, time } from "./project/TimelineT";
+
+type AutoAudioClip = {
+  name: SString;
+  bufferURL: string;
+  bufferOffset: number;
+  timelineStart: TimelineT;
+  timelineLength: TimelineT;
+};
+
+type AudioClipRaw = {
+  name: S["string"];
+  bufferURL: string;
+  bufferOffset: number;
+  timelineStart: S["structured"];
+  timelineLength: S["structured"];
+};
 
 // A clip of Audio. Basic topology:
 //
@@ -28,7 +44,6 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
   readonly unit = "sec";
   readonly buffer: SharedAudioBuffer | null;
   readonly numberOfChannels: number;
-  readonly bufferURL: string;
   readonly sampleRate: number; // how many frames per second
 
   // status, from construction
@@ -37,11 +52,6 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
   // Let's not pre-compute this since we don't know the acutal dimensions
   // but lets memoize the last size used for perf. shouldn't change.
   private readonly memodWaveformDataURL: Map<string, { width: number; height: number; data: string }> = new Map();
-
-  // AudioClip
-  readonly name: SPrimitive<string>;
-  readonly timelineStart: TimelineT; // on the timeline, the x position
-  readonly timelineLength: TimelineT; // length of the clip on the timeline
 
   //
   // min is 0, max is duration
@@ -53,48 +63,14 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
   // unused
   public gainAutomation: Array<{ time: number; value: number }> = [{ time: 0, value: 1 }];
 
-  override serialize(): SAudioClip {
-    const { name, bufferURL } = this;
-    const result: SAudioClip = {
-      kind: "AudioClip",
-      name: name.get(),
-      bufferURL,
-      bufferOffset: this.bufferOffset,
-      timelineStartSec: this.timelineStartSec,
-      clipLengthSec: this.timelineLength.ensureSecs(),
-    };
-    return result;
-  }
-
-  override replace(json: SAudioClip): void {
-    this.name.set(json.name);
-    // note: can't change bufferURL, length. They're readonly to the audio buffer. Should be ok
-    // cause audio buffer never changes, and all clips that replace this one will be the same buffer
-    this.bufferOffset = secs(json.bufferOffset);
-    this.timelineStart.set(json.timelineStartSec, "seconds");
-    this.timelineLength.set(json.clipLengthSec, "seconds"); // TODO: can I use .set in replace?
-  }
-
-  static construct(json: SAudioClip): AudioClip {
-    const buffer = nullthrows(SOUND_LIB_FOR_HISTORY.get(json.bufferURL));
-    return Structured.create(
-      AudioClip,
-      buffer,
-      json.name,
-      json.bufferURL,
-      json.bufferOffset,
-      json.timelineStartSec,
-      json.clipLengthSec,
-    );
-  }
-
   constructor(
     buffer: AudioBuffer | "missing",
-    name: string,
-    bufferURL: string,
-    bufferOffset: number,
-    timelineStartSec: number,
-    clipLengthSec: number,
+    readonly name: SString,
+    readonly bufferURL: string,
+    bufferOffset: Seconds,
+    // AudioClip
+    readonly timelineStart: TimelineT, // on the timeline, the x position
+    readonly timelineLength: TimelineT, // length of the clip on the timeline
   ) {
     super();
     // TODO: make missing clips their own class, without buffer info props. They serialize to SAudioClip too
@@ -117,12 +93,69 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
       this.buffer = new SharedAudioBuffer(buffer);
     }
 
-    this.bufferOffset = secs(bufferOffset);
-    this.timelineStart = time(timelineStartSec, "seconds");
-    this.timelineLength = time(clipLengthSec, "seconds");
+    this.bufferOffset = bufferOffset;
+  }
 
-    this.name = SPrimitive.of(name);
-    this.bufferURL = bufferURL;
+  override serialize(): SAudioClip {
+    const result: SAudioClip = {
+      kind: "AudioClip",
+      name: this.name.get(),
+      bufferURL: this.bufferURL,
+      bufferOffset: this.bufferOffset,
+      timelineStartSec: this.timelineStartSec,
+      clipLengthSec: this.timelineLength.ensureSecs(),
+    };
+    return result;
+  }
+
+  // experimental
+  // note: kind infered from the field at construction time
+  override autoSimplify(): AutoAudioClip {
+    return {
+      name: this.name,
+      bufferURL: this.bufferURL,
+      bufferOffset: this.bufferOffset,
+      timelineStart: this.timelineStart,
+      timelineLength: this.timelineLength,
+    };
+  }
+
+  // experimental
+  static autoConstruct(auto: AudioClipRaw): AudioClip {
+    const buffer = nullthrows(SOUND_LIB_FOR_HISTORY.get(auto.bufferURL));
+    return Structured.create(
+      AudioClip,
+      buffer,
+      init.string(auto.name),
+      auto.bufferURL,
+      secs(auto.bufferOffset),
+      // TODO: as any
+      init.structured(auto.timelineStart, TimelineT as any),
+      init.structured(auto.timelineLength, TimelineT as any),
+    );
+  }
+
+  override replace(json: SAudioClip): void {
+    console.log("REPLACE WITH", json);
+    this.name.set(json.name);
+    // note: can't change bufferURL, length. They're readonly to the audio buffer. Should be ok
+    // cause audio buffer never changes, and all clips that replace this one will be the same buffer
+    this.bufferOffset = secs(json.bufferOffset);
+    this.timelineStart.set(json.timelineStartSec, "seconds");
+    this.timelineLength.set(json.clipLengthSec, "seconds"); // TODO: can I use .set in replace?
+  }
+
+  static construct(json: SAudioClip): AudioClip {
+    const buffer = nullthrows(SOUND_LIB_FOR_HISTORY.get(json.bufferURL));
+    return Structured.create(
+      AudioClip,
+      buffer,
+      string(json.name),
+      json.bufferURL,
+      secs(json.bufferOffset),
+      time(json.timelineStartSec, "seconds"),
+      time(json.clipLengthSec, "seconds"),
+    );
   }
 
   get timelineStartSec() {
@@ -140,11 +173,11 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
     return Structured.create(
       AudioClip,
       buffer,
-      audioPackage.name || "untitled",
+      string(audioPackage.name || "untitled"),
       audioPackage.url().toString(),
-      bufferOffset,
-      timelineStartSec,
-      clipLengthSec,
+      secs(bufferOffset),
+      time(timelineStartSec, "seconds"),
+      time(clipLengthSec, "seconds"),
     );
   }
 
@@ -157,7 +190,15 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
     const bufferOffset = dimensions?.bufferOffset ?? 0;
     const timelineStartSec = dimensions?.timelineStartSec ?? 0;
     const clipLengthSec = dimensions?.clipLengthSec ?? buffer.length / buffer.sampleRate;
-    return Structured.create(AudioClip, buffer, name || "untitled", url, bufferOffset, timelineStartSec, clipLengthSec);
+    return Structured.create(
+      AudioClip,
+      buffer,
+      string(name || "untitled"),
+      url,
+      secs(bufferOffset),
+      time(timelineStartSec, "seconds"),
+      time(clipLengthSec, "seconds"),
+    );
   }
 
   async fromMissingMedia(
@@ -171,11 +212,11 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
     return Structured.create(
       AudioClip,
       "missing",
-      name || "untitled",
+      string(name || "untitled"),
       url,
-      bufferOffset,
-      timelineStartSec,
-      clipLengthSec,
+      secs(bufferOffset),
+      time(timelineStartSec, "seconds"),
+      time(clipLengthSec, "seconds"),
     );
   }
 
@@ -188,18 +229,26 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
     const bufferOffset = dimensions?.bufferOffset ?? 0;
     const timelineStartSec = dimensions?.timelineStartSec ?? 0;
     const clipLengthSec = dimensions?.clipLengthSec ?? buffer.length / buffer.sampleRate;
-    return Structured.create(AudioClip, buffer, name || "untitled", url, bufferOffset, timelineStartSec, clipLengthSec);
+    return Structured.create(
+      AudioClip,
+      buffer,
+      string(name || "untitled"),
+      url,
+      secs(bufferOffset),
+      time(timelineStartSec, "seconds"),
+      time(clipLengthSec, "seconds"),
+    );
   }
 
   clone(): AudioClip {
     const newClip = Structured.create(
       AudioClip,
       this.buffer ?? "missing",
-      this.name.get(),
+      string(this.name.get()),
       this.bufferURL,
       this.bufferOffset,
-      this.timelineStartSec,
-      this.timelineLength.ensureSecs(),
+      this.timelineStart.clone(),
+      this.timelineLength.clone(),
     );
     return newClip;
   }
