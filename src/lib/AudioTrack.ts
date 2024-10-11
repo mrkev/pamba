@@ -41,6 +41,18 @@ export class AudioTrack extends Structured<SAudioTrack, typeof AudioTrack> imple
     };
   }
 
+  override autoSimplify(): Record<string, s.StructuredKind | s.PrimitiveKind> {
+    return {
+      kind: "AudioTrack",
+      clips: this.clips,
+      // TODO: async serialize
+      // effects: await Promise.all(obj.dsp.effects._getRaw().map((effect) => serializable(effect))),
+      // effects: [],
+      height: this.height,
+      name: this.name,
+    };
+  }
+
   override replace(json: SAudioTrack): void {
     throw new Error("Method not implemented.");
   }

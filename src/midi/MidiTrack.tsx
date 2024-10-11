@@ -1,7 +1,8 @@
 import type { WebAudioModule } from "@webaudiomodules/api";
-import { SPrimitive, SSchemaArray, Structured, arrayOf } from "structured-state";
+import { PrimitiveKind, SPrimitive, SSchemaArray, Structured, StructuredKind, arrayOf } from "structured-state";
 import { CLIP_HEIGHT, SECS_IN_MINUTE, TIME_SIGNATURE, liveAudioContext } from "../constants";
 import { SMidiTrack } from "../data/serializable";
+import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { StandardTrack } from "../lib/ProjectTrack";
 import { ProjectTrackDSP } from "../lib/ProjectTrackDSP";
@@ -12,7 +13,6 @@ import { PianoRollModule, PianoRollNode } from "../wam/pianorollme/PianoRollNode
 import { MidiClip } from "./MidiClip";
 import { MidiInstrument } from "./MidiInstrument";
 import type { PianoRollProcessorMessage, SimpleMidiClip } from "./SharedMidiTypes";
-import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
 
 export class MidiTrack extends Structured<SMidiTrack, typeof MidiTrack> implements StandardTrack<MidiClip> {
   public readonly name: SPrimitive<string>;
@@ -36,6 +36,15 @@ export class MidiTrack extends Structured<SMidiTrack, typeof MidiTrack> implemen
       instrument: this.instrument.get().serialize(),
     };
   }
+
+  override autoSimplify(): Record<string, StructuredKind | PrimitiveKind> {
+    return {
+      name: this.name,
+      clips: this.clips,
+      instrument: this.instrument,
+    };
+  }
+
   override replace(json: SMidiTrack): void {
     throw new Error("Method not implemented.");
   }

@@ -6,7 +6,7 @@ import { AbstractClip, Pulses } from "../lib/AbstractClip";
 import { ProjectTrack } from "../lib/ProjectTrack";
 import { AudioProject } from "../lib/project/AudioProject";
 import { TimeUnit, TimelineT, time } from "../lib/project/TimelineT";
-import { MidiViewport } from "../ui/AudioViewport";
+import { MidiViewport } from "../ui/MidiViewport";
 import { mutablearr, nullthrows } from "../utils/nullthrows";
 import { mutable } from "../utils/types";
 import { PPQN } from "../wam/pianorollme/MIDIConfiguration";
@@ -81,6 +81,17 @@ export class MidiClip extends Structured<SMidiClip, typeof MidiClip> implements 
       notes: this.notes._getRaw(),
       viewport: this.detailedViewport.serialize(),
       bufferTimelineStart: this.bufferTimelineStart.ensurePulses(),
+    };
+  }
+
+  override autoSimplify(): Record<string, s.StructuredKind | s.PrimitiveKind> {
+    return {
+      name: this.name,
+      startOffsetPulses: this.startOffsetPulses,
+      lengthPulses: this.timelineLength,
+      notes: this.notes,
+      viewport: this.detailedViewport,
+      bufferTimelineStart: this.bufferTimelineStart,
     };
   }
 

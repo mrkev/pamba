@@ -159,8 +159,7 @@ export function useTimelineMouseEvents(
           case "moving_clip": {
             history.record("move clip", () => {
               const clipPreview = pressed.clipForRendering;
-              console.log("clone tstart is", clipPreview.timelineStart._id);
-              console.log("clip at", pressed.clip.timelineStart.toString());
+
               pressed.clip.timelineStart.replaceWith(clipPreview.timelineStart);
 
               // console.log("HEREHERE", e.target);

@@ -1,4 +1,4 @@
-import { SPrimitive, Structured } from "structured-state";
+import { number, PrimitiveKind, SNumber, SPrimitive, Structured, StructuredKind } from "structured-state";
 import { clamp } from "../utils/math";
 
 type SAudioViewport = {
@@ -9,11 +9,20 @@ type SAudioViewport = {
 // px / sec => fr / px
 
 export class AudioViewport extends Structured<SAudioViewport, typeof AudioViewport> {
-  readonly pxPerSecScale: SPrimitive<number>;
-  readonly scrollLeftPx: SPrimitive<number>;
   readonly lockPlayback = SPrimitive.of(false);
-
   readonly selectionWidthFr = SPrimitive.of<number | null>(null);
+
+  constructor(
+    //
+    readonly pxPerSecScale: SNumber,
+    readonly scrollLeftPx: SNumber,
+  ) {
+    super();
+  }
+
+  static of(pxPerSec: number, scrollLeftPx: number) {
+    return Structured.create(AudioViewport, number(pxPerSec), number(scrollLeftPx));
+  }
 
   override serialize(): SAudioViewport {
     return {
@@ -27,14 +36,15 @@ export class AudioViewport extends Structured<SAudioViewport, typeof AudioViewpo
     this.scrollLeftPx.set(json.scrollLeft);
   }
 
-  static construct(json: SAudioViewport): AudioViewport {
-    return new this(json.pxPerSec, json.scrollLeft);
+  override autoSimplify(): Record<string, StructuredKind | PrimitiveKind> {
+    return {
+      pxPerSec: this.pxPerSecScale,
+      scrollLeft: this.scrollLeftPx,
+    };
   }
 
-  constructor(pxPerSec: number, scrollLeft: number) {
-    super();
-    this.pxPerSecScale = SPrimitive.of(pxPerSec);
-    this.scrollLeftPx = SPrimitive.of(scrollLeft);
+  static construct(json: SAudioViewport): AudioViewport {
+    return AudioViewport.of(json.pxPerSec, json.scrollLeft);
   }
 
   pxToFr(px: number, sampleRate: number) {
@@ -64,92 +74,6 @@ export class AudioViewport extends Structured<SAudioViewport, typeof AudioViewpo
     }
 
     this.pxPerSecScale.set(newScale);
-    this.scrollLeftPx.setDyn((prev) => {
-      const newStartPx = (prev + mouseX) * scaleFactorFactor - mouseX;
-      // console.log(newStartPx);
-      if (newStartPx < 0) {
-        return 0;
-      }
-      return newStartPx;
-    });
-  }
-}
-
-export type SMidiViewport = {
-  pxPerPulse: number;
-  pxNoteHeight: number;
-  scrollLeft: number;
-  scrollTop: number;
-};
-
-export class MidiViewport extends Structured<SMidiViewport, typeof MidiViewport> {
-  readonly pxPerPulse: SPrimitive<number>;
-  readonly pxNoteHeight: SPrimitive<number>;
-  readonly scrollLeftPx: SPrimitive<number>;
-  readonly scrollTopPx: SPrimitive<number>;
-  readonly lockPlayback = SPrimitive.of(false);
-
-  override serialize(): SMidiViewport {
-    return {
-      pxPerPulse: this.pxPerPulse.get(),
-      pxNoteHeight: this.pxNoteHeight.get(),
-      scrollLeft: this.scrollLeftPx.get(),
-      scrollTop: this.scrollTopPx.get(),
-    };
-  }
-
-  clone() {
-    return Structured.create(
-      MidiViewport,
-      this.pxPerPulse.get(),
-      this.pxNoteHeight.get(),
-      this.scrollLeftPx.get(),
-      this.scrollTopPx.get(),
-    );
-  }
-
-  override replace(json: SMidiViewport): void {
-    this.pxPerPulse.set(json.pxPerPulse);
-    this.pxNoteHeight.set(json.pxNoteHeight);
-    this.scrollLeftPx.set(json.scrollLeft);
-    this.scrollTopPx.set(json.scrollTop);
-  }
-
-  static construct(json: SMidiViewport): MidiViewport {
-    return Structured.create(MidiViewport, json.pxPerPulse, json.pxNoteHeight, json.scrollLeft, json.scrollTop);
-  }
-
-  constructor(pxPerPulse: number, pxNoteHeight: number, scrollLeft: number, scrollTop: number) {
-    super();
-    this.pxPerPulse = SPrimitive.of(pxPerPulse);
-    this.pxNoteHeight = SPrimitive.of(pxNoteHeight);
-    this.scrollLeftPx = SPrimitive.of(scrollLeft);
-    this.scrollTopPx = SPrimitive.of(scrollTop);
-  }
-
-  pulsesToPx(pulses: number) {
-    return pulses * this.pxPerPulse.get();
-  }
-
-  pxToPulses(px: number) {
-    return px / this.pxPerPulse.get();
-  }
-
-  pxToVerticalNotes(px: number) {
-    return px / this.pxNoteHeight.get();
-  }
-
-  setHScale(expectedNewScale: number, min: number, max: number, mouseX: number) {
-    // min scale is 0.64, max is 1000
-    const newScale = clamp(min, expectedNewScale, max);
-    const currentScaleFactor = this.pxPerPulse.get();
-    const scaleFactorFactor = expectedNewScale / currentScaleFactor;
-
-    if (newScale === currentScaleFactor) {
-      return;
-    }
-
-    this.pxPerPulse.set(newScale);
     this.scrollLeftPx.setDyn((prev) => {
       const newStartPx = (prev + mouseX) * scaleFactorFactor - mouseX;
       // console.log(newStartPx);

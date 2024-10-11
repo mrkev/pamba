@@ -48,7 +48,7 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
 
   // status, from construction
   readonly status: "ready" | "missing";
-  readonly detailedViewport = new AudioViewport(80, 0);
+  readonly detailedViewport = AudioViewport.of(80, 0);
   // Let's not pre-compute this since we don't know the acutal dimensions
   // but lets memoize the last size used for perf. shouldn't change.
   private readonly memodWaveformDataURL: Map<string, { width: number; height: number; data: string }> = new Map();
