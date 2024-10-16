@@ -1,5 +1,5 @@
 export const changelog = `
-next
+v0.2.0
 - resizing a clip from start can snap to grid
 - can resize midi clip from end
 - improvements to undo
