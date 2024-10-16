@@ -157,12 +157,14 @@ export function useTimelineMouseEvents(
         const { status } = pressed;
         switch (status) {
           case "moving_clip": {
+            const clipPreview = pressed.clipForRendering;
+            if (pressed.clip.timelineStart.eq(clipPreview.timelineStart, project)) {
+              pressedState.set(null);
+              break;
+            }
+
             history.record("move clip", () => {
-              const clipPreview = pressed.clipForRendering;
-
               pressed.clip.timelineStart.replaceWith(clipPreview.timelineStart);
-
-              // console.log("HEREHERE", e.target);
               if (
                 pressed.track instanceof AudioTrack &&
                 pressed.originalTrack instanceof AudioTrack &&

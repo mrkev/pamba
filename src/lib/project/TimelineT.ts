@@ -46,8 +46,8 @@ export class TimelineT extends Structured<STimelineT, typeof TimelineT> {
     console.log("t is now", this.t, this._id, this._id);
   }
 
-  static construct({ t, u }: STimelineT): TimelineT {
-    return Structured.create(TimelineT, t, u);
+  static construct(json: STimelineT): TimelineT {
+    return Structured.create(TimelineT, json.t, json.u);
   }
 
   public set(t: number, u?: TimeUnit) {
