@@ -107,7 +107,7 @@ export async function serializable(
       kind: "AudioClip",
       name: name.get(),
       bufferURL,
-      bufferOffset,
+      bufferOffset: bufferOffset.ensureSecs(),
       timelineStartSec: timelineStart.ensureSecs(),
       clipLengthSec: timelineLength.ensureSecs(),
     };

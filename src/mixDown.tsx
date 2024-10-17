@@ -36,7 +36,7 @@ export function mixDown(clipList: ReadonlyArray<AudioClip>, numberOfChannels = 2
       //here we get a reference to the final mix buffer data
       const buffer = finalMix.getChannelData(channel);
       // If it's mono audio, we just copy it to all channels
-      const channelSrc = clip.numberOfChannels === 1 ? 0 : channel;
+      const channelSrc = clip.buffer.numberOfChannels === 1 ? 0 : channel;
       const clipBuffer = clip.buffer.getChannelData(channelSrc);
       //last is loop for updating/summing the track buffer with the final mix buffer
       for (let j = 0; j < clip.clipLengthFr(); j++) {

@@ -13,7 +13,7 @@ import { TimelineT, time } from "./project/TimelineT";
 type AutoAudioClip = {
   name: SString;
   bufferURL: string;
-  bufferOffset: number;
+  bufferOffset: TimelineT;
   timelineStart: TimelineT;
   timelineLength: TimelineT;
 };
@@ -21,7 +21,7 @@ type AutoAudioClip = {
 type AudioClipRaw = {
   name: S["string"];
   bufferURL: string;
-  bufferOffset: number;
+  bufferOffset: S["structured"];
   timelineStart: S["structured"];
   timelineLength: S["structured"];
 };
@@ -43,7 +43,6 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
   // constants
   readonly unit = "sec";
   readonly buffer: SharedAudioBuffer | null;
-  readonly numberOfChannels: number;
   readonly sampleRate: number; // how many frames per second
 
   // status, from construction
@@ -54,8 +53,7 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
   private readonly memodWaveformDataURL: Map<string, { width: number; height: number; data: string }> = new Map();
 
   //
-  // min is 0, max is duration
-  public bufferOffset: Seconds; // todo: make linked state
+  // public bufferOffset: Seconds; // todo: make linked state
   readonly bufferLength: Seconds; // seconds, whole buffer
 
   // public clipLengthSec: Seconds; // TODO: incorporate?
@@ -66,8 +64,9 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
   constructor(
     buffer: AudioBuffer | "missing",
     readonly name: SString,
+    // Buffer
     readonly bufferURL: string,
-    bufferOffset: Seconds,
+    readonly bufferOffset: TimelineT, // min is 0, max is duration, relative to clip start. TODO: make relative to timeline start?
     // AudioClip
     readonly timelineStart: TimelineT, // on the timeline, the x position
     readonly timelineLength: TimelineT, // length of the clip on the timeline
@@ -79,7 +78,6 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
       this.bufferLength = secs(10_000); // TODO: make clip unbounded by length? serialize and star buffer length when first creating a clip?
       // can help identify the clip too. Ie, when selecting media to replace this, verify that the numbers match.
       // TODO
-      this.numberOfChannels = 1;
       this.sampleRate = 48000;
       this.buffer = null;
     } else {
@@ -88,7 +86,6 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
       // and buffer.length always congruent?
       // By default, there is no trim and the clip has offset 0
       this.bufferLength = secs(buffer.duration);
-      this.numberOfChannels = buffer.numberOfChannels;
       this.sampleRate = buffer.sampleRate;
       this.buffer = new SharedAudioBuffer(buffer);
     }
@@ -101,7 +98,7 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
       kind: "AudioClip",
       name: this.name.get(),
       bufferURL: this.bufferURL,
-      bufferOffset: this.bufferOffset,
+      bufferOffset: this.bufferOffset.ensureSecs(),
       timelineStartSec: this.timelineStartSec,
       clipLengthSec: this.timelineLength.ensureSecs(),
     };
@@ -123,12 +120,13 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
   // experimental
   static autoConstruct(auto: AudioClipRaw): AudioClip {
     const buffer = nullthrows(SOUND_LIB_FOR_HISTORY.get(auto.bufferURL));
+
     return Structured.create(
       AudioClip,
       buffer,
       init.string(auto.name),
       auto.bufferURL,
-      secs(auto.bufferOffset),
+      init.structured(auto.bufferOffset, TimelineT as any),
       // TODO: as any
       init.structured(auto.timelineStart, TimelineT as any),
       init.structured(auto.timelineLength, TimelineT as any),
@@ -140,7 +138,7 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
     this.name.set(json.name);
     // note: can't change bufferURL, length. They're readonly to the audio buffer. Should be ok
     // cause audio buffer never changes, and all clips that replace this one will be the same buffer
-    this.bufferOffset = secs(json.bufferOffset);
+    this.bufferOffset.set(json.bufferOffset, "seconds");
     this.timelineStart.set(json.timelineStartSec, "seconds");
     this.timelineLength.set(json.clipLengthSec, "seconds"); // TODO: can I use .set in replace?
   }
@@ -152,7 +150,7 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
       buffer,
       string(json.name),
       json.bufferURL,
-      secs(json.bufferOffset),
+      time(json.bufferOffset, "seconds"),
       time(json.timelineStartSec, "seconds"),
       time(json.clipLengthSec, "seconds"),
     );
@@ -175,7 +173,7 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
       buffer,
       string(audioPackage.name || "untitled"),
       audioPackage.url().toString(),
-      secs(bufferOffset),
+      time(bufferOffset, "seconds"),
       time(timelineStartSec, "seconds"),
       time(clipLengthSec, "seconds"),
     );
@@ -195,7 +193,7 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
       buffer,
       string(name || "untitled"),
       url,
-      secs(bufferOffset),
+      time(bufferOffset, "seconds"),
       time(timelineStartSec, "seconds"),
       time(clipLengthSec, "seconds"),
     );
@@ -214,7 +212,7 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
       "missing",
       string(name || "untitled"),
       url,
-      secs(bufferOffset),
+      time(bufferOffset, "seconds"),
       time(timelineStartSec, "seconds"),
       time(clipLengthSec, "seconds"),
     );
@@ -234,7 +232,7 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
       buffer,
       string(name || "untitled"),
       url,
-      secs(bufferOffset),
+      time(bufferOffset, "seconds"),
       time(timelineStartSec, "seconds"),
       time(clipLengthSec, "seconds"),
     );
@@ -285,10 +283,10 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
     //                  >-BO-+
     // ^0:00
 
-    if (newEnd > this.timelineStartSec + this.bufferLength - this.bufferOffset) {
+    if (newEnd > this.timelineStartSec + this.bufferLength - this.bufferOffset.ensureSecs()) {
       console.log(
         newEnd,
-        this.timelineStartSec + this.bufferLength - this.bufferOffset,
+        this.timelineStartSec + this.bufferLength - this.bufferOffset.ensureSecs(),
         `${this.timelineStartSec} + ${this.bufferLength} - ${this.bufferOffset}`,
       );
       throw new Error("new end too long");
@@ -311,7 +309,7 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
   }
 
   public bufferOffsetFr() {
-    return this.secToFr(this.bufferOffset);
+    return this.secToFr(this.bufferOffset.ensureSecs());
   }
 
   public timelineStartFr() {
@@ -362,7 +360,7 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
       const timelineStartSec = this.timelineStart.ensureSecs();
       const delta = newTimelineSec - timelineStartSec;
       this.timelineStart.set(newTimelineSec, "seconds");
-      this.bufferOffset = (this.bufferOffset + delta) as Seconds;
+      this.bufferOffset.set(this.bufferOffset.ensureSecs() + delta, "seconds");
       const clipLengthSec = this.timelineLength.ensureSecs();
       this.timelineLength.set(clipLengthSec - delta, "seconds");
     });
@@ -371,11 +369,11 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
   // Buffer
 
   private bufferTimelineStartSec() {
-    return this.timelineStart.ensureSecs() - this.bufferOffset;
+    return this.timelineStart.ensureSecs() - this.bufferOffset.ensureSecs();
   }
 
   private bufferTimelineEndSec() {
-    return this.timelineStart.ensureSecs() - this.bufferOffset + this.bufferLength;
+    return this.timelineStart.ensureSecs() - this.bufferOffset.ensureSecs() + this.bufferLength;
   }
 
   public bufferLenSec(): number {
@@ -388,7 +386,7 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
   // etc
   override toString() {
     const start = this.timelineStart.toString();
-    const bo = this.bufferOffset.toFixed(2);
+    const bo = this.bufferOffset.toString();
     const len = this.timelineLength.toString();
     return `[AudioClip.${this._id}, start:${start}, bo:${bo}, len:${len}]`;
   }

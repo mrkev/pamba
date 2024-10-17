@@ -2,7 +2,6 @@ import { scaleLinear } from "d3-scale";
 import React, { useCallback } from "react";
 import { history, useContainer } from "structured-state";
 import { CLIP_HEIGHT } from "../constants";
-import { Seconds } from "../lib/AbstractClip";
 import type { AudioClip } from "../lib/AudioClip";
 import type { AudioTrack } from "../lib/AudioTrack";
 import { ProjectTrack } from "../lib/ProjectTrack";
@@ -27,7 +26,7 @@ export function ClipA({
   editable?: boolean;
 }) {
   const totalBufferWidth = project.viewport.secsToPx(clip.bufferLength);
-  const bufferOffsetPx = project.viewport.secsToPx(clip.bufferOffset);
+  const bufferOffsetPx = project.viewport.secsToPx(clip.bufferOffset.secs(project));
   const height = CLIP_HEIGHT - 3; // to clear the bottom track separator gridlines
   const tStart = useContainer(clip.timelineStart);
   const tLen = useContainer(clip.timelineLength);
@@ -87,7 +86,7 @@ export function ClipA({
           clip.featuredMutation(() => {
             clip.timelineStart.set(timelineStartSec + asSec, "seconds");
             clip.timelineLength.set(clipLengthSec - asSec, "seconds");
-            clip.bufferOffset = (clip.bufferOffset + asSec) as Seconds;
+            clip.bufferOffset.set(clip.bufferOffset.ensureSecs() + asSec, "seconds");
           });
         });
         break;

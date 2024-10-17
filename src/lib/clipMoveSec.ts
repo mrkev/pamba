@@ -2,7 +2,6 @@ import { MidiClip } from "../midi/MidiClip";
 import { getOneTickLen } from "../ui/Axis";
 import { clamp, returnClosest, stepNumber } from "../utils/math";
 import { PPQN } from "../wam/pianorollme/MIDIConfiguration";
-import { secs } from "./AbstractClip";
 import { AudioClip } from "./AudioClip";
 import { AudioProject } from "./project/AudioProject";
 import { TimelineT } from "./project/TimelineT";
@@ -13,7 +12,7 @@ export function clipResizeEndSec(clip: AudioClip, newLengthSec: number, project:
     0,
     newLengthSec,
     // and also prevent it from extending beyond its original length
-    clip.bufferLength - clip.bufferOffset,
+    clip.bufferLength - clip.bufferOffset.ensureSecs(),
   );
 
   if (!snap) {
@@ -51,7 +50,7 @@ export function clipResizeStartSec(
   snap: boolean,
 ) {
   if (!snap) {
-    clip.bufferOffset = secs(newBufferOffset);
+    clip.bufferOffset.set(newBufferOffset, "seconds");
     clip.timelineStart.set(newTimelineStartSec, "seconds");
     clip.timelineLength.set(newClipLengthS, "seconds");
   } else {
@@ -63,7 +62,7 @@ export function clipResizeStartSec(
     const bufferOffsetStepped = newBufferOffset + delta2;
     const lengthStepped = newClipLengthS - delta2;
 
-    clip.bufferOffset = secs(bufferOffsetStepped);
+    clip.bufferOffset.set(bufferOffsetStepped, "seconds");
     clip.timelineStart.set(startStepped, "seconds");
     clip.timelineLength.set(lengthStepped, "seconds");
   }

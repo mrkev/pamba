@@ -380,14 +380,14 @@ export function useTimelineMouseEvents(
                   0,
                   originalClipLengthSecs - changeSecs,
                   // since trimming from start, max is going back all the way to zero
-                  originalClipLengthSecs + pressed.originalBufferOffset,
+                  originalClipLengthSecs + pressed.originalBufferOffset.ensureSecs(),
                 );
 
                 const effectiveChange = originalClipLengthSecs - newLength;
                 // console.log(changeSecs, newLength, effectiveChange);
 
                 const newTimelineStartSec = pressed.originalClipStart.secs(project) + effectiveChange;
-                const newBufferOffset = pressed.originalBufferOffset + effectiveChange;
+                const newBufferOffset = pressed.originalBufferOffset.ensureSecs() + effectiveChange;
                 clipResizeStartSec(pressed.clip, newLength, newBufferOffset, newTimelineStartSec, project, snap);
               } else {
                 exhaustive(pressed.from);

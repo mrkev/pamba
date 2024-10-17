@@ -7,12 +7,12 @@ import { ProjectTrack } from "../lib/ProjectTrack";
 import { AudioProject } from "../lib/project/AudioProject";
 import { TimeUnit, TimelineT, time } from "../lib/project/TimelineT";
 import { MidiViewport } from "../ui/MidiViewport";
+import { dataURLForMidiBuffer } from "../utils/midiimg";
 import { mutablearr, nullthrows } from "../utils/nullthrows";
 import { mutable } from "../utils/types";
 import { PPQN } from "../wam/pianorollme/MIDIConfiguration";
 import { MidiTrack } from "./MidiTrack";
 import type { Note } from "./SharedMidiTypes";
-import { dataURLForMidiBuffer } from "../utils/midiimg";
 
 export const SECS_IN_MIN = 60;
 
@@ -65,12 +65,32 @@ export class MidiClip extends Structured<SMidiClip, typeof MidiClip> implements 
   readonly notes: SArray<Note>; // ordered by tick (start)
   readonly detailedViewport: MidiViewport;
 
-  public bufferOffset: number = 0; // TODO: this is here just for types
+  readonly bufferOffset: TimelineT = time(0, "pulses"); // TODO: this is here just for types
 
   // todo: as of now, unused. midi can be trimmed like audio though.
   public bufferTimelineStart: TimelineT;
   public buffer: MidiBuffer;
   // readonly bufferLength: Pulses = 0 as Pulses;
+
+  constructor(
+    name: string,
+    startOffsetPulses: number,
+    lengthPulses: number,
+    notes: readonly Note[],
+    viewport: MidiViewport,
+    bufferTimelineStart: number,
+  ) {
+    super();
+    this.name = SString.create(name);
+    this.notes = SArray.create(mutablearr(notes));
+    this.bufferTimelineStart = time(bufferTimelineStart, "pulses");
+    // this.lengthPulses = lengthPulses as Pulses;
+    // this._startOffsetPulses = startOffsetPulses as Pulses;
+    this.timelineStart = time(startOffsetPulses, "pulses");
+    this.timelineLength = time(lengthPulses, "pulses");
+    this.detailedViewport = viewport;
+    this.buffer = new MidiBuffer(this.notes, this.timelineLength);
+  }
 
   override serialize(): SMidiClip {
     return {
@@ -128,26 +148,6 @@ export class MidiClip extends Structured<SMidiClip, typeof MidiClip> implements 
       viewport ?? MidiViewport.of(10, 10, 0, 0),
       bufferTimelineStart ?? startOffsetPulses,
     );
-  }
-
-  constructor(
-    name: string,
-    startOffsetPulses: number,
-    lengthPulses: number,
-    notes: readonly Note[],
-    viewport: MidiViewport,
-    bufferTimelineStart: number,
-  ) {
-    super();
-    this.name = SString.create(name);
-    this.notes = SArray.create(mutablearr(notes));
-    this.bufferTimelineStart = time(bufferTimelineStart, "pulses");
-    // this.lengthPulses = lengthPulses as Pulses;
-    // this._startOffsetPulses = startOffsetPulses as Pulses;
-    this.timelineStart = time(startOffsetPulses, "pulses");
-    this.timelineLength = time(lengthPulses, "pulses");
-    this.detailedViewport = viewport;
-    this.buffer = new MidiBuffer(this.notes, this.timelineLength);
   }
 
   static addNote(clip: MidiClip, tick: number, num: number, duration: number, velocity: number) {

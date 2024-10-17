@@ -26,6 +26,8 @@ export class TimelineT extends Structured<STimelineT, typeof TimelineT> {
     super();
   }
 
+  /// std
+
   override serialize(): STimelineT {
     return { t: this.t, u: this.u };
   }
@@ -50,6 +52,8 @@ export class TimelineT extends Structured<STimelineT, typeof TimelineT> {
     return Structured.create(TimelineT, json.t, json.u);
   }
 
+  /////////////////
+
   public set(t: number, u?: TimeUnit) {
     this.featuredMutation(() => {
       this.t = t;
@@ -61,6 +65,16 @@ export class TimelineT extends Structured<STimelineT, typeof TimelineT> {
 
   public replaceWith(b: TimelineT) {
     this.set(b.t, b.u);
+  }
+
+  public normalize(u: TimeUnit, project: AudioProject): this {
+    if (this.u !== u) {
+      this.featuredMutation(() => {
+        this.t = this.asUnit(u, project);
+        this.u = u;
+      });
+    }
+    return this;
   }
 
   secs(project: AudioProject): Seconds {
@@ -135,6 +149,18 @@ export class TimelineT extends Structured<STimelineT, typeof TimelineT> {
 
   clone() {
     return Structured.create(TimelineT, this.t, this.u);
+  }
+
+  addTime(t: number, u: TimeUnit, project: AudioProject) {
+    this.featuredMutation(() => {
+      if (this.u === u) {
+        this.t += t;
+      } else {
+        const p = time(t, u);
+        this.t += p.asUnit(this.u, project);
+      }
+    });
+    return this;
   }
 
   add(p: TimelineT, project: AudioProject) {
@@ -217,6 +243,6 @@ export class TimelineT extends Structured<STimelineT, typeof TimelineT> {
   }
 }
 
-export function time(t: number, u: "pulses" | "seconds"): TimelineT {
+export function time(t: number, u: TimeUnit): TimelineT {
   return Structured.create(TimelineT, t, u);
 }

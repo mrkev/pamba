@@ -1,6 +1,7 @@
 import type { AudioClip } from "../lib/AudioClip";
 import type { AudioTrack } from "../lib/AudioTrack";
 import type { AudioProject } from "../lib/project/AudioProject";
+import { TimelineT } from "../lib/project/TimelineT";
 import { MidiClip } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
 import { modifierState } from "../ModifierState";
@@ -61,7 +62,7 @@ export function clipMouseDownToResize(
   pressedState.set({
     status: "resizing_clip",
     clip,
-    originalBufferOffset: clip.bufferOffset,
+    originalBufferOffset: clip.bufferOffset.clone(),
     originalClipStart: clip.timelineStart.clone(),
     originalClipLength: clip.timelineLength.clone(),
     from,

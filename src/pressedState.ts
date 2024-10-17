@@ -46,7 +46,7 @@ export type CursorState =
       from: "start" | "end";
       originalClipStart: TimelineT;
       originalClipLength: TimelineT;
-      originalBufferOffset: number;
+      originalBufferOffset: TimelineT;
       clip: AudioClip | MidiClip;
       track: AudioTrack | MidiTrack;
       clientX: number;
