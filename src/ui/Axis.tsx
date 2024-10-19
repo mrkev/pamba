@@ -156,6 +156,7 @@ export function Axis({ project, isHeader = false }: { project: AudioProject; isH
             const denom = beatNum % timeSignature[0];
             const label = `${Math.floor(beatNum / 4) + 1}` + (denom === 0 ? "" : `.${denom}`);
             const [fontSize, textY] = textDims("tempo");
+
             return (
               <g className="tick" key={secs}>
                 <line

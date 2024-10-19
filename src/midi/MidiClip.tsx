@@ -9,7 +9,6 @@ import { TimeUnit, TimelineT, time } from "../lib/project/TimelineT";
 import { MidiViewport } from "../ui/MidiViewport";
 import { dataURLForMidiBuffer } from "../utils/midiimg";
 import { mutablearr, nullthrows } from "../utils/nullthrows";
-import { mutable } from "../utils/types";
 import { PPQN } from "../wam/pianorollme/MIDIConfiguration";
 import { MidiTrack } from "./MidiTrack";
 import type { Note } from "./SharedMidiTypes";
@@ -58,37 +57,25 @@ export class MidiBuffer {
 export class MidiClip extends Structured<SMidiClip, typeof MidiClip> implements AbstractClip<Pulses> {
   // constants
   readonly unit = "pulse";
-  // MidiClip
-  readonly name: SString;
-  readonly timelineStart: TimelineT;
-  readonly timelineLength: TimelineT;
-  readonly notes: SArray<Note>; // ordered by tick (start)
-  readonly detailedViewport: MidiViewport;
 
   readonly bufferOffset: TimelineT = time(0, "pulses"); // TODO: this is here just for types
-
   // todo: as of now, unused. midi can be trimmed like audio though.
   public bufferTimelineStart: TimelineT;
   public buffer: MidiBuffer;
   // readonly bufferLength: Pulses = 0 as Pulses;
 
   constructor(
-    name: string,
-    startOffsetPulses: number,
-    lengthPulses: number,
-    notes: readonly Note[],
-    viewport: MidiViewport,
+    readonly name: SString,
+    readonly timelineStart: TimelineT,
+    readonly timelineLength: TimelineT,
+    readonly notes: SArray<Note>, // ordered by tick (start),
+    readonly detailedViewport: MidiViewport,
     bufferTimelineStart: number,
   ) {
     super();
-    this.name = SString.create(name);
-    this.notes = SArray.create(mutablearr(notes));
     this.bufferTimelineStart = time(bufferTimelineStart, "pulses");
     // this.lengthPulses = lengthPulses as Pulses;
     // this._startOffsetPulses = startOffsetPulses as Pulses;
-    this.timelineStart = time(startOffsetPulses, "pulses");
-    this.timelineLength = time(lengthPulses, "pulses");
-    this.detailedViewport = viewport;
     this.buffer = new MidiBuffer(this.notes, this.timelineLength);
   }
 
@@ -122,10 +109,10 @@ export class MidiClip extends Structured<SMidiClip, typeof MidiClip> implements 
   static construct(json: SMidiClip): MidiClip {
     const viewport = json.viewport ? MidiViewport.construct(json.viewport) : MidiViewport.of(10, 10, 0, 0);
     return new MidiClip(
-      json.name,
-      json.startOffsetPulses,
-      json.lengthPulses,
-      json.notes,
+      SString.create(json.name),
+      time(json.startOffsetPulses, "pulses"),
+      time(json.lengthPulses, "pulses"),
+      SArray.create(mutablearr(json.notes)),
       viewport,
       json.bufferTimelineStart,
     );
@@ -141,10 +128,10 @@ export class MidiClip extends Structured<SMidiClip, typeof MidiClip> implements 
   ) {
     return Structured.create(
       MidiClip,
-      name,
-      startOffsetPulses,
-      lengthPulses,
-      notes,
+      SString.create(name),
+      time(startOffsetPulses, "pulses"),
+      time(lengthPulses, "pulses"),
+      SArray.create(mutablearr(notes)),
       viewport ?? MidiViewport.of(10, 10, 0, 0),
       bufferTimelineStart ?? startOffsetPulses,
     );
@@ -237,10 +224,10 @@ export class MidiClip extends Structured<SMidiClip, typeof MidiClip> implements 
   clone(): MidiClip {
     const newClip = Structured.create(
       MidiClip,
-      this.name.get(),
-      this.startOffsetPulses,
-      this.timelineLength.ensurePulses(),
-      mutable(this.notes._getRaw()),
+      SString.create(this.name.get()),
+      time(this.startOffsetPulses, "pulses"),
+      time(this.timelineLength.ensurePulses(), "pulses"),
+      SArray.create(mutablearr(this.notes._getRaw())),
       this.detailedViewport.clone(),
       this.bufferTimelineStart.ensurePulses(),
     );
