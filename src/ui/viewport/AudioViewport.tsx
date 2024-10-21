@@ -1,4 +1,4 @@
-import { number, PrimitiveKind, SNumber, SPrimitive, Structured, StructuredKind } from "structured-state";
+import { JSONOfAuto, number, replace, SNumber, SPrimitive, Structured } from "structured-state";
 import { clamp } from "../../utils/math";
 
 type SAudioViewport = {
@@ -8,7 +8,12 @@ type SAudioViewport = {
 
 // px / sec => fr / px
 
-export class AudioViewport extends Structured<SAudioViewport, typeof AudioViewport> {
+type AutoAudioViewport = {
+  pxPerSec: SNumber;
+  scrollLeft: SNumber;
+};
+
+export class AudioViewport extends Structured<SAudioViewport, AutoAudioViewport, typeof AudioViewport> {
   readonly lockPlayback = SPrimitive.of(false);
   readonly selectionWidthFr = SPrimitive.of<number | null>(null);
 
@@ -31,12 +36,12 @@ export class AudioViewport extends Structured<SAudioViewport, typeof AudioViewpo
     };
   }
 
-  override replace(json: SAudioViewport): void {
-    this.pxPerSec.set(json.pxPerSec);
-    this.scrollLeftPx.set(json.scrollLeft);
+  override replace(json: SAudioViewport, auto: JSONOfAuto<AutoAudioViewport>): void {
+    replace.number(auto.pxPerSec, this.pxPerSec);
+    replace.number(auto.scrollLeft, this.scrollLeftPx);
   }
 
-  override autoSimplify(): Record<string, StructuredKind | PrimitiveKind> {
+  override autoSimplify(): AutoAudioViewport {
     return {
       pxPerSec: this.pxPerSec,
       scrollLeft: this.scrollLeftPx,

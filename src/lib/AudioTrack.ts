@@ -1,13 +1,13 @@
 import {
   arrayOf,
+  JSONOfAuto,
   number,
-  PrimitiveKind,
+  replace,
   SNumber,
   SSchemaArray,
   SString,
   string,
   Structured,
-  StructuredKind,
 } from "structured-state";
 import { CLIP_HEIGHT } from "../constants";
 import { SAudioTrack } from "../data/serializable";
@@ -23,7 +23,17 @@ import { connectSerialNodes } from "./connectSerialNodes";
 import { AudioContextInfo } from "./initAudioContext";
 import { AudioProject } from "./project/AudioProject";
 
-export class AudioTrack extends Structured<SAudioTrack, typeof AudioTrack> implements StandardTrack<AudioClip> {
+type AutoAudioTrack = {
+  kind: string;
+  clips: SSchemaArray<AudioClip>;
+  height: SNumber;
+  name: SString;
+};
+
+export class AudioTrack
+  extends Structured<SAudioTrack, AutoAudioTrack, typeof AudioTrack>
+  implements StandardTrack<AudioClip>
+{
   public readonly dsp: ProjectTrackDSP<AudioClip>;
 
   // For background processing
@@ -62,7 +72,7 @@ export class AudioTrack extends Structured<SAudioTrack, typeof AudioTrack> imple
     };
   }
 
-  override autoSimplify(): Record<string, StructuredKind | PrimitiveKind> {
+  override autoSimplify(): AutoAudioTrack {
     return {
       kind: "AudioTrack",
       clips: this.clips,
@@ -74,8 +84,11 @@ export class AudioTrack extends Structured<SAudioTrack, typeof AudioTrack> imple
     };
   }
 
-  override replace(json: SAudioTrack): void {
-    throw new Error("Method not implemented.");
+  override replace(json: SAudioTrack, auto: JSONOfAuto<AutoAudioTrack>): void {
+    replace.number(auto.height, this.height);
+    replace.string(auto.name, this.name);
+    replace.schemaArray(auto.clips, this.clips);
+    console.log("REPLACED AudioTrack");
   }
 
   static construct(json: SAudioTrack): AudioTrack {

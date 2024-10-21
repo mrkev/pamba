@@ -1,4 +1,3 @@
-import * as s from "structured-state";
 import { SArray, SString, Structured } from "structured-state";
 import { SECS_IN_MIN } from "../constants";
 import { SMidiClip } from "../data/serializable";
@@ -21,7 +20,16 @@ export function secsToPulses(secs: number, bpm: number) {
   return Math.floor((secs * PPQN * bpm) / SECS_IN_MIN);
 }
 
-export class MidiClip extends Structured<SMidiClip, typeof MidiClip> implements AbstractClip<Pulses> {
+type AutoMidiClip = {
+  name: SString;
+  startOffsetPulses: number;
+  lengthPulses: TimelineT;
+  notes: SArray<Note>;
+  viewport: MidiViewport;
+  bufferTimelineStart: TimelineT;
+};
+
+export class MidiClip extends Structured<SMidiClip, AutoMidiClip, typeof MidiClip> implements AbstractClip<Pulses> {
   // constants
   readonly unit = "pulse";
 
@@ -58,7 +66,7 @@ export class MidiClip extends Structured<SMidiClip, typeof MidiClip> implements 
     };
   }
 
-  override autoSimplify(): Record<string, s.StructuredKind | s.PrimitiveKind> {
+  override autoSimplify(): AutoMidiClip {
     return {
       name: this.name,
       startOffsetPulses: this.startOffsetPulses,

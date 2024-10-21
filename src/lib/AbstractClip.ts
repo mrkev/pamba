@@ -304,7 +304,7 @@ export function secsAsNum(num: Seconds) {
 }
 // rn mostly used for invariants
 
-export interface AbstractClip<U extends Seconds | Pulses> extends Structured<any, any> {
+export interface AbstractClip<U extends Seconds | Pulses> extends Structured<any, any, any> {
   readonly timelineStart: TimelineT;
   readonly timelineLength: TimelineT;
 

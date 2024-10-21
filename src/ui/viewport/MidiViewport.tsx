@@ -1,4 +1,4 @@
-import { boolean, number, PrimitiveKind, SNumber, Structured, StructuredKind } from "structured-state";
+import { boolean, JSONOfAuto, number, replace, SNumber, Structured } from "structured-state";
 import { clamp } from "../../utils/math";
 
 export type SMidiViewport = {
@@ -8,7 +8,14 @@ export type SMidiViewport = {
   scrollTop: number;
 };
 
-export class MidiViewport extends Structured<SMidiViewport, typeof MidiViewport> {
+type AutoMidiViewport = {
+  pxPerPulse: SNumber;
+  pxNoteHeight: SNumber;
+  scrollLeft: SNumber;
+  scrollTop: SNumber;
+};
+
+export class MidiViewport extends Structured<SMidiViewport, AutoMidiViewport, typeof MidiViewport> {
   readonly lockPlayback = boolean(false);
 
   constructor(
@@ -43,7 +50,7 @@ export class MidiViewport extends Structured<SMidiViewport, typeof MidiViewport>
     };
   }
 
-  override autoSimplify(): Record<string, StructuredKind | PrimitiveKind> {
+  override autoSimplify(): AutoMidiViewport {
     return {
       pxPerPulse: this.pxPerPulse,
       pxNoteHeight: this.pxNoteHeight,
@@ -52,11 +59,11 @@ export class MidiViewport extends Structured<SMidiViewport, typeof MidiViewport>
     };
   }
 
-  override replace(json: SMidiViewport): void {
-    this.pxPerPulse.set(json.pxPerPulse);
-    this.pxNoteHeight.set(json.pxNoteHeight);
-    this.scrollLeftPx.set(json.scrollLeft);
-    this.scrollTopPx.set(json.scrollTop);
+  override replace(json: SMidiViewport, auto: JSONOfAuto<AutoMidiViewport>): void {
+    replace.number(auto.pxPerPulse, this.pxPerPulse);
+    replace.number(auto.pxNoteHeight, this.pxNoteHeight);
+    replace.number(auto.scrollLeft, this.scrollLeftPx);
+    replace.number(auto.scrollTop, this.scrollTopPx);
   }
 
   clone() {

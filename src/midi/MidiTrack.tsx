@@ -1,5 +1,5 @@
 import type { WebAudioModule } from "@webaudiomodules/api";
-import { PrimitiveKind, SPrimitive, SSchemaArray, Structured, StructuredKind, arrayOf } from "structured-state";
+import { SPrimitive, SSchemaArray, Structured, arrayOf } from "structured-state";
 import { CLIP_HEIGHT, SECS_IN_MINUTE, TIME_SIGNATURE, liveAudioContext } from "../constants";
 import { SMidiTrack } from "../data/serializable";
 import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
@@ -14,7 +14,16 @@ import { MidiClip } from "./MidiClip";
 import { MidiInstrument } from "./MidiInstrument";
 import type { PianoRollProcessorMessage, SimpleMidiClip } from "./SharedMidiTypes";
 
-export class MidiTrack extends Structured<SMidiTrack, typeof MidiTrack> implements StandardTrack<MidiClip> {
+type AutoMidiTrack = {
+  name: SPrimitive<string>;
+  clips: SSchemaArray<MidiClip>;
+  instrument: SPrimitive<MidiInstrument>;
+};
+
+export class MidiTrack
+  extends Structured<SMidiTrack, AutoMidiTrack, typeof MidiTrack>
+  implements StandardTrack<MidiClip>
+{
   public readonly name: SPrimitive<string>;
   public readonly dsp: ProjectTrackDSP<MidiClip>;
   public readonly clips: SSchemaArray<MidiClip>;
@@ -37,7 +46,7 @@ export class MidiTrack extends Structured<SMidiTrack, typeof MidiTrack> implemen
     };
   }
 
-  override autoSimplify(): Record<string, StructuredKind | PrimitiveKind> {
+  override autoSimplify(): AutoMidiTrack {
     return {
       name: this.name,
       clips: this.clips,

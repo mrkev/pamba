@@ -1,5 +1,4 @@
-import { Structured } from "structured-state";
-import { PrimitiveKind, StructuredKind } from "structured-state/dist/StructuredKinds";
+import { JSONOfAuto, Structured } from "structured-state";
 import { liveAudioContext, SECS_IN_MIN } from "../../constants";
 import { pulsesToSec, secsToPulses } from "../../midi/MidiClip";
 import { PPQN } from "../../wam/pianorollme/MIDIConfiguration";
@@ -25,7 +24,7 @@ function pulsesToFr(pulses: number, bpm: number) {
   return (k * pulses) / bpm;
 }
 
-export class TimelineT extends Structured<STimelineT, typeof TimelineT> {
+export class TimelineT extends Structured<STimelineT, AutoTimelineT, typeof TimelineT> {
   constructor(
     // time and unit
     private t: number,
@@ -40,7 +39,7 @@ export class TimelineT extends Structured<STimelineT, typeof TimelineT> {
     return { t: this.t, u: this.u };
   }
 
-  override autoSimplify(): Record<string, StructuredKind | PrimitiveKind> {
+  override autoSimplify(): AutoTimelineT {
     return { t: this.t, u: this.u };
   }
 
@@ -49,11 +48,10 @@ export class TimelineT extends Structured<STimelineT, typeof TimelineT> {
     return Structured.create(TimelineT, serialized.t, serialized.u);
   }
 
-  override replace({ t, u }: STimelineT): void {
-    console.log("replace", t, u);
-    this.t = t;
-    this.u = u;
-    console.log("t is now", this.t, this._id, this._id);
+  override replace({ t, u }: STimelineT, auto: JSONOfAuto<AutoTimelineT>): void {
+    this.t = auto.t;
+    this.u = auto.u;
+    // console.log("t is now", this.t, this._id, this._id);
   }
 
   static construct(json: STimelineT): TimelineT {

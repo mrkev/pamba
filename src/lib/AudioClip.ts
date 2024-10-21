@@ -1,4 +1,4 @@
-import { S, SString, Structured, init, string } from "structured-state";
+import { JSONOfAuto, S, SString, Structured, init, replace, string } from "structured-state";
 import { staticAudioContext } from "../constants";
 import { AudioPackage } from "../data/AudioPackage";
 import { SAudioClip } from "../data/serializable";
@@ -39,7 +39,10 @@ type AudioClipRaw = {
 //
 // These properties represent media that has a certain length (in frames), but has
 // been trimmed to be of another length.
-export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implements AbstractClip<Seconds> {
+export class AudioClip
+  extends Structured<SAudioClip, AutoAudioClip, typeof AudioClip>
+  implements AbstractClip<Seconds>
+{
   // constants
   readonly unit = "sec";
   readonly buffer: SharedAudioBuffer | null;
@@ -133,14 +136,14 @@ export class AudioClip extends Structured<SAudioClip, typeof AudioClip> implemen
     );
   }
 
-  override replace(json: SAudioClip): void {
-    console.log("REPLACE WITH", json);
-    this.name.set(json.name);
+  override replace(json: SAudioClip, auto: JSONOfAuto<AutoAudioClip>): void {
+    console.log("REPLACE WITH", json, auto);
+    replace.string(auto.name, this.name);
+    replace.structured(auto.bufferOffset, this.bufferOffset);
+    replace.structured(auto.timelineStart, this.timelineStart);
+    replace.structured(auto.timelineLength, this.timelineLength);
     // note: can't change bufferURL, length. They're readonly to the audio buffer. Should be ok
     // cause audio buffer never changes, and all clips that replace this one will be the same buffer
-    this.bufferOffset.set(json.bufferOffset, "seconds");
-    this.timelineStart.set(json.timelineStartSec, "seconds");
-    this.timelineLength.set(json.clipLengthSec, "seconds"); // TODO: can I use .set in replace?
   }
 
   static construct(json: SAudioClip): AudioClip {
