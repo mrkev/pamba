@@ -1,5 +1,5 @@
 import { number, PrimitiveKind, SNumber, SPrimitive, Structured, StructuredKind } from "structured-state";
-import { clamp } from "../utils/math";
+import { clamp } from "../../utils/math";
 
 type SAudioViewport = {
   pxPerSec: number;
@@ -14,7 +14,7 @@ export class AudioViewport extends Structured<SAudioViewport, typeof AudioViewpo
 
   constructor(
     //
-    readonly pxPerSecScale: SNumber,
+    readonly pxPerSec: SNumber,
     readonly scrollLeftPx: SNumber,
   ) {
     super();
@@ -26,19 +26,19 @@ export class AudioViewport extends Structured<SAudioViewport, typeof AudioViewpo
 
   override serialize(): SAudioViewport {
     return {
-      pxPerSec: this.pxPerSecScale.get(),
+      pxPerSec: this.pxPerSec.get(),
       scrollLeft: this.scrollLeftPx.get(),
     };
   }
 
   override replace(json: SAudioViewport): void {
-    this.pxPerSecScale.set(json.pxPerSec);
+    this.pxPerSec.set(json.pxPerSec);
     this.scrollLeftPx.set(json.scrollLeft);
   }
 
   override autoSimplify(): Record<string, StructuredKind | PrimitiveKind> {
     return {
-      pxPerSec: this.pxPerSecScale,
+      pxPerSec: this.pxPerSec,
       scrollLeft: this.scrollLeftPx,
     };
   }
@@ -48,32 +48,32 @@ export class AudioViewport extends Structured<SAudioViewport, typeof AudioViewpo
   }
 
   pxToFr(px: number, sampleRate: number) {
-    return Math.floor((px / this.pxPerSecScale.get()) * sampleRate);
+    return Math.floor((px / this.pxPerSec.get()) * sampleRate);
   }
 
   pxToSec(px: number) {
-    return (px + this.scrollLeftPx.get()) / this.pxPerSecScale.get();
+    return (px + this.scrollLeftPx.get()) / this.pxPerSec.get();
   }
 
   frToPx(fr: number, sampleRate: number) {
-    return (fr / sampleRate) * this.pxPerSecScale.get();
+    return (fr / sampleRate) * this.pxPerSec.get();
   }
 
   framesPerPixel(sampleRate: number) {
-    return sampleRate / this.pxPerSecScale.get();
+    return sampleRate / this.pxPerSec.get();
   }
 
   setScale(expectedNewScale: number, min: number, max: number, mouseX: number) {
     // min scale is 0.64, max is 1000
     const newScale = clamp(min, expectedNewScale, max);
-    const currentScaleFactor = this.pxPerSecScale.get();
+    const currentScaleFactor = this.pxPerSec.get();
     const scaleFactorFactor = expectedNewScale / currentScaleFactor;
 
     if (newScale === currentScaleFactor) {
       return;
     }
 
-    this.pxPerSecScale.set(newScale);
+    this.pxPerSec.set(newScale);
     this.scrollLeftPx.setDyn((prev) => {
       const newStartPx = (prev + mouseX) * scaleFactorFactor - mouseX;
       // console.log(newStartPx);

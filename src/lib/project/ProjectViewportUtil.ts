@@ -1,4 +1,5 @@
-import { SECS_IN_MIN, pulsesToSec } from "../../midi/MidiClip";
+import { SECS_IN_MIN } from "../../constants";
+import { pulsesToSec } from "../../midi/MidiClip";
 import { clamp, stepNumber } from "../../utils/math";
 import { PPQN } from "../../wam/pianorollme/MIDIConfiguration";
 import { LinkedState } from "../state/LinkedState";

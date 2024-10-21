@@ -31,7 +31,7 @@ export function AudioClipBufferView({
 
   // for waveform
   const [scrollLeftPx] = usePrimitive(clip.detailedViewport.scrollLeftPx);
-  const [pxPerSec] = usePrimitive(clip.detailedViewport.pxPerSecScale);
+  const [pxPerSec] = usePrimitive(clip.detailedViewport.pxPerSec);
   const [lockPlayback] = usePrimitive(clip.detailedViewport.lockPlayback);
   const waveformStartFr = Math.max(scrollLeftPx / pxPerSec, 0) * clip.sampleRate;
 
@@ -66,7 +66,7 @@ export function AudioClipBufferView({
         // pinch
         if (e.ctrlKey) {
           const sDelta = Math.exp(-e.deltaY / 70);
-          const expectedNewScale = clip.detailedViewport.pxPerSecScale.get() * sDelta;
+          const expectedNewScale = clip.detailedViewport.pxPerSec.get() * sDelta;
           // Min: 10 <->  Max: Sample rate
           clip.detailedViewport.setScale(expectedNewScale, 10, clip.sampleRate, mouseX);
         }

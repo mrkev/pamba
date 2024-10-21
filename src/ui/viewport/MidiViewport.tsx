@@ -1,5 +1,5 @@
 import { boolean, number, PrimitiveKind, SNumber, Structured, StructuredKind } from "structured-state";
-import { clamp } from "../utils/math";
+import { clamp } from "../../utils/math";
 
 export type SMidiViewport = {
   pxPerPulse: number;

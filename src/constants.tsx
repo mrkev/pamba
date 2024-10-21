@@ -24,6 +24,8 @@ export const PX_OVER_SEC = PX_PER_SEC;
 export const SECS_PER_PX = 1 / PX_PER_SEC;
 export const SECS_OVER_PX = SECS_PER_PX;
 
+export const SECS_IN_MIN = 60;
+
 export const FIREBASE_ENABLED = false;
 
 export const CANVAS_HEIGHT = 46; // 256 / 6 + 4

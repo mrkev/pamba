@@ -1,9 +1,11 @@
 import { Structured } from "structured-state";
+import { PrimitiveKind, StructuredKind } from "structured-state/dist/StructuredKinds";
+import { liveAudioContext, SECS_IN_MIN } from "../../constants";
 import { pulsesToSec, secsToPulses } from "../../midi/MidiClip";
+import { PPQN } from "../../wam/pianorollme/MIDIConfiguration";
 import { Pulses, Seconds } from "../AbstractClip";
 import { exhaustive } from "../state/Subbable";
 import { AudioProject } from "./AudioProject";
-import { StructuredKind, PrimitiveKind } from "structured-state/dist/StructuredKinds";
 
 export type TimeUnit = "pulses" | "seconds" | "bars";
 
@@ -16,6 +18,12 @@ const PULSES_PER_BAR = 6 * 4;
 // 1 pulse
 // 6 puleses = 1 beat
 // 4 beats = 1 bar
+
+function pulsesToFr(pulses: number, bpm: number) {
+  // TODO: not a constant sample rate
+  const k = (liveAudioContext().sampleRate * SECS_IN_MIN) / PPQN;
+  return (k * pulses) / bpm;
+}
 
 export class TimelineT extends Structured<STimelineT, typeof TimelineT> {
   constructor(

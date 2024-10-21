@@ -1,9 +1,9 @@
 import React from "react";
 import { createUseStyles } from "react-jss";
+import { usePrimitive } from "structured-state";
 import { AudioProject, AxisMeasure } from "../lib/project/AudioProject";
 import { useLinkedState } from "../lib/state/LinkedState";
-import { SECS_IN_MIN } from "../midi/MidiClip";
-import { usePrimitive } from "structured-state";
+import { SECS_IN_MIN } from "../constants";
 
 const formatter = new Intl.NumberFormat("en-US", {
   useGrouping: false,

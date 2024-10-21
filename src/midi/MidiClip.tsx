@@ -1,25 +1,17 @@
 import * as s from "structured-state";
 import { SArray, SString, Structured } from "structured-state";
-import { liveAudioContext } from "../constants";
+import { SECS_IN_MIN } from "../constants";
 import { SMidiClip } from "../data/serializable";
 import { AbstractClip, Pulses } from "../lib/AbstractClip";
 import { ProjectTrack } from "../lib/ProjectTrack";
 import { AudioProject } from "../lib/project/AudioProject";
 import { TimeUnit, TimelineT, time } from "../lib/project/TimelineT";
-import { MidiViewport } from "../ui/MidiViewport";
-import { dataURLForMidiBuffer } from "../utils/midiimg";
+import { MidiViewport } from "../ui/viewport/MidiViewport";
 import { mutablearr, nullthrows } from "../utils/nullthrows";
 import { PPQN } from "../wam/pianorollme/MIDIConfiguration";
+import { MidiBuffer } from "./MidiBuffer";
 import { MidiTrack } from "./MidiTrack";
 import type { Note } from "./SharedMidiTypes";
-
-export const SECS_IN_MIN = 60;
-
-export function pulsesToFr(pulses: number, bpm: number) {
-  // TODO: not a constant sample rate
-  const k = (liveAudioContext().sampleRate * SECS_IN_MIN) / PPQN;
-  return (k * pulses) / bpm;
-}
 
 export function pulsesToSec(pulses: number, bpm: number) {
   return (pulses * SECS_IN_MIN) / (PPQN * bpm);
@@ -27,31 +19,6 @@ export function pulsesToSec(pulses: number, bpm: number) {
 
 export function secsToPulses(secs: number, bpm: number) {
   return Math.floor((secs * PPQN * bpm) / SECS_IN_MIN);
-}
-
-export class MidiBuffer {
-  constructor(
-    // ordered by tick (start)
-    readonly notes: SArray<Note>,
-    readonly len: TimelineT,
-  ) {}
-
-  private readonly memodMidiDataURL: Map<string, { width: number; height: number; data: string }> = new Map();
-  clearCache() {
-    this.memodMidiDataURL.clear();
-  }
-
-  getMidiDataURL(width: number): [string, number] {
-    const key = `${width}`;
-    const val = this.memodMidiDataURL.get(key);
-    if (val != null) {
-      return [val.data, val.height];
-    }
-
-    const [img, height] = dataURLForMidiBuffer(width, this);
-    this.memodMidiDataURL.set(key, { width, height, data: img });
-    return [img, height];
-  }
 }
 
 export class MidiClip extends Structured<SMidiClip, typeof MidiClip> implements AbstractClip<Pulses> {

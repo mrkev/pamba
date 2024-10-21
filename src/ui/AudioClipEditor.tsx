@@ -26,7 +26,7 @@ export function AudioClipEditor({
   // const waveformRef = useRef<HTMLCanvasElement>(null);
 
   // for waveform IMG
-  const [pxPerSec] = usePrimitive(clip.detailedViewport.pxPerSecScale);
+  const [pxPerSec] = usePrimitive(clip.detailedViewport.pxPerSec);
   const [lockPlayback] = usePrimitive(clip.detailedViewport.lockPlayback);
 
   // for waveform GPU
@@ -78,7 +78,7 @@ export function AudioClipEditor({
             step={0.01}
             onChange={(e) => {
               const newVal = parseFloat(e.target.value);
-              clip.detailedViewport.pxPerSecScale.set(Math.pow(2, newVal));
+              clip.detailedViewport.pxPerSec.set(Math.pow(2, newVal));
             }}
           />
           <UtilityToggle

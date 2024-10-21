@@ -1,5 +1,5 @@
 import { TOTAL_VERTICAL_NOTES } from "../constants";
-import { MidiBuffer } from "../midi/MidiClip";
+import { MidiBuffer } from "../midi/MidiBuffer";
 import { nullthrows } from "./nullthrows";
 
 const MAX_NOTE = TOTAL_VERTICAL_NOTES - 1;

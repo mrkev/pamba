@@ -2,7 +2,7 @@ import { S, SString, Structured, init, string } from "structured-state";
 import { staticAudioContext } from "../constants";
 import { AudioPackage } from "../data/AudioPackage";
 import { SAudioClip } from "../data/serializable";
-import { AudioViewport } from "../ui/AudioViewport";
+import { AudioViewport } from "../ui/viewport/AudioViewport";
 import { nullthrows } from "../utils/nullthrows";
 import { dataURLForWaveform } from "../utils/waveform";
 import { AbstractClip, Seconds, secs } from "./AbstractClip";
