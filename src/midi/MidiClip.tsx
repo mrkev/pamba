@@ -1,4 +1,4 @@
-import { SArray, SString, Structured } from "structured-state";
+import { init, JSONOfAuto, SArray, SString, Structured } from "structured-state";
 import { SECS_IN_MIN } from "../constants";
 import { SMidiClip } from "../data/serializable";
 import { AbstractClip, Pulses } from "../lib/AbstractClip";
@@ -77,12 +77,39 @@ export class MidiClip extends Structured<SMidiClip, AutoMidiClip, typeof MidiCli
     };
   }
 
-  override replace(_json: SMidiClip): void {
+  override replace(auto: JSONOfAuto<AutoMidiClip>): void {
     throw new Error("Method not implemented.");
   }
 
-  static construct(json: SMidiClip): MidiClip {
-    const viewport = json.viewport ? MidiViewport.construct(json.viewport) : MidiViewport.of(10, 10, 0, 0);
+  static construct(json: SMidiClip, auto: JSONOfAuto<AutoMidiClip>): MidiClip {
+    const viewport = json.viewport
+      ? MidiViewport.of(
+          json.viewport.pxPerPulse,
+          json.viewport.pxNoteHeight,
+          json.viewport.scrollLeft,
+          json.viewport.scrollTop,
+        )
+      : MidiViewport.of(10, 10, 0, 0);
+    return Structured.create(
+      MidiClip,
+      init.string(auto.name),
+      time(json.startOffsetPulses, "pulses"),
+      time(json.lengthPulses, "pulses"),
+      SArray.create(mutablearr(json.notes)),
+      viewport,
+      json.bufferTimelineStart,
+    );
+  }
+
+  static old_construct(json: SMidiClip): MidiClip {
+    const viewport = json.viewport
+      ? MidiViewport.of(
+          json.viewport.pxPerPulse,
+          json.viewport.pxNoteHeight,
+          json.viewport.scrollLeft,
+          json.viewport.scrollTop,
+        )
+      : MidiViewport.of(10, 10, 0, 0);
     return new MidiClip(
       SString.create(json.name),
       time(json.startOffsetPulses, "pulses"),

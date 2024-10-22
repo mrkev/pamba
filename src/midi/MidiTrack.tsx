@@ -1,5 +1,5 @@
 import type { WebAudioModule } from "@webaudiomodules/api";
-import { SPrimitive, SSchemaArray, Structured, arrayOf } from "structured-state";
+import { JSONOfAuto, SPrimitive, SSchemaArray, Structured, arrayOf } from "structured-state";
 import { CLIP_HEIGHT, SECS_IN_MINUTE, TIME_SIGNATURE, liveAudioContext } from "../constants";
 import { SMidiTrack } from "../data/serializable";
 import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
@@ -54,11 +54,11 @@ export class MidiTrack
     };
   }
 
-  override replace(json: SMidiTrack): void {
+  override replace(auto: JSONOfAuto<AutoMidiTrack>): void {
     throw new Error("Method not implemented.");
   }
 
-  static construct(json: SMidiTrack): MidiTrack {
+  static construct(json: SMidiTrack, auto: JSONOfAuto<AutoMidiTrack>): MidiTrack {
     throw new Error("Need async construct to construct MidiTrack");
   }
 

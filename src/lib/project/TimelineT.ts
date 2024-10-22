@@ -43,19 +43,19 @@ export class TimelineT extends Structured<STimelineT, AutoTimelineT, typeof Time
     return { t: this.t, u: this.u };
   }
 
-  // experimental
-  static autoConstruct(serialized: AutoTimelineT): TimelineT {
-    return Structured.create(TimelineT, serialized.t, serialized.u);
-  }
-
-  override replace({ t, u }: STimelineT, auto: JSONOfAuto<AutoTimelineT>): void {
+  override replace(auto: JSONOfAuto<AutoTimelineT>): void {
     this.t = auto.t;
     this.u = auto.u;
     // console.log("t is now", this.t, this._id, this._id);
   }
 
-  static construct(json: STimelineT): TimelineT {
-    return Structured.create(TimelineT, json.t, json.u);
+  // experimental
+  static autoConstruct(serialized: AutoTimelineT): TimelineT {
+    return Structured.create(TimelineT, serialized.t, serialized.u);
+  }
+
+  static construct(json: STimelineT, auto: AutoTimelineT): TimelineT {
+    return Structured.create(TimelineT, auto.t, auto.u);
   }
 
   /////////////////

@@ -1,4 +1,4 @@
-import { boolean, JSONOfAuto, number, replace, SNumber, Structured } from "structured-state";
+import { boolean, init, JSONOfAuto, number, replace, SNumber, Structured } from "structured-state";
 import { clamp } from "../../utils/math";
 
 export type SMidiViewport = {
@@ -37,8 +37,14 @@ export class MidiViewport extends Structured<SMidiViewport, AutoMidiViewport, ty
     );
   }
 
-  static construct(json: SMidiViewport): MidiViewport {
-    return MidiViewport.of(json.pxPerPulse, json.pxNoteHeight, json.scrollLeft, json.scrollTop);
+  static construct(json: SMidiViewport, auto: JSONOfAuto<AutoMidiViewport>): MidiViewport {
+    return Structured.create(
+      MidiViewport,
+      init.number(auto.pxPerPulse),
+      init.number(auto.pxNoteHeight),
+      init.number(auto.scrollLeft),
+      init.number(auto.scrollTop),
+    );
   }
 
   override serialize(): SMidiViewport {
@@ -59,7 +65,7 @@ export class MidiViewport extends Structured<SMidiViewport, AutoMidiViewport, ty
     };
   }
 
-  override replace(json: SMidiViewport, auto: JSONOfAuto<AutoMidiViewport>): void {
+  override replace(auto: JSONOfAuto<AutoMidiViewport>): void {
     replace.number(auto.pxPerPulse, this.pxPerPulse);
     replace.number(auto.pxNoteHeight, this.pxNoteHeight);
     replace.number(auto.scrollLeft, this.scrollLeftPx);

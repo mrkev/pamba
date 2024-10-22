@@ -129,15 +129,14 @@ export class AudioClip
       buffer,
       init.string(auto.name),
       auto.bufferURL,
-      init.structured(auto.bufferOffset, TimelineT as any),
-      // TODO: as any
-      init.structured(auto.timelineStart, TimelineT as any),
-      init.structured(auto.timelineLength, TimelineT as any),
+      init.structured(auto.bufferOffset, TimelineT),
+      init.structured(auto.timelineStart, TimelineT),
+      init.structured(auto.timelineLength, TimelineT),
     );
   }
 
-  override replace(json: SAudioClip, auto: JSONOfAuto<AutoAudioClip>): void {
-    console.log("REPLACE WITH", json, auto);
+  override replace(auto: JSONOfAuto<AutoAudioClip>): void {
+    console.log("REPLACE WITH", auto);
     replace.string(auto.name, this.name);
     replace.structured(auto.bufferOffset, this.bufferOffset);
     replace.structured(auto.timelineStart, this.timelineStart);
@@ -146,7 +145,20 @@ export class AudioClip
     // cause audio buffer never changes, and all clips that replace this one will be the same buffer
   }
 
-  static construct(json: SAudioClip): AudioClip {
+  static construct(json: SAudioClip, auto: JSONOfAuto<AutoAudioClip>): AudioClip {
+    const buffer = nullthrows(SOUND_LIB_FOR_HISTORY.get(auto.bufferURL));
+    return Structured.create(
+      AudioClip,
+      buffer,
+      init.string(auto.name),
+      auto.bufferURL,
+      init.structured(auto.bufferOffset, TimelineT),
+      init.structured(auto.timelineStart, TimelineT),
+      init.structured(auto.timelineLength, TimelineT),
+    );
+  }
+
+  static of(json: SAudioClip): AudioClip {
     const buffer = nullthrows(SOUND_LIB_FOR_HISTORY.get(json.bufferURL));
     return Structured.create(
       AudioClip,
@@ -247,7 +259,7 @@ export class AudioClip
       this.buffer ?? "missing",
       string(this.name.get()),
       this.bufferURL,
-      this.bufferOffset,
+      this.bufferOffset.clone(),
       this.timelineStart.clone(),
       this.timelineLength.clone(),
     );

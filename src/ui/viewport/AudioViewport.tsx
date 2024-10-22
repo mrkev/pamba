@@ -1,4 +1,4 @@
-import { JSONOfAuto, number, replace, SNumber, SPrimitive, Structured } from "structured-state";
+import { init, JSONOfAuto, number, replace, SNumber, SPrimitive, Structured } from "structured-state";
 import { clamp } from "../../utils/math";
 
 type SAudioViewport = {
@@ -36,7 +36,7 @@ export class AudioViewport extends Structured<SAudioViewport, AutoAudioViewport,
     };
   }
 
-  override replace(json: SAudioViewport, auto: JSONOfAuto<AutoAudioViewport>): void {
+  override replace(auto: JSONOfAuto<AutoAudioViewport>): void {
     replace.number(auto.pxPerSec, this.pxPerSec);
     replace.number(auto.scrollLeft, this.scrollLeftPx);
   }
@@ -48,8 +48,9 @@ export class AudioViewport extends Structured<SAudioViewport, AutoAudioViewport,
     };
   }
 
-  static construct(json: SAudioViewport): AudioViewport {
-    return AudioViewport.of(json.pxPerSec, json.scrollLeft);
+  // TODO: should combine number and init.number (essentially make number be able to take in a Simplified number)?
+  static construct(json: SAudioViewport, auto: JSONOfAuto<AutoAudioViewport>): AudioViewport {
+    return Structured.create(AudioViewport, init.number(auto.pxPerSec), init.number(auto.scrollLeft));
   }
 
   pxToFr(px: number, sampleRate: number) {

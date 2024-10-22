@@ -1,5 +1,6 @@
 import {
   arrayOf,
+  init,
   JSONOfAuto,
   number,
   replace,
@@ -84,16 +85,27 @@ export class AudioTrack
     };
   }
 
-  override replace(json: SAudioTrack, auto: JSONOfAuto<AutoAudioTrack>): void {
+  override replace(auto: JSONOfAuto<AutoAudioTrack>): void {
     replace.number(auto.height, this.height);
     replace.string(auto.name, this.name);
     replace.schemaArray(auto.clips, this.clips);
     console.log("REPLACED AudioTrack");
   }
 
-  static construct(json: SAudioTrack): AudioTrack {
+  static construct(json: SAudioTrack, auto: JSONOfAuto<AutoAudioTrack>): AudioTrack {
+    return Structured.create(
+      AudioTrack,
+      init.string(auto.name),
+      init.schemaArray(auto.clips, [AudioClip as any]),
+      // todo effects
+      [],
+      init.number(auto.height),
+    );
+  }
+
+  static old_construct(json: SAudioTrack): AudioTrack {
     const { name, clips: sClips, effects: sEffects, height } = json;
-    const clips = sClips.map((clip) => AudioClip.construct(clip));
+    const clips = sClips.map((clip) => AudioClip.of(clip));
     // TODO: effects
     // const effects = await Promise.all(sEffects.map((effect) => construct(effect)));
     return AudioTrack.of(name, clips, [], height);

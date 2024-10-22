@@ -5,7 +5,7 @@ import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioTrack } from "../lib/AudioTrack";
 import { AudioProject } from "../lib/project/AudioProject";
-import { STimelineT, TimelineT } from "../lib/project/TimelineT";
+import { STimelineT, time, TimelineT } from "../lib/project/TimelineT";
 import { MidiClip } from "../midi/MidiClip";
 import { MidiInstrument } from "../midi/MidiInstrument";
 import { MidiTrack } from "../midi/MidiTrack";
@@ -231,8 +231,8 @@ export async function construct(
         projectId,
         projectName,
         tempo,
-        TimelineT.construct(loopStart),
-        TimelineT.construct(loopEnd),
+        time(loopStart.t, loopStart.u),
+        time(loopEnd.t, loopEnd.u),
         loopOnPlayback,
         scaleFactor,
         viewportStartPx,
