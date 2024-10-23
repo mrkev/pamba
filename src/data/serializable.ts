@@ -5,7 +5,7 @@ import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioTrack } from "../lib/AudioTrack";
 import { AudioProject } from "../lib/project/AudioProject";
-import { STimelineT, time, TimelineT } from "../lib/project/TimelineT";
+import { STimelineT, time } from "../lib/project/TimelineT";
 import { MidiClip } from "../midi/MidiClip";
 import { MidiInstrument } from "../midi/MidiInstrument";
 import { MidiTrack } from "../midi/MidiTrack";
@@ -114,7 +114,15 @@ export async function serializable(
   }
 
   if (obj instanceof MidiClip) {
-    return obj.serialize();
+    return {
+      kind: "MidiClip",
+      name: obj.name.get(),
+      startOffsetPulses: obj.startOffsetPulses,
+      lengthPulses: obj.timelineLength.ensurePulses(), // todo: replace for serialized timelinet to avoid ensurePulses
+      notes: obj.notes._getRaw(),
+      viewport: obj.detailedViewport.serialize(),
+      bufferTimelineStart: obj.bufferTimelineStart.ensurePulses(),
+    };
   }
 
   if (obj instanceof AudioTrack) {

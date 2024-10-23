@@ -20,10 +20,7 @@ type AutoMidiTrack = {
   instrument: SPrimitive<MidiInstrument>;
 };
 
-export class MidiTrack
-  extends Structured<SMidiTrack, AutoMidiTrack, typeof MidiTrack>
-  implements StandardTrack<MidiClip>
-{
+export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> implements StandardTrack<MidiClip> {
   public readonly name: SPrimitive<string>;
   public readonly dsp: ProjectTrackDSP<MidiClip>;
   public readonly clips: SSchemaArray<MidiClip>;
@@ -36,15 +33,6 @@ export class MidiTrack
   // the pianoRoll to play. same as .pianoRoll when playing live,
   // a clone in an offline context when bouncing
   playingSource: PianoRollModule | null;
-
-  override serialize(): SMidiTrack {
-    return {
-      kind: "MidiTrack",
-      name: this.name.get(),
-      clips: this.clips.map((clip) => clip.serialize()),
-      instrument: this.instrument.get().serialize(),
-    };
-  }
 
   override autoSimplify(): AutoMidiTrack {
     return {

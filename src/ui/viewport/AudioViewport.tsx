@@ -13,7 +13,7 @@ type AutoAudioViewport = {
   scrollLeft: SNumber;
 };
 
-export class AudioViewport extends Structured<SAudioViewport, AutoAudioViewport, typeof AudioViewport> {
+export class AudioViewport extends Structured<AutoAudioViewport, typeof AudioViewport> {
   readonly lockPlayback = SPrimitive.of(false);
   readonly selectionWidthFr = SPrimitive.of<number | null>(null);
 
@@ -27,13 +27,6 @@ export class AudioViewport extends Structured<SAudioViewport, AutoAudioViewport,
 
   static of(pxPerSec: number, scrollLeftPx: number) {
     return Structured.create(AudioViewport, number(pxPerSec), number(scrollLeftPx));
-  }
-
-  override serialize(): SAudioViewport {
-    return {
-      pxPerSec: this.pxPerSec.get(),
-      scrollLeft: this.scrollLeftPx.get(),
-    };
   }
 
   override replace(auto: JSONOfAuto<AutoAudioViewport>): void {

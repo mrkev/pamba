@@ -15,7 +15,7 @@ type AutoMidiViewport = {
   scrollTop: SNumber;
 };
 
-export class MidiViewport extends Structured<SMidiViewport, AutoMidiViewport, typeof MidiViewport> {
+export class MidiViewport extends Structured<AutoMidiViewport, typeof MidiViewport> {
   readonly lockPlayback = boolean(false);
 
   constructor(
@@ -47,7 +47,8 @@ export class MidiViewport extends Structured<SMidiViewport, AutoMidiViewport, ty
     );
   }
 
-  override serialize(): SMidiViewport {
+  // TODO: just use auto form where this is used?
+  serialize(): SMidiViewport {
     return {
       pxPerPulse: this.pxPerPulse.get(),
       pxNoteHeight: this.pxNoteHeight.get(),

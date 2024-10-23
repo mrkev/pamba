@@ -41,6 +41,12 @@ export const LIBRARY_SEARCH_INPUT_ID = "library-search";
 
 import PIANO_ROLL_PLUGIN_URL from "./midi/pianoroll/index?url";
 
+// TODO: assuming constant 4/4
+// 1 pulse
+// 6 puleses = 1 beat
+// 4 beats = 1 bar
+export const PULSES_PER_BAR = 6 * 4;
+
 // WAM
 
 export const SYNTH_101_URL = "https://mainline.i3s.unice.fr/wam2/packages/synth101/dist/index.js";

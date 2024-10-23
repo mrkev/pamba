@@ -29,7 +29,7 @@ type AutoMidiClip = {
   bufferTimelineStart: TimelineT;
 };
 
-export class MidiClip extends Structured<SMidiClip, AutoMidiClip, typeof MidiClip> implements AbstractClip<Pulses> {
+export class MidiClip extends Structured<AutoMidiClip, typeof MidiClip> implements AbstractClip<Pulses> {
   // constants
   readonly unit = "pulse";
 
@@ -54,18 +54,6 @@ export class MidiClip extends Structured<SMidiClip, AutoMidiClip, typeof MidiCli
     this.buffer = new MidiBuffer(this.notes, this.timelineLength);
   }
 
-  override serialize(): SMidiClip {
-    return {
-      kind: "MidiClip",
-      name: this.name.get(),
-      startOffsetPulses: this.startOffsetPulses,
-      lengthPulses: this.timelineLength.ensurePulses(), // todo: replace for serialized timelinet to avoid ensurePulses
-      notes: this.notes._getRaw(),
-      viewport: this.detailedViewport.serialize(),
-      bufferTimelineStart: this.bufferTimelineStart.ensurePulses(),
-    };
-  }
-
   override autoSimplify(): AutoMidiClip {
     return {
       name: this.name,
@@ -87,7 +75,7 @@ export class MidiClip extends Structured<SMidiClip, AutoMidiClip, typeof MidiCli
       init.string(auto.name),
       time(auto.startOffsetPulses, "pulses"),
       init.structured(auto.lengthPulses, TimelineT),
-      init.array<Note>(auto.notes),
+      init.array<Note>(auto.notes as any), // todo: as any
       init.structured(auto.viewport, MidiViewport),
       init.structured(auto.bufferTimelineStart, TimelineT),
     );

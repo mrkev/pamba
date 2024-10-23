@@ -31,10 +31,7 @@ type AutoAudioTrack = {
   name: SString;
 };
 
-export class AudioTrack
-  extends Structured<SAudioTrack, AutoAudioTrack, typeof AudioTrack>
-  implements StandardTrack<AudioClip>
-{
+export class AudioTrack extends Structured<AutoAudioTrack, typeof AudioTrack> implements StandardTrack<AudioClip> {
   public readonly dsp: ProjectTrackDSP<AudioClip>;
 
   // For background processing
@@ -59,18 +56,6 @@ export class AudioTrack
 
   static of(name: string, clips: AudioClip[], effects: (FaustAudioEffect | PambaWamNode)[], height: number) {
     return Structured.create(AudioTrack, string(name), arrayOf([AudioClip as any], clips), effects, number(height));
-  }
-
-  override serialize(): SAudioTrack {
-    return {
-      kind: "AudioTrack",
-      clips: this.clips._getRaw().map((clip) => clip.serialize()),
-      // TODO: async serialize
-      // effects: await Promise.all(obj.dsp.effects._getRaw().map((effect) => serializable(effect))),
-      effects: [],
-      height: this.height.get(),
-      name: this.name.get(),
-    };
   }
 
   override autoSimplify(): AutoAudioTrack {

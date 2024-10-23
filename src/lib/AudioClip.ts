@@ -18,14 +18,6 @@ type AutoAudioClip = {
   timelineLength: TimelineT;
 };
 
-type AudioClipRaw = {
-  name: S["string"];
-  bufferURL: string;
-  bufferOffset: S["structured"];
-  timelineStart: S["structured"];
-  timelineLength: S["structured"];
-};
-
 // A clip of Audio. Basic topology:
 //
 //                        [~~~|====== clip ========|~~~]
@@ -39,10 +31,7 @@ type AudioClipRaw = {
 //
 // These properties represent media that has a certain length (in frames), but has
 // been trimmed to be of another length.
-export class AudioClip
-  extends Structured<SAudioClip, AutoAudioClip, typeof AudioClip>
-  implements AbstractClip<Seconds>
-{
+export class AudioClip extends Structured<AutoAudioClip, typeof AudioClip> implements AbstractClip<Seconds> {
   // constants
   readonly unit = "sec";
   readonly buffer: SharedAudioBuffer | null;
@@ -96,18 +85,6 @@ export class AudioClip
     this.bufferOffset = bufferOffset;
   }
 
-  override serialize(): SAudioClip {
-    const result: SAudioClip = {
-      kind: "AudioClip",
-      name: this.name.get(),
-      bufferURL: this.bufferURL,
-      bufferOffset: this.bufferOffset.ensureSecs(),
-      timelineStartSec: this.timelineStartSec,
-      clipLengthSec: this.timelineLength.ensureSecs(),
-    };
-    return result;
-  }
-
   // experimental
   // note: kind infered from the field at construction time
   override autoSimplify(): AutoAudioClip {
@@ -118,21 +95,6 @@ export class AudioClip
       timelineStart: this.timelineStart,
       timelineLength: this.timelineLength,
     };
-  }
-
-  // experimental
-  static autoConstruct(auto: AudioClipRaw): AudioClip {
-    const buffer = nullthrows(SOUND_LIB_FOR_HISTORY.get(auto.bufferURL));
-
-    return Structured.create(
-      AudioClip,
-      buffer,
-      init.string(auto.name),
-      auto.bufferURL,
-      init.structured(auto.bufferOffset, TimelineT),
-      init.structured(auto.timelineStart, TimelineT),
-      init.structured(auto.timelineLength, TimelineT),
-    );
   }
 
   override replace(auto: JSONOfAuto<AutoAudioClip>): void {

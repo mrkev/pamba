@@ -1,5 +1,5 @@
 import { JSONOfAuto, Structured } from "structured-state";
-import { liveAudioContext, SECS_IN_MIN } from "../../constants";
+import { liveAudioContext, PULSES_PER_BAR, SECS_IN_MIN } from "../../constants";
 import { pulsesToSec, secsToPulses } from "../../midi/MidiClip";
 import { PPQN } from "../../wam/pianorollme/MIDIConfiguration";
 import { Pulses, Seconds } from "../AbstractClip";
@@ -11,20 +11,13 @@ export type TimeUnit = "pulses" | "seconds" | "bars";
 export type STimelineT = Readonly<{ t: number; u: TimeUnit }>;
 type AutoTimelineT = STimelineT;
 
-// TODO: assuming constant 4/4
-const PULSES_PER_BAR = 6 * 4;
-
-// 1 pulse
-// 6 puleses = 1 beat
-// 4 beats = 1 bar
-
 function pulsesToFr(pulses: number, bpm: number) {
   // TODO: not a constant sample rate
   const k = (liveAudioContext().sampleRate * SECS_IN_MIN) / PPQN;
   return (k * pulses) / bpm;
 }
 
-export class TimelineT extends Structured<STimelineT, AutoTimelineT, typeof TimelineT> {
+export class TimelineT extends Structured<AutoTimelineT, typeof TimelineT> {
   constructor(
     // time and unit
     private t: number,
@@ -35,7 +28,8 @@ export class TimelineT extends Structured<STimelineT, AutoTimelineT, typeof Time
 
   /// std
 
-  override serialize(): STimelineT {
+  // TODO: just use autoForm where this is used?
+  serialize(): STimelineT {
     return { t: this.t, u: this.u };
   }
 
@@ -47,11 +41,6 @@ export class TimelineT extends Structured<STimelineT, AutoTimelineT, typeof Time
     this.t = auto.t;
     this.u = auto.u;
     // console.log("t is now", this.t, this._id, this._id);
-  }
-
-  // experimental
-  static autoConstruct(serialized: AutoTimelineT): TimelineT {
-    return Structured.create(TimelineT, serialized.t, serialized.u);
   }
 
   static construct(auto: AutoTimelineT): TimelineT {
