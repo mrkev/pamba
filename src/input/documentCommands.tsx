@@ -31,12 +31,21 @@ export const documentCommands = CommandBlock.create(["Project", "Edit", "Tools",
     // TODO: split at cursor
     undo: command(["KeyZ", "meta"], (e) => {
       performance.mark("undo-start");
-      history.pop();
+      history.undo();
       performance.mark("undo-end");
       performance.measure("undo", "undo-start", "undo-end");
       e?.preventDefault();
     })
       .helptext("Undo", "Note: EXPERIMENTAL!")
+      .section("Project"),
+    redo: command(["KeyZ", "meta"], (e) => {
+      performance.mark("redo-start");
+      history.redo();
+      performance.mark("redo-end");
+      performance.measure("redo", "redo-start", "redo-end");
+      e?.preventDefault();
+    })
+      .helptext("Redo", "Note: EXPERIMENTAL!")
       .section("Project"),
 
     createAudioTrack: command(["KeyT", "ctrl"], (e, project) => {

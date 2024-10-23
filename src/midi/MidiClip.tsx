@@ -1,5 +1,4 @@
-import { init, JSONOfAuto, SArray, SString, Structured } from "structured-state";
-import { SECS_IN_MIN } from "../constants";
+import { JSONOfAuto, SArray, SString, Structured, init } from "structured-state";
 import { SMidiClip } from "../data/serializable";
 import { AbstractClip, Pulses } from "../lib/AbstractClip";
 import { ProjectTrack } from "../lib/ProjectTrack";
@@ -7,18 +6,9 @@ import { AudioProject } from "../lib/project/AudioProject";
 import { TimeUnit, TimelineT, time } from "../lib/project/TimelineT";
 import { MidiViewport } from "../ui/viewport/MidiViewport";
 import { mutablearr, nullthrows } from "../utils/nullthrows";
-import { PPQN } from "../wam/pianorollme/MIDIConfiguration";
 import { MidiBuffer } from "./MidiBuffer";
 import { MidiTrack } from "./MidiTrack";
 import type { Note } from "./SharedMidiTypes";
-
-export function pulsesToSec(pulses: number, bpm: number) {
-  return (pulses * SECS_IN_MIN) / (PPQN * bpm);
-}
-
-export function secsToPulses(secs: number, bpm: number) {
-  return Math.floor((secs * PPQN * bpm) / SECS_IN_MIN);
-}
 
 type AutoMidiClip = {
   name: SString;

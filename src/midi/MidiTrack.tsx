@@ -1,7 +1,6 @@
 import type { WebAudioModule } from "@webaudiomodules/api";
 import { JSONOfAuto, SPrimitive, SSchemaArray, Structured, arrayOf } from "structured-state";
 import { CLIP_HEIGHT, SECS_IN_MINUTE, TIME_SIGNATURE, liveAudioContext } from "../constants";
-import { SMidiTrack } from "../data/serializable";
 import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { StandardTrack } from "../lib/ProjectTrack";

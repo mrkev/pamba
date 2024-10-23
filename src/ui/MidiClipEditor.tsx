@@ -5,7 +5,7 @@ import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import { AudioProject } from "../lib/project/AudioProject";
 import { useSubscribeToSubbableMutationHashable } from "../lib/state/LinkedMap";
 import { useLinkedState } from "../lib/state/LinkedState";
-import { MidiClip, secsToPulses, setClipLength as setMidiClipLength } from "../midi/MidiClip";
+import { MidiClip, setClipLength as setMidiClipLength } from "../midi/MidiClip";
 import { exhaustive } from "../utils/exhaustive";
 import { clamp } from "../utils/math";
 import { nullthrows } from "../utils/nullthrows";
@@ -19,6 +19,7 @@ import { useEventListener } from "./useEventListener";
 import { ClipPropsEditor } from "./ClipPropsEditor";
 import { MidiTrack } from "../midi/MidiTrack";
 import { TOTAL_VERTICAL_NOTES } from "../constants";
+import { secsToPulses } from "../lib/project/TimelineT";
 
 const DEFAULT_NOTE_DURATION = 6;
 const CLIP_TOTAL_BARS = 4;

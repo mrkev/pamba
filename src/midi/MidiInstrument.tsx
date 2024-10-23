@@ -1,14 +1,13 @@
 import type { WamNode, WamParameterDataMap, WebAudioModule } from "@webaudiomodules/api";
+import { boolean, SString, string } from "structured-state";
+import { liveAudioContext } from "../constants";
+import { SMidiInstrument } from "../data/serializable";
 import { DSPStep } from "../dsp/DSPNode";
+import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
 import { appEnvironment, WAMAvailablePlugin } from "../lib/AppEnvironment";
 import { LinkedState } from "../lib/state/LinkedState";
-import { nullthrows, assert } from "../utils/nullthrows";
+import { assert, nullthrows } from "../utils/nullthrows";
 import { Position } from "../wam/WindowPanel";
-import { SMidiInstrument } from "../data/serializable";
-import { LibraryItem } from "../ui/Library";
-import { liveAudioContext } from "../constants";
-import { boolean, SString, string } from "structured-state";
-import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
 
 export class MidiInstrument extends DSPStep<null> {
   override effectId: string;

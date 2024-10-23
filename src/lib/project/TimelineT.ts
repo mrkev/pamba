@@ -1,6 +1,5 @@
 import { JSONOfAuto, Structured } from "structured-state";
 import { liveAudioContext, PULSES_PER_BAR, SECS_IN_MIN } from "../../constants";
-import { pulsesToSec, secsToPulses } from "../../midi/MidiClip";
 import { PPQN } from "../../wam/pianorollme/MIDIConfiguration";
 import { Pulses, Seconds } from "../AbstractClip";
 import { exhaustive } from "../state/Subbable";
@@ -15,6 +14,14 @@ function pulsesToFr(pulses: number, bpm: number) {
   // TODO: not a constant sample rate
   const k = (liveAudioContext().sampleRate * SECS_IN_MIN) / PPQN;
   return (k * pulses) / bpm;
+}
+
+export function pulsesToSec(pulses: number, bpm: number) {
+  return (pulses * SECS_IN_MIN) / (PPQN * bpm);
+}
+
+export function secsToPulses(secs: number, bpm: number) {
+  return Math.floor((secs * PPQN * bpm) / SECS_IN_MIN);
 }
 
 export class TimelineT extends Structured<AutoTimelineT, typeof TimelineT> {
