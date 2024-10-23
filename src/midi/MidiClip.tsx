@@ -81,23 +81,15 @@ export class MidiClip extends Structured<SMidiClip, AutoMidiClip, typeof MidiCli
     throw new Error("Method not implemented.");
   }
 
-  static construct(json: SMidiClip, auto: JSONOfAuto<AutoMidiClip>): MidiClip {
-    const viewport = json.viewport
-      ? MidiViewport.of(
-          json.viewport.pxPerPulse,
-          json.viewport.pxNoteHeight,
-          json.viewport.scrollLeft,
-          json.viewport.scrollTop,
-        )
-      : MidiViewport.of(10, 10, 0, 0);
+  static construct(auto: JSONOfAuto<AutoMidiClip>): MidiClip {
     return Structured.create(
       MidiClip,
       init.string(auto.name),
-      time(json.startOffsetPulses, "pulses"),
-      time(json.lengthPulses, "pulses"),
-      SArray.create(mutablearr(json.notes)),
-      viewport,
-      json.bufferTimelineStart,
+      time(auto.startOffsetPulses, "pulses"),
+      init.structured(auto.lengthPulses, TimelineT),
+      init.array<Note>(auto.notes),
+      init.structured(auto.viewport, MidiViewport),
+      init.structured(auto.bufferTimelineStart, TimelineT),
     );
   }
 

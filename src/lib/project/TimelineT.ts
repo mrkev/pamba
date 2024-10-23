@@ -54,7 +54,7 @@ export class TimelineT extends Structured<STimelineT, AutoTimelineT, typeof Time
     return Structured.create(TimelineT, serialized.t, serialized.u);
   }
 
-  static construct(json: STimelineT, auto: AutoTimelineT): TimelineT {
+  static construct(auto: AutoTimelineT): TimelineT {
     return Structured.create(TimelineT, auto.t, auto.u);
   }
 

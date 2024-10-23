@@ -145,7 +145,7 @@ export class AudioClip
     // cause audio buffer never changes, and all clips that replace this one will be the same buffer
   }
 
-  static construct(json: SAudioClip, auto: JSONOfAuto<AutoAudioClip>): AudioClip {
+  static construct(auto: JSONOfAuto<AutoAudioClip>): AudioClip {
     const buffer = nullthrows(SOUND_LIB_FOR_HISTORY.get(auto.bufferURL));
     return Structured.create(
       AudioClip,

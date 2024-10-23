@@ -37,7 +37,7 @@ export class MidiViewport extends Structured<SMidiViewport, AutoMidiViewport, ty
     );
   }
 
-  static construct(json: SMidiViewport, auto: JSONOfAuto<AutoMidiViewport>): MidiViewport {
+  static construct(auto: JSONOfAuto<AutoMidiViewport>): MidiViewport {
     return Structured.create(
       MidiViewport,
       init.number(auto.pxPerPulse),

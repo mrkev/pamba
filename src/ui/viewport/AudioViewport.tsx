@@ -49,7 +49,7 @@ export class AudioViewport extends Structured<SAudioViewport, AutoAudioViewport,
   }
 
   // TODO: should combine number and init.number (essentially make number be able to take in a Simplified number)?
-  static construct(json: SAudioViewport, auto: JSONOfAuto<AutoAudioViewport>): AudioViewport {
+  static construct(auto: JSONOfAuto<AutoAudioViewport>): AudioViewport {
     return Structured.create(AudioViewport, init.number(auto.pxPerSec), init.number(auto.scrollLeft));
   }
 

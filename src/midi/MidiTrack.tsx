@@ -58,7 +58,7 @@ export class MidiTrack
     throw new Error("Method not implemented.");
   }
 
-  static construct(json: SMidiTrack, auto: JSONOfAuto<AutoMidiTrack>): MidiTrack {
+  static construct(auto: JSONOfAuto<AutoMidiTrack>): MidiTrack {
     throw new Error("Need async construct to construct MidiTrack");
   }
 

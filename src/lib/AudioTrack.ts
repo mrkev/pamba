@@ -92,7 +92,7 @@ export class AudioTrack
     console.log("REPLACED AudioTrack");
   }
 
-  static construct(json: SAudioTrack, auto: JSONOfAuto<AutoAudioTrack>): AudioTrack {
+  static construct(auto: JSONOfAuto<AutoAudioTrack>): AudioTrack {
     return Structured.create(
       AudioTrack,
       init.string(auto.name),
