@@ -1,6 +1,6 @@
 import type { ScaleLinear } from "d3-scale";
 import { scaleLinear } from "d3-scale";
-import { SArray, SPrimitive, SSet } from "structured-state";
+import { SArray, SBoolean, SNumber, SPrimitive, SSet, SString, boolean, number, string } from "structured-state";
 import { ulid } from "ulid";
 import { DEFAULT_TEMPO, SOUND_FONT_URL, liveAudioContext } from "../../constants";
 import { getFirebaseStorage } from "../../firebase/getFirebase";
@@ -19,7 +19,7 @@ import { LinkedMap } from "../state/LinkedMap";
 import { LinkedState } from "../state/LinkedState";
 import { ignorePromise } from "../state/Subbable";
 import { AudioStorage } from "./AudioStorage";
-import { ProjectViewportUtil } from "./ProjectViewportUtil";
+import { ProjectViewportUtil as ProjectViewport } from "./ProjectViewportUtil";
 import { PanelSelectionState, PrimarySelectionState } from "./SelectionState";
 import { TimelineT, time } from "./TimelineT";
 
@@ -47,21 +47,16 @@ export type TimeSignature = readonly [numerator: number, denominator: number];
 export type AxisMeasure = "tempo" | "time";
 
 export class AudioProject {
-  readonly projectId: string;
-  readonly projectName: SPrimitive<string>;
-
   // settings //
-  readonly tempo: SPrimitive<number>;
   readonly timeSignature = SPrimitive.of([4, 4] as const); // TODO: serialize
   readonly primaryAxis = SPrimitive.of<AxisMeasure>("tempo"); // TODO: serialize
   readonly snapToGrid = SPrimitive.of(true); // per project setting?
 
   // systems //
-  readonly viewport: ProjectViewportUtil;
+  readonly viewport: ProjectViewport;
   readonly audioStorage = SPrimitive.of<AudioStorage | null>(null);
 
   // Tracks //
-  readonly allTracks: SArray<AudioTrack | MidiTrack>;
   readonly solodTracks = SSet.create<AudioTrack | MidiTrack>(); // TODO: single track kind?
   readonly dspExpandedTracks = SSet.create<AudioTrack | MidiTrack>();
   readonly lockedTracks = SSet.create<AudioTrack | MidiTrack | StandardTrack<any>>();
@@ -87,11 +82,6 @@ export class AudioProject {
   readonly secondarySelection = LinkedState.of<PanelSelectionState | null>(null);
   readonly activePanel = LinkedState.of<Panel>("primary");
 
-  // looping
-  readonly loopStart: TimelineT;
-  readonly loopEnd: TimelineT;
-  readonly loopOnPlayback = LinkedState.of(false);
-
   // the zoom level. min scale is 0.64, max is 1000.
   // Px per second. Therefore, small = zoom out. big = zoom in.
   readonly scaleFactor: LinkedState<number>;
@@ -106,24 +96,22 @@ export class AudioProject {
   readonly secsToViewportPx: DerivedState<(factor: number, startPx: number) => XScale>;
 
   constructor(
-    tracks: (AudioTrack | MidiTrack)[],
-    projectId: string,
-    projectName: string,
-    tempo: number,
-    loopStart: TimelineT,
-    loopEnd: TimelineT,
-    loopOnPlayback: boolean,
+    readonly projectId: string,
+    readonly projectName: SString,
+    // tracks
+    readonly allTracks: SArray<AudioTrack | MidiTrack>,
+    // settings
+    readonly tempo: SNumber,
+    // looping
+    readonly loopStart: TimelineT,
+    readonly loopEnd: TimelineT,
+    readonly loopOnPlayback: SBoolean,
     scaleFactor: number,
     viewportStartPx: number,
   ) {
-    this.projectId = projectId;
-    this.allTracks = SArray.create(tracks);
-    this.viewport = new ProjectViewportUtil(this);
-    this.projectName = SPrimitive.of(projectName);
-    this.tempo = SPrimitive.of(tempo);
+    this.viewport = new ProjectViewport(this);
     this.loopStart = loopStart;
     this.loopEnd = loopEnd;
-    this.loopOnPlayback = LinkedState.of(loopOnPlayback);
     this.scaleFactor = LinkedState.of(scaleFactor);
     this.viewportStartPx = LinkedState.of(viewportStartPx);
     this.secsToPx = DerivedState.from(
@@ -164,7 +152,17 @@ export class AudioProject {
 
   static create() {
     const id = ulid();
-    return new this([], id, "untitled", DEFAULT_TEMPO, time(0, "pulses"), time(PPQN * 4, "pulses"), false, 10, 0);
+    return new this(
+      id,
+      string("untitled"),
+      SArray.create([]),
+      number(DEFAULT_TEMPO),
+      time(0, "pulses"),
+      time(PPQN * 4, "pulses"),
+      boolean(false),
+      10,
+      0,
+    );
   }
 
   public canEditTrack(project: AudioProject, track: MidiTrack | AudioTrack | StandardTrack<any>) {

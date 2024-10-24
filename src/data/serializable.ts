@@ -1,3 +1,4 @@
+import { boolean, number, SArray, string } from "structured-state";
 import { liveAudioContext } from "../constants";
 import { FaustEffectID } from "../dsp/FAUST_EFFECTS";
 import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
@@ -235,13 +236,13 @@ export async function construct(
       const tracks = await Promise.all(rep.tracks.map((clip) => construct(clip)));
       const { projectId, projectName, tempo, loopStart, loopEnd, loopOnPlayback, scaleFactor, viewportStartPx } = rep;
       return new AudioProject(
-        tracks,
         projectId,
-        projectName,
-        tempo,
+        string(projectName),
+        SArray.create(tracks),
+        number(tempo),
         time(loopStart.t, loopStart.u),
         time(loopEnd.t, loopEnd.u),
-        loopOnPlayback,
+        boolean(loopOnPlayback),
         scaleFactor,
         viewportStartPx,
       );

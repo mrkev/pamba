@@ -1,5 +1,5 @@
 import { createUseStyles } from "react-jss";
-import { useContainer } from "structured-state";
+import { useContainer, usePrimitive } from "structured-state";
 import { AudioProject } from "../lib/project/AudioProject";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { pressedState } from "../pressedState";
@@ -15,7 +15,7 @@ export function LoopMarkers({ project }: { project: AudioProject }) {
   const loopStart = useContainer(project.loopStart);
   const loopEnd = useContainer(project.loopEnd);
   const [selected] = useLinkedState(project.selected);
-  const [loopPlayback] = useLinkedState(project.loopOnPlayback);
+  const [loopPlayback] = usePrimitive(project.loopOnPlayback);
 
   // just to listen to it
   // todo: a way to subscribe to any viewport change?

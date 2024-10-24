@@ -145,7 +145,7 @@ export function ToolHeader({
   const classes = useStyles();
   const [tempo] = usePrimitive(project.tempo);
   const [snapToGrid] = usePrimitive(project.snapToGrid);
-  const [loopPlayback] = useLinkedState(project.loopOnPlayback);
+  const [loopPlayback] = usePrimitive(project.loopOnPlayback);
   // const [inputDevices] = useLinkedMap(recorder.audioInputDevices);
   // const [selectedDevice] = useLinkedState(recorder.currentInput);
   const [projectName] = usePrimitive(project.projectName);

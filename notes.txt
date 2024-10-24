@@ -21,7 +21,7 @@ x files in project
 - package for all projects, including new
 
 substate
-- redo
+x redo
 x dirty
 
 lowpri:
