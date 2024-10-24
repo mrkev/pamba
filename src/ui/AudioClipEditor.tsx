@@ -1,9 +1,8 @@
-import { usePrimitive } from "structured-state";
+import { useContainer, usePrimitive } from "structured-state";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioTrack } from "../lib/AudioTrack";
 import { AudioProject } from "../lib/project/AudioProject";
-import { useSubscribeToSubbableMutationHashable } from "../lib/state/LinkedMap";
 import { AudioClipBufferView } from "./AudioClipBufferView";
 import { AudioClipPropsEditor, ClipPropsEditor } from "./ClipPropsEditor";
 import { UtilityToggle } from "./UtilityToggle";
@@ -36,7 +35,7 @@ export function AudioClipEditor({
   // const frPerPx = getRealScale(pxPerSec);
   // console.log("frPerPx", frPerPx, "pxPerSec", pxPerSec);
 
-  useSubscribeToSubbableMutationHashable(clip);
+  useContainer(clip);
 
   // const backgroundImageData = clip.getWaveformDataURL(
   //   // totalBufferWidth,

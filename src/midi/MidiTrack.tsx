@@ -51,7 +51,7 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
 
   constructor(name: string, pianoRoll: WebAudioModule<PianoRollNode>, instrument: MidiInstrument, clips: MidiClip[]) {
     super();
-    this.clips = arrayOf([MidiClip as any], clips);
+    this.clips = arrayOf([MidiClip], clips);
     this.playingSource = null;
     this.pianoRoll = pianoRoll as any;
     this.instrument = SPrimitive.of(instrument);

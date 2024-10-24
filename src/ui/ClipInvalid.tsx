@@ -1,9 +1,9 @@
-import React from "react";
+import { useContainer } from "structured-state";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioProject } from "../lib/project/AudioProject";
 import { MidiClip } from "../midi/MidiClip";
-import { useSubscribeToSubbableMutationHashable } from "../lib/state/LinkedMap";
 
+// todo: use standard clip?
 export function getClipSizePx(clip: MidiClip | AudioClip, project: AudioProject) {
   const width =
     clip instanceof AudioClip
@@ -17,7 +17,7 @@ export function getClipSizePx(clip: MidiClip | AudioClip, project: AudioProject)
 }
 
 export function ClipInvalid({ clip, project }: { clip: MidiClip | AudioClip; project: AudioProject }) {
-  useSubscribeToSubbableMutationHashable(clip);
+  useContainer(clip);
   const { width, left } = getClipSizePx(clip, project);
 
   return (

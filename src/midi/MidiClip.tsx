@@ -65,7 +65,7 @@ export class MidiClip extends Structured<AutoMidiClip, typeof MidiClip> implemen
       init.string(auto.name),
       time(auto.startOffsetPulses, "pulses"),
       init.structured(auto.lengthPulses, TimelineT),
-      init.array<Note>(auto.notes as any), // todo: as any
+      init.array<Note>(auto.notes),
       init.structured(auto.viewport, MidiViewport),
       init.structured(auto.bufferTimelineStart, TimelineT),
     );

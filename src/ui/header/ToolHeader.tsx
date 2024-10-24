@@ -1,7 +1,6 @@
 import { useCallback, useRef } from "react";
 import { createUseStyles } from "react-jss";
-import { usePrimitive } from "structured-state";
-import { useSubscribeToSubbableMutationHashable } from "structured-state";
+import { useContainer, usePrimitive, useSubscribeToSubbableMutationHashable } from "structured-state";
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from "../../constants";
 import { documentCommands } from "../../input/documentCommands";
 import { AnalizedPlayer } from "../../lib/AnalizedPlayer";
@@ -156,7 +155,7 @@ export function ToolHeader({
 
   const dirty = appEnvironment.projectDirtyObserver.dirtyState() !== "clean";
   useSubscribeToSubbableMutationHashable(appEnvironment.projectDirtyObserver.flag, undefined, false);
-  useSubscribeToSubbableMutationHashable(project.allTracks, undefined, true);
+  useContainer(project.allTracks, true);
 
   return (
     <div className={classes.headerContainer}>

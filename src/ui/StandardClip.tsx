@@ -1,9 +1,8 @@
 import React, { useCallback, useRef } from "react";
 import { createUseStyles } from "react-jss";
-import { usePrimitive } from "structured-state";
+import { useContainer, usePrimitive } from "structured-state";
 import { appEnvironment } from "../lib/AppEnvironment";
 import type { AudioClip } from "../lib/AudioClip";
-import { useSubscribeToSubbableMutationHashable } from "../lib/state/LinkedMap";
 import { MidiClip } from "../midi/MidiClip";
 import { useEventListener } from "./useEventListener";
 
@@ -34,7 +33,7 @@ export function StandardClip({
   const headerRef = useRef<HTMLDivElement>(null);
   const [name] = usePrimitive(clip.name);
 
-  useSubscribeToSubbableMutationHashable(clip);
+  useContainer(clip);
 
   useEventListener("mousedown", headerRef, onMouseDownToMove);
 

@@ -6,7 +6,6 @@ import type { AudioClip } from "../lib/AudioClip";
 import type { AudioTrack } from "../lib/AudioTrack";
 import { ProjectTrack } from "../lib/ProjectTrack";
 import type { AudioProject, XScale } from "../lib/project/AudioProject";
-import { useSubscribeToSubbableMutationHashable } from "../lib/state/LinkedMap";
 import { exhaustive } from "../utils/exhaustive";
 import { StandardClip } from "./StandardClip";
 import { clipMouseDownToMove, clipMouseDownToResize } from "./clipMouse";
@@ -31,7 +30,7 @@ export function ClipA({
   const tStart = useContainer(clip.timelineStart);
   const tLen = useContainer(clip.timelineLength);
 
-  useSubscribeToSubbableMutationHashable(clip);
+  useContainer(clip);
 
   function onMouseDownToResize(e: React.MouseEvent<HTMLDivElement>, from: "start" | "end") {
     const tool = project.pointerTool.get();

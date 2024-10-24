@@ -1,10 +1,9 @@
 import { useCallback, useRef } from "react";
-import { usePrimitive } from "structured-state";
+import { useContainer, usePrimitive } from "structured-state";
 import { GPUWaveform } from "webgpu-waveform-react";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioProject } from "../lib/project/AudioProject";
-import { useSubscribeToSubbableMutationHashable } from "../lib/state/LinkedMap";
 import { pressedState } from "../pressedState";
 import { nullthrows } from "../utils/nullthrows";
 import { useEventListener } from "./useEventListener";
@@ -35,7 +34,7 @@ export function AudioClipBufferView({
   const [lockPlayback] = usePrimitive(clip.detailedViewport.lockPlayback);
   const waveformStartFr = Math.max(scrollLeftPx / pxPerSec, 0) * clip.sampleRate;
 
-  useSubscribeToSubbableMutationHashable(clip);
+  useContainer(clip);
 
   const offsetFrOfPlaybackPos = useCallback(
     (timelineSecs: number) => {

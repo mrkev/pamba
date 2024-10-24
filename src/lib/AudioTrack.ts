@@ -55,7 +55,7 @@ export class AudioTrack extends Structured<AutoAudioTrack, typeof AudioTrack> im
   }
 
   static of(name: string, clips: AudioClip[], effects: (FaustAudioEffect | PambaWamNode)[], height: number) {
-    return Structured.create(AudioTrack, string(name), arrayOf([AudioClip as any], clips), effects, number(height));
+    return Structured.create(AudioTrack, string(name), arrayOf([AudioClip], clips), effects, number(height));
   }
 
   override autoSimplify(): AutoAudioTrack {
@@ -81,7 +81,7 @@ export class AudioTrack extends Structured<AutoAudioTrack, typeof AudioTrack> im
     return Structured.create(
       AudioTrack,
       init.string(auto.name),
-      init.schemaArray(auto.clips, [AudioClip as any]),
+      init.schemaArray(auto.clips, [AudioClip]),
       // todo effects
       [],
       init.number(auto.height),
@@ -97,7 +97,7 @@ export class AudioTrack extends Structured<AutoAudioTrack, typeof AudioTrack> im
   }
 
   static empty() {
-    return Structured.create(AudioTrack, string("Audio"), arrayOf([AudioClip as any], []), [], number(CLIP_HEIGHT));
+    return Structured.create(AudioTrack, string("Audio"), arrayOf([AudioClip], []), [], number(CLIP_HEIGHT));
   }
 
   //////////// Playback ////////////

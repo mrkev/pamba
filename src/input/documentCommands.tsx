@@ -250,7 +250,7 @@ export const documentCommands = CommandBlock.create(["Project", "Edit", "Tools",
     }),
 
     // Other
-    escape: command(["Escape"], (_, project) => {
+    escape: command(["Escape"], (_, _project) => {
       const pressed = pressedState.get();
       if (pressed == null) {
         return;

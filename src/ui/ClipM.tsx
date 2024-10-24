@@ -1,7 +1,6 @@
 import React, { useCallback } from "react";
 import { useContainer } from "structured-state";
 import type { AudioProject } from "../lib/project/AudioProject";
-import { useSubscribeToSubbableMutationHashable } from "../lib/state/LinkedMap";
 import { MidiClip } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
 import { StandardClip } from "./StandardClip";
@@ -27,7 +26,7 @@ export function ClipM({
 
   // const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  useSubscribeToSubbableMutationHashable(clip);
+  useContainer(clip);
 
   const onMouseDownToResize = useCallback(
     (e: React.MouseEvent<HTMLDivElement>, from: "start" | "end") => {

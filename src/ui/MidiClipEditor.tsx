@@ -1,25 +1,24 @@
 import { useCallback, useEffect, useRef } from "react";
 import { createUseStyles } from "react-jss";
 import { history, useContainer, usePrimitive } from "structured-state";
+import { TOTAL_VERTICAL_NOTES } from "../constants";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import { AudioProject } from "../lib/project/AudioProject";
-import { useSubscribeToSubbableMutationHashable } from "../lib/state/LinkedMap";
+import { secsToPulses } from "../lib/project/TimelineT";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { MidiClip, setClipLength as setMidiClipLength } from "../midi/MidiClip";
+import { MidiTrack } from "../midi/MidiTrack";
 import { exhaustive } from "../utils/exhaustive";
 import { clamp } from "../utils/math";
 import { nullthrows } from "../utils/nullthrows";
 import { PPQN } from "../wam/pianorollme/MIDIConfiguration";
-import { TimelineTEditor } from "./TimelineTEditor";
+import { ClipPropsEditor } from "./ClipPropsEditor";
 import { NoteR } from "./NoteR";
 import { RenamableLabel } from "./RenamableLabel";
+import { TimelineTEditor } from "./TimelineTEditor";
 import { UtilityToggle } from "./UtilityToggle";
 import { useDrawOnCanvas } from "./useDrawOnCanvas";
 import { useEventListener } from "./useEventListener";
-import { ClipPropsEditor } from "./ClipPropsEditor";
-import { MidiTrack } from "../midi/MidiTrack";
-import { TOTAL_VERTICAL_NOTES } from "../constants";
-import { secsToPulses } from "../lib/project/TimelineT";
 
 const DEFAULT_NOTE_DURATION = 6;
 const CLIP_TOTAL_BARS = 4;
@@ -67,7 +66,7 @@ export function MidiClipEditor({
   const [bpm] = usePrimitive(project.tempo);
   const timelineLen = useContainer(clip.timelineLength);
 
-  useSubscribeToSubbableMutationHashable(clip);
+  useContainer(clip);
 
   const secsToPixels = useCallback(
     (secs: number, tempo: number) => {
