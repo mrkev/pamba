@@ -159,8 +159,8 @@ export async function serializable(
       loopStart: obj.loopStart.serialize(),
       loopEnd: obj.loopEnd.serialize(),
       loopOnPlayback: obj.loopOnPlayback.get(),
-      scaleFactor: obj.scaleFactor.get(),
-      viewportStartPx: obj.viewportStartPx.get(),
+      scaleFactor: obj.viewport.scaleFactor.get(),
+      viewportStartPx: obj.viewport.viewportStartPx.get(),
     };
   }
 

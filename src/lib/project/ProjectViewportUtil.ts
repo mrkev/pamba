@@ -1,15 +1,23 @@
+import { SNumber } from "structured-state";
 import { SECS_IN_MIN } from "../../constants";
 import { clamp, stepNumber } from "../../utils/math";
 import { PPQN } from "../../wam/pianorollme/MIDIConfiguration";
-import { LinkedState } from "../state/LinkedState";
 import { AudioProject } from "./AudioProject";
 import { pulsesToSec } from "./TimelineT";
 
 export class ProjectViewportUtil {
   readonly project: AudioProject;
-  readonly projectDivWidth = LinkedState.of(0);
 
-  constructor(project: AudioProject) {
+  constructor(
+    project: AudioProject,
+    readonly projectDivWidth: SNumber,
+
+    // the zoom level. min scale is 0.64, max is 1000.
+    // Px per second. Therefore, small = zoom out. big = zoom in.
+    readonly scaleFactor: SNumber,
+    // the "left" CSS position for the first second visible in the project div
+    readonly viewportStartPx: SNumber,
+  ) {
     this.project = project;
     (window as any).vp = this;
   }
@@ -21,12 +29,12 @@ export class ProjectViewportUtil {
   setScale(expectedNewScale: number, mouseX: number = 0) {
     // min scale is 0.64, max is 1000
     const newScale = clamp(0.64, expectedNewScale, 1000);
-    const currentScaleFactor = this.project.scaleFactor.get();
+    const currentScaleFactor = this.scaleFactor.get();
     const scaleFactorFactor = expectedNewScale / currentScaleFactor;
 
-    this.project.scaleFactor.set(newScale);
+    this.scaleFactor.set(newScale);
 
-    this.project.viewportStartPx.setDyn((prev) => {
+    this.viewportStartPx.setDyn((prev) => {
       const newStartPx = (prev + mouseX) * scaleFactorFactor - mouseX;
       if (newStartPx < 0) {
         return 0;
@@ -39,7 +47,7 @@ export class ProjectViewportUtil {
 
   secsToPx(s: number, factorOverride?: number) {
     // console.log("using factor", factorOverride, "instead of ", this.project.scaleFactor.get());
-    const factor = factorOverride ?? this.project.scaleFactor.get();
+    const factor = factorOverride ?? this.scaleFactor.get();
     return s * factor;
   }
 
@@ -49,7 +57,7 @@ export class ProjectViewportUtil {
   }
 
   pxToSecs(px: number, factorOverride?: number) {
-    const factor = factorOverride ?? this.project.scaleFactor.get();
+    const factor = factorOverride ?? this.scaleFactor.get();
     return px / factor;
   }
 
@@ -60,7 +68,7 @@ export class ProjectViewportUtil {
   }
 
   pxForTime(s: number): number {
-    const viewportStartPx = this.project.viewportStartPx.get();
+    const viewportStartPx = this.viewportStartPx.get();
     return this.secsToPx(s) - viewportStartPx;
   }
 
@@ -71,7 +79,7 @@ export class ProjectViewportUtil {
   }
 
   timeForPx(px: number): number {
-    const viewportStartPx = this.project.viewportStartPx.get();
+    const viewportStartPx = this.viewportStartPx.get();
     return this.pxToSecs(px + viewportStartPx);
   }
 

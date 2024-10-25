@@ -82,11 +82,6 @@ export class AudioProject {
   readonly secondarySelection = LinkedState.of<PanelSelectionState | null>(null);
   readonly activePanel = LinkedState.of<Panel>("primary");
 
-  // the zoom level. min scale is 0.64, max is 1000.
-  // Px per second. Therefore, small = zoom out. big = zoom in.
-  readonly scaleFactor: LinkedState<number>;
-  // the "left" CSS position for the first second visible in the project div
-  readonly viewportStartPx: LinkedState<number>;
   // 1 sec corresponds to 10 px
   readonly secsToPx: DerivedState<(factor: number) => XScale>;
   // factor 2: 1sec => 2px
@@ -109,20 +104,18 @@ export class AudioProject {
     scaleFactor: number,
     viewportStartPx: number,
   ) {
-    this.viewport = new ProjectViewport(this);
+    this.viewport = new ProjectViewport(this, number(0), number(scaleFactor), number(viewportStartPx));
     this.loopStart = loopStart;
     this.loopEnd = loopEnd;
-    this.scaleFactor = LinkedState.of(scaleFactor);
-    this.viewportStartPx = LinkedState.of(viewportStartPx);
     this.secsToPx = DerivedState.from(
-      [this.scaleFactor],
+      [this.viewport.scaleFactor],
       (factor: number) =>
         scaleLinear()
           .domain([0, 1])
           .range([0, 1 * factor]) as XScale,
     );
     this.secsToViewportPx = DerivedState.from(
-      [this.scaleFactor, this.viewportStartPx],
+      [this.viewport.scaleFactor, this.viewport.viewportStartPx],
       (factor: number, startPx: number) =>
         scaleLinear()
           .domain([0, 1])

@@ -1,9 +1,8 @@
 import React from "react";
 import { createUseStyles } from "react-jss";
 import { usePrimitive } from "structured-state";
-import { AudioProject, AxisMeasure } from "../lib/project/AudioProject";
-import { useLinkedState } from "../lib/state/LinkedState";
 import { SECS_IN_MIN } from "../constants";
+import { AudioProject, AxisMeasure } from "../lib/project/AudioProject";
 
 const formatter = new Intl.NumberFormat("en-US", {
   useGrouping: false,
@@ -128,12 +127,13 @@ function getBeatTickData(
 
 export function Axis({ project, isHeader = false }: { project: AudioProject; isHeader?: boolean }) {
   const styles = useStyles();
-  const [viewportStartPx] = useLinkedState(project.viewportStartPx);
-  const [projectDivWidth] = useLinkedState(project.viewport.projectDivWidth);
+  const [viewportStartPx] = usePrimitive(project.viewport.viewportStartPx);
+  const [projectDivWidth] = usePrimitive(project.viewport.projectDivWidth);
   const [tempo] = usePrimitive(project.tempo);
   const [timeSignature] = usePrimitive(project.timeSignature);
   const [primaryAxis] = usePrimitive(project.primaryAxis);
-  const [_] = useLinkedState(project.scaleFactor); // for updating when changing scale
+  // for updating when changing scale
+  usePrimitive(project.viewport.scaleFactor);
 
   const timeTicksS = getTimeTickData(project, viewportStartPx, projectDivWidth);
   const tempoTicks = getBeatTickData(project, viewportStartPx, projectDivWidth, tempo);

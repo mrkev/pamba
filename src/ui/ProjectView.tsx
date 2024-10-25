@@ -8,7 +8,7 @@ import { AudioRenderer } from "../lib/AudioRenderer";
 import { AudioProject } from "../lib/project/AudioProject";
 import { AudioStorage } from "../lib/project/AudioStorage";
 import { useDerivedState } from "../lib/state/DerivedState";
-import { useLinkedState } from "../lib/state/LinkedState";
+import { pressedState } from "../pressedState";
 import { nullthrows } from "../utils/nullthrows";
 import { Axis } from "./Axis";
 import { getTrackAcceptableDataTransferResources } from "./dragdrop/getTrackAcceptableDataTransferResources";
@@ -16,7 +16,6 @@ import { handleDropOntoTimeline } from "./dragdrop/resourceDrop";
 import { TimelineCursor } from "./TimelineCursor";
 import { TrackS } from "./TrackS";
 import { useEventListener } from "./useEventListener";
-import { pressedState } from "../pressedState";
 
 export async function getDroppedAudioURL(audioStorage: AudioStorage | null, dataTransfer: DataTransfer) {
   if (audioStorage == null) {
@@ -53,7 +52,7 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
   const dspExpandedTracks = useContainer(project.dspExpandedTracks);
   const [draggingOver, setDraggingOver] = useState<boolean>(false);
   const [audioStorage] = usePrimitive(project.audioStorage);
-  const [viewportStartPx] = useLinkedState(project.viewportStartPx);
+  const [viewportStartPx] = usePrimitive(project.viewport.viewportStartPx);
   const tracks = useContainer(project.allTracks);
   const playbackPosDiv = useRef<null | HTMLDivElement>(null);
   const secsToPx = useDerivedState(project.secsToPx);
@@ -97,7 +96,7 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
         // pinch
         if (e.ctrlKey) {
           const sDelta = Math.exp(-e.deltaY / 100);
-          const expectedNewScale = project.scaleFactor.get() * sDelta;
+          const expectedNewScale = project.viewport.scaleFactor.get() * sDelta;
           project.viewport.setScale(expectedNewScale, mouseX);
           e.preventDefault();
           e.stopPropagation();
@@ -105,13 +104,13 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
 
         // pan
         else {
-          const start = Math.max(project.viewportStartPx.get() + e.deltaX, 0);
+          const start = Math.max(project.viewport.viewportStartPx.get() + e.deltaX, 0);
           flushSync(() => {
-            project.viewportStartPx.set(start);
+            project.viewport.viewportStartPx.set(start);
           });
         }
       },
-      [project.scaleFactor, project.viewport, project.viewportStartPx],
+      [project.viewport],
     ),
     { capture: false },
   );

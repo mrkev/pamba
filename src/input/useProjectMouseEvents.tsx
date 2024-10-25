@@ -24,7 +24,7 @@ import { exhaustive } from "../utils/exhaustive";
 import { clamp } from "../utils/math";
 
 export function timelineSecs(e: MouseEvent, projectDiv: HTMLDivElement, project: AudioProject) {
-  const viewportStartPx = project.viewportStartPx.get();
+  const viewportStartPx = project.viewport.viewportStartPx.get();
   const position = {
     x: e.clientX + projectDiv.scrollLeft - projectDiv.getBoundingClientRect().x,
     y: e.clientY + projectDiv.scrollTop - projectDiv.getBoundingClientRect().y,
@@ -55,7 +55,7 @@ export function useAxisContainerMouseEvents(
           return;
         }
 
-        const viewportStartPx = project.viewportStartPx.get();
+        const viewportStartPx = project.viewport.viewportStartPx.get();
         const position = {
           x: e.clientX + div.scrollLeft - div.getBoundingClientRect().x,
           y: e.clientY + div.scrollTop - div.getBoundingClientRect().y,

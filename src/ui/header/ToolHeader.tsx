@@ -100,7 +100,7 @@ export function PlaybeatTime({ project, player }: { project: AudioProject; playe
 }
 
 function ScaleFactorSlider({ project }: { project: AudioProject }) {
-  const [scaleFactor] = useLinkedState(project.scaleFactor);
+  const [scaleFactor] = usePrimitive(project.viewport.scaleFactor);
 
   return (
     <input
@@ -112,7 +112,7 @@ function ScaleFactorSlider({ project }: { project: AudioProject }) {
       title="Zoom level"
       onChange={(e) => {
         const cursorPosSecs = project.cursorPos.get();
-        const cursorPosPx = project.secsToPx.get()(cursorPosSecs) - project.viewportStartPx.get();
+        const cursorPosPx = project.secsToPx.get()(cursorPosSecs) - project.viewport.viewportStartPx.get();
         const projectDivWidth = project.viewport.projectDivWidth.get();
         const expectedNewScale = Math.exp(parseFloat(e.target.value));
 

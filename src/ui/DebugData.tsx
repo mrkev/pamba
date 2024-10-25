@@ -4,9 +4,8 @@ import { ProjectTrack } from "../lib/ProjectTrack";
 import { AudioProject } from "../lib/project/AudioProject";
 import { PrimarySelectionState } from "../lib/project/SelectionState";
 import { useLinkedState } from "../lib/state/LinkedState";
-import { CursorState, pressedState } from "../pressedState";
+import { pressedState } from "../pressedState";
 import { exhaustive } from "../utils/exhaustive";
-import { useLocalStorage } from "./useLocalStorage";
 
 export function stringOfSelected(sel: PrimarySelectionState | null): string {
   if (!sel) {
@@ -56,8 +55,8 @@ export function DebugContent({ project }: { project: AudioProject }) {
   const [pressed] = usePrimitive(pressedState);
   const [activeTrack] = usePrimitive(project.activeTrack);
   const cursorTracks = useContainer(project.cursorTracks);
-  const [viewportStartPx] = useLinkedState(project.viewportStartPx);
-  const [projectDivWidth] = useLinkedState(project.viewport.projectDivWidth);
+  const [viewportStartPx] = usePrimitive(project.viewport.viewportStartPx);
+  const [projectDivWidth] = usePrimitive(project.viewport.projectDivWidth);
 
   if (window.location.host.indexOf("localhost") === -1) {
     return null;

@@ -38,7 +38,8 @@ export const documentCommands = CommandBlock.create(["Project", "Edit", "Tools",
     })
       .helptext("Undo", "Note: EXPERIMENTAL!")
       .section("Project"),
-    redo: command(["KeyZ", "meta"], (e) => {
+
+    redo: command(["KeyZ", "shift", "meta"], (e) => {
       performance.mark("redo-start");
       history.redo();
       performance.mark("redo-end");

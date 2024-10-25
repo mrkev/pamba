@@ -1,6 +1,7 @@
 import classNames from "classnames";
 import { useRef } from "react";
 import { createUseStyles } from "react-jss";
+import { usePrimitive } from "structured-state";
 import { documentCommands } from "../input/documentCommands";
 import { useAxisContainerMouseEvents } from "../input/useProjectMouseEvents";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
@@ -25,7 +26,7 @@ export function TimelineView({
 }) {
   const classes = useStyles();
   const axisContainerRef = useRef<HTMLDivElement | null>(null);
-  const [viewportStartPx] = useLinkedState(project.viewportStartPx);
+  const [viewportStartPx] = usePrimitive(project.viewport.viewportStartPx);
   const [activePanel] = useLinkedState(project.activePanel);
 
   useAxisContainerMouseEvents(project, axisContainerRef);
