@@ -184,11 +184,7 @@ export function Library({
               break;
             case "project": {
               // TODO: can't even be dragged right now
-              ev.dataTransfer.setData("application/pamba.project", item.data.id);
-              pressedState.set({
-                status: "dragging_transferable",
-                kind: "application/pamba.project",
-              });
+              transferObject(ev.dataTransfer, item.data);
               break;
             }
             case "wam": {
@@ -200,11 +196,7 @@ export function Library({
               break;
             }
             case "fausteffect": {
-              ev.dataTransfer.setData("application/pamba.fausteffect", item.data.id);
-              pressedState.set({
-                status: "dragging_transferable",
-                kind: "application/pamba.fausteffect",
-              });
+              transferObject(ev.dataTransfer, item.data);
               break;
             }
             default:

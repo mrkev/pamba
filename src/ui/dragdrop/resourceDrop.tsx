@@ -74,6 +74,8 @@ export async function handleDropOntoAudioTrack(
       break;
     case "audioclipinstance":
       throw new Error("TODO: unimplemented");
+    case "project":
+      throw new Error(`Can't transfer ${resource.kind} onto audio track`);
     default:
       exhaustive(resource);
   }
@@ -114,6 +116,7 @@ export async function handleDropOntoMidiTrack(
       track.dsp.addEffect(effectInstance, "last");
       break;
     case "audioclipinstance":
+    case "project":
       throw new Error(`Can't transfer ${resource.kind} onto MidiTrack`);
     default:
       exhaustive(resource);
@@ -167,6 +170,8 @@ export async function handleDropOntoTimelineWhitespace(resources: TransferableRe
         throw new Error("effectinstance, not implemented");
       case "audioclipinstance":
         throw new Error("TODO: create a new track with clip?");
+      case "project":
+        throw new Error(`Can't transfer ${resource.kind} onto timeline whitespace`);
       default:
         exhaustive(resource);
     }
@@ -209,6 +214,7 @@ export async function handleDropOntoEffectRack(
     case "audioclipinstance":
     case "AudioPackage.local":
     case "audio":
+    case "project":
       throw new Error(`Can't transfer ${resource.kind} onto EffectRack`);
     default:
       exhaustive(resource);
@@ -242,6 +248,7 @@ export async function handleDropOntoTrackHeaderContainer(
     case "effectinstance":
     case "AudioPackage.local":
     case "audio":
+    case "project":
       throw new Error(`Can't transfer ${resource.kind} onto track header`);
     default:
       exhaustive(resource);

@@ -16,6 +16,7 @@ export type PambaDataTransferResourceKind =
   | "application/pamba.trackinstance"
   | "application/pamba.audioclipinstance";
 
+export type ProjectLibraryItem = Extract<LibraryItem, { kind: "project" }>;
 export type AudioLibraryItem = Extract<LibraryItem, { kind: "audio" }>;
 export type FaustEffectLibraryItem = Extract<LibraryItem, { kind: "fausteffect" }>;
 export type EffectInstanceTransferResource = { kind: "effectinstance"; trackIndex: number; effectIndex: number };
@@ -27,6 +28,7 @@ export type TransferableResource =
   | WAMAvailablePlugin
   | AudioLibraryItem
   | FaustEffectLibraryItem
+  | ProjectLibraryItem
   // todo: in some future, change for an effect instance uuid. it's safer and works
   // if the memory state changes while the drag is happening for some reason
   | EffectInstanceTransferResource
@@ -102,7 +104,7 @@ export async function getTrackAcceptableDataTransferResources(
   data = dataTransfer.getData("application/pamba.rawaudio");
   if (data !== "") {
     // for raw audio, data is the library item, which includes url and audio. we just return it
-    const json = JSON.parse(data) as Extract<LibraryItem, { kind: "audio" }>;
+    const json = JSON.parse(data) as AudioLibraryItem;
     resultingResources.push(json);
     handledInternalFormat = true;
   }
@@ -123,9 +125,10 @@ export async function getTrackAcceptableDataTransferResources(
   // Internal Faust Effect
   data = dataTransfer.getData("application/pamba.fausteffect");
   if (data != "") {
-    // for faust effects, data is the effect id
-    const id = data;
-    resultingResources.push({ kind: "fausteffect", id: validateFaustEffectId(id) });
+    // for faust effects, data is the a library fausteffect object
+    const fausteffect = JSON.parse(data) as FaustEffectLibraryItem;
+    validateFaustEffectId(fausteffect.id);
+    resultingResources.push(fausteffect);
     // TODO:
     handledInternalFormat = true;
   }
@@ -135,7 +138,7 @@ export async function getTrackAcceptableDataTransferResources(
   if (data != "") {
     // this is an already-initialized faust or wam effect, data is a json object
     // telling us the track index and the effect index where the effect currently can be found
-    const locator = JSON.parse(data) as Extract<TransferableResource, { kind: "effectinstance" }>;
+    const locator = JSON.parse(data) as EffectInstanceTransferResource;
     resultingResources.push(locator);
     // TODO:
     handledInternalFormat = true;
@@ -145,10 +148,10 @@ export async function getTrackAcceptableDataTransferResources(
   // Internal Project
   data = dataTransfer.getData("application/pamba.project");
   if (data != "") {
-    // for projects, data is the project id
-    const id = data;
+    // for projects, data is a library project id object
+    const libproj = JSON.parse(data) as ProjectLibraryItem;
     // TODO: what do we do when a project is dragged onto a track?
-    console.warn("unimplemented: loading project, id", id);
+    console.warn("unimplemented: loading project, id", libproj.id);
     handledInternalFormat = true;
   }
 

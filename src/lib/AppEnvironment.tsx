@@ -14,7 +14,6 @@ import { LocalSPrimitive } from "../ui/useLocalStorage";
 import { WAMImport, fetchWam } from "../wam/wam";
 import { AnalizedPlayer } from "./AnalizedPlayer";
 import { AudioRenderer } from "./AudioRenderer";
-import { ProjectPersistance } from "./ProjectPersistance";
 import { initAudioContext } from "./initAudioContext";
 import { AudioProject } from "./project/AudioProject";
 import { LinkedMap } from "./state/LinkedMap";

@@ -4,6 +4,8 @@ import {
   AudioClipInstanceTransferResource,
   AudioLibraryItem,
   EffectInstanceTransferResource,
+  FaustEffectLibraryItem,
+  ProjectLibraryItem,
   TrackInstanceTransferResource,
   TransferableResource,
 } from "./getTrackAcceptableDataTransferResources";
@@ -14,6 +16,8 @@ function formatOfResource(resource: TransferableResource) {
     case "WAMAvailablePlugin":
     case "fausteffect":
       throw new Error("lol unimplemented. these are just strings");
+    case "project":
+      return "application/pamba.project";
     case "audio":
       return "application/pamba.rawaudio";
     case "effectinstance":
@@ -33,7 +37,9 @@ export function transferObject(
     | EffectInstanceTransferResource
     | TrackInstanceTransferResource
     | AudioClipInstanceTransferResource
-    | AudioLibraryItem,
+    | AudioLibraryItem
+    | FaustEffectLibraryItem
+    | ProjectLibraryItem,
 ): void {
   const format = formatOfResource(data);
   dataTransfer.setData(format, JSON.stringify(data));
