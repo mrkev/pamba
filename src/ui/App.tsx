@@ -65,15 +65,21 @@ export function App(): React.ReactElement {
           <li>
             <b>While on alpha, updates might break or delete files.</b>
           </li>
-          <li>Pinch to zoom</li>
+          <li>Navigation is very trackpad-based: panning, pinch to zoom, etc.</li>
+          <li>Drag-drop is widely supported.</li>
         </ul>
         ## Known Bugs
         <ul style={{ listStyleType: "'- '", width: "56ch", whiteSpace: "normal", paddingInlineStart: "2ch" }}>
-          <li>Undo is pretty broken.</li>
+          <li>Not all actions can be undone.</li>
           <li>Ocassionaly, clicking clips appends-to instead of replacing selection.</li>
-          <li>Moving a clip to a locked track deletes the clip.</li>
-          <li>Moving clips to different tracks locks them in that track.</li>
-          <li>Opening projects might cause ticks in the timeline disappear.</li>
+          <li>Effects added during playback are applied on next playback, or might not be applied at all.</li>
+          <li>
+            Moving clips across tracks is buggy:
+            <ul>
+              <li>Moving clips to a locked track deletes the clip.</li>
+              <li>Moving clips across tracks might prevent them from being moved back.</li>
+            </ul>
+          </li>
           <li>
             Found any others?{" "}
             <a href="https://github.com/mrkev/web-daw-issues/issues" style={{ color: "white" }}>
@@ -81,7 +87,6 @@ export function App(): React.ReactElement {
             </a>
             .
           </li>
-          <li>Effects added during playback are applied on next playback, or might not be applied at all.</li>
         </ul>
         ## Get in Touch
         <p style={{ width: "56ch", whiteSpace: "normal" }}>

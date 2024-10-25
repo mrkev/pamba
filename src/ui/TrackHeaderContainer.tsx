@@ -11,7 +11,7 @@ import { TrackHeader, TrackHeaderSeparator } from "./TrackHeader";
 import { trackHeaderContainerCanHandleTransfer } from "./dragdrop/canHandleTransfer";
 import { getTrackHeaderContainerAcceptableDataTransferResources } from "./dragdrop/getTrackAcceptableDataTransferResources";
 import { handleDropOntoTrackHeaderContainer } from "./dragdrop/resourceDrop";
-import { transferTrackInstance } from "./dragdrop/setTransferData";
+import { transferObject } from "./dragdrop/setTransferData";
 import { useDropzoneBehaviour } from "./dragdrop/useDropzoneBehaviour";
 import { utility } from "./utility";
 
@@ -89,7 +89,7 @@ export function TrackHeaderContainer({ project, player }: { project: AudioProjec
           if (trackIndex < 0) {
             throw new Error("track not found in project");
           }
-          transferTrackInstance(e.dataTransfer, {
+          transferObject(e.dataTransfer, {
             kind: "trackinstance",
             trackIndex,
           });

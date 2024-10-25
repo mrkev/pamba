@@ -12,7 +12,7 @@ import { pressedState } from "../pressedState";
 import { nullthrows } from "../utils/nullthrows";
 import { Axis } from "./Axis";
 import { getTrackAcceptableDataTransferResources } from "./dragdrop/getTrackAcceptableDataTransferResources";
-import { handleDropOntoTimeline } from "./dragdrop/resourceDrop";
+import { handleDropOntoTimelineWhitespace } from "./dragdrop/resourceDrop";
 import { TimelineCursor } from "./TimelineCursor";
 import { TrackS } from "./TrackS";
 import { useEventListener } from "./useEventListener";
@@ -151,7 +151,7 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
         nullthrows(audioStorage, "error: audio storage not available"),
       );
 
-      await handleDropOntoTimeline(resources, project);
+      await handleDropOntoTimelineWhitespace(resources, project);
 
       // const url = await getDroppedAudioURL(audioStorage, ev.dataTransfer);
 

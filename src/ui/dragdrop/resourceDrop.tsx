@@ -72,6 +72,8 @@ export async function handleDropOntoAudioTrack(
       // insert where appropriate
       track.dsp.addEffect(effectInstance, "last");
       break;
+    case "audioclipinstance":
+      throw new Error("TODO: unimplemented");
     default:
       exhaustive(resource);
   }
@@ -111,12 +113,14 @@ export async function handleDropOntoMidiTrack(
       // insert where appropriate
       track.dsp.addEffect(effectInstance, "last");
       break;
+    case "audioclipinstance":
+      throw new Error(`Can't transfer ${resource.kind} onto MidiTrack`);
     default:
       exhaustive(resource);
   }
 }
 
-export async function handleDropOntoTimeline(resources: TransferableResource[], project: AudioProject) {
+export async function handleDropOntoTimelineWhitespace(resources: TransferableResource[], project: AudioProject) {
   for (const resource of resources) {
     switch (resource.kind) {
       case "trackinstance":
@@ -161,6 +165,8 @@ export async function handleDropOntoTimeline(resources: TransferableResource[], 
         break;
       case "effectinstance":
         throw new Error("effectinstance, not implemented");
+      case "audioclipinstance":
+        throw new Error("TODO: create a new track with clip?");
       default:
         exhaustive(resource);
     }
@@ -200,10 +206,10 @@ export async function handleDropOntoEffectRack(
     }
 
     // Shouldn't happen, cause resources are those returned by getRackAcceptableDataTransferResources
+    case "audioclipinstance":
     case "AudioPackage.local":
-      throw new Error("Can't transfer AudioPackage.local onto EffectRack");
     case "audio":
-      throw new Error("Can't transfer audio onto EffectRack");
+      throw new Error(`Can't transfer ${resource.kind} onto EffectRack`);
     default:
       exhaustive(resource);
   }
@@ -221,6 +227,7 @@ export async function handleDropOntoTrackHeaderContainer(
         `no track at index ${resource.trackIndex}`,
       );
 
+      // reorder track //
       // remove track from project
       project.allTracks.splice(resource.trackIndex, 1);
       // insert where appropriate
@@ -228,7 +235,8 @@ export async function handleDropOntoTrackHeaderContainer(
 
       break;
     }
-
+    case "audioclipinstance":
+    // todo: could create a new track with clip?
     case "WAMAvailablePlugin":
     case "fausteffect":
     case "effectinstance":

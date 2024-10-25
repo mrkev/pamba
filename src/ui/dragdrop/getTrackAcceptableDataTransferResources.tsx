@@ -11,11 +11,16 @@ export type PambaDataTransferResourceKind =
   | "application/pamba.rawaudio"
   | "application/pamba.wam"
   | "application/pamba.fausteffect"
+  // instances of constructed objects
   | "application/pamba.effectinstance"
-  | "application/pamba.trackinstance";
+  | "application/pamba.trackinstance"
+  | "application/pamba.audioclipinstance";
 
+export type AudioLibraryItem = Extract<LibraryItem, { kind: "audio" }>;
+export type FaustEffectLibraryItem = Extract<LibraryItem, { kind: "fausteffect" }>;
 export type EffectInstanceTransferResource = { kind: "effectinstance"; trackIndex: number; effectIndex: number };
 export type TrackInstanceTransferResource = { kind: "trackinstance"; trackIndex: number };
+export type AudioClipInstanceTransferResource = { kind: "audioclipinstance"; todo: number };
 
 export type TransferableResource =
   | AudioPackage
@@ -26,7 +31,8 @@ export type TransferableResource =
   // if the memory state changes while the drag is happening for some reason
   | EffectInstanceTransferResource
   // todo: same as above, in some future change for a uuid
-  | TrackInstanceTransferResource;
+  | TrackInstanceTransferResource
+  | AudioClipInstanceTransferResource;
 
 export async function getRackAcceptableDataTransferResources(
   dataTransfer: DataTransfer,
@@ -37,9 +43,6 @@ export async function getRackAcceptableDataTransferResources(
       resource.kind === "WAMAvailablePlugin" || resource.kind === "fausteffect" || resource.kind === "effectinstance",
   );
 }
-
-export type AudioLibraryItem = Extract<LibraryItem, { kind: "audio" }>;
-export type FaustEffectLibraryItem = Extract<LibraryItem, { kind: "fausteffect" }>;
 
 export async function getTrackHeaderContainerAcceptableDataTransferResources(dataTransfer: DataTransfer) {
   const resultingResources: TransferableResource[] = [];

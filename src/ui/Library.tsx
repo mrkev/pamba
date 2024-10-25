@@ -22,6 +22,7 @@ import { nullthrows } from "../utils/nullthrows";
 import { doConfirm } from "./ConfirmDialog";
 import { UploadAudioButton } from "./UploadAudioButton";
 import { ListEntry, UtilityDataList } from "./UtilityList";
+import { transferObject } from "./dragdrop/setTransferData";
 import { closeProject } from "./header/ToolHeader";
 
 const STATIC_AUDIO_FILES = ["drums.mp3", "clav.mp3", "bassguitar.mp3", "horns.mp3", "leadguitar.mp3"];
@@ -173,17 +174,13 @@ export function Library({
 
           switch (item.data.kind) {
             case "audio":
-              ev.dataTransfer.setData("application/pamba.rawaudio", JSON.stringify(item.data));
               // ev.dataTransfer.setData("text/uri-list", item.data.url);
               // ev.dataTransfer.setData("text/plain", item.data.url);
               // TODO: add files, so they show up when we drag out of the application
               // NOTE: internally if we handle an application/pamba.* data item we will skip handling files too,
               // so this is no problem and we won't get double audio drops on the track or anything like that
               // ev.dataTransfer.items.add()
-              pressedState.set({
-                status: "dragging_transferable",
-                kind: "application/pamba.rawaudio",
-              });
+              transferObject(ev.dataTransfer, item.data);
               break;
             case "project": {
               // TODO: can't even be dragged right now

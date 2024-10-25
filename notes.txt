@@ -8,7 +8,9 @@ x reorder effects
 x dirty state for project
 x right-click messes up dragging state
 
+
 top prio:
+- move clips using drag data, which will allow it to move to the library too, outside the browser
 - bounce to track
 - drag clip to outside browser?
 

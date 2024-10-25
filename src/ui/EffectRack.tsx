@@ -18,7 +18,7 @@ import { Effect } from "./Effect";
 import { effectRackCanHandleTransfer } from "./dragdrop/canHandleTransfer";
 import { getRackAcceptableDataTransferResources } from "./dragdrop/getTrackAcceptableDataTransferResources";
 import { handleDropOntoEffectRack } from "./dragdrop/resourceDrop";
-import { transferEffectInstance } from "./dragdrop/setTransferData";
+import { transferObject } from "./dragdrop/setTransferData";
 import { useDropzoneBehaviour } from "./dragdrop/useDropzoneBehaviour";
 import { useEventListener } from "./useEventListener";
 
@@ -124,7 +124,7 @@ export const EffectRack = React.memo(function EffectRack({
       if (trackIndex < 0) {
         throw new Error("track not found in project");
       }
-      transferEffectInstance(ev.dataTransfer, {
+      transferObject(ev.dataTransfer, {
         kind: "effectinstance",
         trackIndex,
         effectIndex,
