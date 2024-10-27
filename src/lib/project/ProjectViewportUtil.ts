@@ -3,7 +3,7 @@ import { SECS_IN_MIN } from "../../constants";
 import { clamp, stepNumber } from "../../utils/math";
 import { PPQN } from "../../wam/pianorollme/MIDIConfiguration";
 import { AudioProject } from "./AudioProject";
-import { pulsesToSec } from "./TimelineT";
+import { pulsesToSec, TimelineT } from "./TimelineT";
 
 export class ProjectViewportUtil {
   readonly project: AudioProject;
@@ -33,17 +33,34 @@ export class ProjectViewportUtil {
     const scaleFactorFactor = expectedNewScale / currentScaleFactor;
 
     this.scaleFactor.set(newScale);
+    const newStartPx = (this.viewportStartPx.get() + mouseX) * scaleFactorFactor - mouseX;
+    if (newStartPx < 0) {
+      this.viewportStartPx.set(0);
+    } else {
+      this.viewportStartPx.set(newStartPx);
+    }
 
-    this.viewportStartPx.setDyn((prev) => {
-      const newStartPx = (prev + mouseX) * scaleFactorFactor - mouseX;
-      if (newStartPx < 0) {
-        return 0;
-      }
-      return newStartPx;
-    });
+    // this.viewportStartPx.setDyn((prev) => {
+    //   const newStartPx = (prev + mouseX) * scaleFactorFactor - mouseX;
+    //   if (newStartPx < 0) {
+    //     return 0;
+    //   }
+    //   return newStartPx;
+    // });
   }
 
   // Conversions
+
+  pxOfTime(p: TimelineT) {
+    switch (p.u) {
+      case "bars":
+        throw new Error("UNSUPPORTED");
+      case "pulses":
+        return this.pulsesToPx(p.ensurePulses());
+      case "seconds":
+        return this.secsToPx(p.ensureSecs());
+    }
+  }
 
   secsToPx(s: number, factorOverride?: number) {
     // console.log("using factor", factorOverride, "instead of ", this.project.scaleFactor.get());

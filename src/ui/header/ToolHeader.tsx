@@ -1,7 +1,7 @@
 import { useCallback, useRef } from "react";
 import { createUseStyles } from "react-jss";
 import { getGlobalState, useContainer, usePrimitive, useSubscribeToSubbableMutationHashable } from "structured-state";
-import { CANVAS_HEIGHT, CANVAS_WIDTH } from "../../constants";
+import { CANVAS_HEIGHT, CANVAS_WIDTH, MAX_TIMELINE_SCALE, MIN_TIMELINE_SCALE } from "../../constants";
 import { documentCommands } from "../../input/documentCommands";
 import { AnalizedPlayer } from "../../lib/AnalizedPlayer";
 import { appEnvironment } from "../../lib/AppEnvironment";
@@ -88,8 +88,8 @@ function ScaleFactorSlider({ project }: { project: AudioProject }) {
   return (
     <input
       type="range"
-      min={Math.log(0.64)}
-      max={Math.log(1000)}
+      min={Math.log(MIN_TIMELINE_SCALE)}
+      max={Math.log(MAX_TIMELINE_SCALE)}
       step={0.01}
       value={Math.log(scaleFactor)}
       title="Zoom level"

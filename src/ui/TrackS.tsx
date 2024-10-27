@@ -126,7 +126,7 @@ export function TrackS({
 
           if (track instanceof AudioTrack && clip instanceof AudioClip) {
             return (
-              <ClipA editable={!locked} key={i} clip={clip} isSelected={isSelected} track={track} project={project} />
+              <ClipA key={i} editable={!locked} clip={clip} isSelected={isSelected} track={track} project={project} />
             );
           }
 

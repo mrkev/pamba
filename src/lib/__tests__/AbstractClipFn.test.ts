@@ -13,10 +13,11 @@ import {
   splitClip,
 } from "../AbstractClip";
 import { AudioClip } from "../AudioClip";
+import { SharedAudioBuffer } from "../SharedAudioBuffer";
 
 function bclip(startOffset: number, endOffset: number) {
   const buffer = new AudioBuffer({ length: 44100 * 15, sampleRate: 44100 });
-  return AudioClip.fromBuffer(buffer, "url", "foo", {
+  return AudioClip.fromBuffer(new SharedAudioBuffer(buffer), "url", "foo", {
     bufferOffset: 0,
     timelineStartSec: startOffset,
     clipLengthSec: endOffset - startOffset,

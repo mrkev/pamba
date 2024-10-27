@@ -20,3 +20,7 @@ export function returnClosest(num: number, option1: number, ...options: number[]
   }
   return option;
 }
+
+export function relu(num: number) {
+  return Math.max(0, num);
+}

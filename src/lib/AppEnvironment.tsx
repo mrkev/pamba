@@ -8,6 +8,7 @@ import { ProjectPackage } from "../data/ProjectPackage";
 import { LocalFilesystem } from "../data/localFilesystem";
 import type { DSPStep } from "../dsp/DSPNode";
 import { FAUST_EFFECTS } from "../dsp/FAUST_EFFECTS";
+import { ensureError } from "../ensureError";
 import { initFirebaseApp } from "../firebase/firebaseConfig";
 import type { MidiInstrument } from "../midi/MidiInstrument";
 import { LocalSPrimitive } from "../ui/useLocalStorage";
@@ -63,6 +64,10 @@ export class AppEnvironment {
   // System
   renderer: AudioRenderer = null as any; // TODO: do this in a way that avoids the null?
 
+  readonly webgpu = SPrimitive.of<
+    { status: "ok"; adapter: GPUAdapter; device: GPUDevice } | { status: "pending" } | { status: "error"; error: Error }
+  >({ status: "pending" });
+
   constructor() {
     console.log("app environment init");
     if (FIREBASE_ENABLED) {
@@ -98,6 +103,25 @@ export class AppEnvironment {
   async initAsync(liveAudioContext: AudioContext) {
     console.log("app environment asnyc init");
     const [audioContextInfo] = await Promise.all([initAudioContext(liveAudioContext)]);
+
+    try {
+      if (!navigator.gpu) {
+        throw new Error("WebGPU not supported in this browser.");
+      }
+
+      const adapter = await navigator.gpu.requestAdapter();
+      if (adapter == null) {
+        throw new Error("No appropriate GPUAdapter found.");
+      }
+
+      const device = await adapter.requestDevice({
+        label: `Device ${new Date().getTime()}`,
+      });
+
+      this.webgpu.set({ status: "ok", adapter, device });
+    } catch (e) {
+      this.webgpu.set({ status: "error", error: ensureError(e) });
+    }
 
     // Init wam host
     this.wamHostGroup.set(audioContextInfo.wamHostGroup);

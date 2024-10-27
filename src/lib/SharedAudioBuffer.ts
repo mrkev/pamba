@@ -1,8 +1,11 @@
+import { GPUWaveformRenderer } from "webgpu-waveform";
 import { nullthrows } from "../utils/nullthrows";
+import { appEnvironment } from "./AppEnvironment";
 
 /**
- * The exact same as an AudioBuffer, but uses `SharedArrayBuffer`s to store
+ * Similar to an AudioBuffer, but uses `SharedArrayBuffer`s to store
  * channel data.
+ * Also includes rendering mechanism.
  */
 export class SharedAudioBuffer implements AudioBuffer {
   channels: SharedArrayBuffer[] = [];
@@ -10,6 +13,7 @@ export class SharedAudioBuffer implements AudioBuffer {
   readonly duration: number;
   readonly numberOfChannels: number;
   readonly sampleRate: number;
+  readonly renderer: GPUWaveformRenderer;
 
   constructor(audioBuffer: AudioBuffer) {
     for (let c = 0; c < audioBuffer.numberOfChannels; c++) {
@@ -21,6 +25,12 @@ export class SharedAudioBuffer implements AudioBuffer {
       this.channels.push(sab);
     }
 
+    const webgpu = nullthrows(appEnvironment.webgpu.get(), "webgpu not loaded");
+    if (webgpu.status !== "ok") {
+      throw webgpu;
+    }
+
+    this.renderer = GPUWaveformRenderer.createSync(webgpu.device, this.getChannelData(0));
     this.length = audioBuffer.length;
     this.duration = audioBuffer.duration;
     this.numberOfChannels = audioBuffer.numberOfChannels;

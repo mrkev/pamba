@@ -3,12 +3,13 @@ import { flushSync } from "react-dom";
 import { createUseStyles } from "react-jss";
 import { useContainer, usePrimitive } from "structured-state";
 import useResizeObserver from "use-resize-observer";
+import { MAX_TIMELINE_SCALE, MIN_TIMELINE_SCALE } from "../constants";
 import { useTimelineMouseEvents } from "../input/useProjectMouseEvents";
 import { AudioRenderer } from "../lib/AudioRenderer";
 import { AudioProject } from "../lib/project/AudioProject";
 import { AudioStorage } from "../lib/project/AudioStorage";
-import { useDerivedState } from "../lib/state/DerivedState";
 import { pressedState } from "../pressedState";
+import { clamp } from "../utils/math";
 import { nullthrows } from "../utils/nullthrows";
 import { Axis } from "./Axis";
 import { getTrackAcceptableDataTransferResources } from "./dragdrop/getTrackAcceptableDataTransferResources";
@@ -55,24 +56,24 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
   const [viewportStartPx] = usePrimitive(project.viewport.viewportStartPx);
   const tracks = useContainer(project.allTracks);
   const playbackPosDiv = useRef<null | HTMLDivElement>(null);
-  const secsToPx = useDerivedState(project.secsToPx);
   const player = renderer.analizedPlayer;
+  const [scale] = usePrimitive(project.viewport.scaleFactor);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const pbdiv = playbackPosDiv.current;
     if (pbdiv) {
-      pbdiv.style.left = String(secsToPx(player.playbackTime)) + "px";
+      pbdiv.style.left = String(project.viewport.secsToPx(player.playbackTime)) + "px";
     }
-  }, [player, project.viewport, secsToPx]);
+  }, [player, project.viewport, scale]);
 
   useEffect(() => {
     player.onFrame = function (playbackTime) {
       const pbdiv = playbackPosDiv.current;
       if (pbdiv) {
-        pbdiv.style.left = String(secsToPx(playbackTime)) + "px";
+        pbdiv.style.left = String(project.viewport.secsToPx(playbackTime)) + "px";
       }
     };
-  }, [player, project.viewport, secsToPx]);
+  }, [player, project.viewport]);
 
   // useEventListener(
   //   "scroll",
@@ -96,7 +97,12 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
         // pinch
         if (e.ctrlKey) {
           const sDelta = Math.exp(-e.deltaY / 100);
-          const expectedNewScale = project.viewport.scaleFactor.get() * sDelta;
+          // max scale is 1000
+          const expectedNewScale = clamp(
+            MIN_TIMELINE_SCALE,
+            project.viewport.scaleFactor.get() * sDelta,
+            MAX_TIMELINE_SCALE,
+          );
           project.viewport.setScale(expectedNewScale, mouseX);
           e.preventDefault();
           e.stopPropagation();

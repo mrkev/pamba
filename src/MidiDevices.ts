@@ -1,3 +1,5 @@
+import { ensureError } from "./ensureError";
+
 type Result<T> =
   | Readonly<{
       status: "success";
@@ -7,16 +9,6 @@ type Result<T> =
       status: "error";
       error: Error;
     }>;
-
-function ensureError(e: unknown): Error {
-  if (e instanceof Error) {
-    return e;
-  } else if (typeof e === "string") {
-    return new Error(e);
-  } else {
-    return new Error(String(e), { cause: e });
-  }
-}
 
 export class MidiDevices {
   private constructor(private midiAccess: MIDIAccess) {

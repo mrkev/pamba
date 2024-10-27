@@ -1,16 +1,19 @@
 import { scaleLinear } from "d3-scale";
-import React, { useCallback } from "react";
-import { history, useContainer } from "structured-state";
+import React, { useCallback, useEffect, useRef } from "react";
+import { history, useContainer, usePrimitive } from "structured-state";
+import { GPUWaveformRenderer } from "webgpu-waveform";
 import { CLIP_HEIGHT } from "../constants";
 import type { AudioClip } from "../lib/AudioClip";
 import type { AudioTrack } from "../lib/AudioTrack";
 import { ProjectTrack } from "../lib/ProjectTrack";
 import type { AudioProject, XScale } from "../lib/project/AudioProject";
 import { exhaustive } from "../utils/exhaustive";
+import { relu } from "../utils/math";
+import { nullthrows } from "../utils/nullthrows";
 import { StandardClip } from "./StandardClip";
 import { clipMouseDownToMove, clipMouseDownToResize } from "./clipMouse";
 
-export function ClipA({
+export const ClipA = React.memo(function ClipAImpl({
   clip,
   isSelected,
   project,
@@ -29,6 +32,7 @@ export function ClipA({
   const height = CLIP_HEIGHT - 3; // to clear the bottom track separator gridlines
   const tStart = useContainer(clip.timelineStart);
   const tLen = useContainer(clip.timelineLength);
+  const bufferOffset = useContainer(clip.bufferOffset);
 
   useContainer(clip);
 
@@ -107,12 +111,23 @@ export function ClipA({
 
   const backgroundImageData = clip.getWaveformDataURL(
     // totalBufferWidth,
-    1000,
+    2_000,
     CLIP_HEIGHT,
   );
 
   const width = project.viewport.secsToPx(tLen.secs(project));
   const left = project.viewport.secsToPx(tStart.secs(project));
+
+  const [projectDivWidth] = usePrimitive(project.viewport.projectDivWidth);
+  const [viewportStartPx] = usePrimitive(project.viewport.viewportStartPx);
+  const [scale] = usePrimitive(project.viewport.scaleFactor);
+
+  const canvasOffset = relu(viewportStartPx - project.viewport.pxOfTime(tStart));
+  const cWidth = width - relu(left + width - projectDivWidth) + viewportStartPx - canvasOffset;
+  const canvasWidth = Math.ceil(Math.min(cWidth, width - canvasOffset));
+  const offset =
+    project.viewport.pxToSecs(canvasOffset) * clip.sampleRate + bufferOffset.ensureSecs() * clip.sampleRate;
+
   return (
     <StandardClip
       editable={editable}
@@ -130,8 +145,55 @@ export function ClipA({
         backgroundRepeat: "no-repeat",
         imageRendering: "pixelated",
       }}
-    ></StandardClip>
+    >
+      {/* {clip.buffer != null && canvasWidth > 0 && (
+        <GPUWaveform
+          color="#122411"
+          renderer={clip.buffer.renderer}
+          scale={(1 / scale) * clip.sampleRate}
+          offset={offset}
+          width={canvasWidth}
+          height={height}
+          style={{
+            // border: "2px solid red",
+            pointerEvents: "none",
+            userSelect: "none",
+            position: "relative",
+            left: canvasOffset - 1, // -1 due to clip border
+            boxSizing: "border-box",
+            height: height,
+            width: canvasWidth,
+            flexGrow: 1,
+            imageRendering: "pixelated",
+          }}
+        ></GPUWaveform>
+      )} */}
+    </StandardClip>
   );
+});
+
+function GPUWaveform({
+  scale,
+  renderer,
+  offset = 0,
+  color = "#00FF00",
+  style,
+  ...props
+}: React.CanvasHTMLAttributes<HTMLCanvasElement> & {
+  scale: number;
+  offset?: number;
+  color?: string;
+  renderer: GPUWaveformRenderer;
+}) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const context = nullthrows(nullthrows(canvasRef.current).getContext("webgpu"), "nil webgpu context");
+    renderer.render(context, scale, offset, 1, 1, color);
+    // renderer.render(context, s, offset, width, height, color);
+  }, [color, offset, renderer, scale, style?.width]);
+
+  return <canvas ref={canvasRef} style={style} {...props} />;
 }
 
 // TODO: use this for DSP effects automation, but treat track gain as a "special"

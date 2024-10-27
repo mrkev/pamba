@@ -96,6 +96,7 @@ export default tseslint.config(
       "react-hooks/exhaustive-deps": "warn",
       "react/react-in-jsx-scope": "off",
       "react/no-unescaped-entities": "off",
+      "react/prop-types": "off",
     },
   },
 );

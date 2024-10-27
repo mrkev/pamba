@@ -1,4 +1,4 @@
-import { JSONOfAuto, S, SString, Structured, init, replace, string } from "structured-state";
+import { JSONOfAuto, SString, Structured, init, replace, string } from "structured-state";
 import { staticAudioContext } from "../constants";
 import { AudioPackage } from "../data/AudioPackage";
 import { SAudioClip } from "../data/serializable";
@@ -34,7 +34,6 @@ type AutoAudioClip = {
 export class AudioClip extends Structured<AutoAudioClip, typeof AudioClip> implements AbstractClip<Seconds> {
   // constants
   readonly unit = "sec";
-  readonly buffer: SharedAudioBuffer | null;
   readonly sampleRate: number; // how many frames per second
 
   // status, from construction
@@ -54,7 +53,7 @@ export class AudioClip extends Structured<AutoAudioClip, typeof AudioClip> imple
   public gainAutomation: Array<{ time: number; value: number }> = [{ time: 0, value: 1 }];
 
   constructor(
-    buffer: AudioBuffer | "missing",
+    readonly buffer: SharedAudioBuffer | null,
     readonly name: SString,
     // Buffer
     readonly bufferURL: string,
@@ -65,7 +64,7 @@ export class AudioClip extends Structured<AutoAudioClip, typeof AudioClip> imple
   ) {
     super();
     // TODO: make missing clips their own class, without buffer info props. They serialize to SAudioClip too
-    if (buffer === "missing") {
+    if (buffer == null) {
       this.status = "missing";
       this.bufferLength = secs(10_000); // TODO: make clip unbounded by length? serialize and star buffer length when first creating a clip?
       // can help identify the clip too. Ie, when selecting media to replace this, verify that the numbers match.
@@ -79,7 +78,6 @@ export class AudioClip extends Structured<AutoAudioClip, typeof AudioClip> imple
       // By default, there is no trim and the clip has offset 0
       this.bufferLength = secs(buffer.duration);
       this.sampleRate = buffer.sampleRate;
-      this.buffer = new SharedAudioBuffer(buffer);
     }
 
     this.bufferOffset = bufferOffset;
@@ -186,7 +184,7 @@ export class AudioClip extends Structured<AutoAudioClip, typeof AudioClip> imple
     const clipLengthSec = dimensions?.clipLengthSec;
     return Structured.create(
       AudioClip,
-      "missing",
+      null,
       string(name || "untitled"),
       url,
       time(bufferOffset, "seconds"),
@@ -196,7 +194,7 @@ export class AudioClip extends Structured<AutoAudioClip, typeof AudioClip> imple
   }
 
   static fromBuffer(
-    buffer: AudioBuffer,
+    buffer: SharedAudioBuffer,
     url: string, // necessary to serialize
     name?: string,
     dimensions?: { bufferOffset: number; timelineStartSec: number; clipLengthSec: number },
@@ -218,7 +216,7 @@ export class AudioClip extends Structured<AutoAudioClip, typeof AudioClip> imple
   clone(): AudioClip {
     const newClip = Structured.create(
       AudioClip,
-      this.buffer ?? "missing",
+      this.buffer, // todo: we reference the same buffer to avoid the cost of creating the buffers and the renderer. Is this ok?
       string(this.name.get()),
       this.bufferURL,
       this.bufferOffset.clone(),
