@@ -21,7 +21,7 @@ export type AudioLibraryItem = Extract<LibraryItem, { kind: "audio" }>;
 export type FaustEffectLibraryItem = Extract<LibraryItem, { kind: "fausteffect" }>;
 export type EffectInstanceTransferResource = { kind: "effectinstance"; trackIndex: number; effectIndex: number };
 export type TrackInstanceTransferResource = { kind: "trackinstance"; trackIndex: number };
-export type AudioClipInstanceTransferResource = { kind: "audioclipinstance"; todo: number };
+export type AudioClipInstanceTransferResource = { kind: "audioclipinstance"; id: string };
 
 export type TransferableResource =
   | AudioPackage
@@ -152,6 +152,15 @@ export async function getTrackAcceptableDataTransferResources(
     const libproj = JSON.parse(data) as ProjectLibraryItem;
     // TODO: what do we do when a project is dragged onto a track?
     console.warn("unimplemented: loading project, id", libproj.id);
+    handledInternalFormat = true;
+  }
+
+  data = dataTransfer.getData("application/pamba.audioclipinstance");
+  if (data != "") {
+    // for audio clip instances, data is an object containing the clip id, but the clip
+    // itself is acutally referenced in pressedState
+    const audioclipresource = JSON.parse(data) as AudioClipInstanceTransferResource;
+    resultingResources.push(audioclipresource);
     handledInternalFormat = true;
   }
 

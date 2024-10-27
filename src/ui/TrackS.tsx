@@ -7,11 +7,13 @@ import { useTrackMouseEvents } from "../input/useTrackMouseEvents";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioRenderer } from "../lib/AudioRenderer";
 import { AudioTrack } from "../lib/AudioTrack";
+import { clipMovePPQN, clipMoveSec } from "../lib/clipMoveSec";
 import { AudioProject } from "../lib/project/AudioProject";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { MidiClip } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
 import { pressedState } from "../pressedState";
+import { exhaustive } from "../utils/exhaustive";
 import { nullthrows } from "../utils/nullthrows";
 import { ClipA } from "./ClipA";
 import { ClipInvalid } from "./ClipInvalid";
@@ -58,13 +60,45 @@ export function TrackS({
 
   useTrackMouseEvents(trackRef, project, track);
 
+  const showDraggingOverPos =
+    pressed &&
+    pressed.status === "dragging_transferable" &&
+    (pressed.kind === "application/pamba.audio" ||
+      pressed.kind === "application/pamba.rawaudio" ||
+      pressed.kind === "application/pamba.audioclipinstance") &&
+    draggingOver != null;
+
   useDropzoneBehaviour(
     trackRef,
     (dataTransfer: DataTransfer) => trackCanHandleTransfer(track, dataTransfer),
-    useCallback(function dragOver(e: DragEvent) {
-      const draggedOffsetPx = clientXToTrackX(trackRef.current, e.clientX);
-      setDraggingOver(draggedOffsetPx);
-    }, []),
+    useCallback(
+      function dragOver(e: DragEvent) {
+        const draggedOffsetPx = clientXToTrackX(trackRef.current, e.clientX);
+        setDraggingOver(draggedOffsetPx);
+        const pressed = pressedState.get();
+
+        // when moving a clip
+        if (pressed?.status === "dragging_transferable_clip") {
+          const snap = e.metaKey ? !project.snapToGrid.get() : project.snapToGrid.get();
+          const deltaX = e.clientX - pressed.clientX;
+
+          const previewClip = pressed.clipForRendering;
+
+          if (previewClip instanceof AudioClip) {
+            const deltaXSecs = project.viewport.pxToSecs(deltaX);
+            const newOffset = Math.max(0, pressed.originalClipStart.secs(project) + deltaXSecs);
+            clipMoveSec(previewClip, newOffset, pressed.originalClipStart, project, snap);
+          } else if (previewClip instanceof MidiClip) {
+            const deltaXPulses = project.viewport.pxToPulses(deltaX);
+            const newOffset = Math.max(0, pressed.originalClipStart.pulses(project) + deltaXPulses);
+            clipMovePPQN(previewClip, newOffset, pressed.originalClipStart, project, snap);
+          } else {
+            exhaustive(previewClip);
+          }
+        }
+      },
+      [project],
+    ),
 
     useCallback(function dragLeave() {
       setDraggingOver(null);
@@ -72,6 +106,7 @@ export function TrackS({
 
     useCallback(
       async function drop(ev: DragEvent) {
+        // console.log("DROP");
         if (ev.dataTransfer == null) {
           return;
         }
@@ -115,9 +150,7 @@ export function TrackS({
       >
         {/* RENDER CLIPS */}
         {clips.map((clip, i) => {
-          if (pressed && pressed.status === "moving_clip" && pressed.clip === clip) {
-            return null;
-          }
+          const hide = pressed && pressed.status === "dragging_transferable_clip" && pressed.clips.has(clip._id);
           const isSelected = selected !== null && selected.status === "clips" && selected.test.has(clip);
 
           if (track instanceof MidiTrack && clip instanceof MidiClip) {
@@ -126,7 +159,17 @@ export function TrackS({
 
           if (track instanceof AudioTrack && clip instanceof AudioClip) {
             return (
-              <ClipA editable={!locked} key={i} clip={clip} isSelected={isSelected} track={track} project={project} />
+              <ClipA
+                editable={!locked}
+                key={i}
+                clip={clip}
+                isSelected={isSelected}
+                track={track}
+                project={project}
+                style={{
+                  opacity: hide ? "0.5" : undefined,
+                }}
+              />
             );
           }
 
@@ -139,25 +182,34 @@ export function TrackS({
 
         {/* RENDER DRAG DROP MARKER */}
         {/* note: only for audio */}
-        {pressed &&
-          pressed.status === "dragging_transferable" &&
-          (pressed.kind === "application/pamba.audio" || pressed.kind === "application/pamba.rawaudio") &&
-          draggingOver != null && (
-            <div
-              style={{
-                width: 1,
-                left: draggingOver,
-                backgroundColor: "#114411",
-                height: "100%",
-                userSelect: "none",
-                pointerEvents: "none",
-                position: "absolute",
-              }}
-            ></div>
-          )}
+        {showDraggingOverPos && (
+          <div
+            style={{
+              width: 1,
+              left: draggingOver,
+              backgroundColor: "#114411",
+              height: "100%",
+              userSelect: "none",
+              pointerEvents: "none",
+              position: "absolute",
+            }}
+          ></div>
+        )}
 
         {/* RENDER CLIP BEING MOVED FROM ANOTHER TRACK */}
         {pressed &&
+          pressed.status === "dragging_transferable_clip" &&
+          draggingOver != null &&
+          (track instanceof AudioTrack && pressed.clipForRendering instanceof AudioClip ? (
+            <ClipA clip={pressed.clipForRendering} isSelected={true} project={project} track={null} />
+          ) : track instanceof MidiTrack && pressed.clipForRendering instanceof MidiClip ? (
+            <ClipM clip={pressed.clipForRendering} isSelected={true} track={null} project={project} />
+          ) : (
+            <ClipInvalid clip={pressed.clipForRendering} project={project} />
+          ))}
+
+        {/* RENDER CLIP BEING MOVED FROM ANOTHER TRACK */}
+        {/* {pressed &&
           pressed.status === "moving_clip" &&
           pressed.track === track &&
           (track instanceof AudioTrack && pressed.clipForRendering instanceof AudioClip ? (
@@ -166,7 +218,7 @@ export function TrackS({
             <ClipM clip={pressed.clipForRendering} isSelected={true} track={null} project={project} />
           ) : (
             <ClipInvalid clip={pressed.clipForRendering} project={project} />
-          ))}
+          ))} */}
       </div>
 
       {/* EFFECT RACK */}

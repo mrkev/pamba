@@ -258,11 +258,8 @@ export const documentCommands = CommandBlock.create(["Project", "Edit", "Tools",
       }
 
       switch (pressed.status) {
-        case "moving_clip": {
-          // cancelMovingClip(pressed, project);
-          break;
-        }
         case "dragging_transferable":
+        case "dragging_transferable_clip":
         // TODO: cancel drag?
         case "resizing_clip":
         case "resizing_track":

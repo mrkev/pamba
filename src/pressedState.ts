@@ -8,21 +8,31 @@ import { Note } from "./midi/SharedMidiTypes";
 import { PambaDataTransferResourceKind } from "./ui/dragdrop/getTrackAcceptableDataTransferResources";
 
 export type CursorState =
-  | Readonly<{
-      status: "moving_clip";
-      // Original clientX/Y of event
-      clientX: number;
-      clientY: number;
-      clip: AudioClip | MidiClip;
-      track: AudioTrack | MidiTrack;
-      originalTrack: AudioTrack | MidiTrack;
-      originalClipStart: TimelineT;
-      clipForRendering: AudioClip | MidiClip;
-      inHistory: boolean;
-    }>
+  // | Readonly<{
+  //     status: "moving_clip";
+  //     // Original clientX/Y of event
+  //     clientX: number;
+  //     clientY: number;
+  //     clip: AudioClip | MidiClip;
+  //     track: AudioTrack | MidiTrack;
+  //     originalTrack: AudioTrack | MidiTrack;
+  //     originalClipStart: TimelineT;
+  //     clipForRendering: AudioClip | MidiClip;
+  //     inHistory: boolean;
+  //   }>
   | Readonly<{
       status: "dragging_transferable";
-      kind: PambaDataTransferResourceKind;
+      kind: Omit<PambaDataTransferResourceKind, "application/pamba.audioclipinstance">;
+    }>
+  | Readonly<{
+      status: "dragging_transferable_clip";
+      kind: "application/pamba.audioclipinstance";
+      clipForRendering: AudioClip | MidiClip;
+      originalClipStart: TimelineT;
+      clientX: number;
+      clientY: number;
+      clips: Map<string, AudioClip | MidiClip>;
+      originalTrack: AudioTrack | MidiTrack;
     }>
   | Readonly<{
       status: "selecting_global_time";

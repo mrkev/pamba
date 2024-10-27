@@ -7,8 +7,11 @@ import type { AudioTrack } from "../lib/AudioTrack";
 import { ProjectTrack } from "../lib/ProjectTrack";
 import type { AudioProject, XScale } from "../lib/project/AudioProject";
 import { exhaustive } from "../utils/exhaustive";
-import { StandardClip } from "./StandardClip";
+import { ClipS } from "./ClipS";
 import { clipMouseDownToMove, clipMouseDownToResize } from "./clipMouse";
+import { transferAudioClip } from "./dragdrop/transferObject";
+import { emptyImg } from "../utils/emptyImg";
+import { pressedState } from "../pressedState";
 
 export function ClipA({
   clip,
@@ -16,6 +19,7 @@ export function ClipA({
   project,
   track,
   editable = true,
+  style,
 }: {
   clip: AudioClip;
   isSelected: boolean;
@@ -111,10 +115,84 @@ export function ClipA({
     CLIP_HEIGHT,
   );
 
+  const onDragStart = useCallback(
+    (ev: React.DragEvent<HTMLDivElement>) => {
+      const tool = project.pointerTool.get();
+      if (tool !== "move" || !editable || track == null || ev.button !== 0) {
+        // todo; how to acutally prevent drag
+        return;
+      }
+
+      ev.dataTransfer.setDragImage(emptyImg, 0, 0);
+      ev.dataTransfer.effectAllowed = "all";
+
+      project.selectionWidth.set(null);
+
+      const clips = new Map();
+      clips.set(clip._id, clip);
+      transferAudioClip(
+        ev.dataTransfer,
+        {
+          kind: "audioclipinstance",
+          id: clip._id,
+        },
+        {
+          kind: "application/pamba.audioclipinstance",
+          status: "dragging_transferable_clip",
+          clientX: ev.clientX,
+          clientY: ev.clientY,
+          originalClipStart: clip.timelineStart.clone(),
+          clipForRendering: clip.clone(),
+          clips,
+          originalTrack: track,
+        },
+      );
+
+      // const clipForRendering = clip.clone();
+      // pressedState.set({
+      //   status: "moving_clip",
+      //   clientX: ev.clientX,
+      //   clientY: ev.clientY,
+      //   clip,
+      //   track,
+      //   originalTrack: track,
+      //   originalClipStart: clip.timelineStart.clone(),
+      //   clipForRendering,
+      //   inHistory: false,
+      // });
+
+      // project.selected.setDyn((prev) => {
+      //   const selectAdd = modifierState.meta || modifierState.shift;
+      //   if (selectAdd && prev !== null && prev.status === "clips") {
+      //     if (!prev.test.has(clip)) {
+      //       prev.clips.push({ kind: "audio", clip, track });
+      //       prev.test.add(clip);
+      //       prev.test.add(track);
+      //     }
+      //     return { ...prev };
+      //   } else {
+      //     return {
+      //       status: "clips",
+      //       clips: [{ kind: "audio", clip, track }],
+      //       test: new Set([clip, track]),
+      //     };
+      //   }
+      // });
+    },
+    [clip, editable, project.pointerTool, project.selectionWidth, track],
+  );
+
   const width = project.viewport.secsToPx(tLen.secs(project));
   const left = project.viewport.secsToPx(tStart.secs(project));
   return (
-    <StandardClip
+    <ClipS
+      onDragStart={onDragStart}
+      onDragEnd={() => {
+        pressedState.set(null);
+      }}
+      // onDrag={() => {
+      //   console.log("DRAG");
+      // }}
       editable={editable}
       clip={clip}
       isSelected={isSelected}
@@ -129,8 +207,9 @@ export function ClipA({
         backgroundPosition: `${bufferOffsetPx * -1}px center`,
         backgroundRepeat: "no-repeat",
         imageRendering: "pixelated",
+        ...style,
       }}
-    ></StandardClip>
+    ></ClipS>
   );
 }
 

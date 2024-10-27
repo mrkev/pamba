@@ -1,7 +1,6 @@
 import type { AudioClip } from "../lib/AudioClip";
 import type { AudioTrack } from "../lib/AudioTrack";
 import type { AudioProject } from "../lib/project/AudioProject";
-import { TimelineT } from "../lib/project/TimelineT";
 import { MidiClip } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
 import { modifierState } from "../ModifierState";
@@ -17,38 +16,38 @@ export function clipMouseDownToMove(e: MouseEvent, cliptrack: ClipTrackCombo, pr
   if (e.button !== 0) {
     return;
   }
-  const clipForRendering = clip.clone();
-  pressedState.set({
-    status: "moving_clip",
-    clientX: e.clientX,
-    clientY: e.clientY,
-    clip,
-    track,
-    originalTrack: track,
-    originalClipStart: clip.timelineStart.clone(),
-    clipForRendering,
-    inHistory: false,
-  });
+  // const clipForRendering = clip.clone();
+  // pressedState.set({
+  //   status: "moving_clip",
+  //   clientX: e.clientX,
+  //   clientY: e.clientY,
+  //   clip,
+  //   track,
+  //   originalTrack: track,
+  //   originalClipStart: clip.timelineStart.clone(),
+  //   clipForRendering,
+  //   inHistory: false,
+  // });
 
-  project.selected.setDyn((prev) => {
-    const selectAdd = modifierState.meta || modifierState.shift;
-    if (selectAdd && prev !== null && prev.status === "clips") {
-      if (!prev.test.has(clip)) {
-        prev.clips.push(cliptrack);
-        prev.test.add(clip);
-        prev.test.add(track);
-      }
-      return { ...prev };
-    } else {
-      return {
-        status: "clips",
-        clips: [cliptrack],
-        test: new Set([clip, track]),
-      };
-    }
-  });
+  // project.selected.setDyn((prev) => {
+  //   const selectAdd = modifierState.meta || modifierState.shift;
+  //   if (selectAdd && prev !== null && prev.status === "clips") {
+  //     if (!prev.test.has(clip)) {
+  //       prev.clips.push(cliptrack);
+  //       prev.test.add(clip);
+  //       prev.test.add(track);
+  //     }
+  //     return { ...prev };
+  //   } else {
+  //     return {
+  //       status: "clips",
+  //       clips: [cliptrack],
+  //       test: new Set([clip, track]),
+  //     };
+  //   }
+  // });
 
-  project.selectionWidth.set(null);
+  // project.selectionWidth.set(null);
 }
 
 export function clipMouseDownToResize(

@@ -54,6 +54,7 @@ export function useDropzoneBehaviour(
     containerRef,
     useCallback(
       async (e) => {
+        console.log("DROP");
         e.preventDefault();
         e.stopPropagation();
 
@@ -64,6 +65,23 @@ export function useDropzoneBehaviour(
       [drop],
     ),
   );
+
+  // useEventListener(
+  //   "dragend",
+  //   containerRef,
+  //   useCallback(
+  //     async (e) => {
+  //       console.log("DRAGEND");
+  //       // e.preventDefault();
+  //       // e.stopPropagation();
+
+  //       // await drop?.(e);
+  //       // setDraggingOver(false);
+  //       // pressedState.set(null);
+  //     },
+  //     [drop],
+  //   ),
+  // );
 
   return [draggingOver];
 }

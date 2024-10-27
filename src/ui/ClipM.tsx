@@ -3,7 +3,7 @@ import { useContainer } from "structured-state";
 import type { AudioProject } from "../lib/project/AudioProject";
 import { MidiClip } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
-import { StandardClip } from "./StandardClip";
+import { ClipS } from "./ClipS";
 import { clipMouseDownToMove, clipMouseDownToResize } from "./clipMouse";
 
 export function ClipM({
@@ -81,7 +81,7 @@ export function ClipM({
   const bufferOffsetPx = 0; //  project.viewport.secsToPx(clip.bufferOffset);
 
   return (
-    <StandardClip
+    <ClipS
       clip={clip}
       editable={editable}
       isSelected={isSelected}
@@ -99,6 +99,6 @@ export function ClipM({
       }}
     >
       {notes.length}
-    </StandardClip>
+    </ClipS>
   );
 }

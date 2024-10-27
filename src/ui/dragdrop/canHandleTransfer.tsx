@@ -20,6 +20,7 @@ export function trackCanHandleTransfer(track: AudioTrack | MidiTrack, dataTransf
       "application/pamba.wam",
       "application/pamba.fausteffect",
       "application/pamba.effectinstance",
+      "application/pamba.audioclipinstance",
     );
   } else {
     exhaustive(track);

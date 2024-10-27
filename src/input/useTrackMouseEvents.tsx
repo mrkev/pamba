@@ -74,26 +74,26 @@ export function useTrackMouseEvents(
     ),
   );
 
-  useEventListener(
-    "mouseenter",
-    trackRef,
-    useCallback(
-      function (_e) {
-        // tood: add tracks to selecting_track_time
+  // useEventListener(
+  //   "mouseenter",
+  //   trackRef,
+  //   useCallback(
+  //     function (_e) {
+  //       // tood: add tracks to selecting_track_time
 
-        if (project.pointerTool.get() !== "move") {
-          return;
-        }
+  //       if (project.pointerTool.get() !== "move") {
+  //         return;
+  //       }
 
-        // TODOOOOOOOOOOOOOOO
-        const pressed = pressedState.get();
-        if (pressed && pressed.status === "moving_clip") {
-          pressedState.setDyn((prev) => Object.assign({}, prev, { track }));
-        }
-      },
-      [project.pointerTool, track],
-    ),
-  );
+  //       // TODOOOOOOOOOOOOOOO
+  //       const pressed = pressedState.get();
+  //       if (pressed && pressed.status === "moving_clip") {
+  //         pressedState.setDyn((prev) => Object.assign({}, prev, { track }));
+  //       }
+  //     },
+  //     [project.pointerTool, track],
+  //   ),
+  // );
 
   useEventListener(
     "mouseleave",

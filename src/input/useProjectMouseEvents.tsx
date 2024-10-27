@@ -156,48 +156,10 @@ export function useTimelineMouseEvents(
 
         const { status } = pressed;
         switch (status) {
-          case "moving_clip": {
-            const clipPreview = pressed.clipForRendering;
-            if (pressed.clip.timelineStart.eq(clipPreview.timelineStart, project)) {
-              pressedState.set(null);
-              break;
-            }
-
-            history.record("move clip", () => {
-              pressed.clip.timelineStart.replaceWith(clipPreview.timelineStart);
-              if (
-                pressed.track instanceof AudioTrack &&
-                pressed.originalTrack instanceof AudioTrack &&
-                pressed.clip instanceof AudioClip
-              ) {
-                ProjectTrack.moveClip(project, pressed.clip, pressed.originalTrack, pressed.track);
-              } else if (
-                pressed.track instanceof MidiTrack &&
-                pressed.originalTrack instanceof MidiTrack &&
-                pressed.clip instanceof MidiClip
-              ) {
-                ProjectTrack.deleteTime(
-                  project,
-                  pressed.track,
-                  pressed.clip.startOffsetPulses,
-                  pressed.clip._timelineEndU,
-                );
-                ProjectTrack.removeClip(project, pressed.originalTrack, pressed.clip);
-                ProjectTrack.addClip(project, pressed.track, pressed.clip);
-              } else {
-                console.warn("mouseup: moving_clip: can't operate");
-              }
-            });
-
-            pressedState.set(null);
+          case "dragging_transferable_clip":
+          case "dragging_transferable":
+            // not fired on drag events. we clear pressedState onDragEnd instead
             break;
-          }
-          case "dragging_transferable": {
-            // Seems more reliable to end "dragging_transferable" in the dragged
-            // div's onDragEnd, so we end it there instead.
-            // pressedState.set(null);
-            break;
-          }
 
           case "resizing_track":
             pressedState.set(null);
@@ -300,6 +262,7 @@ export function useTimelineMouseEvents(
   );
 
   useDocumentEventListener(
+    // pointermove would allow dragging events
     "mousemove",
     useCallback(
       function mouseMove(e: MouseEvent) {
@@ -313,30 +276,11 @@ export function useTimelineMouseEvents(
         }
 
         switch (pressed.status) {
-          case "moving_clip": {
-            // metaKey flips it
-            const snap = e.metaKey ? !project.snapToGrid.get() : project.snapToGrid.get();
-            const deltaX = e.clientX - pressed.clientX;
-
-            const previewClip = pressed.clipForRendering;
-
-            if (previewClip instanceof AudioClip) {
-              const deltaXSecs = project.viewport.pxToSecs(deltaX);
-              const newOffset = Math.max(0, pressed.originalClipStart.secs(project) + deltaXSecs);
-              clipMoveSec(previewClip, newOffset, pressed.originalClipStart, project, snap);
-            } else if (previewClip instanceof MidiClip) {
-              const deltaXPulses = project.viewport.pxToPulses(deltaX);
-              const newOffset = Math.max(0, pressed.originalClipStart.pulses(project) + deltaXPulses);
-              clipMovePPQN(previewClip, newOffset, pressed.originalClipStart, project, snap);
-            } else {
-              exhaustive(previewClip);
-            }
-
+          case "dragging_transferable_clip":
+          case "dragging_transferable":
+            console.log("HERE");
+            // mousemove not fired while dragging
             break;
-          }
-          case "dragging_transferable": {
-            break;
-          }
 
           case "resizing_track": {
             const delta = e.clientY - pressed.clientY;
@@ -467,7 +411,6 @@ export function useTimelineMouseEvents(
           }
 
           case "selecting_track_time":
-            console.log("selecting_track_time");
             const deltaXSecs = project.viewport.pxToSecs(e.clientX - pressed.clientX);
             const newWidth = snapped(project, e, deltaXSecs);
             project.selectionWidth.set(newWidth);

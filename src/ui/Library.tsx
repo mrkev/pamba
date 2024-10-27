@@ -22,7 +22,7 @@ import { nullthrows } from "../utils/nullthrows";
 import { doConfirm } from "./ConfirmDialog";
 import { UploadAudioButton } from "./UploadAudioButton";
 import { ListEntry, UtilityDataList } from "./UtilityList";
-import { transferObject } from "./dragdrop/setTransferData";
+import { transferObject } from "./dragdrop/transferObject";
 import { closeProject } from "./header/ToolHeader";
 
 const STATIC_AUDIO_FILES = ["drums.mp3", "clav.mp3", "bassguitar.mp3", "horns.mp3", "leadguitar.mp3"];

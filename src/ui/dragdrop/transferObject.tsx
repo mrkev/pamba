@@ -1,4 +1,4 @@
-import { pressedState } from "../../pressedState";
+import { CursorState, pressedState } from "../../pressedState";
 import { exhaustive } from "../../utils/exhaustive";
 import {
   AudioClipInstanceTransferResource,
@@ -36,7 +36,6 @@ export function transferObject(
   data:
     | EffectInstanceTransferResource
     | TrackInstanceTransferResource
-    | AudioClipInstanceTransferResource
     | AudioLibraryItem
     | FaustEffectLibraryItem
     | ProjectLibraryItem,
@@ -47,4 +46,14 @@ export function transferObject(
     status: "dragging_transferable",
     kind: format,
   });
+}
+
+export function transferAudioClip(
+  dataTransfer: DataTransfer,
+  data: AudioClipInstanceTransferResource,
+  cursorState: Extract<CursorState, { status: "dragging_transferable_clip" }>,
+): void {
+  const format = formatOfResource(data);
+  dataTransfer.setData(format, JSON.stringify(data));
+  pressedState.set(cursorState);
 }

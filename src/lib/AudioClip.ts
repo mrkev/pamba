@@ -98,7 +98,7 @@ export class AudioClip extends Structured<AutoAudioClip, typeof AudioClip> imple
   }
 
   override replace(auto: JSONOfAuto<AutoAudioClip>): void {
-    console.log("REPLACE WITH", auto);
+    // console.log("REPLACE WITH", auto);
     replace.string(auto.name, this.name);
     replace.structured(auto.bufferOffset, this.bufferOffset);
     replace.structured(auto.timelineStart, this.timelineStart);

@@ -4,8 +4,10 @@ import { AudioClip } from "../../lib/AudioClip";
 import { AudioTrack } from "../../lib/AudioTrack";
 import { AudioProject } from "../../lib/project/AudioProject";
 import { ProjectTrack } from "../../lib/ProjectTrack";
+import { MidiClip } from "../../midi/MidiClip";
 import { MidiInstrument } from "../../midi/MidiInstrument";
 import { MidiTrack } from "../../midi/MidiTrack";
+import { pressedState } from "../../pressedState";
 import { exhaustive } from "../../utils/exhaustive";
 import { ignorePromise } from "../../utils/ignorePromise";
 import { nullthrows } from "../../utils/nullthrows";
@@ -38,6 +40,7 @@ export async function handleDropOntoAudioTrack(
   track: AudioTrack,
   resource: TransferableResource,
   position: number,
+
   project: AudioProject,
 ) {
   switch (resource.kind) {
@@ -73,7 +76,37 @@ export async function handleDropOntoAudioTrack(
       track.dsp.addEffect(effectInstance, "last");
       break;
     case "audioclipinstance":
-      throw new Error("TODO: unimplemented");
+      const pressed = nullthrows(pressedState.get());
+      if (pressed.status !== "dragging_transferable_clip") {
+        throw new Error("invalid state: pressed state is not dragging_transferable_clip");
+      }
+
+      const clip = nullthrows(pressed.clips.get(resource.id), "invalid state: moved clip is not in pressed state");
+      const clipPreview = pressed.clipForRendering;
+
+      if (clip.timelineStart.eq(clipPreview.timelineStart, project) && track === pressed.originalTrack) {
+        pressedState.set(null);
+        break;
+      }
+
+      history.record("move clip", () => {
+        clip.timelineStart.replaceWith(clipPreview.timelineStart);
+        if (track instanceof AudioTrack && pressed.originalTrack instanceof AudioTrack && clip instanceof AudioClip) {
+          ProjectTrack.moveClip(project, clip, pressed.originalTrack, track);
+        } else if (
+          track instanceof MidiTrack &&
+          pressed.originalTrack instanceof MidiTrack &&
+          clip instanceof MidiClip
+        ) {
+          ProjectTrack.deleteTime(project, track, clip.startOffsetPulses, clip._timelineEndU);
+          ProjectTrack.removeClip(project, pressed.originalTrack, clip);
+          ProjectTrack.addClip(project, track, clip);
+        } else {
+          console.warn("mouseup: moving_clip: can't operate");
+        }
+      });
+      pressedState.set(null);
+      break;
     case "project":
       throw new Error(`Can't transfer ${resource.kind} onto audio track`);
     default:

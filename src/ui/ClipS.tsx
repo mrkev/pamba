@@ -6,7 +6,7 @@ import type { AudioClip } from "../lib/AudioClip";
 import { MidiClip } from "../midi/MidiClip";
 import { useEventListener } from "./useEventListener";
 
-export function StandardClip({
+export function ClipS({
   clip,
   isSelected,
   style = {},
@@ -17,6 +17,9 @@ export function StandardClip({
   width,
   left,
   children,
+  onDragStart,
+  onDragEnd,
+  onDrag,
 }: {
   clip: AudioClip | MidiClip;
   isSelected: boolean;
@@ -28,6 +31,10 @@ export function StandardClip({
   width: number;
   left: number;
   children?: React.ReactNode;
+  onDragStart?: (e: React.DragEvent<HTMLDivElement>) => void;
+  onDragEnd?: (e: React.DragEvent<HTMLDivElement>) => void;
+
+  onDrag?: React.DragEventHandler<HTMLDivElement>;
 }) {
   const styles = useStyles();
   const headerRef = useRef<HTMLDivElement>(null);
@@ -35,7 +42,7 @@ export function StandardClip({
 
   useContainer(clip);
 
-  useEventListener("mousedown", headerRef, onMouseDownToMove);
+  // useEventListener("mousedown", headerRef, onMouseDownToMove);
 
   useEventListener(
     "dblclick",
@@ -60,6 +67,10 @@ export function StandardClip({
       }}
     >
       <div
+        draggable={onDragStart !== null}
+        onDragStart={onDragStart}
+        onDragEnd={onDragEnd}
+        onDrag={onDrag}
         className={styles.clipHeader}
         ref={headerRef}
         data-clip-header={"true"}

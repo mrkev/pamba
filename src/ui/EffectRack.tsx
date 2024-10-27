@@ -18,7 +18,7 @@ import { Effect } from "./Effect";
 import { effectRackCanHandleTransfer } from "./dragdrop/canHandleTransfer";
 import { getRackAcceptableDataTransferResources } from "./dragdrop/getTrackAcceptableDataTransferResources";
 import { handleDropOntoEffectRack } from "./dragdrop/resourceDrop";
-import { transferObject } from "./dragdrop/setTransferData";
+import { transferObject } from "./dragdrop/transferObject";
 import { useDropzoneBehaviour } from "./dragdrop/useDropzoneBehaviour";
 import { useEventListener } from "./useEventListener";
 
