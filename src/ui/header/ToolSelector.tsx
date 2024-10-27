@@ -1,45 +1,18 @@
-import { getGlobalState, useContainer, usePrimitive } from "structured-state";
+import { usePrimitive } from "structured-state";
 import { documentCommands } from "../../input/documentCommands";
 import { AudioProject } from "../../lib/project/AudioProject";
 import { utility } from "../utility";
-import { UtilityToggle } from "../UtilityToggle";
+import { CommandButton } from "./CommandButton";
 
 export function ToolSelector({ project }: { project: AudioProject }) {
   const [tool] = usePrimitive(project.pointerTool);
-  const history = useContainer(getGlobalState().history);
 
   return (
     <div style={{ width: 150, display: "flex", flexDirection: "row" }}>
-      <button
-        disabled={history.length < 1}
-        title="undo"
-        className={utility.button}
-        style={{ marginRight: "2px" }}
-        onClick={() => {
-          documentCommands.execById("undo", project);
-        }}
-      >
-        {"\u21E0"}
-      </button>
-      {/* <button
-        title="move"
-        className={utility.button}
-        onClick={() => {
-          documentCommands.execById("moveTool", project);
-        }}
-      >
-        {"\u21E2"}
-      </button> */}
-
-      <UtilityToggle
-        toggled={tool === "move"}
-        onToggle={() => {
-          documentCommands.execById("moveTool", project);
-        }}
-        title={"move tool"}
-      >
+      <CommandButton toggled={tool === "move"} command={documentCommands.getById("moveTool")} project={project}>
         <i className="ri-cursor-fill"></i>
-      </UtilityToggle>
+      </CommandButton>
+
       <button
         title="slice"
         className={utility.button}

@@ -5,7 +5,7 @@ import { KeyCode } from "./KeyCode";
 type KeyboardShortcut = [key: KeyCode, ...modifiers: ("meta" | "alt" | "ctrl" | "shift")[]];
 type CommandCallback = (
   e: KeyboardEvent | null,
-  project: AudioProject
+  project: AudioProject,
   // player: AnalizedPlayer,
   // renderer: AudioRenderer,
 ) => void;
@@ -21,7 +21,9 @@ export class Command<S extends string[] = string[]> {
 
   addTriggerListener(cb: () => void) {
     this.onTrigger.add(cb);
-    return () => this.onTrigger.delete(cb);
+    return () => {
+      this.onTrigger.delete(cb);
+    };
   }
 
   execute(e: KeyboardEvent | null, project: AudioProject) {
@@ -72,7 +74,7 @@ export class CommandBlock<S extends string[], T extends Record<string, Command>>
 
   execByKeyboardEvent(
     e: KeyboardEvent,
-    project: AudioProject
+    project: AudioProject,
     // player: AnalizedPlayer,
     // renderer: AudioRenderer,
   ): boolean {
@@ -89,6 +91,10 @@ export class CommandBlock<S extends string[], T extends Record<string, Command>>
     return this.byId[label].execute(null, project);
   }
 
+  getById(label: keyof T): Command {
+    return this.byId[label];
+  }
+
   getAllCommands(): Command[] {
     return [...this.byKeyCode.values()];
   }
@@ -103,7 +109,7 @@ export class CommandBlock<S extends string[], T extends Record<string, Command>>
 
   static create<S extends string[], T extends Record<string, Command<S>>>(
     sections: S,
-    commandFn: (fn: (shortcut: KeyboardShortcut, cb: CommandCallback) => Command<S>) => T
+    commandFn: (fn: (shortcut: KeyboardShortcut, cb: CommandCallback) => Command<S>) => T,
   ) {
     const byKeyCode = new Map<string, Command>();
 
@@ -114,7 +120,7 @@ export class CommandBlock<S extends string[], T extends Record<string, Command>>
         set.has("meta"),
         set.has("alt"),
         set.has("ctrl"),
-        set.has("shift")
+        set.has("shift"),
       );
       const command = new Command<S>(cb, shortcut);
       if (byKeyCode.has(chordId)) {

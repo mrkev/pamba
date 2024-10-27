@@ -1,13 +1,12 @@
 import { useCallback, useRef } from "react";
 import { createUseStyles } from "react-jss";
-import { useContainer, usePrimitive, useSubscribeToSubbableMutationHashable } from "structured-state";
+import { getGlobalState, useContainer, usePrimitive, useSubscribeToSubbableMutationHashable } from "structured-state";
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from "../../constants";
 import { documentCommands } from "../../input/documentCommands";
 import { AnalizedPlayer } from "../../lib/AnalizedPlayer";
 import { appEnvironment } from "../../lib/AppEnvironment";
 import { AudioRecorder } from "../../lib/AudioRecorder";
 import { AudioRenderer } from "../../lib/AudioRenderer";
-import { ProjectPersistance } from "../../lib/ProjectPersistance";
 import { AudioProject } from "../../lib/project/AudioProject";
 import { useLinkedState } from "../../lib/state/LinkedState";
 import { doConfirm } from "../ConfirmDialog";
@@ -16,6 +15,7 @@ import { UtilityNumber } from "../UtilityNumber";
 import { UtilityToggle } from "../UtilityToggle";
 import { utility } from "../utility";
 import { BounceButton } from "./BounceButton";
+import { CommandButton } from "./CommandButton";
 import { ToolSelector } from "./ToolSelector";
 import { PlaybackControl } from "./TransportControl";
 
@@ -34,23 +34,6 @@ export async function closeProject(project: AudioProject) {
     await savePromise;
   }
   return true;
-}
-
-function NewProjectButton({ project }: { project: AudioProject }) {
-  return (
-    <button
-      className={utility.button}
-      onClick={async () => {
-        const didClose = await closeProject(project);
-        if (!didClose) {
-          return;
-        }
-        await ProjectPersistance.openEmptyProject();
-      }}
-    >
-      new project
-    </button>
-  );
 }
 
 export function PlaybeatTime({ project, player }: { project: AudioProject; player: AnalizedPlayer }) {
@@ -156,29 +139,31 @@ export function ToolHeader({
   const dirty = appEnvironment.projectDirtyObserver.dirtyState() !== "clean";
   useSubscribeToSubbableMutationHashable(appEnvironment.projectDirtyObserver.flag, undefined, false);
   useContainer(project.allTracks, true);
+  const history = useContainer(getGlobalState().history);
+  const redoStack = useContainer(getGlobalState().redoStack);
 
   return (
     <div className={classes.headerContainer}>
-      {/* foo */}
       <div className={classes.tools}>
         <div className={classes.topRow}>
-          <NewProjectButton project={project} />
-          <button
-            className={utility.button}
-            onClick={async () => {
-              documentCommands.execById("save", project);
-            }}
-          >
+          <CommandButton command={documentCommands.getById("newProject")} project={project}>
+            new project
+          </CommandButton>
+
+          <CommandButton command={documentCommands.getById("save")} project={project}>
             save
-          </button>
-          {/* <button
-            className={utility.button}
-            onClick={async () => {
-              documentCommands.execById("createAudioTrack", project);
-            }}
-          >
-            new track
-          </button> */}
+          </CommandButton>
+
+          <span className={classes.buttonGroup}>
+            <CommandButton disabled={history.length < 1} command={documentCommands.getById("undo")} project={project}>
+              <i className="ri-arrow-go-back-line"></i>
+            </CommandButton>
+
+            <CommandButton disabled={redoStack.length < 1} command={documentCommands.getById("redo")} project={project}>
+              <i className="ri-arrow-go-forward-line"></i>
+            </CommandButton>
+          </span>
+
           {/* <select
             style={{ width: 100, fontSize: 12 }}
             value={selectedDevice ?? undefined}
@@ -225,6 +210,16 @@ export function ToolHeader({
           <ToolSelector project={project} />
           <div style={{ flexGrow: 1 }}></div>
           <BounceButton project={project} renderer={renderer} />
+
+          <button
+            className={utility.button}
+            onClick={async () => {
+              alert("TODO");
+            }}
+            title="report bug"
+          >
+            <i className="ri-bug-fill"></i>
+          </button>
         </div>
         <div className={classes.bottomRow}>
           <UtilityToggle
@@ -295,6 +290,10 @@ export function ToolHeader({
 }
 
 const useStyles = createUseStyles({
+  buttonGroup: {
+    display: "flex",
+    flexDirection: "row",
+  },
   headerContainer: {
     display: "flex",
     flexDirection: "row",

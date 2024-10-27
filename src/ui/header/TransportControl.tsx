@@ -8,6 +8,7 @@ import { AudioProject } from "../../lib/project/AudioProject";
 import { useLinkedState } from "../../lib/state/LinkedState";
 import { exhaustive } from "../../utils/exhaustive";
 import { utility } from "../utility";
+import { CommandButton } from "./CommandButton";
 
 export function TransportControl({
   project,
@@ -88,17 +89,15 @@ export function PlaybackControl({
 
   return (
     <div style={{ display: "flex", flexDirection: "row", ...style }}>
-      <button
-        title="jump to start"
-        className={utility.button}
+      <CommandButton
+        command={documentCommands.getById("jumpToTimelineStart")}
+        project={project}
         disabled={isAudioPlaying || isRecording || (cursorPos === 0 && selectionWidth === 0)}
-        style={isRecording ? { color: "red" } : undefined}
-        onClick={() => {
-          documentCommands.execById("jumpToTimelineStart", project);
-        }}
+        style={isRecording ? { color: "red" } : {}}
       >
         {"\u23ee" /* rewind */}
-      </button>
+      </CommandButton>
+
       {!isAudioPlaying && (
         <button
           title="play"

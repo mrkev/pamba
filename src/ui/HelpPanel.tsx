@@ -1,80 +1,9 @@
 import React, { useEffect, useRef } from "react";
-import { createUseStyles } from "react-jss";
-import { getGlobalState, useContainer } from "structured-state";
 import { Command } from "../input/Command";
 import { documentCommands } from "../input/documentCommands";
-import { AudioClip } from "../lib/AudioClip";
 import { AudioProject } from "../lib/project/AudioProject";
-import { LinkedArray } from "../lib/state/LinkedArray";
-import { UtilityDataList } from "./UtilityList";
 
-export type HistoryItem = {
-  clip: AudioClip;
-};
-
-export const history = LinkedArray.create([]);
-
-export function History({ project }: { project: AudioProject }) {
-  const history = useContainer(getGlobalState().history);
-
-  return (
-    <>
-      <UtilityDataList
-        items={history.map((entry) => {
-          return {
-            title: entry.name,
-            data: entry,
-          };
-        })}
-        onItemSelect={(item) => {
-          console.log(item.data);
-        }}
-      />
-    </>
-  );
-}
-
-export function Shortcuts({ project }: { project: AudioProject }) {
-  return (
-    <>
-      {documentCommands.getAllCommands().map((c, i) => {
-        const keys = [...c.shortcut].reverse();
-        return (
-          c.label != null && (
-            <div key={i} style={{ borderBottom: "1px solid var(--border-against-bg)" }}>
-              <span style={{ display: "flex", justifyContent: "space-between" }}>
-                <b>{c.label}:</b>
-                <span>
-                  {keys.map((x, i) => (
-                    <kbd title={x} key={i}>
-                      {x === "meta"
-                        ? "\u2318"
-                        : x === "alt"
-                        ? "\u2325"
-                        : x === "ctrl"
-                        ? "\u2303"
-                        : x === "shift"
-                        ? "\u21EA"
-                        : x.replace(/^Key/, "")}
-                    </kbd>
-                  ))}
-                </span>
-              </span>
-              <br />
-              {c.description}
-            </div>
-          )
-        );
-      })}
-    </>
-  );
-}
-
-export function Settings({ project }: { project: AudioProject }) {
-  return <>Settings</>;
-}
-
-export function Help({ project }: { project: AudioProject }) {
+export function HelpPanel({ project }: { project: AudioProject }) {
   return (
     <>
       <b style={{ fontSize: "12px" }}>Keyboard Shortcuts:</b>
@@ -104,7 +33,7 @@ function KeyboardCommandHelp({ command }: { command: Command }) {
   const keys = [...command.shortcut].reverse();
   const divRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    command.addTriggerListener(() => {
+    return command.addTriggerListener(() => {
       const div = divRef?.current;
       if (div) {
         div.style.background = "red";
@@ -161,8 +90,38 @@ function Key({ str }: { str: string }) {
   );
 }
 
-const useStyles = createUseStyles({
-  flashing: {
-    background: "red",
-  },
-});
+export function Shortcuts({ project }: { project: AudioProject }) {
+  return (
+    <>
+      {documentCommands.getAllCommands().map((c, i) => {
+        const keys = [...c.shortcut].reverse();
+        return (
+          c.label != null && (
+            <div key={i} style={{ borderBottom: "1px solid var(--border-against-bg)" }}>
+              <span style={{ display: "flex", justifyContent: "space-between" }}>
+                <b>{c.label}:</b>
+                <span>
+                  {keys.map((x, i) => (
+                    <kbd title={x} key={i}>
+                      {x === "meta"
+                        ? "\u2318"
+                        : x === "alt"
+                        ? "\u2325"
+                        : x === "ctrl"
+                        ? "\u2303"
+                        : x === "shift"
+                        ? "\u21EA"
+                        : x.replace(/^Key/, "")}
+                    </kbd>
+                  ))}
+                </span>
+              </span>
+              <br />
+              {c.description}
+            </div>
+          )
+        );
+      })}
+    </>
+  );
+}

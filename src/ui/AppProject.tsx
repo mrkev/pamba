@@ -13,7 +13,8 @@ import { BottomPanel } from "./BottomPanel";
 import { DebugContent } from "./DebugData";
 import { ToolHeader } from "./header/ToolHeader";
 import { TransportControl } from "./header/TransportControl";
-import { Help, History, Settings } from "./history";
+import { HelpPanel } from "./HelpPanel";
+import { HistoryPanel, Settings } from "./HistoryPanel";
 import { Library } from "./Library";
 import { ProjectEditor } from "./ProjectEditor";
 import { TimelineView } from "./TimelineView";
@@ -79,7 +80,7 @@ export function AppProject({ project }: { project: AudioProject }) {
             history: {
               icon: <i className="ri-history-line" style={{ paddingRight: 2 }}></i>,
               title: "History",
-              render: () => <History project={project} />,
+              render: () => <HistoryPanel project={project} />,
             },
             settings: {
               icon: <i className="ri-settings-3-line" style={{ paddingRight: 2 }}></i>,
@@ -89,7 +90,7 @@ export function AppProject({ project }: { project: AudioProject }) {
             help: {
               icon: <i className="ri-questionnaire-line"></i>,
               title: "Help",
-              render: () => <Help project={project} />,
+              render: () => <HelpPanel project={project} />,
             },
           }}
         />

@@ -13,13 +13,24 @@ import { exhaustive } from "../utils/exhaustive";
 import { ignorePromise } from "../utils/ignorePromise";
 import { nullthrows } from "../utils/nullthrows";
 import { CommandBlock } from "./Command";
+import { closeProject } from "../ui/header/ToolHeader";
 
 export const documentCommands = CommandBlock.create(["Project", "Edit", "Tools", "Playback"] as const, (command) => {
   return {
     // Document
     // need async
-    // new:
     // open:
+    newProject: command(["KeyN", "alt", "meta"], async (e, project) => {
+      e?.preventDefault();
+      e?.stopPropagation();
+      const didClose = await closeProject(project);
+      if (!didClose) {
+        return;
+      }
+      await ProjectPersistance.openEmptyProject();
+    })
+      .helptext("New Project")
+      .section("Project"),
     save: command(["KeyS", "meta"], async (e, project) => {
       e?.preventDefault();
       e?.stopPropagation();
