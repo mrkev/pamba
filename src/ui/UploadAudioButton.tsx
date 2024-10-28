@@ -4,6 +4,7 @@ import { AudioProject } from "../lib/project/AudioProject";
 import { ignorePromise } from "../utils/ignorePromise";
 import { UploadButton } from "./FormButtons";
 import { utility } from "./utility";
+import { appEnvironment } from "../lib/AppEnvironment";
 
 export function UploadAudioButton({
   project,
@@ -13,7 +14,7 @@ export function UploadAudioButton({
   loadClip?: (url: string, name?: string) => Promise<void>;
 }) {
   const [uploadStatus, setUploadStatus] = useState<"idle" | "uploading">("idle");
-  const [audioStorage] = usePrimitive(project.audioStorage);
+  const [audioStorage] = usePrimitive(appEnvironment.audioStorage);
 
   return (
     audioStorage && (

@@ -9,22 +9,22 @@ import type { AudioProject } from "./AudioProject";
 
 export class AudioStorage {
   readonly remoteFiles: LinkedArray<string>;
-  private readonly project: AudioProject;
+  // private readonly project: AudioProject;
 
   private constructor(
-    project: AudioProject,
+    // project: AudioProject,
     remoteFiles: string[],
     private readonly firebaseStoreRef: StorageReference | null,
   ) {
-    this.project = project;
+    // this.project = project;
     this.remoteFiles = LinkedArray.create<string>(remoteFiles);
   }
 
-  static async init(project: AudioProject, firebaseStoreRef: StorageReference | null) {
+  static async init(firebaseStoreRef: StorageReference | null) {
     // const location = `project/${project.projectId}/audio`;
     // const list = await listAll(ref(firebaseStoreRef, location));
     // const files = await Promise.all(list.items.map((x) => getDownloadURL(x)));
-    return new AudioStorage(project, [], firebaseStoreRef);
+    return new AudioStorage([], firebaseStoreRef);
   }
 
   // TODO: progress callback
@@ -48,6 +48,7 @@ export class AudioStorage {
     // return url;
   }
 
+  // TODO: move to localfiles?
   async uploadToLibrary(file: File, onFormatInfo?: (format: IFormat) => void): Promise<AudioPackage | Error> {
     const audioPackage = await AudioPackage.newUpload(file, await appEnvironment.localFiles.audioLib.dir());
     if (typeof audioPackage === "string") {

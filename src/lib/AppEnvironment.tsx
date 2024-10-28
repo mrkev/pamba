@@ -21,6 +21,8 @@ import { LinkedMap } from "./state/LinkedMap";
 import { LinkedSet } from "./state/LinkedSet";
 import { LinkedState } from "./state/LinkedState";
 import { exhaustive } from "./state/Subbable";
+import { AudioStorage } from "./project/AudioStorage";
+import { getFirebaseStorage } from "../firebase/getFirebase";
 
 const dummyObj = array();
 
@@ -49,6 +51,8 @@ export class AppEnvironment {
   readonly faustEffects = Object.keys(FAUST_EFFECTS) as (keyof typeof FAUST_EFFECTS)[];
   // FS
   readonly localFiles: LocalFilesystem = new LocalFilesystem();
+  readonly audioStorage = SPrimitive.of<AudioStorage | null>(null);
+
   // Project
   readonly projectStatus: LinkedState<ProjectState>;
   public projectDirtyObserver: DirtyObserver;
@@ -105,6 +109,13 @@ export class AppEnvironment {
     const [audioContextInfo] = await Promise.all([initAudioContext(liveAudioContext)]);
 
     try {
+      // AudioStorage
+      const storage = await getFirebaseStorage();
+      // if (storage !== "no-storage") {
+      const audioStorage = await AudioStorage.init(storage === "no-storage" ? null : storage);
+      this.audioStorage.set(audioStorage);
+
+      // WebGPU
       if (!navigator.gpu) {
         throw new Error("WebGPU not supported in this browser.");
       }

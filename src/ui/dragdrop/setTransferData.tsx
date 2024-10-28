@@ -14,8 +14,9 @@ function formatOfResource(resource: TransferableResource) {
   switch (resource.kind) {
     case "AudioPackage.local":
     case "WAMAvailablePlugin":
-    case "fausteffect":
       throw new Error("lol unimplemented. these are just strings");
+    case "fausteffect":
+      return "application/pamba.fausteffect";
     case "project":
       return "application/pamba.project";
     case "audio":

@@ -22,6 +22,7 @@ import { trackCanHandleTransfer } from "./dragdrop/canHandleTransfer";
 import { getTrackAcceptableDataTransferResources } from "./dragdrop/getTrackAcceptableDataTransferResources";
 import { handleDropOntoAudioTrack, handleDropOntoMidiTrack } from "./dragdrop/resourceDrop";
 import { useDropzoneBehaviour } from "./dragdrop/useDropzoneBehaviour";
+import { appEnvironment } from "../lib/AppEnvironment";
 
 function clientXToTrackX(trackElem: HTMLDivElement | null, clientX: number) {
   if (trackElem == null) {
@@ -51,7 +52,7 @@ export function TrackS({
   const [height] = usePrimitive(track.height);
   const [activeTrack] = usePrimitive(project.activeTrack);
   const lockedTracks = useContainer(project.lockedTracks);
-  const [audioStorage] = usePrimitive(project.audioStorage);
+  const [audioStorage] = usePrimitive(appEnvironment.audioStorage);
   const trackRef = useRef<HTMLDivElement>(null);
   const [draggingOver, setDraggingOver] = useState<number | null>(null);
   const locked = lockedTracks.has(track);

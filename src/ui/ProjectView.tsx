@@ -17,6 +17,7 @@ import { handleDropOntoTimelineWhitespace } from "./dragdrop/resourceDrop";
 import { TimelineCursor } from "./TimelineCursor";
 import { TrackS } from "./TrackS";
 import { useEventListener } from "./useEventListener";
+import { appEnvironment } from "../lib/AppEnvironment";
 
 export async function getDroppedAudioURL(audioStorage: AudioStorage | null, dataTransfer: DataTransfer) {
   if (audioStorage == null) {
@@ -52,7 +53,7 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
   const projectDivRef = useRef<HTMLDivElement | null>(null);
   const dspExpandedTracks = useContainer(project.dspExpandedTracks);
   const [draggingOver, setDraggingOver] = useState<boolean>(false);
-  const [audioStorage] = usePrimitive(project.audioStorage);
+  const [audioStorage] = usePrimitive(appEnvironment.audioStorage);
   const [viewportStartPx] = usePrimitive(project.viewport.viewportStartPx);
   const tracks = useContainer(project.allTracks);
   const playbackPosDiv = useRef<null | HTMLDivElement>(null);

@@ -28,7 +28,7 @@ import { closeProject } from "./header/ToolHeader";
 const STATIC_AUDIO_FILES = ["drums.mp3", "clav.mp3", "bassguitar.mp3", "horns.mp3", "leadguitar.mp3"];
 
 function useAudioLibrary(project: AudioProject, filter: string): (string | AudioPackage)[] {
-  const [audioStorage] = usePrimitive(project.audioStorage);
+  const [audioStorage] = usePrimitive(appEnvironment.audioStorage);
   const remoteAudio = useLinkedArrayMaybe(audioStorage?.remoteFiles ?? null);
   const [localAudio] = useLinkedMap(appEnvironment.localFiles.audioLib.state);
   const audioLibrary = [...STATIC_AUDIO_FILES, ...(remoteAudio ?? []), ...localAudio.values()];

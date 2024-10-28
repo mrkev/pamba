@@ -61,7 +61,6 @@ export class AudioProject {
 
   // systems //
   readonly viewport: ProjectViewport;
-  readonly audioStorage = SPrimitive.of<AudioStorage | null>(null);
 
   // Tracks //
   readonly solodTracks = SSet.create<AudioTrack | MidiTrack>(); // TODO: single track kind?

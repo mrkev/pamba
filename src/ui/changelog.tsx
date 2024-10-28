@@ -1,4 +1,7 @@
 export const changelog = `
+next
+- fix dragging faust effects into timeline
+
 v0.2.1
 - redo (experimental)
 - ui improvements and fixes
