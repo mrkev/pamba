@@ -11,7 +11,7 @@ import { MidiClip } from "../midi/MidiClip";
 import { MidiInstrument } from "../midi/MidiInstrument";
 import { MidiTrack } from "../midi/MidiTrack";
 import { Note } from "../midi/SharedMidiTypes";
-import { SMidiViewport } from "../ui/viewport/MidiViewport";
+import { SMidiViewport } from "../lib/viewport/MidiViewport";
 import { exhaustive } from "../utils/exhaustive";
 import { nullthrows } from "../utils/nullthrows";
 import { mutable } from "../utils/types";

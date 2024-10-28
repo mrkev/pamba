@@ -45,7 +45,8 @@ export function App(): React.ReactElement {
           padding: 48,
         }}
       >
-        cephei v{__APP_VERSION__} (alpha)
+        <img src="/logo.svg" alt="mini daw" height="40" width="auto" style={{ marginRight: "8px" }} />v{__APP_VERSION__}{" "}
+        (alpha)
         <br />
         ---
         <br />

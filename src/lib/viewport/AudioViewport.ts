@@ -1,11 +1,6 @@
 import { init, JSONOfAuto, number, replace, SNumber, SPrimitive, Structured } from "structured-state";
 import { clamp } from "../../utils/math";
 
-type SAudioViewport = {
-  pxPerSec: number;
-  scrollLeft: number;
-};
-
 // px / sec => fr / px
 
 type AutoAudioViewport = {

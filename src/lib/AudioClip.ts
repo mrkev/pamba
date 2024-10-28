@@ -2,7 +2,7 @@ import { JSONOfAuto, SString, Structured, init, replace, string } from "structur
 import { staticAudioContext } from "../constants";
 import { AudioPackage } from "../data/AudioPackage";
 import { SAudioClip } from "../data/serializable";
-import { AudioViewport } from "../ui/viewport/AudioViewport";
+import { AudioViewport } from "./viewport/AudioViewport";
 import { nullthrows } from "../utils/nullthrows";
 import { dataURLForWaveform } from "../utils/waveform";
 import { AbstractClip, Seconds, secs } from "./AbstractClip";

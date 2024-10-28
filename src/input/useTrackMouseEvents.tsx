@@ -3,7 +3,7 @@ import { AudioTrack } from "../lib/AudioTrack";
 import { AudioProject } from "../lib/project/AudioProject";
 import { pressedState } from "../pressedState";
 import { useEventListener } from "../ui/useEventListener";
-import { snapped } from "../lib/project/ProjectViewportUtil";
+import { snapped } from "../lib/viewport/ProjectViewport";
 import { MidiTrack } from "../midi/MidiTrack";
 
 // TODO: merge into project mouse events?

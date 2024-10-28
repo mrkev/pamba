@@ -4,7 +4,7 @@ import { AbstractClip, Pulses } from "../lib/AbstractClip";
 import { ProjectTrack } from "../lib/ProjectTrack";
 import { AudioProject } from "../lib/project/AudioProject";
 import { TimeUnit, TimelineT, time } from "../lib/project/TimelineT";
-import { MidiViewport } from "../ui/viewport/MidiViewport";
+import { MidiViewport } from "../lib/viewport/MidiViewport";
 import { mutablearr, nullthrows } from "../utils/nullthrows";
 import { MidiBuffer } from "./MidiBuffer";
 import { MidiTrack } from "./MidiTrack";

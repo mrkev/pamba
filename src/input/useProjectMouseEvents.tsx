@@ -14,7 +14,7 @@ import {
   pointMoveSec,
 } from "../lib/clipMoveSec";
 import { AudioProject } from "../lib/project/AudioProject";
-import { snapped } from "../lib/project/ProjectViewportUtil";
+import { snapped } from "../lib/viewport/ProjectViewport";
 import { ProjectTrack } from "../lib/ProjectTrack";
 import { MidiClip } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";

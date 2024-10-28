@@ -3,7 +3,7 @@ import { AudioProject } from "../lib/project/AudioProject";
 import { useDerivedState } from "../lib/state/DerivedState";
 
 export function TimelineCursor({ project, isHeader }: { project: AudioProject; isHeader?: boolean }) {
-  const secsToPx = useDerivedState(project.secsToPx);
+  const secsToPx = useDerivedState(project.viewport.secsToPxDS);
   const [cursorPos] = usePrimitive(project.cursorPos);
   const [selectionWidthRaw] = usePrimitive(project.selectionWidth);
   const selectionWidth = selectionWidthRaw == null ? 0 : selectionWidthRaw;

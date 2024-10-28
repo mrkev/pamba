@@ -1,12 +1,27 @@
-import { SNumber } from "structured-state";
+import { scaleLinear } from "d3-scale";
+import { init, JSONOfAuto, number, replace, SNumber, Structured } from "structured-state";
 import { SECS_IN_MIN } from "../../constants";
 import { clamp, stepNumber } from "../../utils/math";
+import { nullthrows } from "../../utils/nullthrows";
 import { PPQN } from "../../wam/pianorollme/MIDIConfiguration";
-import { AudioProject } from "./AudioProject";
-import { pulsesToSec, TimelineT } from "./TimelineT";
+import { appEnvironment } from "../AppEnvironment";
+import { AudioProject, XScale } from "../project/AudioProject";
+import { pulsesToSec, TimelineT } from "../project/TimelineT";
+import { DerivedState } from "../state/DerivedState";
 
-export class ProjectViewportUtil {
+type AutoProjectViewport = {
+  viewportStartPx: SNumber;
+  scaleFactor: SNumber;
+};
+
+export class ProjectViewport extends Structured<AutoProjectViewport, typeof ProjectViewport> {
   readonly project: AudioProject;
+
+  // 1 sec corresponds to 10 px
+  readonly secsToPxDS: DerivedState<(factor: number) => XScale>;
+  // factor 2: 1sec => 2px
+  // factor 3: 1sec => 3px
+  // etc
 
   constructor(
     project: AudioProject,
@@ -18,8 +33,38 @@ export class ProjectViewportUtil {
     // the "left" CSS position for the first second visible in the project div
     readonly viewportStartPx: SNumber,
   ) {
+    super();
     this.project = project;
+    this.secsToPxDS = DerivedState.from(
+      [this.scaleFactor],
+      (factor: number) =>
+        scaleLinear()
+          .domain([0, 1])
+          .range([0, 1 * factor]) as XScale,
+    );
+
     (window as any).vp = this;
+  }
+
+  override replace(autoJson: JSONOfAuto<AutoProjectViewport>): void {
+    replace.number(autoJson.scaleFactor, this.scaleFactor);
+    replace.number(autoJson.viewportStartPx, this.viewportStartPx);
+  }
+  override autoSimplify(): AutoProjectViewport {
+    return {
+      viewportStartPx: this.viewportStartPx,
+      scaleFactor: this.scaleFactor,
+    };
+  }
+
+  static construct(auto: JSONOfAuto<AutoProjectViewport>): ProjectViewport {
+    return Structured.create(
+      ProjectViewport,
+      nullthrows(appEnvironment.activeProject()), // should always be already loaded
+      number(0), // will be set by UI later
+      init.number(auto.scaleFactor),
+      init.number(auto.viewportStartPx),
+    );
   }
 
   // Scale
@@ -84,7 +129,7 @@ export class ProjectViewportUtil {
     return Math.floor((secs * PPQN * bpm) / SECS_IN_MIN);
   }
 
-  pxForTime(s: number): number {
+  secsToViewportPx(s: number): number {
     const viewportStartPx = this.viewportStartPx.get();
     return this.secsToPx(s) - viewportStartPx;
   }
@@ -92,7 +137,7 @@ export class ProjectViewportUtil {
   // TODO: more direct method?
   pxForPulse(p: number) {
     const bpm = this.project.tempo.get();
-    return this.pxForTime(pulsesToSec(p, bpm));
+    return this.secsToViewportPx(pulsesToSec(p, bpm));
   }
 
   timeForPx(px: number): number {

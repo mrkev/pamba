@@ -5,7 +5,7 @@ import { usePrimitive } from "structured-state";
 import { AudioProject } from "../lib/project/AudioProject";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { Note } from "../midi/SharedMidiTypes";
-import { MidiViewport } from "./viewport/MidiViewport";
+import { MidiViewport } from "../lib/viewport/MidiViewport";
 import { useEventListener, useMousePressMove } from "./useEventListener";
 import { pressedState } from "../pressedState";
 import { modifierState } from "../ModifierState";

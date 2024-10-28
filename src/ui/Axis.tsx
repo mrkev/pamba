@@ -152,7 +152,7 @@ export function Axis({ project, isHeader = false }: { project: AudioProject; isH
       >
         {(isHeader || primaryAxis === "tempo") &&
           tempoTicks.map(([beatNum, secs]) => {
-            const px = project.viewport.pxForTime(secs);
+            const px = project.viewport.secsToViewportPx(secs);
             const denom = beatNum % timeSignature[0];
             const label = `${Math.floor(beatNum / 4) + 1}` + (denom === 0 ? "" : `.${denom}`);
             const [fontSize, textY] = textDims("tempo");
@@ -184,7 +184,7 @@ export function Axis({ project, isHeader = false }: { project: AudioProject; isH
           })}
         {(isHeader || primaryAxis === "time") &&
           timeTicksS.map((secs) => {
-            const px = project.viewport.pxForTime(secs);
+            const px = project.viewport.secsToViewportPx(secs);
             const [fontSize, textY] = textDims("time");
             return (
               <g className="tick" key={secs}>

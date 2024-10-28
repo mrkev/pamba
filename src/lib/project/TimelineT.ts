@@ -126,7 +126,7 @@ export class TimelineT extends Structured<AutoTimelineT, typeof TimelineT> {
   px(project: AudioProject) {
     switch (this.u) {
       case "seconds":
-        return project.viewport.pxForTime(this.t);
+        return project.viewport.secsToViewportPx(this.t);
       case "pulses":
         return project.viewport.pxForPulse(this.t);
       case "bars":

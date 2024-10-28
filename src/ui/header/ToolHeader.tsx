@@ -95,7 +95,7 @@ function ScaleFactorSlider({ project }: { project: AudioProject }) {
       title="Zoom level"
       onChange={(e) => {
         const cursorPosSecs = project.cursorPos.get();
-        const cursorPosPx = project.secsToPx.get()(cursorPosSecs) - project.viewport.viewportStartPx.get();
+        const cursorPosPx = project.viewport.secsToPx(cursorPosSecs) - project.viewport.viewportStartPx.get();
         const projectDivWidth = project.viewport.projectDivWidth.get();
         const expectedNewScale = Math.exp(parseFloat(e.target.value));
 
@@ -214,7 +214,7 @@ export function ToolHeader({
           <button
             className={utility.button}
             onClick={async () => {
-              alert("TODO");
+              window.open("https://github.com/mrkev/web-daw-issues/issues/new", "_blank");
             }}
             title="report bug"
           >

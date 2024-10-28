@@ -1,9 +1,18 @@
 import type { ScaleLinear } from "d3-scale";
-import { scaleLinear } from "d3-scale";
-import { SArray, SBoolean, SNumber, SPrimitive, SSet, SString, boolean, number, string } from "structured-state";
+import {
+  SArray,
+  SBoolean,
+  SNumber,
+  SPrimitive,
+  SSet,
+  SString,
+  Structured,
+  boolean,
+  number,
+  string,
+} from "structured-state";
 import { ulid } from "ulid";
 import { DEFAULT_TEMPO, SOUND_FONT_URL, liveAudioContext } from "../../constants";
-import { getFirebaseStorage } from "../../firebase/getFirebase";
 import { MidiClip } from "../../midi/MidiClip";
 import { MidiInstrument } from "../../midi/MidiInstrument";
 import { MidiTrack } from "../../midi/MidiTrack";
@@ -14,12 +23,10 @@ import { appEnvironment } from "../AppEnvironment";
 import { AudioClip } from "../AudioClip";
 import { AudioTrack } from "../AudioTrack";
 import { ProjectTrack, StandardTrack } from "../ProjectTrack";
-import { DerivedState } from "../state/DerivedState";
 import { LinkedMap } from "../state/LinkedMap";
 import { LinkedState } from "../state/LinkedState";
-import { ignorePromise } from "../state/Subbable";
+import { ProjectViewport } from "../viewport/ProjectViewport";
 import { AudioStorage } from "./AudioStorage";
-import { ProjectViewportUtil as ProjectViewport } from "./ProjectViewportUtil";
 import { PanelSelectionState, PrimarySelectionState } from "./SelectionState";
 import { TimelineT, time } from "./TimelineT";
 
@@ -82,14 +89,6 @@ export class AudioProject {
   readonly secondarySelection = LinkedState.of<PanelSelectionState | null>(null);
   readonly activePanel = LinkedState.of<Panel>("primary");
 
-  // 1 sec corresponds to 10 px
-  readonly secsToPx: DerivedState<(factor: number) => XScale>;
-  // factor 2: 1sec => 2px
-  // factor 3: 1sec => 3px
-  // etc
-
-  readonly secsToViewportPx: DerivedState<(factor: number, startPx: number) => XScale>;
-
   constructor(
     readonly projectId: string,
     readonly projectName: SString,
@@ -104,37 +103,7 @@ export class AudioProject {
     scaleFactor: number,
     viewportStartPx: number,
   ) {
-    this.viewport = new ProjectViewport(this, number(0), number(scaleFactor), number(viewportStartPx));
-    this.loopStart = loopStart;
-    this.loopEnd = loopEnd;
-    this.secsToPx = DerivedState.from(
-      [this.viewport.scaleFactor],
-      (factor: number) =>
-        scaleLinear()
-          .domain([0, 1])
-          .range([0, 1 * factor]) as XScale,
-    );
-    this.secsToViewportPx = DerivedState.from(
-      [this.viewport.scaleFactor, this.viewport.viewportStartPx],
-      (factor: number, startPx: number) =>
-        scaleLinear()
-          .domain([0, 1])
-          .range([0 + startPx, 1 * factor + startPx]) as XScale,
-    );
-    // so it initializes after app environment is initialized
-    setTimeout(() => ignorePromise(this.asyncInits()), 0);
-  }
-
-  private async asyncInits() {
-    try {
-      const storage = await getFirebaseStorage();
-      // if (storage !== "no-storage") {
-      const audioStorage = await AudioStorage.init(this, storage === "no-storage" ? null : storage);
-      this.audioStorage.set(audioStorage);
-      // }
-    } catch (e) {
-      console.error(e);
-    }
+    this.viewport = Structured.create(ProjectViewport, this, number(0), number(scaleFactor), number(viewportStartPx));
   }
 
   static playbackWillLoop(project: AudioProject, cursorPos: number) {

@@ -207,13 +207,14 @@ export class AppEnvironment {
     return result;
   }
 
-  // project(): AudioProject {
-  //   const projectStatus = this.projectStatus.get();
-  //   if (projectStatus.status === "loading") {
-  //     throw new Error("loading project");
-  //   }
-  //   return projectStatus.project;
-  // }
+  public activeProject(): AudioProject | null {
+    const projectStatus = this.projectStatus.get();
+    if (projectStatus.status === "loaded") {
+      return projectStatus.project;
+    } else {
+      return null;
+    }
+  }
 }
 
 export const appEnvironment = new AppEnvironment();

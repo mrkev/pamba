@@ -2,14 +2,14 @@
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
-   width="210mm"
-   height="297mm"
-   viewBox="0 0 210 297"
+   width="128"
+   height="90"
+   viewBox="0 0 33.866667 23.812501"
    version="1.1"
    id="svg5"
    xml:space="preserve"
    inkscape:version="1.2.2 (b0a84865, 2022-12-01)"
-   sodipodi:docname="icon.svg"
+   sodipodi:docname="logo.svg"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
@@ -24,12 +24,12 @@
      inkscape:deskcolor="#505050"
      inkscape:document-units="mm"
      showgrid="false"
-     inkscape:zoom="3.3939003"
-     inkscape:cx="53.478294"
-     inkscape:cy="61.728389"
+     inkscape:zoom="2.0509168"
+     inkscape:cx="128.47913"
+     inkscape:cy="75.332164"
      inkscape:window-width="1233"
      inkscape:window-height="832"
-     inkscape:window-x="299"
+     inkscape:window-x="279"
      inkscape:window-y="38"
      inkscape:window-maximized="0"
      inkscape:current-layer="layer1" /><defs
@@ -40,7 +40,7 @@
        aria-label="mini"
        id="text233"
        style="font-style:italic;font-weight:900;font-stretch:condensed;font-size:16.9333px;font-family:'Avenir Next Condensed';-inkscape-font-specification:'Avenir Next Condensed,  Heavy Italic Condensed';fill:#ffffff;stroke-width:0.264583"
-       transform="translate(-64.354652,-128.33916)"><path
+       transform="matrix(1.0378388,0,0,1.0378388,-66.789755,-133.71342)"><path
          d="m 72.264588,136.85023 v 3.00136 q 0,0.71107 -0.322461,1.0666 -0.32246,0.35553 -0.851626,0.35553 -0.512629,0 -0.835089,-0.35553 -0.314192,-0.35553 -0.314192,-1.0666 v -3.59667 q 0,-0.85163 -0.05788,-1.32292 -0.05788,-0.47129 -0.314192,-0.76894 -0.256314,-0.30593 -0.810285,-0.30593 -1.10794,0 -1.463473,0.76068 -0.347265,0.76068 -0.347265,2.18281 v 3.05097 q 0,0.7028 -0.322461,1.0666 -0.314192,0.35553 -0.835089,0.35553 -0.512629,0 -0.843358,-0.35553 -0.32246,-0.3638 -0.32246,-1.0666 v -6.45747 q 0,-0.63666 0.289387,-0.96739 0.297656,-0.33072 0.777212,-0.33072 0.46302,0 0.768944,0.31419 0.314192,0.30592 0.314192,0.85162 v 0.21498 q 0.587043,-0.7028 1.256769,-1.03353 0.669725,-0.33073 1.488278,-0.33073 0.851626,0 1.463474,0.339 0.611847,0.339 1.008722,1.02526 0.570506,-0.69453 1.223695,-1.02526 0.653189,-0.339 1.446937,-0.339 0.92604,0 1.595765,0.3638 0.669726,0.3638 1.000454,1.0418 0.289388,0.61185 0.289388,1.92649 v 4.40696 q 0,0.71107 -0.322461,1.0666 -0.32246,0.35553 -0.851626,0.35553 -0.512629,0 -0.843357,-0.35553 -0.322461,-0.3638 -0.322461,-1.0666 v -3.79511 q 0,-0.7276 -0.06615,-1.16582 -0.05788,-0.43821 -0.330729,-0.73587 -0.272851,-0.29766 -0.826821,-0.29766 -0.446484,0 -0.851626,0.26459 -0.396874,0.26458 -0.620116,0.71106 -0.248046,0.57051 -0.248046,2.01745 z"
          style="font-style:normal;font-weight:normal;font-stretch:normal;font-family:'Arial Rounded MT Bold';-inkscape-font-specification:'Arial Rounded MT Bold, '"
          id="path325" /><path
@@ -56,7 +56,7 @@
        aria-label="DAW"
        id="text241"
        style="font-style:italic;font-weight:900;font-stretch:condensed;font-size:17.6389px;font-family:'Avenir Next Condensed';-inkscape-font-specification:'Avenir Next Condensed,  Heavy Italic Condensed';fill:#ffffff;stroke-width:0.264583"
-       transform="translate(-64.354652,-128.33916)"><path
+       transform="matrix(1.0378388,0,0,1.0378388,-66.789755,-133.71342)"><path
          d="m 72.292158,150.95805 h 0.881945 v -0.88194 h 0.881945 v -5.29167 h -0.881945 v -0.88195 h -0.881945 v -0.88194 h -1.76389 -0.881945 -5.291671 V 151.84 h 7.937506 z m -2.645835,-5.29167 h 0.881945 v 3.52778 h -0.881945 v 0.88195 h -1.76389 v -5.29167 h 1.76389 z"
          style="font-weight:bold;font-stretch:normal;font-family:'Upheaval TT (BRK)';-inkscape-font-specification:'Upheaval TT (BRK) Bold Italic'"
          id="path334" /><path

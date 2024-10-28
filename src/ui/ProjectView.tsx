@@ -242,7 +242,7 @@ export const useStyles = createUseStyles({
     background: "var(--timeline-bg)",
     overflowX: "scroll",
     overflowY: "hidden",
-    borderTop: "1px solid var(--axis-timeline-separator)",
+    // borderTop: "1px solid var(--axis-timeline-separator)",
   },
   playbackPosDiv: {
     background: "var(--cursor-playback)",

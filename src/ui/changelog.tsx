@@ -2,6 +2,8 @@ export const changelog = `
 v0.2.1
 - redo (experimental)
 - ui improvements and fixes
+- now named minidaw, and available via minidaw.aykev.dev
+- added button to report bugs
 
 v0.2.0
 - resizing a clip from start can snap to grid
