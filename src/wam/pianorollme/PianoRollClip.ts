@@ -14,6 +14,11 @@ export type ClipState = {
   notes: Note[];
 };
 
+type NoteState = {
+  onTick?: number;
+  onVelocity?: number;
+};
+
 export class Clip {
   state: ClipState;
   dirty: boolean;
@@ -134,10 +139,6 @@ export class Clip {
     return this.dirty;
   }
 }
-type NoteState = {
-  onTick?: number;
-  onVelocity?: number;
-};
 
 export class MIDINoteRecorder {
   states: NoteState[];

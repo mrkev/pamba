@@ -42,8 +42,6 @@ export const LIBRARY_SEARCH_INPUT_ID = "library-search";
 export const MAX_TIMELINE_SCALE = 1_000;
 export const MIN_TIMELINE_SCALE = 0.64;
 
-import PIANO_ROLL_PLUGIN_URL from "./midi/pianoroll/index?url";
-
 // TODO: assuming constant 4/4
 // 1 pulse
 // 6 puleses = 1 beat
@@ -64,7 +62,4 @@ export const WAM_PLUGINS: { url: string; kind: "-m" | "-a" | "m-a" | "a-a" }[] =
   { url: SOUND_FONT_URL, kind: "m-a" },
   { url: "https://www.webaudiomodules.com/community/plugins/burns-audio/modal/index.js", kind: "m-a" },
   { url: "https://www.webaudiomodules.com/community/plugins/burns-audio/drumsampler/index.js", kind: "m-a" },
-  { url: PIANO_ROLL_PLUGIN_URL, kind: "-m" },
 ];
-
-export { PIANO_ROLL_PLUGIN_URL };

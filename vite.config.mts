@@ -21,7 +21,8 @@ export default defineConfig({
     __APP_VERSION__: JSON.stringify(process.env.npm_package_version),
   },
   build: {
-    minify: "terser",
+    minify: false,
+    // minify: "terser",
     outDir: "./build",
     rollupOptions: {
       plugins: [RollupPluginNodePolyfill()],

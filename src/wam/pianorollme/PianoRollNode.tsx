@@ -1,12 +1,12 @@
 import { WamEventMap } from "@webaudiomodules/api";
 import { NoteDefinition } from "wam-extensions";
-import { WamNode, WebAudioModule } from "../../../packages/sdk/dist/index";
-import { PianoRollProcessorMessage, SimpleMidiClip } from "../../midi/SharedMidiTypes";
+import { WamNode, WebAudioModule } from "@webaudiomodules/sdk";
+import { PianoRollProcessorMessage } from "../../midi/SharedMidiTypes";
 import { ignorePromise } from "../../utils/ignorePromise";
 import { MIDIConfiguration } from "./MIDIConfiguration";
 import { NoteCanvasRenderState, NoteCanvasRenderer } from "./NoteCanvasRenderer";
 import { Clip, ClipState } from "./PianoRollClip";
-import PianoRollProcessorUrl from "./PianoRollProcessor?url";
+import PianoRollProcessorUrl from "./PianoRollProcessor?worker&url";
 import DescriptorUrl from "./descriptor.json?url";
 
 export class PianoRollNode extends WamNode {
@@ -74,8 +74,10 @@ export class PianoRollModule extends WebAudioModule<PianoRollNode> {
 
   override async initialize(state: any) {
     await this._loadDescriptor();
-    // console.log("INIT FOO");
-    return super.initialize(state);
+    console.log("INIT FOO PIANO ROLL");
+    const result = await super.initialize(state);
+    console.log("INIT FOO PIANO ROLL DONE");
+    return result;
   }
 
   override async createAudioNode(initialState: any) {
@@ -127,7 +129,7 @@ export class PianoRollModule extends WebAudioModule<PianoRollNode> {
     // h("div", {});
     div.setAttribute(
       "style",
-      "display: flex; flex-direction: column; height: 100px; width: 100px; max-height: 100%; max-width: 100%;"
+      "display: flex; flex-direction: column; height: 100px; width: 100px; max-height: 100%; max-width: 100%;",
     );
 
     div.setAttribute("width", "1024");
@@ -137,7 +139,7 @@ export class PianoRollModule extends WebAudioModule<PianoRollNode> {
     const container = document.createElement("div");
     container.setAttribute(
       "style",
-      "display: flex; flex-direction: column; height: 100px; width: 100px; max-height: 100%; max-width: 100%;"
+      "display: flex; flex-direction: column; height: 100px; width: 100px; max-height: 100%; max-width: 100%;",
     );
 
     shadow.appendChild(container);
@@ -248,7 +250,7 @@ export class PianoRoll {
       (id) =>
         (this.clips[id].updateProcessor = (c) => {
           if (this.updateProcessor) this.updateProcessor(c);
-        })
+        }),
     );
   }
 

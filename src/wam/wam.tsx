@@ -3,7 +3,6 @@ import React, { useEffect, useRef, useState } from "react";
 import type { WebAudioModule } from "../../packages/sdk/dist";
 import { WAMAvailablePlugin } from "../lib/AppEnvironment";
 import { MidiInstrument } from "../midi/MidiInstrument";
-import { importFetch } from "../utils/importModule";
 import { PambaWamNode } from "./PambaWamNode";
 
 export type WAMImport = {

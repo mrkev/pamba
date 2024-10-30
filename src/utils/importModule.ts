@@ -8,7 +8,7 @@ const cleanup = (script: HTMLScriptElement) => {
   script.remove();
 };
 
-export async function importFetch(url: string, options?: RequestInit) {
+async function importFetch(url: string, options?: RequestInit) {
   const existing = pamba__moduleMap.get(url);
   if (existing != null) {
     return existing;
@@ -28,7 +28,7 @@ export async function importFetch(url: string, options?: RequestInit) {
   }
 }
 
-export function importModule(url: string) {
+function importModule(url: string) {
   return new Promise(function importModulePromise(res, rej) {
     const absURL = new URL(url, location.toString()).toString();
 

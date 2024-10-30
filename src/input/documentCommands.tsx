@@ -10,7 +10,6 @@ import { userActions } from "../lib/userActions";
 import { pressedState } from "../pressedState";
 import { closeProject } from "../ui/header/ToolHeader";
 import { exhaustive } from "../utils/exhaustive";
-import { ignorePromise } from "../utils/ignorePromise";
 import { nullthrows } from "../utils/nullthrows";
 import { CommandBlock } from "./Command";
 
@@ -62,9 +61,9 @@ export const documentCommands = CommandBlock.create(["Project", "Edit", "Tools",
       .helptext("New Audio Track")
       .section("Project"),
 
-    createMidiTrack: command(["KeyT", "ctrl", "shift"], (e, project) => {
-      ignorePromise(userActions.addMidiTrack(project));
+    createMidiTrack: command(["KeyT", "ctrl", "shift"], async (e, project) => {
       e?.preventDefault();
+      await userActions.addMidiTrack(project);
     }).section("Project"),
 
     deleteSelection: command(["Backspace"], (e, project) => {

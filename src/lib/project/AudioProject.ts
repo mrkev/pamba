@@ -160,6 +160,7 @@ export class AudioProject {
   }
 
   static async addMidiTrack(project: AudioProject, position: "top" | "bottom" = "top", track?: MidiTrack) {
+    console.log("Foo");
     const wamHostGroupId = nullthrows(appEnvironment.wamHostGroup.get())[0];
     const instrument = await MidiInstrument.createFromUrl(SOUND_FONT_URL, wamHostGroupId, liveAudioContext());
     const newTrack = track ?? (await MidiTrack.createWithInstrument(instrument, "midi track"));

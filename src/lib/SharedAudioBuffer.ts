@@ -8,7 +8,8 @@ import { appEnvironment } from "./AppEnvironment";
  * Also includes rendering mechanism.
  */
 export class SharedAudioBuffer implements AudioBuffer {
-  channels: SharedArrayBuffer[] = [];
+  channels: ArrayBuffer[] = [];
+  // channels: SharedArrayBuffer[] = [];
   readonly length: number;
   readonly duration: number;
   readonly numberOfChannels: number;
@@ -19,7 +20,8 @@ export class SharedAudioBuffer implements AudioBuffer {
     for (let c = 0; c < audioBuffer.numberOfChannels; c++) {
       // TODO: Can I already shere these buffers?
       const floats = audioBuffer.getChannelData(c);
-      const sab = new SharedArrayBuffer(floats.buffer.byteLength);
+      const sab = new ArrayBuffer(floats.buffer.byteLength);
+      // const sab = new SharedArrayBuffer(floats.buffer.byteLength);
       const sharedFloats = new Float32Array(sab);
       sharedFloats.set(floats, 0);
       this.channels.push(sab);
