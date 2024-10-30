@@ -1,6 +1,6 @@
 import {
   arrayOf,
-  init,
+  InitFunctions,
   JSONOfAuto,
   number,
   replace,
@@ -51,7 +51,7 @@ export class AudioTrack extends Structured<AutoAudioTrack, typeof AudioTrack> im
   ) {
     super();
     this.playingSource = null;
-    this.dsp = new ProjectTrackDSP(this, effects);
+    this.dsp = new ProjectTrackDSP(string("AudioTrackDSP"), effects);
   }
 
   static of(name: string, clips: AudioClip[], effects: (FaustAudioEffect | PambaWamNode)[], height: number) {
@@ -77,7 +77,7 @@ export class AudioTrack extends Structured<AutoAudioTrack, typeof AudioTrack> im
     console.log("REPLACED AudioTrack");
   }
 
-  static construct(auto: JSONOfAuto<AutoAudioTrack>): AudioTrack {
+  static construct(auto: JSONOfAuto<AutoAudioTrack>, init: InitFunctions): AudioTrack {
     return Structured.create(
       AudioTrack,
       init.string(auto.name),

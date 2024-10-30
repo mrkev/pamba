@@ -1,4 +1,4 @@
-import { boolean, init, JSONOfAuto, number, replace, SNumber, Structured } from "structured-state";
+import { boolean, InitFunctions, JSONOfAuto, number, replace, SNumber, Structured } from "structured-state";
 import { clamp } from "../../utils/math";
 
 export type SMidiViewport = {
@@ -37,7 +37,7 @@ export class MidiViewport extends Structured<AutoMidiViewport, typeof MidiViewpo
     );
   }
 
-  static construct(auto: JSONOfAuto<AutoMidiViewport>): MidiViewport {
+  static construct(auto: JSONOfAuto<AutoMidiViewport>, init: InitFunctions): MidiViewport {
     return Structured.create(
       MidiViewport,
       init.number(auto.pxPerPulse),

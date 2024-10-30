@@ -1,4 +1,4 @@
-import { init, JSONOfAuto, number, replace, SNumber, SPrimitive, Structured } from "structured-state";
+import { InitFunctions, JSONOfAuto, number, replace, SNumber, SPrimitive, Structured } from "structured-state";
 import { clamp } from "../../utils/math";
 
 // px / sec => fr / px
@@ -37,7 +37,7 @@ export class AudioViewport extends Structured<AutoAudioViewport, typeof AudioVie
   }
 
   // TODO: should combine number and init.number (essentially make number be able to take in a Simplified number)?
-  static construct(auto: JSONOfAuto<AutoAudioViewport>): AudioViewport {
+  static construct(auto: JSONOfAuto<AutoAudioViewport>, init: InitFunctions): AudioViewport {
     return Structured.create(AudioViewport, init.number(auto.pxPerSec), init.number(auto.scrollLeft));
   }
 

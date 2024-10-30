@@ -1,5 +1,5 @@
 import { scaleLinear } from "d3-scale";
-import { init, JSONOfAuto, number, replace, SNumber, Structured } from "structured-state";
+import { InitFunctions, JSONOfAuto, number, replace, SNumber, Structured } from "structured-state";
 import { SECS_IN_MIN } from "../../constants";
 import { clamp, stepNumber } from "../../utils/math";
 import { nullthrows } from "../../utils/nullthrows";
@@ -57,7 +57,7 @@ export class ProjectViewport extends Structured<AutoProjectViewport, typeof Proj
     };
   }
 
-  static construct(auto: JSONOfAuto<AutoProjectViewport>): ProjectViewport {
+  static construct(auto: JSONOfAuto<AutoProjectViewport>, init: InitFunctions): ProjectViewport {
     return Structured.create(
       ProjectViewport,
       nullthrows(appEnvironment.activeProject()), // should always be already loaded

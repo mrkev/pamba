@@ -11,6 +11,7 @@ import { AudioTrack } from "../AudioTrack";
 import { ProjectTrack } from "../ProjectTrack";
 import { clipboard } from "./ClipboardState";
 import { AudioProject, deleteTime } from "./AudioProject";
+import { PrimarySelectionState } from "./SelectionState";
 
 export class ProjectSelection {
   /**
@@ -42,96 +43,7 @@ export class ProjectSelection {
     });
   }
 
-  /**
-   * Deletes whatever is selected
-   */
-  static deleteSelection(project: AudioProject) {
-    const primarySelection = project.selected.get();
-    if (primarySelection == null) {
-      return;
-    }
-
-    switch (primarySelection.status) {
-      case "clips": {
-        history.record("remove clip(s)", () => {
-          for (const { clip, track } of primarySelection.clips) {
-            if (track instanceof MidiTrack && clip instanceof MidiClip) {
-              AudioProject.removeMidiClip(project, track, clip);
-            } else if (track instanceof AudioTrack && clip instanceof AudioClip) {
-              AudioProject.removeAudioClip(project, track, clip);
-            } else {
-              console.warn("TODO, delete mixed!");
-            }
-            project.selected.set(null);
-          }
-        });
-        break;
-      }
-      case "tracks": {
-        if (appEnvironment.renderer.analizedPlayer.isAudioPlaying) {
-          // todo: some sort of alert or feedback, can't edit tracks while playing?
-          break;
-        }
-
-        const selectedTracks = new Set(primarySelection.tracks);
-        const noneLocked = project.lockedTracks.isDisjointFrom(selectedTracks);
-
-        if (!noneLocked) {
-          alert("some tracks are locked!");
-          break;
-        }
-
-        // TODO: if playing don't delete. show track locked?
-        for (const track of primarySelection.tracks) {
-          console.log("remove", primarySelection);
-          AudioProject.removeTrack(project, appEnvironment.renderer.analizedPlayer, track);
-          project.selected.set(null);
-        }
-        break;
-      }
-      case "effects": {
-        for (const { track, effect } of primarySelection.effects) {
-          console.log("remove", primarySelection);
-          AudioTrack.removeEffect(track, effect);
-          project.selected.set(null);
-        }
-        break;
-      }
-      case "time": {
-        history.record("delete time selection", () => {
-          for (const track of project.allTracks) {
-            deleteTime(project, track, primarySelection.startS, primarySelection.endS);
-          }
-        });
-        break;
-      }
-      case "track_time":
-        for (const track of primarySelection.tracks) {
-          if (track instanceof AudioTrack) {
-            // TODO: move history.record(...) up to the command level as possible
-            history.record("delete track time", () => {
-              ProjectTrack.deleteTime(project, track, primarySelection.startS, primarySelection.endS);
-            });
-          } else if (track instanceof MidiTrack) {
-            ProjectTrack.deleteTime(
-              project,
-              track,
-              project.viewport.secsToPulses(primarySelection.startS),
-              project.viewport.secsToPulses(primarySelection.endS),
-            );
-          }
-        }
-        break;
-
-      case "loop_marker":
-        // can't delete loop markers, deactivate looping if active
-        project.loopOnPlayback.set(false);
-        project.selected.set(null);
-        break;
-      default:
-        exhaustive(primarySelection);
-    }
-  }
+  /// DELETION
 
   static duplicateSelection(project: AudioProject) {
     const selected = project.selected.get();
@@ -178,5 +90,3 @@ export class ProjectSelection {
     }
   }
 }
-
-// TODO: ProjectSelection vs ProjectAction

@@ -1,12 +1,13 @@
 import type { ScaleLinear } from "d3-scale";
 import {
-  SArray,
   SBoolean,
   SNumber,
   SPrimitive,
+  SSchemaArray,
   SSet,
   SString,
   Structured,
+  arrayOf,
   boolean,
   number,
   string,
@@ -26,7 +27,6 @@ import { ProjectTrack, StandardTrack } from "../ProjectTrack";
 import { LinkedMap } from "../state/LinkedMap";
 import { LinkedState } from "../state/LinkedState";
 import { ProjectViewport } from "../viewport/ProjectViewport";
-import { AudioStorage } from "./AudioStorage";
 import { PanelSelectionState, PrimarySelectionState } from "./SelectionState";
 import { TimelineT, time } from "./TimelineT";
 
@@ -68,6 +68,9 @@ export class AudioProject {
   readonly lockedTracks = SSet.create<AudioTrack | MidiTrack | StandardTrack<any>>();
   // much like live, there's always an active track. Logic is a great model since
   // the active track is clearly discernable in spite of multi-track selection.
+  // TODO: when undoing a track deletion, activetrack.name is being set to {_value: 'Audio', _id: '...'}. WHY?
+  // I'm guessing it's becuase history looks at every change, and tries to undo everything that happened when doing
+  // history.record(...). But why is activeTrack.name not set properly though?
   readonly activeTrack = SPrimitive.of<AudioTrack | MidiTrack | null>(null);
   readonly armedTrack = SPrimitive.of<AudioTrack | MidiTrack | null>(null);
 
@@ -92,7 +95,7 @@ export class AudioProject {
     readonly projectId: string,
     readonly projectName: SString,
     // tracks
-    readonly allTracks: SArray<AudioTrack | MidiTrack>,
+    readonly allTracks: SSchemaArray<AudioTrack | MidiTrack>,
     // settings
     readonly tempo: SNumber,
     // looping
@@ -116,7 +119,7 @@ export class AudioProject {
     return new this(
       id,
       string("untitled"),
-      SArray.create([]),
+      arrayOf([AudioTrack, MidiTrack], []),
       number(DEFAULT_TEMPO),
       time(0, "pulses"),
       time(PPQN * 4, "pulses"),

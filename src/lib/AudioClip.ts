@@ -1,14 +1,14 @@
-import { JSONOfAuto, SString, Structured, init, replace, string } from "structured-state";
+import { InitFunctions, JSONOfAuto, SString, Structured, replace, string } from "structured-state";
 import { staticAudioContext } from "../constants";
 import { AudioPackage } from "../data/AudioPackage";
 import { SAudioClip } from "../data/serializable";
-import { AudioViewport } from "./viewport/AudioViewport";
 import { nullthrows } from "../utils/nullthrows";
 import { dataURLForWaveform } from "../utils/waveform";
 import { AbstractClip, Seconds, secs } from "./AbstractClip";
 import { SharedAudioBuffer } from "./SharedAudioBuffer";
 import { SOUND_LIB_FOR_HISTORY, loadSound, loadSoundFromAudioPackage } from "./loadSound";
 import { TimelineT, time } from "./project/TimelineT";
+import { AudioViewport } from "./viewport/AudioViewport";
 
 type AutoAudioClip = {
   name: SString;
@@ -105,7 +105,7 @@ export class AudioClip extends Structured<AutoAudioClip, typeof AudioClip> imple
     // cause audio buffer never changes, and all clips that replace this one will be the same buffer
   }
 
-  static construct(auto: JSONOfAuto<AutoAudioClip>): AudioClip {
+  static construct(auto: JSONOfAuto<AutoAudioClip>, init: InitFunctions): AudioClip {
     const buffer = nullthrows(SOUND_LIB_FOR_HISTORY.get(auto.bufferURL));
     return Structured.create(
       AudioClip,

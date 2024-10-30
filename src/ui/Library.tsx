@@ -13,7 +13,6 @@ import { ProjectPersistance } from "../lib/ProjectPersistance";
 import { ProjectTrack } from "../lib/ProjectTrack";
 import { addAvailableWamToTrack } from "../lib/addAvailableWamToTrack";
 import { AudioProject } from "../lib/project/AudioProject";
-import { useLinkedArrayMaybe } from "../lib/state/LinkedArray";
 import { useLinkedMap } from "../lib/state/LinkedMap";
 import { pressedState } from "../pressedState";
 import { exhaustive } from "../utils/exhaustive";
@@ -28,10 +27,10 @@ import { closeProject } from "./header/ToolHeader";
 const STATIC_AUDIO_FILES = ["drums.mp3", "clav.mp3", "bassguitar.mp3", "horns.mp3", "leadguitar.mp3"];
 
 function useAudioLibrary(project: AudioProject, filter: string): (string | AudioPackage)[] {
-  const [audioStorage] = usePrimitive(appEnvironment.audioStorage);
-  const remoteAudio = useLinkedArrayMaybe(audioStorage?.remoteFiles ?? null);
+  // const [audioStorage] = usePrimitive(appEnvironment.audioStorage);
+  // const remoteAudio = useLinkedArrayMaybe(audioStorage?.remoteFiles ?? null);
   const [localAudio] = useLinkedMap(appEnvironment.localFiles.audioLib.state);
-  const audioLibrary = [...STATIC_AUDIO_FILES, ...(remoteAudio ?? []), ...localAudio.values()];
+  const audioLibrary = [...STATIC_AUDIO_FILES, ...localAudio.values()];
 
   return audioLibrary.filter((audio) => {
     if (typeof audio === "string") {

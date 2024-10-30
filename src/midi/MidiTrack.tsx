@@ -1,5 +1,15 @@
 import type { WebAudioModule } from "@webaudiomodules/api";
-import { JSONOfAuto, SPrimitive, SSchemaArray, Structured, arrayOf } from "structured-state";
+import {
+  JSONOfAuto,
+  SNumber,
+  SPrimitive,
+  SSchemaArray,
+  SString,
+  Structured,
+  arrayOf,
+  replace,
+  string,
+} from "structured-state";
 import { CLIP_HEIGHT, SECS_IN_MINUTE, TIME_SIGNATURE, liveAudioContext } from "../constants";
 import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
 import { appEnvironment } from "../lib/AppEnvironment";
@@ -14,18 +24,19 @@ import { MidiInstrument } from "./MidiInstrument";
 import type { PianoRollProcessorMessage, SimpleMidiClip } from "./SharedMidiTypes";
 
 type AutoMidiTrack = {
-  name: SPrimitive<string>;
+  name: SString;
   clips: SSchemaArray<MidiClip>;
-  instrument: SPrimitive<MidiInstrument>;
+  instrument: string;
 };
 
 export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> implements StandardTrack<MidiClip> {
-  public readonly name: SPrimitive<string>;
+  public readonly name: SString;
   public readonly dsp: ProjectTrackDSP<MidiClip>;
   public readonly clips: SSchemaArray<MidiClip>;
-  public readonly height: SPrimitive<number>;
+  public readonly height: SNumber;
 
   // todo: instrument can be empty?
+  // TODO: SPrimitive holds Structs.
   instrument: SPrimitive<MidiInstrument>;
   pianoRoll: PianoRollModule;
 
@@ -37,12 +48,14 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
     return {
       name: this.name,
       clips: this.clips,
-      instrument: this.instrument,
+      instrument: this.instrument.get().url,
     };
   }
 
-  override replace(auto: JSONOfAuto<AutoMidiTrack>): void {
-    throw new Error("Method not implemented.");
+  override replace(json: JSONOfAuto<AutoMidiTrack>): void {
+    replace.string(json.name, this.name);
+    replace.schemaArray(json.clips, this.clips);
+    // todo: replace instrument
   }
 
   static construct(auto: JSONOfAuto<AutoMidiTrack>): MidiTrack {
@@ -55,7 +68,7 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
     this.playingSource = null;
     this.pianoRoll = pianoRoll as any;
     this.instrument = SPrimitive.of(instrument);
-    this.dsp = new ProjectTrackDSP(this, []);
+    this.dsp = new ProjectTrackDSP(string("MidiTrackDSP"), []);
     this.name = SPrimitive.of(name);
     this.height = SPrimitive.of<number>(CLIP_HEIGHT);
 

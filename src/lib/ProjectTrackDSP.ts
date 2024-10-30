@@ -10,7 +10,6 @@ import { AbstractClip } from "./AbstractClip";
 import { appEnvironment } from "./AppEnvironment";
 import { connectSerialNodes, disconnectSerialNodes } from "./connectSerialNodes";
 import { PBGainNode } from "./offlineNodes";
-import { StandardTrack } from "./ProjectTrack";
 
 export class ProjectTrackDSP<T extends AbstractClip<any>> extends DSPStep<null> {
   // DSP
@@ -22,10 +21,9 @@ export class ProjectTrackDSP<T extends AbstractClip<any>> extends DSPStep<null> 
   override bypass = boolean(false);
 
   override readonly effectId = "builtin:ProjectTrackNode";
-  override name: SString;
-  constructor(private readonly track: StandardTrack<T>, effects: (FaustAudioEffect | PambaWamNode)[]) {
+
+  constructor(override readonly name: SString, effects: (FaustAudioEffect | PambaWamNode)[]) {
     super();
-    this.name = track.name;
     this.effects = SArray.create(effects);
     this.gainNode = new PBGainNode();
     this._hiddenGainNode = new PBGainNode();

@@ -4,16 +4,15 @@ import { LIBRARY_SEARCH_INPUT_ID } from "../constants";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioRenderer } from "../lib/AudioRenderer";
 import { ProjectPersistance } from "../lib/ProjectPersistance";
-import { AudioProject } from "../lib/project/AudioProject";
-import { doPaste } from "../lib/project/ClipboardState";
 import { ProjectSelection } from "../lib/project/ProjectSelection";
 import { clipsLimits } from "../lib/project/timeline";
+import { userActions } from "../lib/userActions";
 import { pressedState } from "../pressedState";
+import { closeProject } from "../ui/header/ToolHeader";
 import { exhaustive } from "../utils/exhaustive";
 import { ignorePromise } from "../utils/ignorePromise";
 import { nullthrows } from "../utils/nullthrows";
 import { CommandBlock } from "./Command";
-import { closeProject } from "../ui/header/ToolHeader";
 
 export const documentCommands = CommandBlock.create(["Project", "Edit", "Tools", "Playback"] as const, (command) => {
   return {
@@ -31,6 +30,7 @@ export const documentCommands = CommandBlock.create(["Project", "Edit", "Tools",
     })
       .helptext("New Project")
       .section("Project"),
+
     save: command(["KeyS", "meta"], async (e, project) => {
       e?.preventDefault();
       e?.stopPropagation();
@@ -38,51 +38,42 @@ export const documentCommands = CommandBlock.create(["Project", "Edit", "Tools",
     })
       .helptext("Save")
       .section("Project"),
+
     // TODO: save as/save copy
     // TODO: split at cursor
     undo: command(["KeyZ", "meta"], (e) => {
-      performance.mark("undo-start");
       history.undo();
-      performance.mark("undo-end");
-      performance.measure("undo", "undo-start", "undo-end");
       e?.preventDefault();
     })
       .helptext("Undo", "Note: EXPERIMENTAL!")
       .section("Project"),
 
     redo: command(["KeyZ", "shift", "meta"], (e) => {
-      performance.mark("redo-start");
       history.redo();
-      performance.mark("redo-end");
-      performance.measure("redo", "redo-start", "redo-end");
       e?.preventDefault();
     })
       .helptext("Redo", "Note: EXPERIMENTAL!")
       .section("Project"),
 
     createAudioTrack: command(["KeyT", "ctrl"], (e, project) => {
-      // TODO: history
-      AudioProject.addAudioTrack(project, "top", undefined, appEnvironment.renderer.analizedPlayer);
+      userActions.addAudioTrack(project);
       e?.preventDefault();
     })
       .helptext("New Audio Track")
       .section("Project"),
 
     createMidiTrack: command(["KeyT", "ctrl", "shift"], (e, project) => {
-      // TODO: history
-      ignorePromise(AudioProject.addMidiTrack(project));
+      ignorePromise(userActions.addMidiTrack(project));
       e?.preventDefault();
     }).section("Project"),
 
     deleteSelection: command(["Backspace"], (e, project) => {
-      // TODO: history
-      ProjectSelection.deleteSelection(project);
+      userActions.deleteSelection(project);
       e?.preventDefault();
     }).section("Edit"),
 
     duplicateSelection: command(["KeyD", "meta"], (e, project) => {
-      // TODO: history
-      ProjectSelection.duplicateSelection(project);
+      userActions.duplicateSelection(project);
       e?.preventDefault();
     }).section("Edit"),
 
@@ -185,8 +176,7 @@ export const documentCommands = CommandBlock.create(["Project", "Edit", "Tools",
       .section("Edit"),
 
     pasteClipboard: command(["KeyV", "meta"], (e, project) => {
-      // TODO: history. how?
-      doPaste(project);
+      userActions.doPaste(project);
       e?.preventDefault();
     })
       .helptext("Paste", "Currently works only with clips")

@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import { createUseStyles } from "react-jss";
 import { useContainer } from "structured-state";
 import { MIN_TRACK_HEIGHT, TRACK_HEADER_WIDTH } from "../constants";
@@ -15,7 +15,13 @@ import { transferObject } from "./dragdrop/setTransferData";
 import { useDropzoneBehaviour } from "./dragdrop/useDropzoneBehaviour";
 import { utility } from "./utility";
 
-export function TrackHeaderContainer({ project, player }: { project: AudioProject; player: AnalizedPlayer }) {
+export const TrackHeaderContainer = React.memo(function TrackHeaderContainerImpl({
+  project,
+  player,
+}: {
+  project: AudioProject;
+  player: AnalizedPlayer;
+}) {
   const classes = useStyles();
   const axisContainerRef = useRef<HTMLDivElement | null>(null);
   const tracks = useContainer(project.allTracks);
@@ -131,7 +137,7 @@ export function TrackHeaderContainer({ project, player }: { project: AudioProjec
       </div>
     </div>
   );
-}
+});
 
 const useStyles = createUseStyles({
   trackHeaders: {

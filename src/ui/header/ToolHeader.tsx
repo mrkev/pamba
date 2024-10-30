@@ -18,6 +18,7 @@ import { BounceButton } from "./BounceButton";
 import { CommandButton } from "./CommandButton";
 import { ToolSelector } from "./ToolSelector";
 import { PlaybackControl } from "./TransportControl";
+import { UtilityMenu } from "../UtilityMenu";
 
 export async function closeProject(project: AudioProject) {
   const selection = await doConfirm(`Save changes to "${project.projectName.get()}"?`, "yes", "no", "cancel");
@@ -154,6 +155,16 @@ export function ToolHeader({
             save
           </CommandButton>
 
+          <div style={{ width: 12 }}></div>
+
+          <UtilityMenu
+            label={"add"}
+            items={{
+              "audio track": () => documentCommands.execById("createAudioTrack", project),
+              "midi track": () => documentCommands.execById("createMidiTrack", project),
+            }}
+          />
+
           <span className={classes.buttonGroup}>
             <CommandButton disabled={history.length < 1} command={documentCommands.getById("undo")} project={project}>
               <i className="ri-arrow-go-back-line"></i>
@@ -163,6 +174,8 @@ export function ToolHeader({
               <i className="ri-arrow-go-forward-line"></i>
             </CommandButton>
           </span>
+
+          <div style={{ width: 12 }}></div>
 
           {/* <select
             style={{ width: 100, fontSize: 12 }}

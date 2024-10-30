@@ -109,10 +109,8 @@ export class AppEnvironment {
     const [audioContextInfo] = await Promise.all([initAudioContext(liveAudioContext)]);
 
     try {
-      // AudioStorage
-      const storage = await getFirebaseStorage();
       // if (storage !== "no-storage") {
-      const audioStorage = await AudioStorage.init(storage === "no-storage" ? null : storage);
+      const audioStorage = AudioStorage.init();
       this.audioStorage.set(audioStorage);
 
       // WebGPU

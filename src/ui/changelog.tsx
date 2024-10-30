@@ -1,6 +1,7 @@
 export const changelog = `
-next
+v0.2.2
 - fix dragging faust effects into timeline
+- dragging an effect into a track expands its effect rack
 
 v0.2.1
 - redo (experimental)

@@ -4,51 +4,13 @@ import { useMemo } from "react";
 import { AudioPackage } from "../../data/AudioPackage";
 import { AsyncResultStatus, useAsyncResult } from "../../ui/useAsyncResult";
 import { appEnvironment } from "../AppEnvironment";
-import { LinkedArray } from "../state/LinkedArray";
 import type { AudioProject } from "./AudioProject";
 
 export class AudioStorage {
-  readonly remoteFiles: LinkedArray<string>;
-  // private readonly project: AudioProject;
-
-  private constructor(
-    // project: AudioProject,
-    remoteFiles: string[],
-    private readonly firebaseStoreRef: StorageReference | null,
-  ) {
-    // this.project = project;
-    this.remoteFiles = LinkedArray.create<string>(remoteFiles);
+  static init() {
+    return new AudioStorage();
   }
 
-  static async init(firebaseStoreRef: StorageReference | null) {
-    // const location = `project/${project.projectId}/audio`;
-    // const list = await listAll(ref(firebaseStoreRef, location));
-    // const files = await Promise.all(list.items.map((x) => getDownloadURL(x)));
-    return new AudioStorage([], firebaseStoreRef);
-  }
-
-  // TODO: progress callback
-  private async remoteUploadAudioFile(file: File, onFormatInfo?: (format: IFormat) => void): Promise<string | Error> {
-    throw new Error("Remote files no longer supported, for now");
-    // const audioPackage = await AudioPackage.of(file);
-    // if (audioPackage instanceof Error) {
-    //   return audioPackage;
-    // }
-    // onFormatInfo?.(audioPackage.metadata.format);
-    // const audioLocation = `project/${this.project.projectId}/audio/${file.name}`;
-    // const snapshot = await uploadBytes(ref(this.firebaseStoreRef, audioLocation), file, {
-    //   contentType: file.type,
-    // });
-    // // console.log("Uploaded", snapshot.totalBytes, "bytes.");
-    // console.log("File metadata:", snapshot.metadata);
-    // // Let's get a download URL for the file.
-    // const url = await getDownloadURL(snapshot.ref);
-    // console.log("File available at", url);
-    // this.remoteFiles.push(url);
-    // return url;
-  }
-
-  // TODO: move to localfiles?
   async uploadToLibrary(file: File, onFormatInfo?: (format: IFormat) => void): Promise<AudioPackage | Error> {
     const audioPackage = await AudioPackage.newUpload(file, await appEnvironment.localFiles.audioLib.dir());
     if (typeof audioPackage === "string") {

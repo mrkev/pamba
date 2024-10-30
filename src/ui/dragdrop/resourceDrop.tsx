@@ -46,6 +46,7 @@ export async function handleDropOntoAudioTrack(
       break;
     case "WAMAvailablePlugin":
       await addAvailableWamToTrack(track, resource, "last");
+      project.dspExpandedTracks.add(track);
       break;
     case "AudioPackage.local":
       console.warn("NOT IMEPLEMENTED");
@@ -56,6 +57,7 @@ export async function handleDropOntoAudioTrack(
       break;
     case "fausteffect":
       await track.dsp.addFaustEffect(resource.id, "last");
+      project.dspExpandedTracks.add(track);
       break;
     case "effectinstance":
       const srcTrack = nullthrows(
@@ -71,6 +73,7 @@ export async function handleDropOntoAudioTrack(
       srcTrack.dsp.effects.splice(resource.effectIndex, 1);
       // insert where appropriate
       track.dsp.addEffect(effectInstance, "last");
+      project.dspExpandedTracks.add(track);
       break;
     case "audioclipinstance":
       throw new Error("TODO: unimplemented");

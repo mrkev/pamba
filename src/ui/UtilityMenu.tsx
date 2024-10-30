@@ -55,6 +55,7 @@ export function UtilityMenu({
             width: 100,
             fontSize: 12,
             borderBottom: "1px solid var(--control-subtle-highlight)",
+            zIndex: 10,
           }}
         >
           {Object.entries(items).map(([label, cb]) => (

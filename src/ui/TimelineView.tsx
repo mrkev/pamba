@@ -67,14 +67,14 @@ export function TimelineView({
         >
           +
         </button> */}
-        <UtilityMenu
+        {/* <UtilityMenu
           style={{ position: "absolute", left: "4px" }}
           label={"+"}
           items={{
             "audio track": () => documentCommands.execById("createAudioTrack", project),
             "midi track": () => documentCommands.execById("createMidiTrack", project),
           }}
-        />
+        /> */}
         {"↑"}
       </div>
 

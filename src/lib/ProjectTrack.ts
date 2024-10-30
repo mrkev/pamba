@@ -4,7 +4,7 @@ import { AbstractClip, addClip, deleteTime, pushClip, removeClip, splitClip } fr
 import { AudioTrack } from "./AudioTrack";
 import { ProjectTrackDSP } from "./ProjectTrackDSP";
 import { AudioContextInfo } from "./initAudioContext";
-import type { AudioProject } from "./project/AudioProject";
+import { AudioProject } from "./project/AudioProject";
 import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
 
 // TODO: move these things out of the abstract class

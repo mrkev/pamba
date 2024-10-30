@@ -1,4 +1,4 @@
-import { boolean, number, SArray, string } from "structured-state";
+import { arrayOf, boolean, number, SArray, string } from "structured-state";
 import { liveAudioContext } from "../constants";
 import { FaustEffectID } from "../dsp/FAUST_EFFECTS";
 import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
@@ -238,7 +238,7 @@ export async function construct(
       return new AudioProject(
         projectId,
         string(projectName),
-        SArray.create(tracks),
+        arrayOf([AudioTrack, MidiTrack], tracks),
         number(tempo),
         time(loopStart.t, loopStart.u),
         time(loopEnd.t, loopEnd.u),

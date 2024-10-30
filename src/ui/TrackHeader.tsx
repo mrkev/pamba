@@ -15,6 +15,7 @@ import { RenamableLabel } from "./RenamableLabel";
 import { UtilityToggle } from "./UtilityToggle";
 import { cx } from "./cx";
 import { UtilitySlider, utility } from "./utility";
+import { userActions } from "../lib/userActions";
 
 export const TrackHeader = React.memo(function TrackHeader({
   track,
@@ -111,21 +112,7 @@ export const TrackHeader = React.memo(function TrackHeader({
           <div style={{ flexGrow: 1 }}></div>
           <button
             className={cx("utilityButton", styles.deleteTrackButton)}
-            onClick={async () => {
-              if (player.isAudioPlaying) {
-                // todo: some sort of alert or feedback, can't edit tracks while playing?
-                return;
-              }
-
-              if (project.lockedTracks.has(track)) {
-                alert("track is locked");
-                return;
-              }
-
-              if ((await doConfirm(`delete track "${track.name.get()}"?\n\nThis cannot be undone (yet)!`)) === "yes") {
-                AudioProject.removeTrack(project, player, track);
-              }
-            }}
+            onClick={async () => await userActions.deleteTrack(track, player, project)}
           >
             <i className="ri-close-line"></i>
           </button>{" "}
