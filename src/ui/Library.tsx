@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { createUseStyles } from "react-jss";
-import { usePrimitive } from "structured-state";
+import { useContainer, usePrimitive } from "structured-state";
 import { LIBRARY_SEARCH_INPUT_ID } from "../constants";
 import { AudioPackage } from "../data/AudioPackage";
 import { FAUST_EFFECTS, FaustEffectID } from "../dsp/FAUST_EFFECTS";
@@ -69,7 +69,7 @@ export function Library({
   const [libraryFilter, setLibraryFilter] = useState("");
   const audioLibrary = useAudioLibrary(project, libraryFilter);
   const [localProjects] = useLinkedMap(appEnvironment.localFiles.projectLib.state);
-  const [wamPlugins] = useLinkedMap(appEnvironment.wamPlugins);
+  const wamPlugins = useContainer(appEnvironment.wamPlugins);
 
   const loadClip = useCallback(
     async function loadClip(url: string, name?: string) {

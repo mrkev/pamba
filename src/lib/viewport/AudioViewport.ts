@@ -1,4 +1,4 @@
-import { InitFunctions, JSONOfAuto, number, replace, SNumber, SPrimitive, Structured } from "structured-state";
+import { InitFunctions, JSONOfAuto, number, ReplaceFunctions, SNumber, SPrimitive, Structured } from "structured-state";
 import { clamp } from "../../utils/math";
 
 // px / sec => fr / px
@@ -24,7 +24,7 @@ export class AudioViewport extends Structured<AutoAudioViewport, typeof AudioVie
     return Structured.create(AudioViewport, number(pxPerSec), number(scrollLeftPx));
   }
 
-  override replace(auto: JSONOfAuto<AutoAudioViewport>): void {
+  override replace(auto: JSONOfAuto<AutoAudioViewport>, replace: ReplaceFunctions): void {
     replace.number(auto.pxPerSec, this.pxPerSec);
     replace.number(auto.scrollLeft, this.scrollLeftPx);
   }

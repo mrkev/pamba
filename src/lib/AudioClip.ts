@@ -1,4 +1,4 @@
-import { InitFunctions, JSONOfAuto, SString, Structured, replace, string } from "structured-state";
+import { InitFunctions, JSONOfAuto, ReplaceFunctions, SString, Structured, string } from "structured-state";
 import { staticAudioContext } from "../constants";
 import { AudioPackage } from "../data/AudioPackage";
 import { SAudioClip } from "../data/serializable";
@@ -95,7 +95,7 @@ export class AudioClip extends Structured<AutoAudioClip, typeof AudioClip> imple
     };
   }
 
-  override replace(auto: JSONOfAuto<AutoAudioClip>): void {
+  override replace(auto: JSONOfAuto<AutoAudioClip>, replace: ReplaceFunctions): void {
     console.log("REPLACE WITH", auto);
     replace.string(auto.name, this.name);
     replace.structured(auto.bufferOffset, this.bufferOffset);

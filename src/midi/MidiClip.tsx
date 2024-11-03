@@ -1,4 +1,4 @@
-import { InitFunctions, JSONOfAuto, replace, SArray, SString, Structured } from "structured-state";
+import { InitFunctions, JSONOfAuto, ReplaceFunctions, SArray, SString, Structured } from "structured-state";
 import { SMidiClip } from "../data/serializable";
 import { AbstractClip, Pulses } from "../lib/AbstractClip";
 import { ProjectTrack } from "../lib/ProjectTrack";
@@ -54,7 +54,7 @@ export class MidiClip extends Structured<AutoMidiClip, typeof MidiClip> implemen
     };
   }
 
-  override replace(json: JSONOfAuto<AutoMidiClip>): void {
+  override replace(json: JSONOfAuto<AutoMidiClip>, replace: ReplaceFunctions): void {
     replace.string(json.name, this.name);
     replace.structured(json.timelineStart, this.timelineStart);
     replace.structured(json.timelineLength, this.timelineLength);

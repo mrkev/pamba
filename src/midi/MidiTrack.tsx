@@ -1,13 +1,13 @@
 import type { WebAudioModule } from "@webaudiomodules/api";
 import {
   JSONOfAuto,
+  ReplaceFunctions,
   SNumber,
   SPrimitive,
   SSchemaArray,
   SString,
   Structured,
   arrayOf,
-  replace,
   string,
 } from "structured-state";
 import { CLIP_HEIGHT, SECS_IN_MINUTE, TIME_SIGNATURE, liveAudioContext } from "../constants";
@@ -52,7 +52,7 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
     };
   }
 
-  override replace(json: JSONOfAuto<AutoMidiTrack>): void {
+  override replace(json: JSONOfAuto<AutoMidiTrack>, replace: ReplaceFunctions): void {
     replace.string(json.name, this.name);
     replace.schemaArray(json.clips, this.clips);
     // todo: replace instrument

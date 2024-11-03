@@ -24,7 +24,6 @@ import { appEnvironment } from "../AppEnvironment";
 import { AudioClip } from "../AudioClip";
 import { AudioTrack } from "../AudioTrack";
 import { ProjectTrack, StandardTrack } from "../ProjectTrack";
-import { LinkedMap } from "../state/LinkedMap";
 import { LinkedState } from "../state/LinkedState";
 import { ProjectViewport } from "../viewport/ProjectViewport";
 import { PanelSelectionState, PrimarySelectionState } from "./SelectionState";
@@ -233,29 +232,6 @@ export class AudioProject {
         ...selected,
         clips: selected.clips.filter((selection) => selection.clip !== clip),
       });
-    }
-  }
-}
-
-class ProjectMarkers {
-  // id -> time
-  readonly timeMarkers = LinkedMap.create<number, number>();
-  nextTimeMarkerId = 0;
-  /**
-   * When first clicking a marker, we move the cursor to that point in time.
-   * When selecting a previously clicked marker, we select it
-   */
-  static selectMarker(project: AudioProject, markers: ProjectMarkers, markerId: number) {
-    const markerTime = markers.timeMarkers.get(markerId);
-    if (!markerTime) {
-      return;
-    }
-
-    const cursorTime = project.cursorPos.get();
-    if (cursorTime !== markerTime) {
-      project.cursorPos.set(markerTime);
-    } else {
-      // TODO: new selection state, marker
     }
   }
 }

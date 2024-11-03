@@ -3,7 +3,7 @@ import {
   InitFunctions,
   JSONOfAuto,
   number,
-  replace,
+  ReplaceFunctions,
   SNumber,
   SSchemaArray,
   SString,
@@ -70,7 +70,7 @@ export class AudioTrack extends Structured<AutoAudioTrack, typeof AudioTrack> im
     };
   }
 
-  override replace(auto: JSONOfAuto<AutoAudioTrack>): void {
+  override replace(auto: JSONOfAuto<AutoAudioTrack>, replace: ReplaceFunctions): void {
     replace.number(auto.height, this.height);
     replace.string(auto.name, this.name);
     replace.schemaArray(auto.clips, this.clips);

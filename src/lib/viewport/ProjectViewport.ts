@@ -1,5 +1,5 @@
 import { scaleLinear } from "d3-scale";
-import { InitFunctions, JSONOfAuto, number, replace, SNumber, Structured } from "structured-state";
+import { InitFunctions, JSONOfAuto, number, ReplaceFunctions, SNumber, Structured } from "structured-state";
 import { SECS_IN_MIN } from "../../constants";
 import { clamp, stepNumber } from "../../utils/math";
 import { nullthrows } from "../../utils/nullthrows";
@@ -46,7 +46,7 @@ export class ProjectViewport extends Structured<AutoProjectViewport, typeof Proj
     (window as any).vp = this;
   }
 
-  override replace(autoJson: JSONOfAuto<AutoProjectViewport>): void {
+  override replace(autoJson: JSONOfAuto<AutoProjectViewport>, replace: ReplaceFunctions): void {
     replace.number(autoJson.scaleFactor, this.scaleFactor);
     replace.number(autoJson.viewportStartPx, this.viewportStartPx);
   }

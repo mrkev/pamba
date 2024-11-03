@@ -1,4 +1,4 @@
-import { boolean, InitFunctions, JSONOfAuto, number, replace, SNumber, Structured } from "structured-state";
+import { boolean, InitFunctions, JSONOfAuto, number, ReplaceFunctions, SNumber, Structured } from "structured-state";
 import { clamp } from "../../utils/math";
 
 export type SMidiViewport = {
@@ -66,7 +66,7 @@ export class MidiViewport extends Structured<AutoMidiViewport, typeof MidiViewpo
     };
   }
 
-  override replace(auto: JSONOfAuto<AutoMidiViewport>): void {
+  override replace(auto: JSONOfAuto<AutoMidiViewport>, replace: ReplaceFunctions): void {
     replace.number(auto.pxPerPulse, this.pxPerPulse);
     replace.number(auto.pxNoteHeight, this.pxNoteHeight);
     replace.number(auto.scrollLeft, this.scrollLeftPx);

@@ -1,8 +1,7 @@
 import React, { useCallback } from "react";
-import { useLinkedState } from "../lib/state/LinkedState";
 // import { TrackThread } from "../lib/TrackThread";
-// import { MidiDemo } from "../midi";
 import "remixicon/fonts/remixicon.css";
+import { usePrimitive } from "structured-state";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { ProjectPersistance } from "../lib/ProjectPersistance";
 import { useLinkedSet } from "../lib/state/LinkedSet";
@@ -25,7 +24,7 @@ import { utility } from "./utility";
 const NON_PASSIVE = { passive: false };
 
 export function App(): React.ReactElement {
-  const [projectStatus] = useLinkedState(appEnvironment.projectStatus);
+  const [projectStatus] = usePrimitive(appEnvironment.projectStatus);
   const [openEffects] = useLinkedSet(appEnvironment.openEffects);
 
   useDocumentEventListener(
@@ -134,7 +133,7 @@ export function App(): React.ReactElement {
 }
 
 function InitButtion() {
-  const [projectStatus] = useLinkedState(appEnvironment.projectStatus);
+  const [projectStatus] = usePrimitive(appEnvironment.projectStatus);
 
   switch (projectStatus.status) {
     case "idle":

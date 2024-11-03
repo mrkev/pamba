@@ -1,7 +1,7 @@
 import { WamDescriptor } from "@webaudiomodules/api";
 import { FirebaseApp } from "firebase/app";
 import { Auth, User, getAuth } from "firebase/auth";
-import { DirtyObserver, SPrimitive, array } from "structured-state";
+import { DirtyObserver, SPrimitive, array, map } from "structured-state";
 import { FIREBASE_ENABLED, WAM_PLUGINS } from "../constants";
 import { AudioPackage } from "../data/AudioPackage";
 import { ProjectPackage } from "../data/ProjectPackage";
@@ -17,12 +17,10 @@ import { AnalizedPlayer } from "./AnalizedPlayer";
 import { AudioRenderer } from "./AudioRenderer";
 import { initAudioContext } from "./initAudioContext";
 import { AudioProject } from "./project/AudioProject";
-import { LinkedMap } from "./state/LinkedMap";
+import { AudioStorage } from "./project/AudioStorage";
 import { LinkedSet } from "./state/LinkedSet";
 import { LinkedState } from "./state/LinkedState";
 import { exhaustive } from "./state/Subbable";
-import { AudioStorage } from "./project/AudioStorage";
-import { getFirebaseStorage } from "../firebase/getFirebase";
 
 const dummyObj = array();
 
@@ -43,18 +41,18 @@ export class AppEnvironment {
   // Firebase
   readonly firebaseApp: FirebaseApp | null;
   readonly firebaseAuth: Auth | null;
-  readonly firebaseUser = LinkedState.of<User | null>(null);
+  readonly firebaseUser = SPrimitive.of<User | null>(null);
   // Plugins
   readonly wamHostGroup = LinkedState.of<[id: string, key: string] | null>(null);
   readonly wamStatus = LinkedState.of<"loading" | "ready">("loading");
-  readonly wamPlugins = LinkedMap.create<string, WAMAvailablePlugin>(new Map());
+  readonly wamPlugins = map<string, WAMAvailablePlugin>();
   readonly faustEffects = Object.keys(FAUST_EFFECTS) as (keyof typeof FAUST_EFFECTS)[];
   // FS
   readonly localFiles: LocalFilesystem = new LocalFilesystem();
   readonly audioStorage = SPrimitive.of<AudioStorage | null>(null);
 
   // Project
-  readonly projectStatus: LinkedState<ProjectState>;
+  readonly projectStatus: SPrimitive<ProjectState>;
   public projectDirtyObserver: DirtyObserver;
   readonly projectPacakge: LinkedState<ProjectPackage | null>; // null if never saved
   // UI
@@ -84,7 +82,7 @@ export class AppEnvironment {
 
     this.openEffects = LinkedSet.create();
 
-    this.projectStatus = LinkedState.of<ProjectState>({ status: "idle" });
+    this.projectStatus = SPrimitive.of<ProjectState>({ status: "idle" });
     this.projectPacakge = LinkedState.of<ProjectPackage | null>(null); // null if never saved
     this.projectDirtyObserver = new DirtyObserver(dummyObj, "clean");
     this.readyPromise = new Promise((res) => {
