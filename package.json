@@ -8,7 +8,7 @@
   "dependencies": {
     "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
     "@esbuild-plugins/node-modules-polyfill": "^0.2.2",
-    "@grame/faustwasm": "^0.6.4",
+    "@grame/faustwasm": "^0.7.4",
     "@shren/typed-event-emitter": "1.1.1",
     "@types/audiobuffer-to-wav": "1.0.4",
     "@types/dom-mediacapture-record": "1.0.21",
