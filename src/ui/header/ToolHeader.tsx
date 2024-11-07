@@ -46,7 +46,7 @@ export function PlaybeatTime({ project, player }: { project: AudioProject; playe
       if (ctx === null || playbeatCanvasRef.current == null) {
         return;
       }
-      const [num, denom] = project.timeSignature.get();
+      const [num] = project.timeSignature.get();
       const tempo = project.tempo.get();
 
       const oneBeatLenSec = 60 / tempo;

@@ -2,7 +2,6 @@ import classNames from "classnames";
 import { useRef } from "react";
 import { createUseStyles } from "react-jss";
 import { usePrimitive } from "structured-state";
-import { documentCommands } from "../input/documentCommands";
 import { useAxisContainerMouseEvents } from "../input/useProjectMouseEvents";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import { AudioRenderer } from "../lib/AudioRenderer";
@@ -13,7 +12,6 @@ import { CursorSelection } from "./CursorSelection";
 import { LoopMarkers } from "./LoopMarkers";
 import { ProjectView } from "./ProjectView";
 import { TrackHeaderContainer } from "./TrackHeaderContainer";
-import { UtilityMenu } from "./UtilityMenu";
 
 export function TimelineView({
   project,

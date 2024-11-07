@@ -9,7 +9,7 @@ import { faustLoader } from "./faustLoader/faustLoder";
 // To polyfill Buffer
 import { NodeGlobalsPolyfillPlugin } from "@esbuild-plugins/node-globals-polyfill";
 import { NodeModulesPolyfillPlugin } from "@esbuild-plugins/node-modules-polyfill";
-import RollupPluginNodePolyfill from "rollup-plugin-node-polyfills";
+// import RollupPluginNodePolyfill from "rollup-plugin-node-polyfills";
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -17,15 +17,15 @@ export default defineConfig({
     root: "src",
     environment: "jsdom",
   },
+  plugins: [react(), viteTsconfigPaths(), svgrPlugin(), faustLoader()],
   define: {
     __APP_VERSION__: JSON.stringify(process.env.npm_package_version),
   },
   build: {
     minify: false,
-    // minify: "terser",
     outDir: "./build",
     rollupOptions: {
-      plugins: [RollupPluginNodePolyfill()],
+      // plugins: [RollupPluginNodePolyfill()],
       // input: {
       //   index: path.resolve(__dirname, "index.html"),
       //   // path.resolve(__dirname, "src", "wam", "pianorollme", "PianoRollProcessor.ts"),
@@ -43,7 +43,6 @@ export default defineConfig({
       "Cross-Origin-Embedder-Policy": "require-corp",
     },
   },
-  plugins: [react(), viteTsconfigPaths(), svgrPlugin(), faustLoader() as any],
   optimizeDeps: {
     esbuildOptions: {
       // define: { global: "globalThis" },

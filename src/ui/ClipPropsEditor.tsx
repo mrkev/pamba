@@ -14,7 +14,6 @@ export function ClipPropsEditor(props: { clip: MidiClip; project: AudioProject; 
 export function ClipPropsEditor({
   clip,
   project,
-  track,
 }: {
   clip: AudioClip | MidiClip;
   project: AudioProject;
@@ -50,7 +49,7 @@ export function ClipPropsEditor({
   );
 }
 
-export function AudioClipPropsEditor({ clip, project }: { clip: AudioClip; project: AudioProject }) {
+export function AudioClipPropsEditor({ clip }: { clip: AudioClip; project: AudioProject }) {
   return (
     <EditorSection title={"Audio"}>
       Filename:

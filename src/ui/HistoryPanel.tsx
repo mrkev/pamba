@@ -1,4 +1,3 @@
-import { createUseStyles } from "react-jss";
 import { getGlobalState, useContainer } from "structured-state";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioProject } from "../lib/project/AudioProject";
@@ -8,7 +7,7 @@ export type HistoryItem = {
   clip: AudioClip;
 };
 
-export function HistoryPanel({ project }: { project: AudioProject }) {
+export function HistoryPanel(_: { project: AudioProject }) {
   const history = useContainer(getGlobalState().history);
 
   return (
@@ -28,12 +27,6 @@ export function HistoryPanel({ project }: { project: AudioProject }) {
   );
 }
 
-export function Settings({ project }: { project: AudioProject }) {
+export function Settings(_: { project: AudioProject }) {
   return <>Settings</>;
 }
-
-const useStyles = createUseStyles({
-  flashing: {
-    background: "red",
-  },
-});

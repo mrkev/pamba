@@ -26,7 +26,7 @@ export class AudioRenderer {
 
   constructor(
     /** */
-    public analizedPlayer: AnalizedPlayer,
+    readonly analizedPlayer: AnalizedPlayer,
   ) {}
 
   /**

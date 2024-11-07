@@ -21,7 +21,7 @@ describe("timelineStartSec", () => {
 
     expect(foo.timelineStartSec).toBe(10);
     expect(foo.getTimelineEndSec()).toBe(11);
-    expect(foo.bufferOffset).toBe(0);
+    expect(foo.bufferOffset.ensureSecs()).toBe(0);
   });
 });
 
@@ -32,7 +32,7 @@ describe("endOffsetSec", () => {
 
     expect(foo.timelineStartSec).toBe(0);
     expect(foo.getTimelineEndSec()).toBe(5);
-    expect(foo.bufferOffset).toBe(0);
+    expect(foo.bufferOffset.ensureSecs()).toBe(0);
   });
 
   it("setting when clip offset isn't 0", () => {
@@ -41,6 +41,6 @@ describe("endOffsetSec", () => {
 
     expect(foo.timelineStartSec).toBe(2);
     expect(foo.getTimelineEndSec()).toBe(5);
-    expect(foo.bufferOffset).toBe(0);
+    expect(foo.bufferOffset.ensureSecs()).toBe(0);
   });
 });

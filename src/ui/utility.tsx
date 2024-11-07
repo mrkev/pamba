@@ -68,7 +68,7 @@ export function UtilitySlider({
       onChange(newSliderVal);
     };
 
-    const onMouseUp = (e: MouseEvent) => {
+    const onMouseUp = () => {
       window.removeEventListener("mousemove", onMouseMove);
       window.document.body.style.removeProperty("cursor");
     };

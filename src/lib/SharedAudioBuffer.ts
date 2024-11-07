@@ -14,7 +14,7 @@ export class SharedAudioBuffer implements AudioBuffer {
   readonly duration: number;
   readonly numberOfChannels: number;
   readonly sampleRate: number;
-  readonly renderer: GPUWaveformRenderer;
+  readonly renderer: GPUWaveformRenderer | null;
 
   constructor(audioBuffer: AudioBuffer) {
     for (let c = 0; c < audioBuffer.numberOfChannels; c++) {
@@ -29,10 +29,12 @@ export class SharedAudioBuffer implements AudioBuffer {
 
     const webgpu = nullthrows(appEnvironment.webgpu.get(), "webgpu not loaded");
     if (webgpu.status !== "ok") {
-      throw webgpu;
+      // no webgpu envorinment
+      this.renderer = null;
+    } else {
+      this.renderer = GPUWaveformRenderer.createSync(webgpu.device, this.getChannelData(0));
     }
 
-    this.renderer = GPUWaveformRenderer.createSync(webgpu.device, this.getChannelData(0));
     this.length = audioBuffer.length;
     this.duration = audioBuffer.duration;
     this.numberOfChannels = audioBuffer.numberOfChannels;

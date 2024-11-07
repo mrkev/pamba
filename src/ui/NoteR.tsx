@@ -2,15 +2,14 @@ import classNames from "classnames";
 import { useCallback, useRef } from "react";
 import { createUseStyles } from "react-jss";
 import { usePrimitive } from "structured-state";
+import { modifierState } from "../ModifierState";
 import { AudioProject } from "../lib/project/AudioProject";
 import { useLinkedState } from "../lib/state/LinkedState";
-import { Note } from "../midi/SharedMidiTypes";
 import { MidiViewport } from "../lib/viewport/MidiViewport";
-import { useEventListener, useMousePressMove } from "./useEventListener";
-import { pressedState } from "../pressedState";
-import { modifierState } from "../ModifierState";
 import { MidiClip } from "../midi/MidiClip";
+import { Note } from "../midi/SharedMidiTypes";
 import { exhaustive } from "../utils/exhaustive";
+import { useMousePressMove } from "./useEventListener";
 
 export function NoteR({
   clip,

@@ -96,7 +96,6 @@ export class AudioClip extends Structured<AutoAudioClip, typeof AudioClip> imple
   }
 
   override replace(auto: JSONOfAuto<AutoAudioClip>, replace: ReplaceFunctions): void {
-    console.log("REPLACE WITH", auto);
     replace.string(auto.name, this.name);
     replace.structured(auto.bufferOffset, this.bufferOffset);
     replace.structured(auto.timelineStart, this.timelineStart);
@@ -235,7 +234,6 @@ export class AudioClip extends Structured<AutoAudioClip, typeof AudioClip> imple
 
     const waveform = dataURLForWaveform(width, height, this.buffer);
     this.memodWaveformDataURL.set(key, { width, height, data: waveform });
-    // console.log("generated waveform for", this.name);
     return waveform;
   }
 
@@ -259,11 +257,11 @@ export class AudioClip extends Structured<AutoAudioClip, typeof AudioClip> imple
     // ^0:00
 
     if (newEnd > this.timelineStartSec + this.bufferLength - this.bufferOffset.ensureSecs()) {
-      console.log(
-        newEnd,
-        this.timelineStartSec + this.bufferLength - this.bufferOffset.ensureSecs(),
-        `${this.timelineStartSec} + ${this.bufferLength} - ${this.bufferOffset}`,
-      );
+      // console.log(
+      //   newEnd,
+      //   this.timelineStartSec + this.bufferLength - this.bufferOffset.ensureSecs(),
+      //   `${this.timelineStartSec} + ${this.bufferLength} - ${this.bufferOffset}`,
+      // );
       throw new Error("new end too long");
       // TODO: make newEnd = this.timelineStartSec + this.lengthSec + this.bufferOffset
     }

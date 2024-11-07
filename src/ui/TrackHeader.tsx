@@ -8,14 +8,13 @@ import { AudioTrack } from "../lib/AudioTrack";
 import { AudioProject } from "../lib/project/AudioProject";
 import { ProjectSelection } from "../lib/project/ProjectSelection";
 import { useLinkedState } from "../lib/state/LinkedState";
+import { userActions } from "../lib/userActions";
 import { MidiTrack } from "../midi/MidiTrack";
 import { pressedState } from "../pressedState";
-import { doConfirm } from "./ConfirmDialog";
 import { RenamableLabel } from "./RenamableLabel";
 import { UtilityToggle } from "./UtilityToggle";
 import { cx } from "./cx";
 import { UtilitySlider, utility } from "./utility";
-import { userActions } from "../lib/userActions";
 
 export const TrackHeader = React.memo(function TrackHeader({
   track,
@@ -370,8 +369,8 @@ export const TrackHeaderSeparator = React.forwardRef<
         backgroundColor: showActiveDropzone
           ? "orange"
           : firstDropzone
-          ? "var(--axis-spacer-headers-separator)"
-          : "var(--track-separator)",
+            ? "var(--axis-spacer-headers-separator)"
+            : "var(--track-separator)",
 
         position: "relative",
         top: firstDropzone ? -1 : undefined,

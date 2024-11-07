@@ -1,7 +1,6 @@
 import type { AudioClip } from "../lib/AudioClip";
 import type { AudioTrack } from "../lib/AudioTrack";
 import type { AudioProject } from "../lib/project/AudioProject";
-import { TimelineT } from "../lib/project/TimelineT";
 import { MidiClip } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
 import { modifierState } from "../ModifierState";
