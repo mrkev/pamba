@@ -27,7 +27,6 @@ export function CommandButton({
 
   useEffect(() => {
     return command.addTriggerListener(() => {
-      console.log("HERE");
       const div = buttonRef?.current;
       if (
         !div ||

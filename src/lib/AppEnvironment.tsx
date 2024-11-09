@@ -2,7 +2,7 @@ import { WamDescriptor } from "@webaudiomodules/api";
 import { FirebaseApp } from "firebase/app";
 import { Auth, User, getAuth } from "firebase/auth";
 import { DirtyObserver, SPrimitive, array, map } from "structured-state";
-import { FIREBASE_ENABLED, WAM_PLUGINS } from "../constants";
+import { FIREBASE_ENABLED } from "../constants";
 import { AudioPackage } from "../data/AudioPackage";
 import { ProjectPackage } from "../data/ProjectPackage";
 import { LocalFilesystem } from "../data/localFilesystem";
@@ -12,6 +12,7 @@ import { ensureError } from "../ensureError";
 import { initFirebaseApp } from "../firebase/firebaseConfig";
 import type { MidiInstrument } from "../midi/MidiInstrument";
 import { LocalSPrimitive } from "../ui/useLocalStorage";
+import { PambaWAMPluginDescriptor, WAMPLUGINS } from "../wam/plugins";
 import { WAMImport, fetchWam } from "../wam/wam";
 import { AnalizedPlayer } from "./AnalizedPlayer";
 import { AudioRenderer } from "./AudioRenderer";
@@ -26,8 +27,6 @@ const dummyObj = array();
 
 export type WAMAvailablePlugin = {
   kind: "WAMAvailablePlugin";
-  // midi out, audio out, midi to audio, audio to audio
-  pluginKind: "-m" | "-a" | "m-a" | "a-a";
   import: WAMImport;
   descriptor: WamDescriptor;
   url: string;
@@ -45,7 +44,7 @@ export class AppEnvironment {
   // Plugins
   readonly wamHostGroup = LinkedState.of<[id: string, key: string] | null>(null);
   readonly wamStatus = LinkedState.of<"loading" | "ready">("loading");
-  readonly wamPlugins = map<string, WAMAvailablePlugin>();
+  readonly wamPlugins = map<string, { plugin: WAMAvailablePlugin; localDesc: PambaWAMPluginDescriptor }>();
   readonly faustEffects = Object.keys(FAUST_EFFECTS) as (keyof typeof FAUST_EFFECTS)[];
   // FS
   readonly localFiles: LocalFilesystem = new LocalFilesystem();
@@ -133,12 +132,12 @@ export class AppEnvironment {
     // Init wam host
     this.wamHostGroup.set(audioContextInfo.wamHostGroup);
     await Promise.all(
-      WAM_PLUGINS.map(async ({ url, kind }) => {
-        const plugin = await fetchWam(url, kind);
+      WAMPLUGINS.map(async (localDesc) => {
+        const plugin = await fetchWam(localDesc.url, localDesc.kind);
         if (plugin == null) {
           return;
         }
-        this.wamPlugins.set(url, plugin);
+        this.wamPlugins.set(localDesc.url, { plugin, localDesc });
       }),
     );
     this.wamStatus.set("ready");

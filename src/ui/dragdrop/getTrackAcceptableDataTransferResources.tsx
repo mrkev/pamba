@@ -118,7 +118,7 @@ export async function getTrackAcceptableDataTransferResources(
     if (availablePlugin == null) {
       throw new Error("unavailable wam plugin " + url);
     }
-    resultingResources.push(availablePlugin);
+    resultingResources.push(availablePlugin.plugin);
     handledInternalFormat = true;
   }
 

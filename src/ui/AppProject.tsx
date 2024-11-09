@@ -19,6 +19,9 @@ import { Library } from "./Library";
 import { ProjectEditor } from "./ProjectEditor";
 import { TimelineView } from "./TimelineView";
 import { UtilityTabbedPanel } from "./UtilityTabbedPanel";
+import ReactMarkdown from "react-markdown";
+import { WAMPLUGINS } from "../wam/plugins";
+import React from "react";
 
 function useStopPlaybackOnUnmount(renderer: AudioRenderer) {
   useEffect(() => {
@@ -123,41 +126,7 @@ export function AppProject({ project }: { project: AudioProject }) {
           about: {
             icon: <i className="ri-information-line" style={{ paddingRight: 2 }}></i>,
             title: "About",
-            render: () => (
-              <div style={{ userSelect: "all" }}>
-                <pre>
-                  cephei v{__APP_VERSION__}
-                  <br />
-                  ---
-                  <br />
-                  Kevin Chavez
-                  <br />
-                  <a href="http://aykev.dev" style={{ color: "white" }}>
-                    http://aykev.dev
-                  </a>
-                  <br />
-                  <a href="https://twitter.com/aykev" style={{ color: "white" }}>
-                    @aykev
-                  </a>
-                  <br />
-                  ---
-                  <br />
-                  OBXD: Jari Kleimola
-                  <br />
-                  - <A href="https://github.com/jariseon/webOBXD" />
-                  <br />
-                  StonePhaserStereo, BigMuff: Michel Buffa
-                  <br />
-                  - <A href="http://users.polytech.unice.fr/~buffa/" />
-                  <br />
-                  Dattorro Reverb: Jakob Zerbian
-                  <br />
-                  - <A href="https://github.com/grame-cncm/faustlibraries/blob/master/reverbs.lib" />
-                  <br />
-                  {/* todo: where did I get the sample music and how do I credit? */}
-                </pre>
-              </div>
-            ),
+            render: () => <About />,
           },
         }}
       />
@@ -193,5 +162,48 @@ function A({ href }: { href: string }) {
     <a href={href} style={{ color: "white" }}>
       {href}
     </a>
+  );
+}
+
+function About() {
+  return (
+    <div style={{ userSelect: "all", overflow: "scroll" }}>
+      <pre>
+        miniDAW v{__APP_VERSION__}
+        <br />
+        ---
+        <br />
+        Kevin Chavez
+        <br />
+        <A href="http://aykev.dev" />
+        <br />
+        <a href="https://twitter.com/aykev" style={{ color: "white" }}>
+          @aykev
+        </a>
+        <br />
+        ---
+        <br />
+        OBXD: Jari Kleimola
+        <br />
+        - https://github.com/jariseon/webOBXD
+        <br />
+        StonePhaserStereo, BigMuff: Michel Buffa
+        <br />
+        - http://users.polytech.unice.fr/~buffa/
+        <br />
+        Dattorro Reverb: Jakob Zerbian
+        <br />
+        - https://github.com/grame-cncm/faustlibraries/blob/master/reverbs.lib
+        <br />
+        {WAMPLUGINS.map((x) => (
+          <React.Fragment key={x.identifier}>
+            {x.name}
+            <br /> - {x.website != "" ? x.website : x.url}
+            <br />
+          </React.Fragment>
+        ))}
+        {/* todo: where did I get the sample music and how do I credit? */}
+      </pre>
+    </div>
   );
 }

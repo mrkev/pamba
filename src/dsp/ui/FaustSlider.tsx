@@ -22,7 +22,6 @@ export function FaustSlider({
   const value = nullthrows(params.get(address), `Invalid address for effect param: ${address}`);
 
   // const [value, setValue] = useState(() => effect.getParam(address));
-  const orient = !isHorizontal ? { orient: "vertical" } : {};
   const style: React.CSSProperties = {
     display: "flex",
     flexDirection: isHorizontal ? "row" : "column-reverse",
@@ -44,7 +43,13 @@ export function FaustSlider({
         max={max}
         step={step}
         value={value}
-        style={{ flexShrink: 4, minHeight: 10 }}
+        style={{
+          flexShrink: 4,
+          minHeight: 10,
+          writingMode: isHorizontal ? undefined : "vertical-lr",
+          direction: isHorizontal ? undefined : "rtl",
+          height: "100%",
+        }}
         onKeyDown={(e) => {
           console.log(e, e.key);
           e.preventDefault();
@@ -54,7 +59,7 @@ export function FaustSlider({
           effect.setParam(address, newVal);
           return newVal;
         }}
-        {...orient}
+        list="steplist"
       ></input>
     </div>
   );

@@ -33,6 +33,7 @@
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-jss": "^10.10.0",
+    "react-markdown": "^8.0.6",
     "remixicon": "^4.5.0",
     "rollup": "^4.24.4",
     "rollup-plugin-polyfill-node": "^0.13.0",

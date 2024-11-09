@@ -15,7 +15,7 @@ export function WindowPanel({
 }: {
   children?: React.ReactNode;
   onClose: () => void;
-  title?: string;
+  title?: string | React.ReactNode;
   position: Position;
   onPositionChange: SetState<Position>;
 }) {
@@ -70,7 +70,9 @@ export function WindowPanel({
   return (
     <div className={classes.window} style={{ left: position[0], top: position[1] }}>
       <div className={classes.titleBar} ref={titleBarRef}>
-        <button onClick={onClose}>x</button>
+        <button className="utilityButton" onClick={onClose}>
+          x
+        </button>
         <div className={classes.spacer} />
         {title}
       </div>
@@ -100,6 +102,7 @@ const useStyles = createUseStyles({
     padding: "0px 4px 0px 0px",
   },
   content: {
+    position: "relative",
     background: "white",
   },
 });

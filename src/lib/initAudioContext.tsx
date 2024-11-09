@@ -8,6 +8,8 @@ import SharedBufferWrokletURL from "../worker/shared-buffer-worklet-processor?ur
 //@ts-ignore
 import WhiteNoiseProcessorURL from "../worker/white-noise-processor?url";
 
+const URL = "https://www.webaudiomodules.com/sdk/2.0.0-alpha.6/src/initializeWamHost.js";
+
 // import WorkletDemoBuilder from "../../assets/WorkletDemoBuilder.js";
 // const demoCode = async (context, logger) => {
 //   // Import the pre-defined AudioWorkletNode subclass dynamically. This
@@ -40,7 +42,7 @@ export async function initAudioContext(audioContext: BaseAudioContext): Promise<
   await audioContext.audioWorklet.addModule(MixDownProcessorURL);
   console.log("LOADED", "mix-down-processor.js");
   // TODO:
-  const { default: initializeWamHost } = await import("../../packages/sdk/src/initializeWamHost");
+  const { default: initializeWamHost } = await import(URL);
   const [hostGroupId, hostGroupKey] = await initializeWamHost(audioContext);
   console.log("INITIALIZED", "wamHost", hostGroupId, hostGroupKey);
   return {

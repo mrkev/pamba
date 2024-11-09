@@ -28,7 +28,6 @@ export const WamPluginContent = React.memo(function WamPluginContentImpl({ wam }
     div?.appendChild(wam.dom);
     return () => {
       div?.removeChild(wam.dom);
-      wam.destroy();
     };
   }, [wam, wam.dom]);
   return <div ref={divRef} />;

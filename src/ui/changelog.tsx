@@ -1,4 +1,8 @@
 export const changelog = `
+next
+- add a bunch of sound effect plugins
+- fix plugin names
+
 v0.2.2
 - fix dragging faust effects into timeline
 - dragging an effect into a track expands its effect rack

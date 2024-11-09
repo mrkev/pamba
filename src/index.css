@@ -91,13 +91,6 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
 }
 
-input[type="range"][orient="vertical"] {
-  writing-mode: bt-lr; /* IE */
-  -webkit-appearance: slider-vertical; /* Chromium */
-  width: 8px;
-  /* height: 175px; */
-  padding: 0 5px;
-}
 
 kbd {
   background-color: #eee;
