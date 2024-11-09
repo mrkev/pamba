@@ -51,7 +51,7 @@ export function ClipPropsEditor({
 
 export function AudioClipPropsEditor({ clip }: { clip: AudioClip; project: AudioProject }) {
   return (
-    <EditorSection title={"Audio"}>
+    <EditorSection title={"Buffer"}>
       Filename:
       <UtilityTextInput value={clip.bufferURL} />
       Sample Rate:

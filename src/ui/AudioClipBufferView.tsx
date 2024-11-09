@@ -1,5 +1,6 @@
 import { useCallback, useRef } from "react";
 import { useContainer, usePrimitive } from "structured-state";
+import useResizeObserver from "use-resize-observer";
 import { GPUWaveform } from "webgpu-waveform-react";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import { AudioClip } from "../lib/AudioClip";
@@ -168,6 +169,9 @@ export function AudioClipBufferView({
   // }, [player, player.isAudioPlaying, timelineSecsToClipPx]);
   const cursorPosInClipPx = timelineSecsToClipPx(cursorPos);
   const playbackDivLeft = timelineSecsToClipPx(playbackPos);
+  const { width } = useResizeObserver<HTMLCanvasElement>({
+    ref: waveformRef,
+  });
 
   return (
     <div
@@ -182,9 +186,17 @@ export function AudioClipBufferView({
           audioBuffer={clip.buffer}
           scale={clip.detailedViewport.framesPerPixel(clip.sampleRate)}
           offset={lockPlayback ? offsetFrOfPlaybackPos(playbackPos) : waveformStartFr}
-          // width={"100%"}
-          // height={50}
-          style={{ width: "100%", height: 250, background: "black", flexGrow: 1 }}
+          width={width || 1}
+          height={243}
+          color="black"
+          style={{
+            border: "1px solid var(--track-separator)",
+            width: "100%",
+            height: 243,
+            background: "var(--timeline-bg)",
+            boxSizing: "border-box",
+            flexGrow: 1,
+          }}
         />
       )}
       {/* cursor div */}
@@ -193,8 +205,8 @@ export function AudioClipBufferView({
           <div
             style={{
               borderLeft: "1px solid var(--cursor)",
-              background: "rgba(255,255,255,0.5)",
-              borderRight: selectionWidthPx === 0 ? undefined : "1px solid green",
+              background: "rgba(232,136,58,0.5)",
+              borderRight: selectionWidthPx === 0 ? undefined : "1px solid orange",
               height: "100%",
               position: "absolute",
               userSelect: "none",
