@@ -126,10 +126,12 @@ export function Library({
             data: { kind: "audio", url, name: url },
           } as const;
         } else if (audio instanceof AudioPackage) {
+          console.log(decodeURI(audio.url().toString()));
           return {
             title: audio.name,
             icon: <i className="ri-volume-up-fill"></i>,
-            data: { kind: "audio", url: audio.url().toString(), name: audio.name },
+            // todo: could also not use urls here?
+            data: { kind: "audio", url: decodeURI(audio.url().toString()), name: audio.name },
           } as const;
         } else {
           exhaustive(audio);

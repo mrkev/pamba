@@ -15,7 +15,7 @@ export function audioSource(
     switch (url.protocol) {
       case "opfs:": {
         console.log("opfspathname", url.pathname);
-        return { kind: "opfs", path: url.pathname };
+        return { kind: "opfs", path: decodeURI(url.pathname) };
       }
       case "library:": {
         const localName = url.pathname.replace(/^\/\//, "");
