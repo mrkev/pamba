@@ -6,6 +6,19 @@ import { AudioProject } from "../lib/project/AudioProject";
 export function HelpPanel({ project }: { project: AudioProject }) {
   return (
     <>
+      <b style={{ fontSize: "12px" }}>Help:</b>
+      <div>
+        For help, feedback, etc. get in touch:
+        <br />-{" "}
+        <a href="https://twitter.com/aykev" style={{ color: "white", display: "inline" }}>
+          @aykev
+        </a>
+        <br />-{" "}
+        <a href="https://github.com/mrkev/web-daw-issues/issues" style={{ color: "white", display: "inline" }}>
+          mrkev/web-daw-issues
+        </a>
+      </div>
+      <br />
       <b style={{ fontSize: "12px" }}>Keyboard Shortcuts:</b>
       {/* <hr style={{ width: "100%" }} /> */}
       <div
@@ -78,14 +91,14 @@ function Key({ str }: { str: string }) {
       {str === "meta"
         ? "\u2318"
         : str === "alt"
-        ? "\u2325"
-        : str === "ctrl"
-        ? "\u2303"
-        : str === "shift"
-        ? "\u21EA"
-        : str === "Period"
-        ? "."
-        : str.replace(/^Key/, "")}
+          ? "\u2325"
+          : str === "ctrl"
+            ? "\u2303"
+            : str === "shift"
+              ? "\u21EA"
+              : str === "Period"
+                ? "."
+                : str.replace(/^Key/, "")}
     </kbd>
   );
 }
@@ -106,12 +119,12 @@ export function Shortcuts({ project }: { project: AudioProject }) {
                       {x === "meta"
                         ? "\u2318"
                         : x === "alt"
-                        ? "\u2325"
-                        : x === "ctrl"
-                        ? "\u2303"
-                        : x === "shift"
-                        ? "\u21EA"
-                        : x.replace(/^Key/, "")}
+                          ? "\u2325"
+                          : x === "ctrl"
+                            ? "\u2303"
+                            : x === "shift"
+                              ? "\u21EA"
+                              : x.replace(/^Key/, "")}
                     </kbd>
                   ))}
                 </span>

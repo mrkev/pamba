@@ -10,6 +10,9 @@ x right-click messes up dragging state
 
 
 top prio:
+- bypass for all audio effects
+- midi learn?
+- automation?
 - move clips using drag data, which will allow it to move to the library too, outside the browser
 - bounce to track
 - drag clip to outside browser?

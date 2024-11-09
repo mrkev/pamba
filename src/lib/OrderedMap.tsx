@@ -83,7 +83,8 @@ export class OrderedMap<K, V> extends Structured<EmptyObj, typeof OrderedMap> im
         return compareFn([a, aval], [b, bval]);
       });
     }
-
+    // note that changes to this._order don't notify change by default, since it's a normal array
+    this.notifyChange();
     return this;
   }
   push(key: K, value: V): this {
