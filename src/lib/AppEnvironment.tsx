@@ -12,7 +12,7 @@ import { ensureError } from "../ensureError";
 import { initFirebaseApp } from "../firebase/firebaseConfig";
 import type { MidiInstrument } from "../midi/MidiInstrument";
 import { LocalSPrimitive } from "../ui/useLocalStorage";
-import { PambaWAMPluginDescriptor, WAMPLUGINS } from "../wam/plugins";
+import { KINDS_SORT, PambaWAMPluginDescriptor, WAMPLUGINS } from "../wam/plugins";
 import { WAMImport, fetchWam } from "../wam/wam";
 import { AnalizedPlayer } from "./AnalizedPlayer";
 import { AudioRenderer } from "./AudioRenderer";
@@ -22,6 +22,7 @@ import { AudioStorage } from "./project/AudioStorage";
 import { LinkedSet } from "./state/LinkedSet";
 import { LinkedState } from "./state/LinkedState";
 import { exhaustive } from "./state/Subbable";
+import { orderedMap } from "./OrderedMap";
 
 const dummyObj = array();
 
@@ -44,7 +45,7 @@ export class AppEnvironment {
   // Plugins
   readonly wamHostGroup = LinkedState.of<[id: string, key: string] | null>(null);
   readonly wamStatus = LinkedState.of<"loading" | "ready">("loading");
-  readonly wamPlugins = map<string, { plugin: WAMAvailablePlugin; localDesc: PambaWAMPluginDescriptor }>();
+  readonly wamPlugins = orderedMap<string, { plugin: WAMAvailablePlugin; localDesc: PambaWAMPluginDescriptor }>();
   readonly faustEffects = Object.keys(FAUST_EFFECTS) as (keyof typeof FAUST_EFFECTS)[];
   // FS
   readonly localFiles: LocalFilesystem = new LocalFilesystem();
@@ -137,9 +138,12 @@ export class AppEnvironment {
         if (plugin == null) {
           return;
         }
-        this.wamPlugins.set(localDesc.url, { plugin, localDesc });
+        this.wamPlugins.push(localDesc.url, { plugin, localDesc });
       }),
     );
+
+    this.wamPlugins.sort(([, a], [, b]) => KINDS_SORT[a.localDesc.kind] - KINDS_SORT[b.localDesc.kind]);
+
     this.wamStatus.set("ready");
 
     // IDEA: Maybe merge player and renderer?

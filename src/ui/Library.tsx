@@ -138,7 +138,7 @@ export function Library({
       "separator",
       ...[...wamPlugins.entries()].map(([key, { plugin, localDesc }]): ListEntry<LibraryItem> => {
         return {
-          title: localDesc.name.replace(/^WebAudioModule[_ ]/, "").replace(/(?:Module|Plugin)$/, ""),
+          title: localDesc.name,
           icon: localDesc.kind === "m-a" ? <i style={{ fontSize: 11 }}>♩</i> : <i className="ri-pulse-fill"></i>,
           data: { kind: "wam", plugin },
         };

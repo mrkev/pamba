@@ -13,6 +13,8 @@ export type PambaWAMPluginDescriptor = {
   kind: "-m" | "-a" | "m-a" | "a-a"; // midi out, audio out, midi to audio, audio to audio
 };
 
+export const KINDS_SORT = { "-m": 0, "-a": 1, "m-a": 2, "a-a": 3 };
+
 const INCLUDE = new Set([
   // "com.sequencerParty.audioInput",
   "com.sequencerParty.simpleDistortion",
@@ -78,7 +80,7 @@ const INCLUDE = new Set([
 
 export const WAMPLUGINS: PambaWAMPluginDescriptor[] = plugins
   .filter((plugin) => INCLUDE.has(plugin.identifier))
-  .map((plugin) => {
+  .map((plugin): PambaWAMPluginDescriptor => {
     return {
       identifier: plugin.identifier,
       name: plugin.name,
