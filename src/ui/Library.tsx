@@ -126,7 +126,6 @@ export function Library({
             data: { kind: "audio", url, name: url },
           } as const;
         } else if (audio instanceof AudioPackage) {
-          console.log(decodeURI(audio.url().toString()));
           return {
             title: audio.name,
             icon: <i className="ri-volume-up-fill"></i>,
@@ -170,7 +169,6 @@ export function Library({
         draggable={!isAudioPlaying}
         disabled={isAudioPlaying}
         onDragStart={function (item, ev: React.DragEvent<HTMLDivElement>) {
-          console.log(item.data);
           ev.dataTransfer.effectAllowed = "copy";
 
           switch (item.data.kind) {

@@ -10,6 +10,7 @@ import { AbstractClip } from "./AbstractClip";
 import { appEnvironment } from "./AppEnvironment";
 import { connectSerialNodes, disconnectSerialNodes } from "./connectSerialNodes";
 import { PBGainNode } from "./offlineNodes";
+import { WebAudioPeakMeter } from "web-audio-peak-meter";
 
 export class ProjectTrackDSP<T extends AbstractClip<any>> extends DSPStep<null> {
   // DSP
@@ -22,11 +23,18 @@ export class ProjectTrackDSP<T extends AbstractClip<any>> extends DSPStep<null> 
 
   override readonly effectId = "builtin:ProjectTrackNode";
 
-  constructor(override readonly name: SString, effects: (FaustAudioEffect | PambaWamNode)[]) {
+  readonly meterInstance: WebAudioPeakMeter;
+
+  constructor(
+    override readonly name: SString,
+    effects: (FaustAudioEffect | PambaWamNode)[],
+  ) {
     super();
     this.effects = SArray.create(effects);
     this.gainNode = new PBGainNode();
     this._hiddenGainNode = new PBGainNode();
+    // TODO: garbage collect?
+    this.meterInstance = new WebAudioPeakMeter(this._hiddenGainNode.outputNode().get(), undefined as any);
   }
 
   override inputNode(): null {

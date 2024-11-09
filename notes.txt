@@ -10,6 +10,7 @@ x right-click messes up dragging state
 
 
 top prio:
+- live note editing
 - bypass for all audio effects
 - midi learn?
 - automation?
@@ -19,7 +20,7 @@ top prio:
 
 todo:
 - loop clips
-- peak meters
+x peak meters
 - rename library items
 x files in project
 - automated effects

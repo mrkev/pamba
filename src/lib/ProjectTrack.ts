@@ -6,6 +6,7 @@ import { ProjectTrackDSP } from "./ProjectTrackDSP";
 import { AudioContextInfo } from "./initAudioContext";
 import { AudioProject } from "./project/AudioProject";
 import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
+import { WebAudioPeakMeter } from "web-audio-peak-meter";
 
 // TODO: move these things out of the abstract class
 export interface StandardTrack<T extends AbstractClip<any>> {

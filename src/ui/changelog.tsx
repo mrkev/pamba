@@ -4,6 +4,7 @@ next
 - fix plugin names
 - fix dropping audio files from library into timeline
 - fix and improve the audio clip buffer view in the details editor
+- add peak meters
 
 v0.2.2
 - fix dragging faust effects into timeline
