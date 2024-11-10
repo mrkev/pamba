@@ -54,6 +54,7 @@
   },
   "scripts": {
     "dev": "vite dev",
+    "tsc": "npx tsc",
     "build": "vite build",
     "test": "vitest",
     "deploy": "npm run build && firebase deploy --only hosting",

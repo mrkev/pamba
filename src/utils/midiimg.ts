@@ -13,7 +13,7 @@ function drawBuffer(
   minNote: number,
 ) {
   console.log("height", height);
-  const len = buffer.len.ensurePulses();
+  const len = buffer.timelineLength.ensurePulses();
 
   for (let i = 0; i < buffer.notes.length; i++) {
     const [start, num, duration] = nullthrows(buffer.notes.at(i));

@@ -1,7 +1,7 @@
 import { WamTransportData } from "@webaudiomodules/api";
 import { NoteDefinition } from "wam-extensions";
 import { nullthrows } from "../../utils/nullthrows";
-import { Clip, Note } from "./PianoRollClip";
+import { PianoRollClip, Note } from "./PianoRollClip";
 
 const logger = (...any: any) => {};
 //const logger = console.log
@@ -20,7 +20,7 @@ export type NoteCanvasRenderState = {
   height: number;
   position: number;
   horizontalZoom: number;
-  clip: Clip;
+  clip: PianoRollClip;
   visibleNotes: NoteDefinition[];
   layingNewNote: Note;
   transportData: WamTransportData;

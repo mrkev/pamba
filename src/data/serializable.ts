@@ -120,7 +120,7 @@ export async function serializable(
       name: obj.name.get(),
       startOffsetPulses: obj.startOffsetPulses,
       lengthPulses: obj.timelineLength.ensurePulses(), // todo: replace for serialized timelinet to avoid ensurePulses
-      notes: obj.notes._getRaw(),
+      notes: obj.buffer.notes._getRaw(),
       viewport: obj.detailedViewport.serialize(),
       bufferTimelineStart: obj.bufferTimelineStart.ensurePulses(),
     };

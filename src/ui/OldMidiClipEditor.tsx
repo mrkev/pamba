@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createUseStyles } from "react-jss";
 import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import { PPQN } from "../wam/pianorollme/MIDIConfiguration";
-import { Clip } from "../wam/pianorollme/PianoRollClip";
+import { PianoRollClip } from "../wam/pianorollme/PianoRollClip";
 import { useEventListener } from "./useEventListener";
 
 const NOTE_HEIGHT = 10;
@@ -27,7 +27,7 @@ function secsToPx(secs: number): number {
   return ticks * TICK_WIDTH;
 }
 
-export function OldMidiClipEditor({ clip, player }: { clip: Clip; player: AnalizedPlayer }) {
+export function OldMidiClipEditor({ clip, player }: { clip: PianoRollClip; player: AnalizedPlayer }) {
   const styles = useStyles();
   const containerRef = useRef<HTMLDivElement>(null);
   const cursorDiv = useRef<HTMLDivElement>(null);

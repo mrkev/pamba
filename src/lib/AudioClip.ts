@@ -33,7 +33,6 @@ type AutoAudioClip = {
 // been trimmed to be of another length.
 export class AudioClip extends Structured<AutoAudioClip, typeof AudioClip> implements AbstractClip<Seconds> {
   // constants
-  readonly unit = "sec";
   readonly sampleRate: number; // how many frames per second
 
   // status, from construction

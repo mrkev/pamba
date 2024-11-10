@@ -19,7 +19,7 @@ export function ClipM({
   track: MidiTrack | null; // null if clip is being rendered for move
   editable?: boolean;
 }) {
-  const notes = useContainer(clip.notes);
+  const notes = useContainer(clip.buffer.notes);
   // const startTrimmedWidth = project.viewport.secsToPx(clip.trimStartSec);
   const width = project.viewport.pulsesToPx(clip.timelineLength.ensurePulses());
   const left = Math.floor(project.viewport.pulsesToPx(clip.startOffsetPulses));
@@ -76,7 +76,7 @@ export function ClipM({
     1000,
   );
 
-  const totalBufferWidth = project.viewport.secsToPx(clip.buffer.len.secs(project));
+  const totalBufferWidth = project.viewport.secsToPx(clip.buffer.timelineLength.secs(project));
   // const height = CLIP_HEIGHT - 3; // to clear the bottom track separator gridlines
   const bufferOffsetPx = 0; //  project.viewport.secsToPx(clip.bufferOffset);
 

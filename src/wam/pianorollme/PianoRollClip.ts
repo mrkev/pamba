@@ -19,11 +19,11 @@ type NoteState = {
   onVelocity?: number;
 };
 
-export class Clip {
+export class PianoRollClip {
   state: ClipState;
   dirty: boolean;
   quantize: number;
-  updateProcessor?: (c: Clip) => void;
+  updateProcessor?: (c: PianoRollClip) => void;
 
   constructor(id?: string, state?: ClipState) {
     if (state) {
@@ -146,10 +146,10 @@ export class MIDINoteRecorder {
   transportData?: WamTransportData;
 
   addNote: (tick: number, number: number, duration: number, velocity: number) => void;
-  getClip: () => Clip;
+  getClip: () => PianoRollClip;
 
   constructor(
-    getClip: () => Clip,
+    getClip: () => PianoRollClip,
     addNote: (tick: number, number: number, duration: number, velocity: number) => void,
   ) {
     this.getClip = getClip;

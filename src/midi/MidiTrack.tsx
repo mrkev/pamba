@@ -123,7 +123,7 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
     const simpleClips: SimpleMidiClip[] = [];
     for (const clip of this.clips) {
       simpleClips.push({
-        notes: clip.notes._getRaw(),
+        notes: clip.buffer.notes._getRaw(),
         startOffsetPulses: clip.startOffsetPulses,
         endOffsetPulses: clip._timelineEndU,
       });

@@ -21,6 +21,7 @@ import { AudioProject } from "./project/AudioProject";
 import { AudioStorage } from "./project/AudioStorage";
 import { LinkedSet } from "./state/LinkedSet";
 import { LinkedState } from "./state/LinkedState";
+import { WAMKind } from "../data/WAMPackage";
 
 const dummyObj = array();
 
@@ -29,6 +30,7 @@ export type WAMAvailablePlugin = {
   import: WAMImport;
   descriptor: WamDescriptor;
   url: string;
+  pluginKind: WAMKind;
 };
 
 type ProjectState = { status: "idle" } | { status: "loading" } | { status: "loaded"; project: AudioProject };

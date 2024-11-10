@@ -57,7 +57,7 @@ export function MidiClipEditor({
   const pianoRollCanvasRef = useRef<HTMLCanvasElement>(null);
   const cursorDiv = useRef<HTMLDivElement>(null);
   const backgroundRef = useRef<HTMLCanvasElement>(null);
-  const notes = useContainer(clip.notes);
+  const notes = useContainer(clip.buffer.notes);
   const [name] = usePrimitive(clip.name);
   const [noteHeight, setNoteHeight] = usePrimitive(clip.detailedViewport.pxNoteHeight);
   const [pxPerPulse, setPxPerPulse] = usePrimitive(clip.detailedViewport.pxPerPulse);

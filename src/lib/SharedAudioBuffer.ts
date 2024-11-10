@@ -20,8 +20,8 @@ export class SharedAudioBuffer implements AudioBuffer {
     for (let c = 0; c < audioBuffer.numberOfChannels; c++) {
       // TODO: Can I already shere these buffers?
       const floats = audioBuffer.getChannelData(c);
-      const sab = new ArrayBuffer(floats.buffer.byteLength);
-      // const sab = new SharedArrayBuffer(floats.buffer.byteLength);
+      const sab = new SharedArrayBuffer(floats.buffer.byteLength);
+      console.log("init with", SharedArrayBuffer);
       const sharedFloats = new Float32Array(sab);
       sharedFloats.set(floats, 0);
       this.channels.push(sab);

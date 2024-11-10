@@ -1,5 +1,4 @@
 import { InitFunctions, JSONOfAuto, ReplaceFunctions, SArray, SString, Structured } from "structured-state";
-import { SMidiClip } from "../data/serializable";
 import { AbstractClip, Pulses } from "../lib/AbstractClip";
 import { ProjectTrack } from "../lib/ProjectTrack";
 import { AudioProject } from "../lib/project/AudioProject";
@@ -14,33 +13,24 @@ type AutoMidiClip = {
   name: SString;
   timelineStart: TimelineT;
   timelineLength: TimelineT;
-  notes: SArray<Note>;
+  buffer: MidiBuffer;
   viewport: MidiViewport;
   bufferTimelineStart: TimelineT;
 };
 
 export class MidiClip extends Structured<AutoMidiClip, typeof MidiClip> implements AbstractClip<Pulses> {
-  // constants
-  readonly unit = "pulse";
-
   readonly bufferOffset: TimelineT = time(0, "pulses"); // TODO: this is here just for types
-
-  public buffer: MidiBuffer;
-  // readonly bufferLength: Pulses = 0 as Pulses;
 
   constructor(
     readonly name: SString,
     readonly timelineStart: TimelineT,
     readonly timelineLength: TimelineT,
-    readonly notes: SArray<Note>, // ordered by tick (start),
+    readonly buffer: MidiBuffer,
     readonly detailedViewport: MidiViewport,
     // todo: as of now, unused. midi can be trimmed like audio though.
-    public bufferTimelineStart: TimelineT,
+    readonly bufferTimelineStart: TimelineT,
   ) {
     super();
-    // this.lengthPulses = lengthPulses as Pulses;
-    // this._startOffsetPulses = startOffsetPulses as Pulses;
-    this.buffer = new MidiBuffer(this.notes, this.timelineLength);
   }
 
   override autoSimplify(): AutoMidiClip {
@@ -48,7 +38,7 @@ export class MidiClip extends Structured<AutoMidiClip, typeof MidiClip> implemen
       name: this.name,
       timelineStart: this.timelineStart,
       timelineLength: this.timelineLength,
-      notes: this.notes,
+      buffer: this.buffer,
       viewport: this.detailedViewport,
       bufferTimelineStart: this.bufferTimelineStart,
     };
@@ -57,7 +47,7 @@ export class MidiClip extends Structured<AutoMidiClip, typeof MidiClip> implemen
   override replace(json: JSONOfAuto<AutoMidiClip>, replace: ReplaceFunctions): void {
     replace.string(json.name, this.name);
     replace.structured(json.timelineStart, this.timelineStart);
-    replace.structured(json.timelineLength, this.timelineLength);
+    replace.structured(json.buffer, this.buffer);
     // TODO: replace notes, viewport
     replace.structured(json.bufferTimelineStart, this.bufferTimelineStart);
   }
@@ -68,30 +58,30 @@ export class MidiClip extends Structured<AutoMidiClip, typeof MidiClip> implemen
       init.string(auto.name),
       init.structured(auto.timelineStart, TimelineT),
       init.structured(auto.timelineLength, TimelineT),
-      init.array<Note>(auto.notes),
+      init.structured(auto.buffer, MidiBuffer),
       init.structured(auto.viewport, MidiViewport),
       init.structured(auto.bufferTimelineStart, TimelineT),
     );
   }
 
-  static old_construct(json: SMidiClip): MidiClip {
-    const viewport = json.viewport
-      ? MidiViewport.of(
-          json.viewport.pxPerPulse,
-          json.viewport.pxNoteHeight,
-          json.viewport.scrollLeft,
-          json.viewport.scrollTop,
-        )
-      : MidiViewport.of(10, 10, 0, 0);
-    return new MidiClip(
-      SString.create(json.name),
-      time(json.startOffsetPulses, "pulses"),
-      time(json.lengthPulses, "pulses"),
-      SArray.create(mutablearr(json.notes)),
-      viewport,
-      time(json.bufferTimelineStart, "pulses"),
-    );
-  }
+  // static old_construct(json: SMidiClip): MidiClip {
+  //   const viewport = json.viewport
+  //     ? MidiViewport.of(
+  //         json.viewport.pxPerPulse,
+  //         json.viewport.pxNoteHeight,
+  //         json.viewport.scrollLeft,
+  //         json.viewport.scrollTop,
+  //       )
+  //     : MidiViewport.of(10, 10, 0, 0);
+  //   return new MidiClip(
+  //     SString.create(json.name),
+  //     time(json.startOffsetPulses, "pulses"),
+  //     time(json.lengthPulses, "pulses"),
+  //     SArray.create(mutablearr(json.notes)),
+  //     viewport,
+  //     time(json.bufferTimelineStart, "pulses"),
+  //   );
+  // }
 
   static of(
     name: string,
@@ -106,14 +96,14 @@ export class MidiClip extends Structured<AutoMidiClip, typeof MidiClip> implemen
       SString.create(name),
       time(startOffsetPulses, "pulses"),
       time(lengthPulses, "pulses"),
-      SArray.create(mutablearr(notes)),
+      Structured.create(MidiBuffer, SArray.create(mutablearr(notes)), time(lengthPulses, "pulses")),
       viewport ?? MidiViewport.of(10, 10, 0, 0),
       time(bufferTimelineStart ?? startOffsetPulses, "pulses"),
     );
   }
 
   static addNote(clip: MidiClip, tick: number, num: number, duration: number, velocity: number) {
-    addOrderedNote(clip.notes, [tick, num, duration, velocity]);
+    addOrderedNote(clip.buffer.notes, [tick, num, duration, velocity]);
     clip.buffer.clearCache();
     clip.notifyChange();
   }
@@ -127,19 +117,19 @@ export class MidiClip extends Structured<AutoMidiClip, typeof MidiClip> implemen
     velocity: number,
   ) {
     // TODO
-    addOrderedNote(clip.notes, [tick, num, duration, velocity]);
+    addOrderedNote(clip.buffer.notes, [tick, num, duration, velocity]);
     clip.notifyChange();
   }
 
   static removeNote(clip: MidiClip, note: Note) {
-    clip.notes.remove(note);
+    clip.buffer.notes.remove(note);
     clip.buffer.clearCache();
     clip.notifyChange();
   }
 
   // Good for now, works long term?
   findNote(tick: number, number: number) {
-    return this.notes.find(([ntick, nnum]: Note) => ntick == tick && nnum == number) ?? null;
+    return this.buffer.notes.find(([ntick, nnum]: Note) => ntick == tick && nnum == number) ?? null;
   }
 
   get startOffsetPulses() {
@@ -201,8 +191,8 @@ export class MidiClip extends Structured<AutoMidiClip, typeof MidiClip> implemen
       MidiClip,
       SString.create(this.name.get()),
       time(this.startOffsetPulses, "pulses"),
-      time(this.timelineLength.ensurePulses(), "pulses"),
-      SArray.create(mutablearr(this.notes._getRaw())),
+      this.timelineLength.clone(),
+      this.buffer.clone(),
       this.detailedViewport.clone(),
       this.bufferTimelineStart.clone(),
     );

@@ -2,7 +2,7 @@ import type { AudioWorkletGlobalScope, WamMidiData, WamTransportData } from "@we
 import type { Note, PianoRollProcessorMessage, SimpleMidiClip } from "../../midi/SharedMidiTypes";
 import { nullthrows } from "../../utils/nullthrows";
 import { MIDI, MIDIConfiguration, PPQN } from "./MIDIConfiguration";
-import { Clip, MIDINoteRecorder } from "./PianoRollClip";
+import { PianoRollClip, MIDINoteRecorder } from "./PianoRollClip";
 
 const MODULE_ID = "com.foo.pianoRoll";
 
@@ -26,7 +26,7 @@ class PianoRollProcessor extends WamProcessor {
   transportData?: WamTransportData;
   count: number;
 
-  clips: Map<string, Clip>;
+  readonly clips: Map<string, PianoRollClip> = new Map();
   // new system
   seqClips: SimpleMidiClip[] = [];
   loop: readonly [number, number] | null = null;
@@ -46,7 +46,6 @@ class PianoRollProcessor extends WamProcessor {
 
     this.lastTime = null;
     this.ticks = -1;
-    this.clips = new Map();
     this.currentClipId = "default";
     this.count = 0;
     this.isPlaying = false;
@@ -69,13 +68,6 @@ class PianoRollProcessor extends WamProcessor {
     super.port.start();
   }
 
-  /**
-   * Implement custom DSP here.
-   * @param {number} startSample beginning of processing slice
-   * @param {number} endSample end of processing slice
-   * @param {Float32Array[][]} inputs
-   * @param {Float32Array[][]} outputs
-   */
   _process(startSample: number, endSample: number, inputs: Float32Array[][], outputs: Float32Array[][]) {
     const { currentTime } = audioWorkletGlobalScope;
 
@@ -249,7 +241,7 @@ class PianoRollProcessor extends WamProcessor {
     switch (message.data.action) {
       case "clip": {
         console.log("OLD CLIP MESSAGE");
-        let clip = new Clip(message.data.id, message.data.state);
+        let clip = new PianoRollClip(message.data.id, message.data.state);
         this.clips.set(message.data.id, clip);
         return;
       }
@@ -303,7 +295,6 @@ class PianoRollProcessor extends WamProcessor {
   _onMidi(midiData: WamMidiData) {
     const { currentTime } = audioWorkletGlobalScope;
 
-    // /* eslint-disable no-lone-blocks */
     const bytes = midiData.bytes;
     if (!(this.midiConfig.pluginRecordingArmed && this.midiConfig.hostRecordingArmed)) {
       return;

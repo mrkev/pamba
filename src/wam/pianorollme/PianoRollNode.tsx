@@ -5,7 +5,7 @@ import { PianoRollProcessorMessage } from "../../midi/SharedMidiTypes";
 import { ignorePromise } from "../../utils/ignorePromise";
 import { MIDIConfiguration } from "./MIDIConfiguration";
 import { NoteCanvasRenderState, NoteCanvasRenderer } from "./NoteCanvasRenderer";
-import { Clip, ClipState } from "./PianoRollClip";
+import { PianoRollClip, ClipState } from "./PianoRollClip";
 import PianoRollProcessorUrl from "./PianoRollProcessor?worker&url";
 import DescriptorUrl from "./descriptor.json?url";
 
@@ -92,7 +92,7 @@ export class PianoRollModule extends WebAudioModule<PianoRollNode> {
 
     this.sequencer = node;
 
-    this.sequencer.pianoRoll.updateProcessor = (c: Clip) => {
+    this.sequencer.pianoRoll.updateProcessor = (c: PianoRollClip) => {
       this.sequencer.port.postMessage({ action: "clip", id: c.state.id, state: c.getState() });
     };
 
@@ -219,14 +219,14 @@ export class PianoRoll {
   futureEvents: ScheduledMIDIEvent[];
   dirty: boolean;
 
-  clips: Record<string, Clip>;
+  clips: Record<string, PianoRollClip>;
 
   playingClip: string | undefined;
 
   midiConfig: MIDIConfiguration;
 
   renderCallback?: () => void;
-  updateProcessor?: (c: Clip) => void;
+  updateProcessor?: (c: PianoRollClip) => void;
   updateProcessorMIDIConfig?: (config: MIDIConfiguration) => void;
 
   noteList?: NoteDefinition[];
@@ -235,7 +235,7 @@ export class PianoRoll {
     this.instanceId = instanceId;
     this.futureEvents = [];
     this.dirty = false;
-    this.clips = { default: new Clip("default") };
+    this.clips = { default: new PianoRollClip("default") };
     this.playingClip = "default";
 
     this.midiConfig = {
@@ -261,7 +261,7 @@ export class PianoRoll {
   addClip(id: string) {
     let clip = this.getClip(id);
     if (!clip) {
-      let clip = new Clip(id);
+      let clip = new PianoRollClip(id);
       clip.updateProcessor = (c) => {
         if (this.updateProcessor) this.updateProcessor(c);
       };
@@ -311,7 +311,7 @@ export class PianoRoll {
     }
 
     for (let id of Object.keys(state.clips)) {
-      this.clips[id] = new Clip(id, state.clips[id]);
+      this.clips[id] = new PianoRollClip(id, state.clips[id]);
       if (oldClips[id]) {
         this.clips[id].quantize = oldClips[id].quantize;
       }
