@@ -1,5 +1,5 @@
 export const changelog = `
-next
+v0.2.3
 - add a bunch of sound effect plugins
 - fix plugin names
 - fix dropping audio files from library into timeline
