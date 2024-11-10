@@ -1,8 +1,9 @@
 import type { AudioWorkletGlobalScope, WamMidiData, WamTransportData } from "@webaudiomodules/api";
+import { OrderedMap } from "../../lib/data/OrderedMap";
 import type { Note, PianoRollProcessorMessage, SimpleMidiClip } from "../../midi/SharedMidiTypes";
 import { nullthrows } from "../../utils/nullthrows";
 import { MIDI, MIDIConfiguration, PPQN } from "./MIDIConfiguration";
-import { PianoRollClip, MIDINoteRecorder } from "./PianoRollClip";
+import { MIDINoteRecorder, PianoRollClip } from "./PianoRollClip";
 
 const MODULE_ID = "com.foo.pianoRoll";
 
@@ -28,7 +29,7 @@ class PianoRollProcessor extends WamProcessor {
 
   readonly clips: Map<string, PianoRollClip> = new Map();
   // new system
-  seqClips: SimpleMidiClip[] = [];
+  seqClips: OrderedMap<string, SimpleMidiClip> = new OrderedMap();
   loop: readonly [number, number] | null = null;
 
   pendingClipChange?: { id: string; timestamp: number };
@@ -211,7 +212,7 @@ class PianoRollProcessor extends WamProcessor {
       const tickMoment = transportData.currentBarStarted + (this.ticks - startingTicks) * secondsPerTick;
 
       // console.log(loopedTicks, tickMoment);
-      notesForTickNew(loopedTicks, theClips).forEach(([ntick, nnumber, nduration, nvelocity]: Note) => {
+      notesForTickNew(loopedTicks, [...theClips.values()]).forEach(([ntick, nnumber, nduration, nvelocity]: Note) => {
         // console.log("events", tickMoment);
         this.emitEvents(
           {
@@ -234,47 +235,58 @@ class PianoRollProcessor extends WamProcessor {
    * @param {MessageEvent} message
    */
   async _onMessage(message: { data: PianoRollProcessorMessage }): Promise<void> {
-    if (!message.data) {
+    const payload = message.data;
+    if (!payload) {
       return;
     }
 
-    switch (message.data.action) {
+    switch (payload.action) {
       case "clip": {
+        // todo: delete, old clips message
         console.log("OLD CLIP MESSAGE");
-        let clip = new PianoRollClip(message.data.id, message.data.state);
-        this.clips.set(message.data.id, clip);
+        let clip = new PianoRollClip(payload.id, payload.state);
+        this.clips.set(payload.id, clip);
+        return;
+      }
+
+      case "set_clips": {
+        // New clips message
+        this.seqClips = new OrderedMap(new Map(payload.seqClips.map((clip) => [clip.id, clip] as const)));
+        console.log(message);
         return;
       }
 
       case "prepare_playback": {
         // New clips message
-        const { seqClips, loop } = message.data;
-        this.seqClips = seqClips;
-        this.loop = loop;
+        this.seqClips = new OrderedMap(new Map(payload.seqClips.map((clip) => [clip.id, clip] as const)));
+        this.loop = payload.loop;
         console.log(message);
         return;
       }
 
       case "midiConfig": {
         const currentlyRecording = this.midiConfig.hostRecordingArmed && this.midiConfig.pluginRecordingArmed;
-        const stillRecording = message.data.config.hostRecordingArmed && message.data.config.pluginRecordingArmed;
+        const stillRecording = payload.config.hostRecordingArmed && payload.config.pluginRecordingArmed;
 
         if (currentlyRecording && !stillRecording) {
           this.noteRecorder.finalizeAllNotes(this.ticks);
         }
 
-        this.midiConfig = message.data.config;
+        this.midiConfig = payload.config;
         this.noteRecorder.channel = this.midiConfig.inputMidiChannel;
         return;
       }
 
       case "play": {
         this.pendingClipChange = {
-          id: message.data.id,
+          id: payload.id,
           timestamp: 0,
         };
         break;
       }
+      case "add_note":
+        // TODO UNIMPLEMENTED
+        break;
       default:
         super._onMessage(message);
         break;

@@ -1,12 +1,12 @@
 import { SMap, Structured, map } from "structured-state";
-import { nullthrows } from "../utils/nullthrows";
-import { EmptyObj } from "../utils/types";
+import { nullthrows } from "../../utils/nullthrows";
+import { EmptyObj } from "../../utils/types";
 
 export function orderedMap<K, V>() {
-  return Structured.create(OrderedMap<K, V>);
+  return Structured.create(SOrderedMap<K, V>);
 }
 
-export class OrderedMap<K, V> extends Structured<EmptyObj, typeof OrderedMap> implements Map<K, V> {
+export class SOrderedMap<K, V> extends Structured<EmptyObj, typeof SOrderedMap> implements Map<K, V> {
   private readonly _order: Array<K>;
   constructor(private readonly _map: SMap<K, V> = map()) {
     super();
@@ -100,7 +100,7 @@ export class OrderedMap<K, V> extends Structured<EmptyObj, typeof OrderedMap> im
     return {};
   }
   static construct() {
-    return new OrderedMap(map());
+    return new SOrderedMap(map());
   }
 }
 

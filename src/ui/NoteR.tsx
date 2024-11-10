@@ -10,15 +10,18 @@ import { MidiClip } from "../midi/MidiClip";
 import { Note } from "../midi/SharedMidiTypes";
 import { exhaustive } from "../utils/exhaustive";
 import { useMousePressMove } from "./useEventListener";
+import { MidiTrack } from "../midi/MidiTrack";
 
 export function NoteR({
+  track,
   clip,
   note,
   viewport,
   project,
 }: {
-  clip: MidiClip;
   note: Note;
+  clip: MidiClip;
+  track: MidiTrack;
   viewport: MidiViewport;
   project: AudioProject;
 }) {
@@ -42,6 +45,7 @@ export function NoteR({
         switch (panelTool) {
           case "draw": {
             MidiClip.removeNote(clip, note);
+            track.flushClipStateToProcessor();
             return "done";
           }
           case "move": {

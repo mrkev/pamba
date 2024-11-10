@@ -14,8 +14,8 @@ type AutoMidiClip = {
   timelineStart: TimelineT;
   timelineLength: TimelineT;
   buffer: MidiBuffer;
-  viewport: MidiViewport;
   bufferTimelineStart: TimelineT;
+  viewport: MidiViewport;
 };
 
 export class MidiClip extends Structured<AutoMidiClip, typeof MidiClip> implements AbstractClip<Pulses> {
@@ -47,9 +47,10 @@ export class MidiClip extends Structured<AutoMidiClip, typeof MidiClip> implemen
   override replace(json: JSONOfAuto<AutoMidiClip>, replace: ReplaceFunctions): void {
     replace.string(json.name, this.name);
     replace.structured(json.timelineStart, this.timelineStart);
+    replace.structured(json.timelineLength, this.timelineLength);
     replace.structured(json.buffer, this.buffer);
-    // TODO: replace notes, viewport
     replace.structured(json.bufferTimelineStart, this.bufferTimelineStart);
+    replace.structured(json.viewport, this.detailedViewport);
   }
 
   static construct(auto: JSONOfAuto<AutoMidiClip>, init: InitFunctions): MidiClip {
@@ -63,25 +64,6 @@ export class MidiClip extends Structured<AutoMidiClip, typeof MidiClip> implemen
       init.structured(auto.bufferTimelineStart, TimelineT),
     );
   }
-
-  // static old_construct(json: SMidiClip): MidiClip {
-  //   const viewport = json.viewport
-  //     ? MidiViewport.of(
-  //         json.viewport.pxPerPulse,
-  //         json.viewport.pxNoteHeight,
-  //         json.viewport.scrollLeft,
-  //         json.viewport.scrollTop,
-  //       )
-  //     : MidiViewport.of(10, 10, 0, 0);
-  //   return new MidiClip(
-  //     SString.create(json.name),
-  //     time(json.startOffsetPulses, "pulses"),
-  //     time(json.lengthPulses, "pulses"),
-  //     SArray.create(mutablearr(json.notes)),
-  //     viewport,
-  //     time(json.bufferTimelineStart, "pulses"),
-  //   );
-  // }
 
   static of(
     name: string,
@@ -103,7 +85,7 @@ export class MidiClip extends Structured<AutoMidiClip, typeof MidiClip> implemen
   }
 
   static addNote(clip: MidiClip, tick: number, num: number, duration: number, velocity: number) {
-    addOrderedNote(clip.buffer.notes, [tick, num, duration, velocity]);
+    clip.buffer.addOrderedNote([tick, num, duration, velocity]);
     clip.buffer.clearCache();
     clip.notifyChange();
   }
@@ -116,8 +98,9 @@ export class MidiClip extends Structured<AutoMidiClip, typeof MidiClip> implemen
     duration: number,
     velocity: number,
   ) {
-    // TODO
-    addOrderedNote(clip.buffer.notes, [tick, num, duration, velocity]);
+    clip.buffer.addOrderedNote([tick, num, duration, velocity]);
+    track.flushClipStateToProcessor();
+    clip.buffer.clearCache();
     clip.notifyChange();
   }
 
@@ -202,17 +185,6 @@ export class MidiClip extends Structured<AutoMidiClip, typeof MidiClip> implemen
   override toString() {
     return `${this._timelineStartU} [ ${this.name.get()} ] ${this._timelineEndU}`;
   }
-}
-
-function addOrderedNote(la: SArray<Note>, note: Note) {
-  for (let i = 0; i < la.length; i++) {
-    const [tick] = nullthrows(la.at(i));
-    if (tick >= note[0] /* .tick */) {
-      la.splice(i, 0, note);
-      return;
-    }
-  }
-  la.push(note);
 }
 
 export function createEmptyMidiClipInTrack(project: AudioProject, track: MidiTrack, startS: number, endS: number) {

@@ -120,14 +120,6 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
     this.playingSource = this.pianoRoll;
     // send clips to processor
     // should already be in ascending order of startOffsetPulses
-    const simpleClips: SimpleMidiClip[] = [];
-    for (const clip of this.clips) {
-      simpleClips.push({
-        notes: clip.buffer.notes._getRaw(),
-        startOffsetPulses: clip.startOffsetPulses,
-        endOffsetPulses: clip._timelineEndU,
-      });
-    }
 
     // LOOP in pulses for now, is this what we want?
     const loop = AudioProject.playbackWillLoop(project, startingAt)
@@ -137,15 +129,38 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
     console.log(`midi looping`, loop);
 
     // lines from: called: this.pianoRoll.sendClipsForPlayback(simpleClips);
-    const message: PianoRollProcessorMessage = {
+    this.messageSequencer({
       action: "prepare_playback",
-      seqClips: simpleClips,
+      seqClips: this.clipsForProcessor(),
       loop,
-    };
-    this.pianoRoll.sequencer.port.postMessage(message);
+    });
 
     // connect effect chain
     this.dsp.connectToDSPForPlayback(this.instrument.get().node);
+  }
+
+  clipsForProcessor(): SimpleMidiClip[] {
+    const simpleClips: SimpleMidiClip[] = [];
+    for (const clip of this.clips) {
+      simpleClips.push({
+        id: clip._id,
+        notes: clip.buffer.notes._getRaw(),
+        startOffsetPulses: clip.startOffsetPulses,
+        endOffsetPulses: clip._timelineEndU,
+      });
+    }
+    return simpleClips;
+  }
+
+  flushClipStateToProcessor() {
+    this.messageSequencer({
+      action: "set_clips",
+      seqClips: this.clipsForProcessor(),
+    });
+  }
+
+  messageSequencer(message: PianoRollProcessorMessage) {
+    this.pianoRoll.sendMessageToProcessor(message);
   }
 
   async prepareForBounce(

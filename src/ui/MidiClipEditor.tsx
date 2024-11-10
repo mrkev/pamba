@@ -246,6 +246,7 @@ export function MidiClipEditor({
         const prevNote = clip.findNote(tick, noteNum);
         console.log("prev", prevNote, tick, noteNum);
         const panelTool = project.panelTool.get();
+
         switch (panelTool) {
           case "move": {
             console.log("HERE", prevNote);
@@ -260,9 +261,9 @@ export function MidiClipEditor({
             void history.record("draw note", () => {
               if (prevNote != null) {
                 // removal handled in note
-                // clip.removeNote(prevNote);
               } else {
                 MidiClip.addNote(clip, tick, noteNum, DEFAULT_NOTE_DURATION, 100);
+                track.flushClipStateToProcessor();
               }
             });
             break;
@@ -271,7 +272,7 @@ export function MidiClipEditor({
             exhaustive(panelTool);
         }
       },
-      [clip, noteHeight, project.panelTool, project.secondarySelection],
+      [clip, noteHeight, project.panelTool, project.secondarySelection, track],
     ),
   );
 
@@ -416,7 +417,16 @@ export function MidiClipEditor({
             <div className={styles.cursor} ref={cursorDiv} />
 
             {notes.map((note, i) => {
-              return <NoteR clip={clip} key={i} note={note} viewport={clip.detailedViewport} project={project} />;
+              return (
+                <NoteR
+                  track={track}
+                  clip={clip}
+                  key={i}
+                  note={note}
+                  viewport={clip.detailedViewport}
+                  project={project}
+                />
+              );
             })}
           </div>
         </div>

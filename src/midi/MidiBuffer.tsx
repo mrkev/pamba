@@ -2,6 +2,7 @@ import { array, InitFunctions, JSONOfAuto, ReplaceFunctions, SArray, Structured 
 import { time, TimelineT } from "../lib/project/TimelineT";
 import { dataURLForMidiBuffer } from "../utils/midiimg";
 import type { Note } from "./SharedMidiTypes";
+import { nullthrows } from "../utils/nullthrows";
 
 type SimpleMidiBuffer = {
   notes: SArray<Note>;
@@ -37,6 +38,18 @@ export class MidiBuffer extends Structured<SimpleMidiBuffer, typeof MidiBuffer> 
 
   static of(notes: Note[], len: number) {
     return Structured.create(MidiBuffer, array(notes), time(len, "pulses"));
+  }
+
+  ////////////////////////////////////
+  addOrderedNote(note: Note) {
+    for (let i = 0; i < this.notes.length; i++) {
+      const [tick] = nullthrows(this.notes.at(i));
+      if (tick >= note[0] /* .tick */) {
+        this.notes.splice(i, 0, note);
+        return;
+      }
+    }
+    this.notes.push(note);
   }
 
   clearCache() {

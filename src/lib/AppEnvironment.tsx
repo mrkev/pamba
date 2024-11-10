@@ -15,7 +15,7 @@ import { KINDS_SORT, PambaWAMPluginDescriptor, WAMPLUGINS } from "../wam/plugins
 import { WAMImport, fetchWam } from "../wam/wam";
 import { AnalizedPlayer } from "./AnalizedPlayer";
 import { AudioRenderer } from "./AudioRenderer";
-import { orderedMap } from "./OrderedMap";
+import { orderedMap } from "./data/SOrderedMap";
 import { initAudioContext } from "./initAudioContext";
 import { AudioProject } from "./project/AudioProject";
 import { AudioStorage } from "./project/AudioStorage";

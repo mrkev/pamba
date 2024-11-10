@@ -12,25 +12,15 @@ function drawBuffer(
   buffer: MidiBuffer,
   minNote: number,
 ) {
-  console.log("height", height);
   const len = buffer.timelineLength.ensurePulses();
-
   for (let i = 0; i < buffer.notes.length; i++) {
     const [start, num, duration] = nullthrows(buffer.notes.at(i));
     const startPx = Math.floor((start * width) / len);
     const widthPx = Math.ceil((duration * width) / len);
     const y = height - (num - minNote);
-    console.log("note", num, minNote, "foo");
     context.fillRect(startPx, y, widthPx, 1);
   }
 }
-
-// function getImageForBuffer(width: number, height: number, buffer: MidiBuffer): HTMLImageElement {
-//   const image = new Image();
-//   image.id = "pic";
-//   image.src = dataURLForWaveform(width, height, buffer);
-//   return image;
-// }
 
 export function dataURLForMidiBuffer(width: number, buffer: MidiBuffer): [string, number] {
   let maxNote = 0;
@@ -50,8 +40,6 @@ export function dataURLForMidiBuffer(width: number, buffer: MidiBuffer): [string
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = noteRange + 1;
-
-  console.log(noteRange);
 
   // Get the drawing context
   const ctx = canvas.getContext("2d");
