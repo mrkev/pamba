@@ -1,9 +1,8 @@
 import { WamDescriptor } from "@webaudiomodules/api";
 import { FirebaseApp } from "firebase/app";
 import { Auth, User, getAuth } from "firebase/auth";
-import { DirtyObserver, SPrimitive, array, map } from "structured-state";
+import { DirtyObserver, SPrimitive, array } from "structured-state";
 import { FIREBASE_ENABLED } from "../constants";
-import { AudioPackage } from "../data/AudioPackage";
 import { ProjectPackage } from "../data/ProjectPackage";
 import { LocalFilesystem } from "../data/localFilesystem";
 import type { DSPStep } from "../dsp/DSPNode";
@@ -16,13 +15,12 @@ import { KINDS_SORT, PambaWAMPluginDescriptor, WAMPLUGINS } from "../wam/plugins
 import { WAMImport, fetchWam } from "../wam/wam";
 import { AnalizedPlayer } from "./AnalizedPlayer";
 import { AudioRenderer } from "./AudioRenderer";
+import { orderedMap } from "./OrderedMap";
 import { initAudioContext } from "./initAudioContext";
 import { AudioProject } from "./project/AudioProject";
 import { AudioStorage } from "./project/AudioStorage";
 import { LinkedSet } from "./state/LinkedSet";
 import { LinkedState } from "./state/LinkedState";
-import { exhaustive } from "./state/Subbable";
-import { orderedMap } from "./OrderedMap";
 
 const dummyObj = array();
 
@@ -35,8 +33,10 @@ export type WAMAvailablePlugin = {
 
 type ProjectState = { status: "idle" } | { status: "loading" } | { status: "loaded"; project: AudioProject };
 
+type Status = { is: "initing" } | { is: "ready" };
+
 export class AppEnvironment {
-  readonly status = SPrimitive.of<"initing" | "ready">("initing");
+  readonly status: SPrimitive<Status>;
   public readyPromise: Promise<void>;
   // Firebase
   readonly firebaseApp: FirebaseApp | null;
@@ -71,7 +71,6 @@ export class AppEnvironment {
   >({ status: "pending" });
 
   constructor() {
-    console.log("app environment init");
     if (FIREBASE_ENABLED) {
       this.firebaseApp = initFirebaseApp();
       this.firebaseAuth = getAuth(this.firebaseApp);
@@ -81,13 +80,14 @@ export class AppEnvironment {
     }
 
     this.openEffects = LinkedSet.create();
-
+    this.status = SPrimitive.of({ is: "initing" });
     this.projectStatus = SPrimitive.of<ProjectState>({ status: "idle" });
     this.projectPacakge = LinkedState.of<ProjectPackage | null>(null); // null if never saved
     this.projectDirtyObserver = new DirtyObserver(dummyObj, "clean");
+
     this.readyPromise = new Promise((res) => {
       this.status._subscriptors.add(() => {
-        if (this.status.get() === "ready") {
+        if (this.status.get().is === "ready") {
           res();
         }
       });
@@ -151,70 +151,11 @@ export class AppEnvironment {
 
     await this.localFiles.projectLib._initState();
     await this.localFiles.audioLib._initState();
-    this.status.set("ready");
+    this.status.set({ is: "ready" });
     // once plugins have been loaded, so they're available to the project
     // if (this.projectStatus.get().status === "loading") {
     //   await ProjectPersistance.openLastProject(this.localFiles);
     // }
-  }
-
-  public async loadAudio(path: string): Promise<AudioPackage> {
-    const localRegex = new RegExp("^/projects/(.+)/audiolib/(.+)", "i");
-    const globalRegex = new RegExp("^/audiolib/(.+)", "i");
-
-    const projectMatch = localRegex.exec(path);
-    const globalMatch = globalRegex.exec(path);
-
-    if (projectMatch != null) {
-      const [_, projectId, audioName] = projectMatch;
-      return this.loadLocalAudio(projectId, audioName, path);
-    }
-    if (globalMatch != null) {
-      const [_, audioName] = globalMatch;
-
-      const audioLib = await this.localFiles.audioLib.dir();
-      const audioPackageDir = await audioLib.open("dir", audioName);
-      if (audioPackageDir === "not_found") {
-        throw new Error(`didn't find audio in audiolib ${path}`);
-      }
-      return AudioPackage.existingPackage(audioPackageDir);
-    }
-
-    throw new Error("Invalid audio path " + path);
-  }
-
-  private async loadLocalAudio(projectId: string, audioName: string, path: string) {
-    const projectStatus = this.projectStatus.get();
-    switch (projectStatus.status) {
-      case "loading":
-      case "idle":
-        // TODO: can maybe wait for project to load?
-        throw new Error("TODO");
-      case "loaded":
-        // continue
-        break;
-
-      default:
-        exhaustive(projectStatus);
-    }
-
-    if (projectStatus.project.projectId !== projectId) {
-      throw new Error(
-        `Can't load audio outside current project: project: ${projectStatus.project.projectId}, path: ${path}`,
-      );
-    }
-
-    const projectPackage = this.projectPacakge.get();
-    if (projectPackage == null || projectPackage.id !== projectId) {
-      throw new Error(`loadaudio: package mismatch. project package ${projectPackage?.id}, path: ${path}`);
-    }
-
-    const result = await projectPackage.audioLibRef.open(audioName);
-    if (result === "not_found") {
-      throw new Error(`auido ${audioName} not found in project ${projectId}`);
-    }
-
-    return result;
   }
 
   public activeProject(): AudioProject | null {

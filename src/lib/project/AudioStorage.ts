@@ -7,6 +7,7 @@ import { appEnvironment } from "../AppEnvironment";
 import type { AudioProject } from "./AudioProject";
 
 export class AudioStorage {
+  private constructor() {}
   static init() {
     return new AudioStorage();
   }

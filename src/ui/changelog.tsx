@@ -1,4 +1,7 @@
 export const changelog = `
+v0.2.4
+- improve app loading ui a bit
+
 v0.2.3
 - add a bunch of sound effect plugins
 - fix plugin names

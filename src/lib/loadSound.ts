@@ -27,7 +27,7 @@ export async function loadSoundFromAudioPackage(
 
 // Note that the audio load is asynchronous
 export async function loadSound(audioContext: AudioContext, url: string): Promise<SharedAudioBuffer> {
-  const audioPackage = await localAudioPackage(decodeURI(url));
+  const audioPackage = await localAudioPackage(url);
 
   if (audioPackage != null) {
     const buffer = await loadSoundFromAudioPackage(audioContext, audioPackage);

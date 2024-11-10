@@ -1,76 +1,62 @@
-import { appEnvironment } from "../lib/AppEnvironment";
 import { exhaustive } from "../utils/exhaustive";
-import { nullthrows } from "../utils/nullthrows";
 import { AudioPackage } from "./AudioPackage";
+import { FSFile } from "./FSDir";
+import { LocalFilesystem } from "./localFilesystem";
 
-export function audioSource(
-  filename: string,
-):
-  | { kind: "library"; path: string }
-  | { kind: "project"; path: string }
-  | { kind: "remote"; url: string }
-  | { kind: "opfs"; path: string } {
+// I'm thinking here:
+// - "opfs:dir/foobar.mp3", no host. path is dir/foobar.mp3
+// - "opfs://host/foobar.mp3". host, and path is foobar.mp3
+// dont use protocol to define location, use host
+export function audioSource(rawurl: string): { kind: "remote"; url: string } | { kind: "opfs"; path: string } {
   try {
-    const url = new URL(filename);
-    switch (url.protocol) {
-      case "opfs:": {
+    const url = new URL(rawurl);
+    if (url.protocol !== "opfs:") {
+      return { kind: "remote", url: rawurl };
+    }
+
+    switch (url.host) {
+      case "":
         console.log("opfspathname", url.pathname);
         return { kind: "opfs", path: decodeURI(url.pathname) };
-      }
-      case "library:": {
-        const localName = url.pathname.replace(/^\/\//, "");
-        return { kind: "library", path: localName };
-      }
-      case "project:": {
-        const localName = url.pathname.replace(/^\/\//, "");
-        return { kind: "project", path: localName };
-      }
+      case "project":
+      case "library":
+      // case "library": {
+      //   LocalFilesystem.GLOBAL_AUDIO_LIB_DIR;
+      //   const localName = url.pathname.replace(/^\/\//, "");
+      //   return { kind: "library", path: localName };
+      // }
+      // case "project": {
+      //   const localName = url.pathname.replace(/^\/\//, "");
+      //   return { kind: "project", path: localName };
+      // }
       default:
-        return { kind: "remote", url: filename };
+        // unknown location
+        throw new Error("UNIMPLEMENTED HOST MULTIPLEXING");
     }
   } catch (e) {
-    return { kind: "remote", url: filename };
+    console.warn(e);
+    return { kind: "remote", url: rawurl };
   }
 }
 
 export async function localAudioPackage(url: string) {
-  const source = audioSource(url);
+  const source = audioSource(url); // solves absolute opfs location, or assumes remote url
   switch (source.kind) {
     case "opfs": {
-      const audioPackage = await appEnvironment.loadAudio(source.path);
-      return audioPackage;
-    }
-    case "library": {
-      // pathname yields //foo/bar. Remove the initial "//"
-      const localName = source.path;
-      const audioPackage = await appEnvironment.localFiles.audioLib.getPackage(localName);
-      return audioPackage instanceof AudioPackage ? audioPackage : null;
-    }
-    case "project": {
-      // pathname yields //foo/bar. Remove the initial "//"
-      const localName = source.path;
-      const audioLibRef = nullthrows(
-        appEnvironment.projectPacakge.get()?.audioLibRef,
-        "no open audio lib from project",
-      );
-      const audioPackage = await audioLibRef.open(localName);
-      if (!(audioPackage instanceof AudioPackage)) {
-        throw audioPackage;
+      const result = await LocalFilesystem.browse(source.path.split("/"));
+      if (result === "err") {
+        throw new Error(`error when browsing for ${source.path}`);
       }
-      return audioPackage ?? null;
+
+      if (result instanceof FSFile) {
+        throw new Error("expected audio package directory, found file instead");
+      }
+
+      return AudioPackage.existingPackage(result);
     }
     case "remote":
       return null;
     default:
       exhaustive(source);
   }
-}
-
-export function localURLOfFileName(fileName: string) {
-  return `library://${fileName}`;
-}
-
-export function fileNameOfLocalURL(url: string) {
-  const result = url.match(/library:\/\/(.+)/);
-  return result == null ? null : result[1];
 }

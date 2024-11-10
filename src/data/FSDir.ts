@@ -1,30 +1,13 @@
 import { pTry } from "../utils/ignorePromise";
-import { LocalFilesystem } from "./localFilesystem";
 
 export class FSDir {
-  constructor(public readonly handle: FileSystemDirectoryHandle, public readonly path: readonly string[]) {}
+  constructor(
+    public readonly handle: FileSystemDirectoryHandle,
+    public readonly path: readonly string[],
+  ) {}
 
   get name() {
     return this.path[this.path.length - 1];
-  }
-
-  static async ensure(path: readonly string[]) {
-    switch (path[0]) {
-      case undefined:
-        throw new Error("fs: empty path");
-      case LocalFilesystem.ROOT_NAME:
-        break;
-      default:
-        throw new Error(`fs: path doesn't start at root: ${path}`);
-    }
-
-    let currentDir = navigator.storage.getDirectory();
-    for (let i = 1; i < path.length; i++) {
-      currentDir = currentDir.then((x) => x.getDirectoryHandle(path[i], { create: true }));
-    }
-
-    const dir = await currentDir;
-    return new FSDir(dir, path);
   }
 
   public async list() {
@@ -56,6 +39,20 @@ export class FSDir {
       return "error";
     }
     return null;
+  }
+
+  // todo: more descriptive errors
+  public async openAny(name: string): Promise<FSDir | FSFile | "err"> {
+    const resultDir = await pTry(this.handle.getDirectoryHandle(name), "err" as const);
+    const resultFile = await pTry(this.handle.getFileHandle(name), "err" as const);
+
+    if (resultDir instanceof FileSystemDirectoryHandle) {
+      return new FSDir(resultDir, this.path.concat(resultDir.name));
+    } else if (resultFile instanceof FileSystemFileHandle) {
+      return new FSFile(resultFile, this.path.concat(resultFile.name));
+    } else {
+      return "err";
+    }
   }
 
   public async open(kind: "dir", name: string): Promise<FSDir | "not_found"> {
@@ -90,5 +87,8 @@ export class FSDir {
 }
 
 export class FSFile {
-  constructor(public readonly handle: FileSystemFileHandle, public readonly path: readonly string[]) {}
+  constructor(
+    public readonly handle: FileSystemFileHandle,
+    public readonly path: readonly string[],
+  ) {}
 }

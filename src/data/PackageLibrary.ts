@@ -1,15 +1,16 @@
 import { LinkedMap } from "../lib/state/LinkedMap";
 import { FSDir, FSFile } from "./FSDir";
+import { LocalFilesystem } from "./localFilesystem";
 
 export class PackageLibrary<P> {
   public readonly state = LinkedMap.create<string, P>();
   constructor(
     private readonly PATH: readonly string[],
-    private readonly existingPackage: (dir: FSDir) => Promise<P | "invalid" | "not_found">
+    private readonly existingPackage: (dir: FSDir) => Promise<P | "invalid" | "not_found">,
   ) {}
 
   async dir() {
-    return FSDir.ensure(this.PATH);
+    return LocalFilesystem.walk(this.PATH, { create: true });
   }
 
   /** Make sure to call _initState() before usage! */

@@ -1,13 +1,13 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 // import { TrackThread } from "../lib/TrackThread";
 import "remixicon/fonts/remixicon.css";
-import { usePrimitive } from "structured-state";
+import { useContainer, usePrimitive } from "structured-state";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { ProjectPersistance } from "../lib/ProjectPersistance";
 import { useLinkedSet } from "../lib/state/LinkedSet";
 import { MidiInstrument } from "../midi/MidiInstrument";
-import { exhaustive } from "../utils/exhaustive";
 import { PambaWamNode } from "../wam/PambaWamNode";
+import { WAMPLUGINS } from "../wam/plugins";
 import { AppProject } from "./AppProject";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { PambaWamNodeWindowPanel } from "./PambaWamNodeWindowPanel";
@@ -100,6 +100,7 @@ export function App(): React.ReactElement {
         ---
         <br />
         <br />
+        {/* <AppLoadingProgress /> */}
         <InitButtion />
         <br />
         <details>
@@ -132,15 +133,33 @@ export function App(): React.ReactElement {
   }
 }
 
-function InitButtion() {
-  const [projectStatus] = usePrimitive(appEnvironment.projectStatus);
+function AppLoadingProgress() {
+  const plugins = useContainer(appEnvironment.wamPlugins);
+  return (
+    <progress key="progress" max={WAMPLUGINS.length} value={plugins.size}>
+      Loading
+    </progress>
+  );
+}
 
-  switch (projectStatus.status) {
-    case "idle":
-      return (
+function InitButtion() {
+  const [clicked, setClicked] = useState(false);
+
+  if (clicked) {
+    return (
+      <>
+        <button className={utility.button} disabled>
+          Loading...
+        </button>
+      </>
+    );
+  } else {
+    return (
+      <>
         <button
           className={utility.button}
           onClick={async () => {
+            setClicked(true);
             await appEnvironment.readyPromise; //resolves when done initializing
             appEnvironment.projectStatus.set({ status: "loading" });
             // ignorePromise(init());
@@ -149,21 +168,8 @@ function InitButtion() {
         >
           Continue
         </button>
-      );
-    case "loading":
-      return (
-        <>
-          {/* <progress>Loading</progress>{" "} */}
-          <button className={utility.button} disabled>
-            Loading...
-          </button>
-        </>
-      );
-    case "loaded":
-      return "loaded";
-
-    default:
-      exhaustive(projectStatus);
+      </>
+    );
   }
 }
 
