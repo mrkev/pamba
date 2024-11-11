@@ -1,11 +1,11 @@
 import { WamEventMap } from "@webaudiomodules/api";
-import { NoteDefinition } from "wam-extensions";
 import { WamNode, WebAudioModule } from "@webaudiomodules/sdk";
+import { NoteDefinition } from "wam-extensions";
 import { PianoRollProcessorMessage } from "../../midi/SharedMidiTypes";
 import { ignorePromise } from "../../utils/ignorePromise";
 import { MIDIConfiguration } from "./MIDIConfiguration";
 import { NoteCanvasRenderState, NoteCanvasRenderer } from "./NoteCanvasRenderer";
-import { PianoRollClip, ClipState } from "./PianoRollClip";
+import { ClipState, PianoRollClip } from "./PianoRollClip";
 import PianoRollProcessorUrl from "./PianoRollProcessor?worker&url";
 import DescriptorUrl from "./descriptor.json?url";
 
@@ -19,10 +19,6 @@ export class PianoRollNode extends WamNode {
     "wam-transport",
   ]);
 
-  /**
-   * @param {WebAudioModule} module
-   * @param {AudioWorkletNodeOptions} options
-   */
   constructor(module: WebAudioModule, options: AudioWorkletNodeOptions) {
     super(module, {
       ...options,
@@ -32,7 +28,6 @@ export class PianoRollNode extends WamNode {
         outputChannelCount: [2],
       },
     });
-
     this.pianoRoll = new PianoRoll(module.instanceId);
   }
 
@@ -96,29 +91,22 @@ export class PianoRollModule extends WebAudioModule<PianoRollNode> {
       this.sequencer.port.postMessage({ action: "clip", id: c.state.id, state: c.getState() });
     };
 
-    this.sequencer.pianoRoll.updateProcessorMIDIConfig = (config: MIDIConfiguration) => {
-      this.sequencer.port.postMessage({ action: "midiConfig", config });
-    };
-
     this.sequencer.port.addEventListener("message", (ev) => {
       if (ev.data.event == "transport") {
         console.log("TRANSPORT");
         // this.transport = ev.data.transport;
       } else if (ev.data.event == "addNote") {
-        const clip = this.sequencer.pianoRoll.getClip(this.sequencer.pianoRoll.playingClip as any); // todo as any
-        const note = ev.data.note;
-
-        // TODO: optionally don't quantize and just use note.tick
-        const quantizedTick = Math.round(note.tick / clip.quantize) * clip.quantize;
-
-        clip?.addNote(quantizedTick, note.number, note.duration, note.velocity);
-        if (this.sequencer.pianoRoll.renderCallback) {
-          this.sequencer.pianoRoll.renderCallback();
-        }
+        // apparently called when note recorder records a note
+        // const clip = this.sequencer.pianoRoll.getClip(this.sequencer.pianoRoll.playingClip as any); // todo as any
+        // const note = ev.data.note;
+        // // TODO: optionally don't quantize and just use note.tick
+        // const quantizedTick = Math.round(note.tick / clip.quantize) * clip.quantize;
+        // clip?.addNote(quantizedTick, note.number, note.duration, note.velocity);
+        // if (this.sequencer.pianoRoll.renderCallback) {
+        //   this.sequencer.pianoRoll.renderCallback();
+        // }
       }
     });
-
-    this.updateExtensions();
 
     return node;
   }
@@ -190,18 +178,6 @@ export class PianoRollModule extends WebAudioModule<PianoRollNode> {
     // render(null, el);
     el.parentElement?.removeChild(el);
   }
-
-  updateExtensions() {
-    if (window.WAMExtensions && window.WAMExtensions.recording) {
-      window.WAMExtensions.recording.register(this.instanceId, {
-        armRecording: (armed: boolean) => {
-          this.sequencer.pianoRoll.armHostRecording(armed);
-        },
-      });
-    } else {
-      this.sequencer.pianoRoll.armHostRecording(true);
-    }
-  }
 }
 
 export type MIDIEvent = Uint8Array;
@@ -215,28 +191,22 @@ export type PianoRollState = {
 };
 
 export class PianoRoll {
-  instanceId: string;
   futureEvents: ScheduledMIDIEvent[];
   dirty: boolean;
 
   clips: Record<string, PianoRollClip>;
 
-  playingClip: string | undefined;
-
   midiConfig: MIDIConfiguration;
 
-  renderCallback?: () => void;
   updateProcessor?: (c: PianoRollClip) => void;
-  updateProcessorMIDIConfig?: (config: MIDIConfiguration) => void;
 
   noteList?: NoteDefinition[];
 
-  constructor(instanceId: string) {
-    this.instanceId = instanceId;
+  constructor(public readonly instanceId: string) {
     this.futureEvents = [];
     this.dirty = false;
     this.clips = { default: new PianoRollClip("default") };
-    this.playingClip = "default";
+    // this.playingClip = "default";
 
     this.midiConfig = {
       pluginRecordingArmed: false,
@@ -245,7 +215,6 @@ export class PianoRoll {
       outputMidiChannel: 0,
     };
 
-    this.registerNoteListHandler();
     Object.keys(this.clips).forEach(
       (id) =>
         (this.clips[id].updateProcessor = (c) => {
@@ -266,23 +235,6 @@ export class PianoRoll {
         if (this.updateProcessor) this.updateProcessor(c);
       };
       this.clips[id] = clip;
-    }
-  }
-
-  registerNoteListHandler() {
-    if (window.WAMExtensions && window.WAMExtensions.notes) {
-      window.WAMExtensions.notes.addListener(this.instanceId, (notes) => {
-        this.noteList = notes;
-        if (this.renderCallback) {
-          this.renderCallback();
-        }
-      });
-    }
-  }
-
-  deregisterNoteListHandler() {
-    if (window.WAMExtensions && window.WAMExtensions.notes) {
-      window.WAMExtensions.notes.addListener(this.instanceId, undefined);
     }
   }
 
@@ -326,11 +278,6 @@ export class PianoRoll {
 
       if (this.updateProcessor) this.updateProcessor(this.clips[id]);
     }
-
-    this.dirty = true;
-    if (this.renderCallback != undefined) {
-      this.renderCallback();
-    }
   }
 
   // clip(): Clip | undefined {
@@ -339,46 +286,4 @@ export class PianoRoll {
   // 	}
   // 	return this.clips[this.selectedClip]
   // }
-
-  clearRenderFlag() {
-    this.dirty = false;
-  }
-
-  needsRender() {
-    return this.dirty;
-  }
-
-  armHostRecording(armed: boolean) {
-    this.midiConfig.hostRecordingArmed = armed;
-    if (this.updateProcessorMIDIConfig) {
-      this.updateProcessorMIDIConfig(this.midiConfig);
-    }
-  }
-
-  armPluginRecording(armed: boolean) {
-    this.midiConfig.pluginRecordingArmed = armed;
-    if (this.updateProcessorMIDIConfig) {
-      this.updateProcessorMIDIConfig(this.midiConfig);
-    }
-  }
-
-  inputMidiChanged(v: number) {
-    if (v < -1 || v > 15) {
-      throw `Invalid input midi value: ${v}`;
-    }
-    this.midiConfig.inputMidiChannel = v;
-    if (this.updateProcessorMIDIConfig) {
-      this.updateProcessorMIDIConfig(this.midiConfig);
-    }
-  }
-
-  outputMidiChanged(v: number) {
-    if (v < 0 || v > 15) {
-      throw `Invalid output midi value: ${v}`;
-    }
-    this.midiConfig.outputMidiChannel = v;
-    if (this.updateProcessorMIDIConfig) {
-      this.updateProcessorMIDIConfig(this.midiConfig);
-    }
-  }
 }

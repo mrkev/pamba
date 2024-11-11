@@ -6,7 +6,7 @@ import { AnalizedPlayer } from "../lib/AnalizedPlayer";
 import { AudioProject } from "../lib/project/AudioProject";
 import { secsToPulses } from "../lib/project/TimelineT";
 import { useLinkedState } from "../lib/state/LinkedState";
-import { MidiClip, setClipLength as setMidiClipLength } from "../midi/MidiClip";
+import { MidiClip } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
 import { exhaustive } from "../utils/exhaustive";
 import { clamp } from "../utils/math";
@@ -14,8 +14,6 @@ import { nullthrows } from "../utils/nullthrows";
 import { PPQN } from "../wam/pianorollme/MIDIConfiguration";
 import { ClipPropsEditor } from "./ClipPropsEditor";
 import { NoteR } from "./NoteR";
-import { RenamableLabel } from "./RenamableLabel";
-import { TimelineTEditor } from "./TimelineTEditor";
 import { UtilityToggle } from "./UtilityToggle";
 import { useDrawOnCanvas } from "./useDrawOnCanvas";
 import { useEventListener } from "./useEventListener";
@@ -58,15 +56,12 @@ export function MidiClipEditor({
   const cursorDiv = useRef<HTMLDivElement>(null);
   const backgroundRef = useRef<HTMLCanvasElement>(null);
   const notes = useContainer(clip.buffer.notes);
-  const [name] = usePrimitive(clip.name);
   const [noteHeight, setNoteHeight] = usePrimitive(clip.detailedViewport.pxNoteHeight);
   const [pxPerPulse, setPxPerPulse] = usePrimitive(clip.detailedViewport.pxPerPulse);
   const [secondarySel] = useLinkedState(project.secondarySelection);
   const [panelTool] = usePrimitive(project.panelTool);
   const [bpm] = usePrimitive(project.tempo);
   const timelineLen = useContainer(clip.timelineLength);
-
-  useContainer(clip);
 
   const secsToPixels = useCallback(
     (secs: number, tempo: number) => {
@@ -125,7 +120,7 @@ export function MidiClipEditor({
           ctx.stroke();
         }
 
-        for (let i = 0; i < clip.lengthPulses; i += PPQN / 4) {
+        for (let i = 0; i < timelineLen.pulses(project); i += PPQN / 4) {
           if (i === 0) {
             continue;
           } else if (i % 8 === 0) {
@@ -133,7 +128,7 @@ export function MidiClipEditor({
           } else {
             ctx.strokeStyle = "#888";
           }
-          const x = clip.detailedViewport.pulsesToPx(i) + 0.5;
+          const x = pxPerPulse * i + 0.5;
           ctx.beginPath();
           ctx.moveTo(x, 0);
           ctx.lineTo(x, canvas.height);
@@ -142,8 +137,7 @@ export function MidiClipEditor({
 
         ctx.scale(1, 1);
       },
-      // TODO: rn need pxPerPulse for updating
-      [clip.detailedViewport, clip.lengthPulses, noteHeight],
+      [timelineLen, noteHeight, project, pxPerPulse],
     ),
   );
 
@@ -209,7 +203,7 @@ export function MidiClipEditor({
 
       const playbackTimePulses = secsToPulses(playbackTimeSecs, bpm);
       // before
-      if (playbackTimePulses < clip.startOffsetPulses) {
+      if (playbackTimePulses < clip.timelineStart.pulses(project)) {
         cursorElem.style.display = "none";
         return;
       }
@@ -223,7 +217,7 @@ export function MidiClipEditor({
       cursorElem.style.left = String(secsToPixels(playbackTimeSecs, bpm)) + "px";
       cursorElem.style.display = "block";
     };
-  }, [bpm, clip, clip.startOffsetPulses, player, player.isAudioPlaying, secsToPixels]);
+  }, [bpm, clip, player, player.isAudioPlaying, project, secsToPixels]);
 
   useEventListener(
     "mousedown",
@@ -279,40 +273,13 @@ export function MidiClipEditor({
   return (
     <>
       <ClipPropsEditor clip={clip} project={project} track={track} />
+      {/* <button onMouseDown={() => track.noteOn(60)} onMouseUp={() => track.noteOff(60)}>
+        flobasf
+      </button> */}
       <div
-        style={{
-          border: "3px solid gray",
-          borderRadius: "3px",
-          display: "flex",
-          flexDirection: "column",
-          fontSize: 12,
-        }}
+        style={{ display: "grid", gridTemplateRows: "1fr auto", gridTemplateColumns: "auto 1fr", flexGrow: 1, gap: 4 }}
       >
-        <RenamableLabel
-          value={name}
-          setValue={function (newVal: string): void {
-            clip.name.set(newVal);
-          }}
-        />
-        Length {/* TODO: number only */}
-        <TimelineTEditor
-          t={timelineLen}
-          project={project}
-          defaultUnit="bars"
-          onChange={(t, u) => {
-            setMidiClipLength(project, track, clip, t, u);
-          }}
-        />
-        {/* <input
-          type="number"
-          value={timelineLen.pul}
-          step={}
-          onChange={(e) => {
-            clip.timelineLength.set(parseInt(e.target.value));
-          }}
-        /> */}
-        {/* <UtilityNumber value={1} onChange={console.log} /> */}
-        <div>
+        <div style={{ display: "flex", flexDirection: "column" }}>
           <UtilityToggle
             title={"selection tool"}
             toggled={panelTool === "move"}
@@ -335,100 +302,111 @@ export function MidiClipEditor({
           >
             <i className="ri-edit-fill"></i>
           </UtilityToggle>
+
+          <input
+            // onKeyDown={(e) => e.preventDefault()}
+            // onKeyPress={(e) => e.preventDefault()}
+            type="range"
+            min={3}
+            max={20}
+            step={1}
+            value={noteHeight}
+            title="Vertical Zoom Level"
+            style={{
+              flexGrow: 1,
+              marginTop: 4,
+              writingMode: "vertical-lr",
+              direction: "rtl",
+            }}
+            onChange={(e) => {
+              const newVal = parseFloat(e.target.value);
+              setNoteHeight(newVal);
+            }}
+          />
         </div>
-        <input
-          type="range"
-          min={1}
-          max={MAX_H_SCALE}
-          step={0.1}
-          value={pxPerPulse}
-          title="Horizontal Zoom level"
-          onChange={(e) => {
-            const newVal = parseFloat(e.target.value);
-            setPxPerPulse(newVal);
-          }}
-        />
-      </div>
 
-      <input
-        // onKeyDown={(e) => e.preventDefault()}
-        // onKeyPress={(e) => e.preventDefault()}
-        type="range"
-        min={3}
-        max={20}
-        step={1}
-        value={noteHeight}
-        title="Vertical Zoom Level"
-        {...{ orient: "vertical" }}
-        onChange={(e) => {
-          const newVal = parseFloat(e.target.value);
-          setNoteHeight(newVal);
-        }}
-      />
+        {/*  piano roll notes are PPQN / 4 wide */}
 
-      {/*  piano roll notes are PPQN / 4 wide */}
-
-      <div
-        ref={pianoRollRef}
-        style={{
-          display: "grid",
-          gridTemplateColumns: `${PIANO_ROLL_WIDTH}px auto`,
-          flexGrow: 1,
-          overflow: "scroll",
-        }}
-      >
-        <canvas
-          ref={pianoRollCanvasRef}
-          height={CANVAS_SCALE * noteHeight * TOTAL_VERTICAL_NOTES}
-          width={CANVAS_SCALE * PIANO_ROLL_WIDTH}
+        <div
+          ref={pianoRollRef}
           style={{
-            pointerEvents: "none",
-            position: "sticky",
-            left: 0,
-            height: noteHeight * TOTAL_VERTICAL_NOTES,
-            background: "var(--timeline-bg)",
-            width: PIANO_ROLL_WIDTH,
-            zIndex: 1,
+            display: "grid",
+            gridTemplateColumns: `${PIANO_ROLL_WIDTH}px auto`,
+            flexGrow: 1,
+            overflow: "scroll",
           }}
-        />
-        <div ref={editorContainerRef} className={styles.editorContainer}>
+        >
           <canvas
-            ref={backgroundRef}
+            ref={pianoRollCanvasRef}
             height={CANVAS_SCALE * noteHeight * TOTAL_VERTICAL_NOTES}
-            width={CANVAS_SCALE * clip.detailedViewport.pulsesToPx(clip.lengthPulses)}
+            width={CANVAS_SCALE * PIANO_ROLL_WIDTH}
             style={{
               pointerEvents: "none",
-              position: "absolute",
-              top: 0,
+              position: "sticky",
               left: 0,
               height: noteHeight * TOTAL_VERTICAL_NOTES,
               background: "var(--timeline-bg)",
-              width: clip.detailedViewport.pulsesToPx(clip.lengthPulses),
-              // imageRendering: "pixelated",
+              width: PIANO_ROLL_WIDTH,
+              zIndex: 1,
             }}
           />
-          <div
-            className={styles.noteEditor}
-            style={{
-              height: noteHeight * TOTAL_VERTICAL_NOTES,
-            }}
-            ref={containerRef}
-          >
-            <div className={styles.cursor} ref={cursorDiv} />
+          <div ref={editorContainerRef} className={styles.editorContainer}>
+            <canvas
+              ref={backgroundRef}
+              height={CANVAS_SCALE * noteHeight * TOTAL_VERTICAL_NOTES}
+              width={CANVAS_SCALE * clip.detailedViewport.pulsesToPx(timelineLen.pulses(project))}
+              style={{
+                pointerEvents: "none",
+                position: "absolute",
+                top: 0,
+                left: 0,
+                height: noteHeight * TOTAL_VERTICAL_NOTES,
+                background: "var(--timeline-bg)",
+                width: clip.detailedViewport.pulsesToPx(timelineLen.pulses(project)),
+                // imageRendering: "pixelated",
+              }}
+            />
+            <div
+              className={styles.noteEditor}
+              style={{
+                height: noteHeight * TOTAL_VERTICAL_NOTES,
+              }}
+              ref={containerRef}
+            >
+              <div className={styles.cursor} ref={cursorDiv} />
 
-            {notes.map((note, i) => {
-              return (
-                <NoteR
-                  track={track}
-                  clip={clip}
-                  key={i}
-                  note={note}
-                  viewport={clip.detailedViewport}
-                  project={project}
-                />
-              );
-            })}
+              {notes.map((note, i) => {
+                return (
+                  <NoteR
+                    track={track}
+                    clip={clip}
+                    key={i}
+                    note={note}
+                    viewport={clip.detailedViewport}
+                    project={project}
+                  />
+                );
+              })}
+            </div>
           </div>
+        </div>
+
+        <div />
+
+        <div style={{ display: "flex", flexDirection: "row" }}>
+          <div style={{ flexGrow: 1 }}></div>
+          <input
+            type="range"
+            min={1}
+            max={MAX_H_SCALE}
+            step={0.1}
+            value={pxPerPulse}
+            title="Horizontal Zoom level"
+            onChange={(e) => {
+              const newVal = parseFloat(e.target.value);
+              setPxPerPulse(newVal);
+            }}
+          />
         </div>
       </div>
     </>

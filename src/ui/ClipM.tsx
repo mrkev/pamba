@@ -22,7 +22,7 @@ export function ClipM({
   const notes = useContainer(clip.buffer.notes);
   // const startTrimmedWidth = project.viewport.secsToPx(clip.trimStartSec);
   const width = project.viewport.pulsesToPx(clip.timelineLength.ensurePulses());
-  const left = Math.floor(project.viewport.pulsesToPx(clip.startOffsetPulses));
+  const left = Math.floor(project.viewport.pulsesToPx(clip.timelineStart.pulses(project)));
 
   // const canvasRef = useRef<HTMLCanvasElement | null>(null);
 

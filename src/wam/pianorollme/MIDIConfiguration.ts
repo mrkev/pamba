@@ -1,3 +1,5 @@
+import { exhaustive } from "../../utils/exhaustive";
+
 export type MIDIConfiguration = {
   hostRecordingArmed: boolean;
   pluginRecordingArmed: boolean;
@@ -9,6 +11,18 @@ export class MIDI {
   static NOTE_ON = 144;
   static NOTE_OFF = 128;
   static CC = 176;
+  static kind(type: "on" | "off" | "cc") {
+    switch (type) {
+      case "cc":
+        return MIDI.CC;
+      case "off":
+        return MIDI.NOTE_OFF;
+      case "on":
+        return MIDI.NOTE_ON;
+      default:
+        exhaustive(type);
+    }
+  }
 }
 
 export type MIDIEvent = Uint8Array;

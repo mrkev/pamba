@@ -75,7 +75,7 @@ export class AudioProject {
 
   // Pointer //
   readonly pointerTool = SPrimitive.of<PointerTool>("move");
-  readonly panelTool = SPrimitive.of<SecondaryTool>("move");
+  readonly panelTool = SPrimitive.of<SecondaryTool>("draw");
   // the width of the selection at the playback cursor
   // TODO: Rename cursor time width or something?
   readonly selectionWidth = SPrimitive.of<number | null>(null);

@@ -22,6 +22,7 @@ import { PianoRollModule, PianoRollNode } from "../wam/pianorollme/PianoRollNode
 import { MidiClip } from "./MidiClip";
 import { MidiInstrument } from "./MidiInstrument";
 import type { PianoRollProcessorMessage, SimpleMidiClip } from "./SharedMidiTypes";
+import { MIDIConfiguration } from "../wam/pianorollme/MIDIConfiguration";
 
 type AutoMidiTrack = {
   name: SString;
@@ -34,6 +35,45 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
   public readonly dsp: ProjectTrackDSP<MidiClip>;
   public readonly clips: SSchemaArray<MidiClip>;
   public readonly height: SNumber;
+
+  // TODO UNUSED, FROM PianoRoll class
+  readonly midiConfig = {
+    pluginRecordingArmed: false,
+    hostRecordingArmed: false,
+    inputMidiChannel: -1,
+    outputMidiChannel: 0,
+  };
+
+  updateProcessorMIDIConfig(config: MIDIConfiguration) {
+    this.pianoRoll.sendMessageToProcessor({ action: "midiConfig", config });
+  }
+
+  armHostRecording(armed: boolean) {
+    this.midiConfig.hostRecordingArmed = armed;
+    this.updateProcessorMIDIConfig(this.midiConfig);
+  }
+
+  armPluginRecording(armed: boolean) {
+    this.midiConfig.pluginRecordingArmed = armed;
+    this.updateProcessorMIDIConfig(this.midiConfig);
+  }
+
+  inputMidiChanged(v: number) {
+    if (v < -1 || v > 15) {
+      throw `Invalid input midi value: ${v}`;
+    }
+    this.midiConfig.inputMidiChannel = v;
+    this.updateProcessorMIDIConfig(this.midiConfig);
+  }
+
+  outputMidiChanged(v: number) {
+    if (v < 0 || v > 15) {
+      throw `Invalid output midi value: ${v}`;
+    }
+    this.midiConfig.outputMidiChannel = v;
+    this.updateProcessorMIDIConfig(this.midiConfig);
+  }
+  /////////////////////
 
   // todo: instrument can be empty?
   // TODO: SPrimitive holds Structs.
@@ -55,6 +95,11 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
   override replace(json: JSONOfAuto<AutoMidiTrack>, replace: ReplaceFunctions): void {
     replace.string(json.name, this.name);
     replace.schemaArray(json.clips, this.clips);
+    // TODO: when undoing a note draw, we need to call flushClipStateToProcessor.
+    //     WE CAN add a callback to history.record(). finally. it gets called:
+    //            when action is first taken, when action is undone, when action is redone.
+    //            with argument to wether we're currently in an "act", "undo" or "redo"
+    //            wont work, cause what if track gets deleted in history. we don't have a reference to the regenerated track.
     // todo: replace instrument
   }
 
@@ -145,7 +190,7 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
       simpleClips.push({
         id: clip._id,
         notes: clip.buffer.notes._getRaw(),
-        startOffsetPulses: clip.startOffsetPulses,
+        startOffsetPulses: clip.timelineStart.ensurePulses(),
         endOffsetPulses: clip._timelineEndU,
       });
     }
@@ -156,6 +201,22 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
     this.messageSequencer({
       action: "set_clips",
       seqClips: this.clipsForProcessor(),
+    });
+  }
+
+  noteOn(note: number) {
+    console.log("PLAY NOTE NOW");
+    this.messageSequencer({
+      action: "immEvent",
+      event: "on",
+    });
+  }
+
+  noteOff(note: number) {
+    console.log("PLAY NOTE NOW");
+    this.messageSequencer({
+      action: "immEvent",
+      event: "off",
     });
   }
 

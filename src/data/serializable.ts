@@ -118,7 +118,7 @@ export async function serializable(
     return {
       kind: "MidiClip",
       name: obj.name.get(),
-      startOffsetPulses: obj.startOffsetPulses,
+      startOffsetPulses: obj.timelineStart.ensurePulses(),
       lengthPulses: obj.timelineLength.ensurePulses(), // todo: replace for serialized timelinet to avoid ensurePulses
       notes: obj.buffer.notes._getRaw(),
       viewport: obj.detailedViewport.serialize(),

@@ -1,16 +1,16 @@
 import classNames from "classnames";
 import { useCallback, useRef } from "react";
 import { createUseStyles } from "react-jss";
-import { usePrimitive } from "structured-state";
+import { history, usePrimitive } from "structured-state";
 import { modifierState } from "../ModifierState";
 import { AudioProject } from "../lib/project/AudioProject";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { MidiViewport } from "../lib/viewport/MidiViewport";
 import { MidiClip } from "../midi/MidiClip";
+import { MidiTrack } from "../midi/MidiTrack";
 import { Note } from "../midi/SharedMidiTypes";
 import { exhaustive } from "../utils/exhaustive";
 import { useMousePressMove } from "./useEventListener";
-import { MidiTrack } from "../midi/MidiTrack";
 
 export function NoteR({
   track,
@@ -44,8 +44,10 @@ export function NoteR({
         // if (editable === true)
         switch (panelTool) {
           case "draw": {
-            MidiClip.removeNote(clip, note);
-            track.flushClipStateToProcessor();
+            history.record("delete note", () => {
+              MidiClip.removeNote(clip, note);
+              track.flushClipStateToProcessor();
+            });
             return "done";
           }
           case "move": {
@@ -71,7 +73,7 @@ export function NoteR({
             exhaustive(panelTool);
         }
       },
-      [clip, note, panelTool, project.secondarySelection],
+      [clip, note, panelTool, project.secondarySelection, track],
     ),
     useCallback((meta, e) => {
       console.log(meta, e);

@@ -1,10 +1,11 @@
-import { useEffect } from "react";
+import { useLayoutEffect } from "react";
 
 export function useDrawOnCanvas(
   ref: React.RefObject<HTMLCanvasElement>,
   cb: (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => void,
 ) {
-  useEffect(() => {
+  // layout effect to avoid flicker
+  useLayoutEffect(() => {
     const elem = ref.current;
     const ctx = elem?.getContext("2d") ?? null;
     if (ctx == null || elem == null) {

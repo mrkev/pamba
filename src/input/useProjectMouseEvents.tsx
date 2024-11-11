@@ -179,7 +179,7 @@ export function useTimelineMouseEvents(
                 ProjectTrack.deleteTime(
                   project,
                   pressed.track,
-                  pressed.clip.startOffsetPulses,
+                  pressed.clip.timelineStart.pulses(project),
                   pressed.clip._timelineEndU,
                 );
                 ProjectTrack.removeClip(project, pressed.originalTrack, pressed.clip);

@@ -1,6 +1,7 @@
-import type { AudioWorkletGlobalScope, WamMidiData, WamTransportData } from "@webaudiomodules/api";
+import type { AudioWorkletGlobalScope, WamEventBase, WamMidiData, WamTransportData } from "@webaudiomodules/api";
 import { OrderedMap } from "../../lib/data/OrderedMap";
 import type { Note, PianoRollProcessorMessage, SimpleMidiClip } from "../../midi/SharedMidiTypes";
+import { exhaustive } from "../../utils/exhaustive";
 import { nullthrows } from "../../utils/nullthrows";
 import { MIDI, MIDIConfiguration, PPQN } from "./MIDIConfiguration";
 import { MIDINoteRecorder, PianoRollClip } from "./PianoRollClip";
@@ -36,7 +37,27 @@ class PianoRollProcessor extends WamProcessor {
   currentClipId: string;
 
   noteRecorder: MIDINoteRecorder;
-  midiConfig: MIDIConfiguration;
+
+  // default config
+  midiConfig: MIDIConfiguration = {
+    hostRecordingArmed: false,
+    pluginRecordingArmed: false,
+    inputMidiChannel: -1,
+    outputMidiChannel: 0,
+  };
+
+  readonly immediateMessages: WamEventBase<"wam-midi">[] = [];
+
+  midiEvent(type: "on" | "off" | "cc", note: number, velocity: number, tickMoment?: number): WamEventBase<"wam-midi"> {
+    const result: WamEventBase<"wam-midi"> = {
+      type: "wam-midi",
+      data: { bytes: [MIDI.kind(type) | this.midiConfig.outputMidiChannel, note, velocity] },
+    } as const;
+    if (tickMoment != null) {
+      result.time = tickMoment;
+    }
+    return result;
+  }
 
   constructor(options: { processorOptions: { moduleId: string; instanceId: string } }) {
     console.log("PIANO ROLL CONSTRUCTOR");
@@ -50,12 +71,6 @@ class PianoRollProcessor extends WamProcessor {
     this.currentClipId = "default";
     this.count = 0;
     this.isPlaying = false;
-    this.midiConfig = {
-      hostRecordingArmed: false,
-      pluginRecordingArmed: false,
-      inputMidiChannel: -1,
-      outputMidiChannel: 0,
-    };
 
     this.noteRecorder = new MIDINoteRecorder(
       () => {
@@ -109,6 +124,16 @@ class PianoRollProcessor extends WamProcessor {
 
     // console.log(this.transportData!.playing, this.transportData!.currentBarStarted <= schedulerTime);
 
+    // Flush immediate evens
+
+    // NOTE: DOESNT WORK UNTIL WE START PLAYBACK, because thing is suspended or something I guess? The node map is not built?
+    let ev;
+    while ((ev = this.immediateMessages.pop())) {
+      this.emitEvents(ev);
+      console.log("EMMITED", ev);
+    }
+
+    // Run new playback system
     if (
       this.transportData!.playing &&
       this.transportData!.currentBarStarted <= schedulerTime &&
@@ -261,6 +286,13 @@ class PianoRollProcessor extends WamProcessor {
         this.seqClips = new OrderedMap(new Map(payload.seqClips.map((clip) => [clip.id, clip] as const)));
         this.loop = payload.loop;
         console.log(message);
+        return;
+      }
+
+      case "immEvent": {
+        console.log(message);
+        // [tick84, num60, dur6, vel100]
+        this.immediateMessages.push(this.midiEvent(payload.event, 60, 100));
         return;
       }
 

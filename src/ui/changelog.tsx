@@ -1,4 +1,8 @@
 export const changelog = `
+v0.2.5
+- live midi node editing
+- improve ui of midi note editor
+
 v0.2.4
 - improve app loading ui a bit
 

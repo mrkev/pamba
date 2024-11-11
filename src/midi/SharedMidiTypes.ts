@@ -21,6 +21,7 @@ export type PianoRollProcessorMessage =
   | { action: "midiConfig"; config: any }
   | { action: "play"; id: string }
   | { action: "prepare_playback"; seqClips: SimpleMidiClip[]; loop: readonly [number, number] | null }
-  | { action: "set_clips"; seqClips: SimpleMidiClip[] };
+  | { action: "set_clips"; seqClips: SimpleMidiClip[] }
+  | { action: "immEvent"; event: "on" | "off" };
 
 // | { action: "setPlaybackStartOffset"; offsetSec: number };
