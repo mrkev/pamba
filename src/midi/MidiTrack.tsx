@@ -18,11 +18,11 @@ import { ProjectTrackDSP } from "../lib/ProjectTrackDSP";
 import { connectSerialNodes } from "../lib/connectSerialNodes";
 import { AudioProject } from "../lib/project/AudioProject";
 import { nullthrows } from "../utils/nullthrows";
-import { PianoRollModule, PianoRollNode } from "../wam/pianorollme/PianoRollNode";
+import { MIDIConfiguration } from "../wam/pianorollme/MIDIConfiguration";
+import { PianoRollModule, PianoRollNode } from "../wam/pianorollme/PianoRollModule";
 import { MidiClip } from "./MidiClip";
 import { MidiInstrument } from "./MidiInstrument";
 import type { PianoRollProcessorMessage, SimpleMidiClip } from "./SharedMidiTypes";
-import { MIDIConfiguration } from "../wam/pianorollme/MIDIConfiguration";
 
 type AutoMidiTrack = {
   name: SString;
@@ -127,7 +127,6 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
   static async createWithInstrument(instrument: MidiInstrument, name: string, clips?: MidiClip[]) {
     const [groupId] = nullthrows(appEnvironment.wamHostGroup.get());
     const pianoRoll = await PianoRollModule.createInstance<PianoRollNode>(groupId, liveAudioContext());
-    await (pianoRoll as PianoRollModule).sequencer.setState(SAMPLE_STATE);
     return Structured.create(MidiTrack, name, pianoRoll, instrument, clips ?? []);
   }
 

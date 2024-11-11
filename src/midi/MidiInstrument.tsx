@@ -56,10 +56,8 @@ export class MidiInstrument extends DSPStep<null> {
   }
 
   static async createFromUrl(pluginUrl: string, wamHostGroupId: string, audioContext: BaseAudioContext) {
-    console.log("foobar", pluginUrl, appEnvironment.wamPlugins);
     const { plugin, localDesc } = nullthrows(appEnvironment.wamPlugins.get(pluginUrl));
     assert(localDesc.kind === "m-a", "plugin is not an instrument");
-
     const module = await plugin.import.createInstance(wamHostGroupId, audioContext);
     return new MidiInstrument(module, pluginUrl);
   }

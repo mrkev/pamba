@@ -1,14 +1,11 @@
 import type { AudioWorkletGlobalScope, WamEventBase, WamMidiData, WamTransportData } from "@webaudiomodules/api";
 import { OrderedMap } from "../../lib/data/OrderedMap";
 import type { Note, PianoRollProcessorMessage, SimpleMidiClip } from "../../midi/SharedMidiTypes";
-import { exhaustive } from "../../utils/exhaustive";
 import { nullthrows } from "../../utils/nullthrows";
 import { MIDI, MIDIConfiguration, PPQN } from "./MIDIConfiguration";
 import { MIDINoteRecorder, PianoRollClip } from "./PianoRollClip";
 
 const MODULE_ID = "com.foo.pianoRoll";
-
-console.log("PIANO ROLL ROOT");
 
 const audioWorkletGlobalScope: AudioWorkletGlobalScope = globalThis as unknown as AudioWorkletGlobalScope;
 const ModuleScope = audioWorkletGlobalScope.webAudioModules.getModuleScope(MODULE_ID);
@@ -92,10 +89,11 @@ class PianoRollProcessor extends WamProcessor {
       this.pendingClipChange = undefined;
     }
 
-    let clip = this.clips.get(this.currentClipId);
-    if (!clip) {
-      return;
-    }
+    // let clip = this.clips.get(this.currentClipId);
+    // if (!clip) {
+    //   return;
+    // }
+
     if (!this.transportData) {
       return;
     }
@@ -140,51 +138,7 @@ class PianoRollProcessor extends WamProcessor {
       this.seqClips.length != 0
     ) {
       this.newSystemPlayback(schedulerTime);
-      return;
     }
-
-    // OLD SYSTEM? I DON'T THINK THIS RUNS ANYMORE
-    if (this.transportData!.playing && this.transportData!.currentBarStarted <= schedulerTime) {
-      const timeElapsed = schedulerTime - this.transportData!.currentBarStarted;
-      const beatPosition =
-        this.transportData!.currentBar * this.transportData!.timeSigNumerator +
-        (this.transportData!.tempo / 60.0) * timeElapsed;
-      const absoluteTickPosition = Math.floor(beatPosition * PPQN);
-
-      let clipPosition = absoluteTickPosition % clip.state.length;
-
-      if (this.recordingArmed && this.ticks % clip.state.length > clipPosition) {
-        // we just circled back, so finalize any notes in the buffer
-        this.noteRecorder.finalizeAllNotes(clip.state.length - 1);
-      }
-
-      const secondsPerTick = 1.0 / ((this.transportData!.tempo / 60.0) * PPQN);
-
-      console.log("ticks", this.ticks);
-
-      while (this.ticks < absoluteTickPosition) {
-        this.ticks = this.ticks + 1;
-
-        const tickMoment = this.transportData.currentBarStarted + (this.ticks - this.startingTicks) * secondsPerTick;
-
-        clip.notesForTick(this.ticks % clip.state.length).forEach((note) => {
-          this.emitEvents(
-            {
-              type: "wam-midi",
-              time: tickMoment,
-              data: { bytes: [MIDI.NOTE_ON | this.midiConfig.outputMidiChannel, note.number, note.velocity] },
-            },
-            {
-              type: "wam-midi",
-              time: tickMoment + note.duration * secondsPerTick - 0.001,
-              data: { bytes: [MIDI.NOTE_OFF | this.midiConfig.outputMidiChannel, note.number, note.velocity] },
-            },
-          );
-        });
-      }
-    }
-
-    return;
   }
 
   // schedulerTime:
