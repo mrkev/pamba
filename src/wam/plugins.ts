@@ -76,6 +76,10 @@ const INCLUDE = new Set([
   "com.wimmics.ts9overdrive",
   "com.wimmics.weirdphaser",
   "com.wimmics.stereoenhancer",
+
+  // CMajor
+  "dev.cmajor.examples.pro54",
+  "dev.cmajor.TX81Z",
 ]);
 
 export const WAMPLUGINS: PambaWAMPluginDescriptor[] = plugins
@@ -91,4 +95,24 @@ export const WAMPLUGINS: PambaWAMPluginDescriptor[] = plugins
       kind: plugin.category.includes("Instrument") || plugin.category.includes("Synthesizer") ? "m-a" : "a-a",
       url: "https://www.webaudiomodules.com/community/plugins/" + plugin.path,
     };
-  });
+  })
+  .concat([
+    {
+      identifier: "dev.cmajor.examples.pro54",
+      name: "Pro54",
+      vendor: "Cmajor",
+      website: "",
+      description: "A faithful Cmajor port of the classic Native Instruments Pro-53 synth",
+      kind: "m-a",
+      url: "https://wam-4tt.pages.dev/Pro54/index.js",
+    },
+    {
+      identifier: "dev.cmajor.TX81Z",
+      name: "TX81Z",
+      vendor: "Cmajor Software Ltd",
+      description: "TX81Z",
+      website: "",
+      kind: "m-a",
+      url: "https://wam-4tt.pages.dev/TX81Z/index.js",
+    },
+  ]);
