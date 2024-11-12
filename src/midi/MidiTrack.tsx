@@ -10,7 +10,7 @@ import {
   arrayOf,
   string,
 } from "structured-state";
-import { CLIP_HEIGHT, SECS_IN_MINUTE, TIME_SIGNATURE, liveAudioContext } from "../constants";
+import { CLIP_HEIGHT, SECS_IN_MINUTE, SOUND_FONT_URL, TIME_SIGNATURE, liveAudioContext } from "../constants";
 import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { StandardTrack } from "../lib/ProjectTrack";
@@ -122,6 +122,12 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
     pianoRoll.audioNode.connectEvents(instrument.module.instanceId);
 
     if (clips.length === 0) this.createSampleMidiClip();
+  }
+
+  static async createDefault(name: string = "midi track", clips: MidiClip[] = []) {
+    const wamHostGroupId = nullthrows(appEnvironment.wamHostGroup.get())[0];
+    const instrument = await MidiInstrument.createFromUrl(SOUND_FONT_URL, wamHostGroupId, liveAudioContext());
+    return this.createWithInstrument(instrument, name, clips);
   }
 
   static async createWithInstrument(instrument: MidiInstrument, name: string, clips?: MidiClip[]) {

@@ -1,4 +1,4 @@
-import { arrayOf, boolean, number, SArray, string } from "structured-state";
+import { arrayOf, boolean, number, string } from "structured-state";
 import { liveAudioContext } from "../constants";
 import { FaustEffectID } from "../dsp/FAUST_EFFECTS";
 import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
@@ -7,11 +7,11 @@ import { AudioClip } from "../lib/AudioClip";
 import { AudioTrack } from "../lib/AudioTrack";
 import { AudioProject } from "../lib/project/AudioProject";
 import { STimelineT, time } from "../lib/project/TimelineT";
+import { SMidiViewport } from "../lib/viewport/MidiViewport";
 import { MidiClip } from "../midi/MidiClip";
 import { MidiInstrument } from "../midi/MidiInstrument";
 import { MidiTrack } from "../midi/MidiTrack";
 import { Note } from "../midi/SharedMidiTypes";
-import { SMidiViewport } from "../lib/viewport/MidiViewport";
 import { exhaustive } from "../utils/exhaustive";
 import { nullthrows } from "../utils/nullthrows";
 import { mutable } from "../utils/types";

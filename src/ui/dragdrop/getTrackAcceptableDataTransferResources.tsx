@@ -3,7 +3,9 @@ import { localAudioPackage } from "../../data/urlProtocol";
 import { validateFaustEffectId } from "../../dsp/FAUST_EFFECTS";
 import { WAMAvailablePlugin, appEnvironment } from "../../lib/AppEnvironment";
 import { AudioStorage } from "../../lib/project/AudioStorage";
+import { Note } from "../../midi/SharedMidiTypes";
 import { LibraryItem } from "../Library";
+import { midiClipsOfMidiFile } from "./midiTransfer";
 
 export type PambaDataTransferResourceKind =
   | "application/pamba.project"
@@ -22,6 +24,7 @@ export type FaustEffectLibraryItem = Extract<LibraryItem, { kind: "fausteffect" 
 export type EffectInstanceTransferResource = { kind: "effectinstance"; trackIndex: number; effectIndex: number };
 export type TrackInstanceTransferResource = { kind: "trackinstance"; trackIndex: number };
 export type AudioClipInstanceTransferResource = { kind: "audioclipinstance"; todo: number };
+export type MidiTransfer = { kind: "miditransfer"; tracks: { name: string; notes: Note[] }[] };
 
 export type TransferableResource =
   | AudioPackage
@@ -34,7 +37,8 @@ export type TransferableResource =
   | EffectInstanceTransferResource
   // todo: same as above, in some future change for a uuid
   | TrackInstanceTransferResource
-  | AudioClipInstanceTransferResource;
+  | AudioClipInstanceTransferResource
+  | MidiTransfer;
 
 export async function getRackAcceptableDataTransferResources(
   dataTransfer: DataTransfer,
@@ -161,15 +165,51 @@ export async function getTrackAcceptableDataTransferResources(
 
   // we didn't handle an internal format, so we handle files
   for (const file of dataTransfer.files) {
+    const filetype = file.type.split(";")[0];
+    switch (filetype) {
+      // random list from https://www.thoughtco.com/audio-file-mime-types-3469485
+      // TODO: check if all of these actually work
+      case "audio/mpeg":
+      case "audio/ogg":
+      case "audio/basic":
+      case "audio/L24":
+      case "audio/mid":
+      case "audio/mp4":
+      case "audio/x-aiff":
+      case "audio/x-mpegurl":
+      case "audio/vnd.rn-realaudio":
+      case "audio/vorbis":
+      case "audio/vnd.wav":
+      case "audio/wav":
+        {
+          const result = await audioStorage.uploadToLibrary(file);
+          if (result instanceof Error) {
+            throw result;
+          }
+          resultingResources.push(result);
+        }
+        break;
+
+      case "audio/midi": {
+        const result = await midiClipsOfMidiFile(file);
+        console.log("midi result:", result);
+        if (result == null) {
+          console.warn("issue with midi transfer, returned no miditransfer");
+          continue;
+        }
+        resultingResources.push(result);
+        break;
+      }
+      default: {
+        // TODO: upload fails but ui has no feedback for users
+        console.error("error_unsupported_format" + filetype);
+        continue;
+      }
+    }
+
     // todo: parallel uploads?
     // todo: what if audio already in library?
     // todo: formats other than audio
-    const result = await audioStorage.uploadToLibrary(file);
-    if (result instanceof Error) {
-      throw result;
-    }
-
-    resultingResources.push(result);
   }
 
   return resultingResources;

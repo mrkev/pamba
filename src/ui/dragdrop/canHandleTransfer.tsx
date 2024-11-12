@@ -11,6 +11,7 @@ export function trackCanHandleTransfer(track: AudioTrack | MidiTrack, dataTransf
       "application/pamba.wam",
       "application/pamba.fausteffect",
       "application/pamba.effectinstance",
+      "Files",
     );
   } else if (track instanceof AudioTrack) {
     return hasResouceKind(
@@ -43,8 +44,11 @@ export function trackHeaderContainerCanHandleTransfer(dataTransfer: DataTransfer
 
 ///////////
 
-export function hasResouceKind(dataTransfer: DataTransfer, ...kinds: PambaDataTransferResourceKind[]) {
-  // console.log(dataTransfer.types);
+// NOTE: files (and thus their type) are not available on dataTransfer until the drop event,
+// so best we can do is accept any file with "Files". We just know if the dataTransfer has files
+// when "Files" shoes up in dataTransfer.types
+export function hasResouceKind(dataTransfer: DataTransfer, ...kinds: (PambaDataTransferResourceKind | "Files")[]) {
+  console.log(dataTransfer.types);
   for (const kind of kinds) {
     if (dataTransfer.types.indexOf(kind) > -1) {
       return true;

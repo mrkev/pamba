@@ -152,6 +152,7 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
   const onDrop = useCallback(
     async (ev: React.DragEvent<HTMLDivElement>) => {
       ev.preventDefault();
+      console.log(ev);
 
       const resources = await getTrackAcceptableDataTransferResources(
         ev.dataTransfer,

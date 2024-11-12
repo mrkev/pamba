@@ -1,6 +1,9 @@
 // Shared with audio worker
 
 export type Note = readonly [tick: number, number: number, duration: number, velocity: number];
+export function note(tick: number, number: number, duration: number, velocity: number): Note {
+  return [tick, number, duration, velocity];
+}
 
 export type SimpleMidiClip = {
   id: string;

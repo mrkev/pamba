@@ -8,23 +8,25 @@ x reorder effects
 x dirty state for project
 x right-click messes up dragging state
 
-
 top prio:
-- live note editing
+x live note editing
+- CMD+D for clips
+- midi drag drop broken
+- close plugin window if plugin is deleted/replaced(instrument)
+
+todo:
 - bypass for all audio effects
 - midi learn?
 - automation?
-- move clips using drag data, which will allow it to move to the library too, outside the browser
-- bounce to track
-- drag clip to outside browser?
-
-todo:
 - loop clips
 x peak meters
 - rename library items
 x files in project
 - automated effects
 - package for all projects, including new
+- move clips using drag data, which will allow it to move to the library too, outside the browser
+- drag clip to outside browser?
+
 
 substate
 x redo

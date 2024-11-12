@@ -25,12 +25,6 @@ export class MIDI {
   }
 }
 
-export type MIDIEvent = Uint8Array;
-export type ScheduledMIDIEvent = {
-  event: MIDIEvent;
-  time: number;
-};
-
 export function token() {
   return Math.random()
     .toString(36)
@@ -42,3 +36,6 @@ export function token() {
 export const PPQN = 24;
 // pulses per 16th note
 export const PP16 = PPQN / 4;
+
+// todo: technically calculated using time signature
+export const ONE_BAR_PULSES = PPQN * 4;
