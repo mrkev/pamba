@@ -4,9 +4,10 @@ import { createUseStyles } from "react-jss";
 import { useContainer, usePrimitive } from "structured-state";
 import { TRACK_SEPARATOR_HEIGHT } from "../constants";
 import { useTrackMouseEvents } from "../input/useTrackMouseEvents";
+import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioClip } from "../lib/AudioClip";
-import { AudioRenderer } from "../lib/io/AudioRenderer";
 import { AudioTrack } from "../lib/AudioTrack";
+import { AudioRenderer } from "../lib/io/AudioRenderer";
 import { AudioProject } from "../lib/project/AudioProject";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { MidiClip } from "../midi/MidiClip";
@@ -22,7 +23,6 @@ import { trackCanHandleTransfer } from "./dragdrop/canHandleTransfer";
 import { getTrackAcceptableDataTransferResources } from "./dragdrop/getTrackAcceptableDataTransferResources";
 import { handleDropOntoAudioTrack, handleDropOntoMidiTrack } from "./dragdrop/resourceDrop";
 import { useDropzoneBehaviour } from "./dragdrop/useDropzoneBehaviour";
-import { appEnvironment } from "../lib/AppEnvironment";
 
 function clientXToTrackX(trackElem: HTMLDivElement | null, clientX: number) {
   if (trackElem == null) {

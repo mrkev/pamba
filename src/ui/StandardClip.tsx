@@ -2,10 +2,23 @@ import React, { useCallback, useRef } from "react";
 import { createUseStyles } from "react-jss";
 import { useContainer, usePrimitive } from "structured-state";
 import { appEnvironment } from "../lib/AppEnvironment";
-import type { AudioClip } from "../lib/AudioClip";
+import { AudioClip } from "../lib/AudioClip";
 import { MidiClip } from "../midi/MidiClip";
+import { exhaustive } from "../utils/exhaustive";
 import { useEventListener } from "./useEventListener";
 
+function kindOfClip(clip: AudioClip | MidiClip) {
+  switch (true) {
+    case clip instanceof AudioClip:
+      return "audio";
+    case clip instanceof MidiClip:
+      return "midi";
+    default:
+      exhaustive(clip);
+  }
+}
+
+/** Standard component renderer for clips on the timeline */
 export function StandardClip({
   clip,
   isSelected,
@@ -14,8 +27,6 @@ export function StandardClip({
   onMouseDownToResize,
   onMouseDownToMove,
   onClipClick,
-  width,
-  left,
   children,
 }: {
   clip: AudioClip | MidiClip;
@@ -25,15 +36,18 @@ export function StandardClip({
   onMouseDownToResize: (e: React.MouseEvent<HTMLDivElement>, from: "start" | "end") => void;
   onMouseDownToMove: (e: MouseEvent) => void;
   onClipClick: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
-  width: number;
-  left: number;
   children?: React.ReactNode;
 }) {
+  const project = appEnvironment.ensureProject();
+
+  const timelienStart = useContainer(clip.timelineStart);
+  const timelineLength = useContainer(clip.timelineLength);
+  const width = project.viewport.pulsesToPx(timelineLength.pulses(project));
+  const left = Math.floor(project.viewport.pulsesToPx(timelienStart.pulses(project)));
+
   const styles = useStyles();
   const headerRef = useRef<HTMLDivElement>(null);
   const [name] = usePrimitive(clip.name);
-
-  useContainer(clip);
 
   useEventListener("mousedown", headerRef, onMouseDownToMove);
 

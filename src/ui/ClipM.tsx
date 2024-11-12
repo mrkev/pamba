@@ -1,5 +1,4 @@
 import React, { useCallback } from "react";
-import { useContainer } from "structured-state";
 import type { AudioProject } from "../lib/project/AudioProject";
 import { MidiClip } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
@@ -19,14 +18,10 @@ export function ClipM({
   track: MidiTrack | null; // null if clip is being rendered for move
   editable?: boolean;
 }) {
-  const notes = useContainer(clip.buffer.notes);
-  // const startTrimmedWidth = project.viewport.secsToPx(clip.trimStartSec);
-  const width = project.viewport.pulsesToPx(clip.timelineLength.ensurePulses());
-  const left = Math.floor(project.viewport.pulsesToPx(clip.timelineStart.pulses(project)));
-
-  // const canvasRef = useRef<HTMLCanvasElement | null>(null);
-
-  useContainer(clip);
+  // const timelienStart = useContainer(clip.timelineStart);
+  // const timelineLength = useContainer(clip.timelineLength);
+  // const width = project.viewport.pulsesToPx(timelineLength.pulses(project));
+  // const left = Math.floor(project.viewport.pulsesToPx(timelienStart.pulses(project)));
 
   const onMouseDownToResize = useCallback(
     (e: React.MouseEvent<HTMLDivElement>, from: "start" | "end") => {
@@ -88,8 +83,6 @@ export function ClipM({
       onMouseDownToResize={onMouseDownToResize}
       onMouseDownToMove={onMouseDownToMove}
       onClipClick={onClipClick}
-      width={width}
-      left={left}
       style={{
         backgroundSize: `${totalBufferWidth}px min(100%, ${imgHeight * 5}px)`,
         backgroundImage: "url('" + backgroundImageData + "')",
@@ -97,8 +90,6 @@ export function ClipM({
         backgroundRepeat: "no-repeat",
         imageRendering: "pixelated",
       }}
-    >
-      {notes.length}
-    </StandardClip>
+    ></StandardClip>
   );
 }

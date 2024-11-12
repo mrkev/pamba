@@ -3,6 +3,7 @@ next
 - add pro54 and TX81Z synths
 - can drop midi files onto midi tracks
 - can drop midi files onto timeline to create new tracks
+- fix midi clip moving
 
 v0.2.5
 - live midi node editing

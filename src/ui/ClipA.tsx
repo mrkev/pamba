@@ -30,11 +30,12 @@ export const ClipA = React.memo(function ClipAImpl({
   const totalBufferWidth = project.viewport.secsToPx(clip.bufferLength);
   const bufferOffsetPx = project.viewport.secsToPx(clip.bufferOffset.secs(project));
   const height = CLIP_HEIGHT - 3; // to clear the bottom track separator gridlines
-  const tStart = useContainer(clip.timelineStart);
-  const tLen = useContainer(clip.timelineLength);
   const bufferOffset = useContainer(clip.bufferOffset);
 
-  useContainer(clip);
+  const timelineStart = useContainer(clip.timelineStart);
+  const timelineLength = useContainer(clip.timelineLength);
+  const width = project.viewport.secsToPx(timelineLength.secs(project));
+  const left = project.viewport.secsToPx(timelineStart.secs(project));
 
   function onMouseDownToResize(e: React.MouseEvent<HTMLDivElement>, from: "start" | "end") {
     const tool = project.pointerTool.get();
@@ -73,14 +74,14 @@ export const ClipA = React.memo(function ClipAImpl({
         history.record("slice clip", () => {
           const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
           const secFromStartOfClip = project.viewport.pxToSecs(pxFromStartOfClip);
-          const secFromTimelineStart = tStart.secs(project) + secFromStartOfClip;
+          const secFromTimelineStart = timelineStart.secs(project) + secFromStartOfClip;
           ProjectTrack.splitClip(project, track, clip, secFromTimelineStart);
         });
         break;
       case "trimStart": {
         const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
         const asSec = project.viewport.pxToSecs(pxFromStartOfClip);
-        project.cursorPos.set(tStart.secs(project) + asSec);
+        project.cursorPos.set(timelineStart.secs(project) + asSec);
 
         history.record("trim start of clip", () => {
           const timelineStartSec = clip.timelineStart.ensureSecs();
@@ -115,14 +116,11 @@ export const ClipA = React.memo(function ClipAImpl({
     CLIP_HEIGHT,
   );
 
-  const width = project.viewport.secsToPx(tLen.secs(project));
-  const left = project.viewport.secsToPx(tStart.secs(project));
-
   const [projectDivWidth] = usePrimitive(project.viewport.projectDivWidth);
   const [viewportStartPx] = usePrimitive(project.viewport.viewportStartPx);
   const [scale] = usePrimitive(project.viewport.scaleFactor);
 
-  const canvasOffset = relu(viewportStartPx - project.viewport.pxOfTime(tStart));
+  const canvasOffset = relu(viewportStartPx - project.viewport.pxOfTime(timelineStart));
   const cWidth = width - relu(left + width - projectDivWidth) + viewportStartPx - canvasOffset;
   const canvasWidth = Math.ceil(Math.min(cWidth, width - canvasOffset));
   const offset =
@@ -136,8 +134,6 @@ export const ClipA = React.memo(function ClipAImpl({
       onMouseDownToResize={onMouseDownToResize}
       onMouseDownToMove={onMouseDownToMove}
       onClipClick={onClipClick}
-      width={width}
-      left={left}
       style={{
         backgroundSize: `${totalBufferWidth}px ${height - 10}px`,
         backgroundImage: "url('" + backgroundImageData + "')",
