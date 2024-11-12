@@ -5,7 +5,7 @@ import { EFFECT_HEIGHT } from "../constants";
 import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
 import FaustEffectModule from "../dsp/ui/FaustEffectModule";
 import { appEnvironment } from "../lib/AppEnvironment";
-import { AudioRenderer } from "../lib/AudioRenderer";
+import { AudioRenderer } from "../lib/io/AudioRenderer";
 import { AudioTrack } from "../lib/AudioTrack";
 import { AudioProject } from "../lib/project/AudioProject";
 import { ProjectSelection } from "../lib/project/ProjectSelection";

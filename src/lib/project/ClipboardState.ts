@@ -41,7 +41,7 @@ export function doPaste(project: AudioProject) {
             const clone = clip.clone();
             clone.timelineStart.set(project.viewport.secsToPulses(project.cursorPos.get()), "pulses");
             ProjectTrack.addClip(project, track, clone);
-            const endOffsetSec = pulsesToSec(clone._timelineEndU, project.tempo.get());
+            const endOffsetSec = pulsesToSec(clone.timelineEndPulses(), project.tempo.get());
             if (lastOffset < endOffsetSec) {
               lastOffset = endOffsetSec;
             }

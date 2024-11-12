@@ -5,7 +5,7 @@ import { useContainer, usePrimitive } from "structured-state";
 import useResizeObserver from "use-resize-observer";
 import { MAX_TIMELINE_SCALE, MIN_TIMELINE_SCALE } from "../constants";
 import { useTimelineMouseEvents } from "../input/useProjectMouseEvents";
-import { AudioRenderer } from "../lib/AudioRenderer";
+import { AudioRenderer } from "../lib/io/AudioRenderer";
 import { AudioProject } from "../lib/project/AudioProject";
 import { AudioStorage } from "../lib/project/AudioStorage";
 import { pressedState } from "../pressedState";

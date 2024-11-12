@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef } from "react";
 import { createUseStyles } from "react-jss";
 import { history, useContainer, usePrimitive } from "structured-state";
 import { TOTAL_VERTICAL_NOTES } from "../constants";
-import { AnalizedPlayer } from "../lib/AnalizedPlayer";
+import { AnalizedPlayer } from "../lib/io/AnalizedPlayer";
 import { AudioProject } from "../lib/project/AudioProject";
 import { secsToPulses } from "../lib/project/TimelineT";
 import { useLinkedState } from "../lib/state/LinkedState";

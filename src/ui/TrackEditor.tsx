@@ -1,4 +1,4 @@
-import { AudioRenderer } from "../lib/AudioRenderer";
+import { AudioRenderer } from "../lib/io/AudioRenderer";
 import { AudioTrack } from "../lib/AudioTrack";
 import { AudioProject } from "../lib/project/AudioProject";
 import { MidiTrack } from "../midi/MidiTrack";

@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
-import { AudioPackage } from "../data/AudioPackage";
-import { ProjectPackage } from "../data/ProjectPackage";
-import { nullthrows } from "../utils/nullthrows";
-import { appEnvironment } from "./AppEnvironment";
-import { AudioClip } from "./AudioClip";
+import { AudioPackage } from "../../data/AudioPackage";
+import { ProjectPackage } from "../../data/ProjectPackage";
+import { nullthrows } from "../../utils/nullthrows";
+import { appEnvironment } from "../AppEnvironment";
+import { AudioClip } from "../AudioClip";
 import { AudioRenderer } from "./AudioRenderer";
-import { AudioTrack } from "./AudioTrack";
-import { AudioProject } from "./project/AudioProject";
-import { ProjectTrack } from "./ProjectTrack";
-import { LinkedMap } from "./state/LinkedMap";
-import { LinkedState } from "./state/LinkedState";
+import { AudioTrack } from "../AudioTrack";
+import { AudioProject } from "../project/AudioProject";
+import { ProjectTrack } from "../ProjectTrack";
+import { LinkedMap } from "../state/LinkedMap";
+import { LinkedState } from "../state/LinkedState";
 
 function useMediaRecorder(loadClip: (url: string, name?: string) => void) {
   const [mediaRecorder, setMediaRecorder] = useState<null | MediaRecorder>(null);

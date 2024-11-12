@@ -164,7 +164,7 @@ export function useTimelineMouseEvents(
             }
 
             history.record("move clip", () => {
-              pressed.clip.timelineStart.replaceWith(clipPreview.timelineStart);
+              pressed.clip.timelineStart.set(clipPreview.timelineStart);
               if (
                 pressed.track instanceof AudioTrack &&
                 pressed.originalTrack instanceof AudioTrack &&

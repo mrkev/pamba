@@ -1,8 +1,8 @@
 import { useRef } from "react";
 import { usePrimitive } from "structured-state";
-import { AnalizedPlayer } from "../lib/AnalizedPlayer";
+import { AnalizedPlayer } from "../lib/io/AnalizedPlayer";
 import { AudioClip } from "../lib/AudioClip";
-import { AudioRenderer } from "../lib/AudioRenderer";
+import { AudioRenderer } from "../lib/io/AudioRenderer";
 import { AudioTrack } from "../lib/AudioTrack";
 import { AudioProject } from "../lib/project/AudioProject";
 import { PrimarySelectionState } from "../lib/project/SelectionState";

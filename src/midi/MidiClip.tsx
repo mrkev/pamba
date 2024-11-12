@@ -19,7 +19,7 @@ type AutoMidiClip = {
 };
 
 export class MidiClip extends Structured<AutoMidiClip, typeof MidiClip> implements AbstractClip<Pulses> {
-  readonly bufferOffset: TimelineT = time(0, "pulses"); // TODO: this is here just for types
+  readonly bufferOffset: TimelineT = time(0, "pulses"); // unused, rn here just for types
 
   constructor(
     readonly name: SString,
@@ -109,13 +109,12 @@ export class MidiClip extends Structured<AutoMidiClip, typeof MidiClip> implemen
     return this.timelineStart.ensurePulses() as Pulses;
   }
 
-  _setTimelineStartU(val: Pulses): void {
-    // this._startOffsetPulses = val;
-    this.timelineStart.set(val, "pulses");
-  }
-
   get _timelineEndU(): Pulses {
     return (this.timelineStart.ensurePulses() + this.timelineLength.ensurePulses()) as Pulses;
+  }
+
+  public timelineEndPulses() {
+    return this.timelineStart.ensurePulses() + this.timelineLength.ensurePulses();
   }
 
   _setTimelineEndU(newEnd: number): void {
@@ -158,7 +157,7 @@ export class MidiClip extends Structured<AutoMidiClip, typeof MidiClip> implemen
   }
 
   override toString() {
-    return `${this._timelineStartU} [ ${this.name.get()} ] ${this._timelineEndU}`;
+    return `${this.timelineStart.ensurePulses()} [ ${this.name.get()} ] ${this._timelineEndU}`;
   }
 }
 

@@ -1,12 +1,11 @@
 import { SPrimitive, SSchemaArray } from "structured-state";
+import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
 import { MidiTrack } from "../midi/MidiTrack";
 import { AbstractClip, addClip, deleteTime, pushClip, removeClip, splitClip } from "./AbstractClip";
 import { AudioTrack } from "./AudioTrack";
 import { ProjectTrackDSP } from "./ProjectTrackDSP";
 import { AudioContextInfo } from "./initAudioContext";
 import { AudioProject } from "./project/AudioProject";
-import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
-import { WebAudioPeakMeter } from "web-audio-peak-meter";
 
 // TODO: move these things out of the abstract class
 export interface StandardTrack<T extends AbstractClip<any>> {
@@ -45,7 +44,6 @@ export class ProjectTrack {
     pushClip(newClip, track.clips);
   }
 
-  // TODO: UNUSED
   static moveClip<T extends AbstractClip<any>>(
     project: AudioProject,
     clip: T,

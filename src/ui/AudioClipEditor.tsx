@@ -1,5 +1,5 @@
 import { useContainer, usePrimitive } from "structured-state";
-import { AnalizedPlayer } from "../lib/AnalizedPlayer";
+import { AnalizedPlayer } from "../lib/io/AnalizedPlayer";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioTrack } from "../lib/AudioTrack";
 import { AudioProject } from "../lib/project/AudioProject";

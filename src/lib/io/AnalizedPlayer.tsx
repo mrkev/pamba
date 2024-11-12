@@ -1,12 +1,12 @@
 import { SPrimitive } from "structured-state";
-import { liveAudioContext as liveAudioContextFn, sampleSize } from "../constants";
-import { MidiTrack } from "../midi/MidiTrack";
+import { liveAudioContext as liveAudioContextFn, sampleSize } from "../../constants";
+import { MidiTrack } from "../../midi/MidiTrack";
 // import SharedBufferWorkletNode from "./lib/shared-buffer-worklet-node";
-import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
-import { Seconds } from "./AbstractClip";
-import { AudioTrack } from "./AudioTrack";
-import { OscilloscopeNode } from "./OscilloscopeNode";
-import { AudioProject } from "./project/AudioProject";
+import { TrackedAudioNode } from "../../dsp/TrackedAudioNode";
+import { Seconds } from "../AbstractClip";
+import { AudioTrack } from "../AudioTrack";
+import { OscilloscopeNode } from "../OscilloscopeNode";
+import { AudioProject } from "../project/AudioProject";
 
 // sbwNode.onInitialized = () => {
 //   oscillator.connect(sbwNode).connect(context.destination);

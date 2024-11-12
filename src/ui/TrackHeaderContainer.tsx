@@ -4,7 +4,7 @@ import { useContainer } from "structured-state";
 import { MIN_TRACK_HEIGHT, TRACK_HEADER_WIDTH } from "../constants";
 import { documentCommands } from "../input/documentCommands";
 import { useAxisContainerMouseEvents } from "../input/useProjectMouseEvents";
-import { AnalizedPlayer } from "../lib/AnalizedPlayer";
+import { AnalizedPlayer } from "../lib/io/AnalizedPlayer";
 import { AudioProject } from "../lib/project/AudioProject";
 import { nullthrows } from "../utils/nullthrows";
 import { TrackHeader, TrackHeaderSeparator } from "./TrackHeader";

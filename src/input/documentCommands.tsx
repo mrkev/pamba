@@ -2,7 +2,7 @@ import { flushSync } from "react-dom";
 import { history } from "structured-state";
 import { LIBRARY_SEARCH_INPUT_ID } from "../constants";
 import { appEnvironment } from "../lib/AppEnvironment";
-import { AudioRenderer } from "../lib/AudioRenderer";
+import { AudioRenderer } from "../lib/io/AudioRenderer";
 import { ProjectPersistance } from "../lib/ProjectPersistance";
 import { ProjectSelection } from "../lib/project/ProjectSelection";
 import { clipsLimits } from "../lib/project/timeline";
@@ -148,8 +148,8 @@ export const documentCommands = CommandBlock.create(["Project", "Edit", "Tools",
             project.loopOnPlayback.set(false);
           } else {
             project.loopOnPlayback.set(true);
-            project.loopStart.replaceWith(clipsStart);
-            project.loopEnd.replaceWith(clipsEnd);
+            project.loopStart.set(clipsStart);
+            project.loopEnd.set(clipsEnd);
           }
           break;
         }

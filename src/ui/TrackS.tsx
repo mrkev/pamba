@@ -5,7 +5,7 @@ import { useContainer, usePrimitive } from "structured-state";
 import { TRACK_SEPARATOR_HEIGHT } from "../constants";
 import { useTrackMouseEvents } from "../input/useTrackMouseEvents";
 import { AudioClip } from "../lib/AudioClip";
-import { AudioRenderer } from "../lib/AudioRenderer";
+import { AudioRenderer } from "../lib/io/AudioRenderer";
 import { AudioTrack } from "../lib/AudioTrack";
 import { AudioProject } from "../lib/project/AudioProject";
 import { useLinkedState } from "../lib/state/LinkedState";

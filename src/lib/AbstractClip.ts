@@ -231,12 +231,12 @@ export function pushClip<Clip extends AbstractClip<U>, U extends Pulses | Second
   newClip: Clip,
   clips: SArray<Clip>,
 ): SArray<Clip> {
-  const lastClip = clips.length > 0 ? clips.at(-1) : null;
+  const lastClip = clips.at(-1);
 
-  if (!lastClip) {
-    newClip._setTimelineStartU(0 as U);
+  if (lastClip == null) {
+    newClip.timelineStart.set(0);
   } else {
-    newClip._setTimelineStartU(lastClip._timelineEndU);
+    newClip.timelineStart.set(lastClip.timelineStart);
   }
 
   clips.push(newClip);
@@ -309,20 +309,19 @@ export interface AbstractClip<U extends Seconds | Pulses> extends Structured<any
   readonly timelineLength: TimelineT;
 
   get _timelineStartU(): U;
-  _setTimelineStartU(num: U): void;
-
   get _timelineEndU(): U;
+
   _setTimelineEndU(num: U): void;
 
   trimStartToTimelineU(offset: U): void;
   clone(): AbstractClip<U>;
 }
 
-export class ClipPositioning {
+export class TimelineRegion {
   constructor(
     readonly timelineStart: TimelineT,
     readonly timelineLength: TimelineT,
-    readonly contentOffset: TimelineT,
-    readonly contentLength: TimelineT,
+    // readonly contentOffset: TimelineT,
+    // readonly contentLength: TimelineT,
   ) {}
 }

@@ -1,9 +1,9 @@
 import { liveAudioContext } from "../constants";
+import { MidiInstrument } from "../midi/MidiInstrument";
+import { MidiTrack } from "../midi/MidiTrack";
 import { nullthrows } from "../utils/nullthrows";
 import { PambaWamNode } from "../wam/PambaWamNode";
 import { WAMAvailablePlugin, appEnvironment } from "./AppEnvironment";
-import { MidiTrack } from "../midi/MidiTrack";
-import { MidiInstrument } from "../midi/MidiInstrument";
 import { AudioTrack } from "./AudioTrack";
 
 /**

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createUseStyles } from "react-jss";
-import { AnalizedPlayer } from "../lib/AnalizedPlayer";
+import { AnalizedPlayer } from "../lib/io/AnalizedPlayer";
 import { PPQN } from "../wam/pianorollme/MIDIConfiguration";
 import { PianoRollClip } from "../wam/pianorollme/PianoRollClip";
 import { useEventListener } from "./useEventListener";

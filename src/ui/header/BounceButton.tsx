@@ -1,5 +1,5 @@
 import { usePrimitive } from "structured-state";
-import { AudioRenderer } from "../../lib/AudioRenderer";
+import { AudioRenderer } from "../../lib/io/AudioRenderer";
 import { AudioProject } from "../../lib/project/AudioProject";
 import { utility } from "../utility";
 

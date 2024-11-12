@@ -299,10 +299,6 @@ export class AudioClip extends Structured<AutoAudioClip, typeof AudioClip> imple
     return timelineStartSec as Seconds;
   }
 
-  _setTimelineStartU(num: Seconds): void {
-    this.timelineStart.set(num, "seconds");
-  }
-
   get _timelineEndU(): Seconds {
     return this.getTimelineEndSec() as Seconds;
   }

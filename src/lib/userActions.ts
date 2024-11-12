@@ -2,7 +2,7 @@ import { history } from "structured-state";
 import { MidiClip } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
 import { doConfirm } from "../ui/ConfirmDialog";
-import { AnalizedPlayer } from "./AnalizedPlayer";
+import { AnalizedPlayer } from "./io/AnalizedPlayer";
 import { appEnvironment } from "./AppEnvironment";
 import { AudioClip } from "./AudioClip";
 import { AudioTrack } from "./AudioTrack";

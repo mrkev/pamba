@@ -2,7 +2,7 @@ import { useCallback, useRef } from "react";
 import { useContainer, usePrimitive } from "structured-state";
 import useResizeObserver from "use-resize-observer";
 import { GPUWaveform } from "webgpu-waveform-react";
-import { AnalizedPlayer } from "../lib/AnalizedPlayer";
+import { AnalizedPlayer } from "../lib/io/AnalizedPlayer";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioProject } from "../lib/project/AudioProject";
 import { pressedState } from "../pressedState";

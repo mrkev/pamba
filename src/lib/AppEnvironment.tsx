@@ -4,25 +4,24 @@ import { Auth, User, getAuth } from "firebase/auth";
 import { DirtyObserver, SPrimitive, array } from "structured-state";
 import { FIREBASE_ENABLED } from "../constants";
 import { ProjectPackage } from "../data/ProjectPackage";
+import { WAMKind } from "../data/WAMPackage";
 import { LocalFilesystem } from "../data/localFilesystem";
-import type { DSPStep } from "../dsp/DSPNode";
 import { FAUST_EFFECTS } from "../dsp/FAUST_EFFECTS";
 import { ensureError } from "../ensureError";
 import { initFirebaseApp } from "../firebase/firebaseConfig";
 import type { MidiInstrument } from "../midi/MidiInstrument";
 import { LocalSPrimitive } from "../ui/useLocalStorage";
+import { PambaWamNode } from "../wam/PambaWamNode";
 import { KINDS_SORT, PambaWAMPluginDescriptor, WAMPLUGINS } from "../wam/plugins";
 import { WAMImport, fetchWam } from "../wam/wam";
-import { AnalizedPlayer } from "./AnalizedPlayer";
-import { AudioRenderer } from "./AudioRenderer";
+import { AnalizedPlayer } from "./io/AnalizedPlayer";
+import { AudioRenderer } from "./io/AudioRenderer";
 import { orderedMap } from "./data/SOrderedMap";
 import { initAudioContext } from "./initAudioContext";
 import { AudioProject } from "./project/AudioProject";
 import { AudioStorage } from "./project/AudioStorage";
 import { LinkedSet } from "./state/LinkedSet";
 import { LinkedState } from "./state/LinkedState";
-import { WAMKind } from "../data/WAMPackage";
-import { PambaWamNode } from "../wam/PambaWamNode";
 
 const dummyObj = array();
 
@@ -167,6 +166,17 @@ export class AppEnvironment {
       return projectStatus.project;
     } else {
       return null;
+    }
+  }
+
+  public ensureProject(): AudioProject {
+    const projectStatus = this.projectStatus.get();
+    switch (projectStatus.status) {
+      case "idle":
+      case "loading":
+        throw new Error("project not available");
+      case "loaded":
+        return projectStatus.project;
     }
   }
 }

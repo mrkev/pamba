@@ -47,7 +47,6 @@ export class TimelineT extends Structured<AutoTimelineT, typeof TimelineT> {
   override replace(auto: JSONOfAuto<AutoTimelineT>): void {
     this.t = auto.t;
     this.u = auto.u;
-    // console.log("t is now", this.t, this._id, this._id);
   }
 
   static construct(auto: AutoTimelineT): TimelineT {
@@ -56,8 +55,15 @@ export class TimelineT extends Structured<AutoTimelineT, typeof TimelineT> {
 
   /////////////////
 
-  public set(t: number, u?: TimeUnit) {
+  public set(t: TimelineT): void;
+  public set(t: number, u?: TimeUnit): void;
+  public set(t: number | TimelineT, u?: TimeUnit): void {
     this.featuredMutation(() => {
+      if (t instanceof TimelineT) {
+        this.set(t.t, t.u);
+        return;
+      }
+
       this.t = t;
       if (u != null) {
         this.u = u;
@@ -65,16 +71,10 @@ export class TimelineT extends Structured<AutoTimelineT, typeof TimelineT> {
     });
   }
 
-  public replaceWith(b: TimelineT) {
-    this.set(b.t, b.u);
-  }
-
   public normalize(u: TimeUnit, project: AudioProject): this {
     if (this.u !== u) {
-      this.featuredMutation(() => {
-        this.t = this.asUnit(u, project);
-        this.u = u;
-      });
+      this.t = this.asUnit(u, project);
+      this.u = u;
     }
     return this;
   }

@@ -13,13 +13,11 @@ import {
   string,
 } from "structured-state";
 import { ulid } from "ulid";
-import { DEFAULT_TEMPO, SOUND_FONT_URL, liveAudioContext } from "../../constants";
+import { DEFAULT_TEMPO } from "../../constants";
 import { MidiClip } from "../../midi/MidiClip";
-import { MidiInstrument } from "../../midi/MidiInstrument";
 import { MidiTrack } from "../../midi/MidiTrack";
-import { nullthrows } from "../../utils/nullthrows";
 import { PPQN } from "../../wam/pianorollme/MIDIConfiguration";
-import { AnalizedPlayer } from "../AnalizedPlayer";
+import { AnalizedPlayer } from "../io/AnalizedPlayer";
 import { appEnvironment } from "../AppEnvironment";
 import { AudioClip } from "../AudioClip";
 import { AudioTrack } from "../AudioTrack";

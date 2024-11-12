@@ -1,16 +1,16 @@
 import bufferToWav from "audiobuffer-to-wav";
 import { SPrimitive } from "structured-state";
-import { liveAudioContext } from "../constants";
-import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
-import { MidiClip } from "../midi/MidiClip";
-import { MidiTrack } from "../midi/MidiTrack";
-import { downloadURL } from "../utils/downloadURL";
+import { liveAudioContext } from "../../constants";
+import { TrackedAudioNode } from "../../dsp/TrackedAudioNode";
+import { MidiClip } from "../../midi/MidiClip";
+import { MidiTrack } from "../../midi/MidiTrack";
+import { downloadURL } from "../../utils/downloadURL";
+import { AudioClip } from "../AudioClip";
+import { AudioTrack } from "../AudioTrack";
+import { initAudioContext } from "../initAudioContext";
+import { AudioProject } from "../project/AudioProject";
+import { pulsesToSec } from "../project/TimelineT";
 import { AnalizedPlayer } from "./AnalizedPlayer";
-import { AudioClip } from "./AudioClip";
-import { AudioTrack } from "./AudioTrack";
-import { initAudioContext } from "./initAudioContext";
-import { AudioProject } from "./project/AudioProject";
-import { pulsesToSec } from "./project/TimelineT";
 
 function getOfflineAudioContext(lenSec: number) {
   return new OfflineAudioContext({
