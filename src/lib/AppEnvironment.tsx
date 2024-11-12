@@ -22,6 +22,7 @@ import { AudioStorage } from "./project/AudioStorage";
 import { LinkedSet } from "./state/LinkedSet";
 import { LinkedState } from "./state/LinkedState";
 import { WAMKind } from "../data/WAMPackage";
+import { PambaWamNode } from "../wam/PambaWamNode";
 
 const dummyObj = array();
 
@@ -58,7 +59,7 @@ export class AppEnvironment {
   public projectDirtyObserver: DirtyObserver;
   readonly projectPacakge: LinkedState<ProjectPackage | null>; // null if never saved
   // UI
-  readonly openEffects: LinkedSet<DSPStep | MidiInstrument>;
+  readonly openEffects: LinkedSet<PambaWamNode | MidiInstrument>;
   readonly activeSidePanel = LocalSPrimitive.create<"library" | "project" | "history" | "settings" | "help" | null>(
     "side-panel-active",
     "library",

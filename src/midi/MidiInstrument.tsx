@@ -9,6 +9,7 @@ import { LinkedState } from "../lib/state/LinkedState";
 import { assert, nullthrows } from "../utils/nullthrows";
 import { Position } from "../wam/WindowPanel";
 
+// TODO: merge with PambaWamNode??
 export class MidiInstrument extends DSPStep<null> {
   override effectId: string;
   override name: SString;
@@ -29,10 +30,16 @@ export class MidiInstrument extends DSPStep<null> {
     return this.node;
   }
 
-  serialize(): SMidiInstrument {
+  async serialize(): Promise<SMidiInstrument> {
+    console.log({
+      kind: "MidiInstrument",
+      url: this.url,
+      state: await this.getState(),
+    });
     return {
       kind: "MidiInstrument",
       url: this.url,
+      state: await this.getState(),
     };
   }
 
@@ -52,6 +59,7 @@ export class MidiInstrument extends DSPStep<null> {
   public destroy() {
     if (this.dom) {
       this.module.destroyGui(this.dom);
+      appEnvironment.openEffects.delete(this);
     }
   }
 
@@ -84,12 +92,16 @@ export class MidiInstrument extends DSPStep<null> {
   async getState(): Promise<WamParameterDataMap> {
     // for some reason this.module.audioNode.getState() returns undefined, so
     // using .getParameterValues() instead
-    const state = await this.module.audioNode.getParameterValues();
+    // const state = await this.module.audioNode.getParameterValues();
+    // return state;
+
+    const state = await this.module.audioNode.getState();
     return state;
   }
 
   async setState(state: WamParameterDataMap) {
     console.log(state);
+    await this.module.audioNode.setState(state);
     // TODO: not working with OBXD because getParameterValues returns nothing
     // await this.module.audioNode.setParameterValues(state);
   }

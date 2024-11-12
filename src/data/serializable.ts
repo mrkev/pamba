@@ -16,6 +16,7 @@ import { exhaustive } from "../utils/exhaustive";
 import { nullthrows } from "../utils/nullthrows";
 import { mutable } from "../utils/types";
 import { PambaWamNode } from "../wam/PambaWamNode";
+import { WamParameterDataMap } from "@webaudiomodules/api";
 
 export type SAudioClip = {
   kind: "AudioClip";
@@ -54,6 +55,7 @@ export type SMidiTrack = {
 export type SMidiInstrument = {
   kind: "MidiInstrument";
   url: string;
+  state: WamParameterDataMap;
 };
 
 export type SAudioProject = {
@@ -141,7 +143,7 @@ export async function serializable(
       kind: "MidiTrack",
       name: obj.name.get(),
       clips: await Promise.all(obj.clips.map((clip) => serializable(clip) as any)), // TODO: as any?
-      instrument: obj.instrument.get().serialize(),
+      instrument: await obj.instrument.get().serialize(),
     };
   }
 
@@ -173,6 +175,7 @@ export async function serializable(
   }
 
   if (obj instanceof PambaWamNode) {
+    console.log("Sfoo", obj);
     return {
       kind: "PambaWamNode",
       pluginURL: obj.url,
@@ -229,7 +232,9 @@ export async function construct(
 
     case "MidiInstrument": {
       const [wamHostGroupId] = nullthrows(appEnvironment.wamHostGroup.get(), "wam host not initialized yet!");
-      return await MidiInstrument.createFromUrl(rep.url, wamHostGroupId, liveAudioContext());
+      const instrument = await MidiInstrument.createFromUrl(rep.url, wamHostGroupId, liveAudioContext());
+      await instrument.setState(rep.state);
+      return instrument;
     }
 
     case "AudioProject": {

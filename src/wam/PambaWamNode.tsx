@@ -3,6 +3,7 @@ import { boolean, SString, string } from "structured-state";
 import type { WebAudioModule } from "../../packages/sdk/dist";
 import { DSPStep } from "../dsp/DSPNode";
 import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
+import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioContextInfo } from "../lib/initAudioContext";
 import { LinkedState } from "../lib/state/LinkedState";
 import { Position } from "./WindowPanel";
@@ -32,6 +33,7 @@ export class PambaWamNode extends DSPStep {
 
   public destroy() {
     this.module.destroyGui(this.dom);
+    appEnvironment.openEffects.delete(this);
   }
 
   async getState(): Promise<unknown> {
