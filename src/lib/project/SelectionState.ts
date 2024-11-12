@@ -1,10 +1,11 @@
-import { AudioTrack } from "../AudioTrack";
-import { AudioClip } from "../AudioClip";
 import { FaustAudioEffect } from "../../dsp/FaustAudioEffect";
-import { PambaWamNode } from "../../wam/PambaWamNode";
-import { MidiTrack } from "../../midi/MidiTrack";
 import { MidiClip } from "../../midi/MidiClip";
+import { MidiTrack } from "../../midi/MidiTrack";
 import { Note } from "../../midi/SharedMidiTypes";
+import { PambaWamNode } from "../../wam/PambaWamNode";
+import { AudioClip } from "../AudioClip";
+import { AudioTrack } from "../AudioTrack";
+import { ClipTrack } from "./ClipTrack";
 
 // todo, 3 Selection states:
 // main selection state clip/track/time
@@ -20,9 +21,7 @@ import { Note } from "../../midi/SharedMidiTypes";
 export type PrimarySelectionState =
   | {
       status: "clips";
-      clips: Array<
-        { kind: "audio"; clip: AudioClip; track: AudioTrack } | { kind: "midi"; clip: MidiClip; track: MidiTrack }
-      >;
+      clips: Array<ClipTrack>;
       test: Set<AudioClip | AudioTrack | MidiClip | MidiTrack>;
     }
   | {

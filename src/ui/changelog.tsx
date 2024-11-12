@@ -4,6 +4,7 @@ next
 - can drop midi files onto midi tracks
 - can drop midi files onto timeline to create new tracks
 - fix midi clip moving
+- CMD+D duplicates selected clip
 
 v0.2.5
 - live midi node editing

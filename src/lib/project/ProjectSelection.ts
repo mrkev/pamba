@@ -1,17 +1,12 @@
-import { history } from "structured-state";
 import { modifierState } from "../../ModifierState";
 import { FaustAudioEffect } from "../../dsp/FaustAudioEffect";
-import { MidiClip } from "../../midi/MidiClip";
 import { MidiTrack } from "../../midi/MidiTrack";
 import { exhaustive } from "../../utils/exhaustive";
 import { PambaWamNode } from "../../wam/PambaWamNode";
-import { appEnvironment } from "../AppEnvironment";
-import { AudioClip } from "../AudioClip";
 import { AudioTrack } from "../AudioTrack";
-import { ProjectTrack } from "../ProjectTrack";
+import { AudioProject } from "./AudioProject";
 import { clipboard } from "./ClipboardState";
-import { AudioProject, deleteTime } from "./AudioProject";
-import { PrimarySelectionState } from "./SelectionState";
+import type { ClipTrack } from "./ClipTrack";
 
 export class ProjectSelection {
   /**
@@ -35,6 +30,14 @@ export class ProjectSelection {
     }
   }
 
+  static selectClip(project: AudioProject, cliptrack: ClipTrack, add: false = false) {
+    project.selected.set({
+      status: "clips",
+      clips: [cliptrack],
+      test: new Set([cliptrack.clip, cliptrack.track]),
+    });
+  }
+
   static selectEffect(project: AudioProject, effect: FaustAudioEffect | PambaWamNode, track: AudioTrack | MidiTrack) {
     project.selected.set({
       status: "effects",
@@ -44,28 +47,6 @@ export class ProjectSelection {
   }
 
   /// DELETION
-
-  static duplicateSelection(project: AudioProject) {
-    const selected = project.selected.get();
-
-    if (!selected) {
-      return;
-    }
-
-    switch (selected.status) {
-      case "loop_marker":
-        // Can't duplicate loop markers
-        break;
-      case "clips":
-      case "tracks":
-      case "effects":
-      case "time":
-      case "track_time":
-        break;
-      default:
-        exhaustive(selected);
-    }
-  }
 
   static copySelection(project: AudioProject) {
     const selected = project.selected.get();

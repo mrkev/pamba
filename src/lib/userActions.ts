@@ -12,6 +12,9 @@ import { ProjectSelection } from "./project/ProjectSelection";
 import { PrimarySelectionState } from "./project/SelectionState";
 import { ProjectTrack } from "./ProjectTrack";
 import { exhaustive } from "./state/Subbable";
+import { nullthrows } from "../utils/nullthrows";
+import { timeop } from "./project/TimelineT";
+import { cliptrack } from "./project/ClipTrack";
 
 /** User actions record hisotry */
 export const userActions = {
@@ -52,8 +55,40 @@ export const userActions = {
 
   // selection
   duplicateSelection(project: AudioProject) {
-    // TODO: history, does nothing
-    ProjectSelection.duplicateSelection(project);
+    const selected = project.selected.get();
+    if (!selected) {
+      return;
+    }
+
+    history.record("duplicate selection", () => {
+      switch (selected.status) {
+        case "loop_marker":
+          // Can't duplicate loop markers
+          break;
+        case "clips": {
+          if (selected.clips.length !== 1) {
+            // can only duplicate one clip atm
+            return;
+          }
+
+          const ctsel = nullthrows(selected.clips.at(0));
+          const clone = ctsel.clip.clone();
+          clone.timelineStart.setTo(timeop(ctsel.clip.timelineStart, "+", ctsel.clip.timelineLength), project);
+          ProjectTrack.addClip(project, ctsel.track, clone);
+          ProjectSelection.selectClip(project, cliptrack(clone, ctsel.track));
+
+          break;
+        }
+
+        case "tracks":
+        case "effects":
+        case "time":
+        case "track_time":
+          break;
+        default:
+          exhaustive(selected);
+      }
+    });
   },
 
   // todo: generalize beyond selection

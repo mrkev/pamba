@@ -71,6 +71,10 @@ export class TimelineT extends Structured<AutoTimelineT, typeof TimelineT> {
     });
   }
 
+  public setTo(op: TimelineOperation, project: AudioProject) {
+    this.set(op.solve(this.u, project));
+  }
+
   public normalize(u: TimeUnit, project: AudioProject): this {
     if (this.u !== u) {
       this.t = this.asUnit(u, project);
@@ -247,4 +251,23 @@ export class TimelineT extends Structured<AutoTimelineT, typeof TimelineT> {
 
 export function time(t: number, u: TimeUnit): TimelineT {
   return Structured.create(TimelineT, t, u);
+}
+
+class TimelineOperation {
+  constructor(
+    readonly op: "+",
+    readonly a: TimelineT,
+    readonly b: TimelineT,
+  ) {}
+
+  solve(u: TimeUnit, project: AudioProject): number {
+    switch (this.op) {
+      case "+":
+        return this.a.asUnit(u, project) + this.b.asUnit(u, project);
+    }
+  }
+}
+
+export function timeop(a: TimelineT, op: "+", b: TimelineT) {
+  return new TimelineOperation(op, a, b);
 }
