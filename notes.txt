@@ -12,8 +12,9 @@ top prio:
 x live note editing
 x CMD+D for clips
 x midi drag clips
-- close plugin window if plugin is deleted/replaced(instrument)
+x close plugin window if plugin is deleted/replaced(instrument)
 - persist wam params
+- duplicate doesn't correctly delete destination
 
 todo:
 - bypass for all audio effects

@@ -57,9 +57,9 @@ export class MidiInstrument extends DSPStep<null> {
   }
 
   public destroy() {
+    appEnvironment.openEffects.delete(this);
     if (this.dom) {
       this.module.destroyGui(this.dom);
-      appEnvironment.openEffects.delete(this);
     }
   }
 

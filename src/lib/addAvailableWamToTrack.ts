@@ -33,7 +33,12 @@ export async function addAvailableWamToTrack(
       }
       const instance = await wam.import.createInstance(hostGroupId, liveAudioContext());
       const instrument = new MidiInstrument(instance, wam.url);
+
+      const open = appEnvironment.openEffects.has(track.instrument.get());
       await track.changeInstrument(instrument);
+      if (open) {
+        appEnvironment.openEffects.add(instrument);
+      }
     }
   }
 }

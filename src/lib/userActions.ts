@@ -2,19 +2,19 @@ import { history } from "structured-state";
 import { MidiClip } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
 import { doConfirm } from "../ui/ConfirmDialog";
-import { AnalizedPlayer } from "./io/AnalizedPlayer";
+import { nullthrows } from "../utils/nullthrows";
 import { appEnvironment } from "./AppEnvironment";
 import { AudioClip } from "./AudioClip";
 import { AudioTrack } from "./AudioTrack";
+import { AnalizedPlayer } from "./io/AnalizedPlayer";
 import { AudioProject, deleteTime } from "./project/AudioProject";
 import { doPaste } from "./project/ClipboardState";
+import { cliptrack } from "./project/ClipTrack";
 import { ProjectSelection } from "./project/ProjectSelection";
 import { PrimarySelectionState } from "./project/SelectionState";
+import { timeop } from "./project/TimelineT";
 import { ProjectTrack } from "./ProjectTrack";
 import { exhaustive } from "./state/Subbable";
-import { nullthrows } from "../utils/nullthrows";
-import { timeop } from "./project/TimelineT";
-import { cliptrack } from "./project/ClipTrack";
 
 /** User actions record hisotry */
 export const userActions = {
