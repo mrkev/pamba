@@ -35,6 +35,7 @@ export const TIME_SIGNATURE = [4, 4] as const;
 export const SECS_IN_MINUTE = 60;
 export const DEFAULT_TEMPO = 75;
 
+// note range: 0 - 127
 export const TOTAL_VERTICAL_NOTES = 128; // number of midi notes in piano roll
 
 export const LIBRARY_SEARCH_INPUT_ID = "library-search";

@@ -37,11 +37,11 @@ export function useDocumentEventListener<K extends keyof DocumentEventMap>(
 }
 
 export type MousePressMoveMeta<T extends Record<string, unknown> | void> = {
-  event: "mousemove" | "mouseup";
+  event: "mousemove" | "mouseup" | "mouseleave" | "mouseenter";
   mousedown: T;
 };
 
-export function useMousePressMove<T extends Record<string, unknown>>(
+export function useMousePressMove<T extends Record<string, unknown> | void>(
   elemRef: React.RefObject<HTMLElement> | React.MutableRefObject<HTMLElement>,
   mousedown: (ev: MouseEvent) => T | "done",
   listener: (metadata: MousePressMoveMeta<T>, ev: MouseEvent) => void,
@@ -52,6 +52,7 @@ export function useMousePressMove<T extends Record<string, unknown>>(
     useCallback(
       function onMouseDown(e) {
         const result = mousedown(e);
+
         if (result === "done") {
           return;
         }
@@ -61,15 +62,28 @@ export function useMousePressMove<T extends Record<string, unknown>>(
           listener(mouseMoveMeta, e);
         }
 
-        document.addEventListener("mousemove", onMouseMove);
+        const mouseLeaveMeta = { event: "mouseleave", mousedown: result } as const;
+        function onMouseLeave(e: MouseEvent) {
+          listener(mouseLeaveMeta, e);
+        }
 
+        const mouseEnterMeta = { event: "mouseenter", mousedown: result } as const;
+        function onMouseEnter(e: MouseEvent) {
+          listener(mouseEnterMeta, e);
+        }
+
+        elemRef.current?.addEventListener("mouseenter", onMouseEnter);
+        elemRef.current?.addEventListener("mouseleave", onMouseLeave);
+        document.addEventListener("mousemove", onMouseMove);
         document.addEventListener("mouseup", function onMouseUp(e) {
           listener({ event: "mouseup", mousedown: result }, e);
           document.removeEventListener("mouseup", onMouseUp);
           document.removeEventListener("mousemove", onMouseMove);
+          elemRef.current?.removeEventListener("mouseleave", onMouseLeave);
+          elemRef.current?.removeEventListener("mouseenter", onMouseEnter);
         });
       },
-      [listener, mousedown],
+      [elemRef, listener, mousedown],
     ),
   );
 }

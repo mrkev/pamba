@@ -16,7 +16,7 @@ import { ClipPropsEditor } from "./ClipPropsEditor";
 import { NoteR } from "./NoteR";
 import { UtilityToggle } from "./UtilityToggle";
 import { useDrawOnCanvas } from "./useDrawOnCanvas";
-import { useEventListener } from "./useEventListener";
+import { useEventListener, useMousePressMove } from "./useEventListener";
 
 const DEFAULT_NOTE_DURATION = 6;
 const CLIP_TOTAL_BARS = 4;
@@ -24,10 +24,17 @@ const CANVAS_SCALE = Math.floor(window.devicePixelRatio);
 const PIANO_ROLL_WIDTH = 24;
 const MAX_H_SCALE = 20;
 
+function foo(x: any) {
+  console.log(x);
+}
+
 type NoteStr = "C" | "C#" | "D" | "D#" | "E" | "F" | "F#" | "G" | "G#" | "A" | "A#" | "B";
 const NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"] as const;
 
-function keyboardColorOfNote(noteStr: NoteStr): "black" | "white" {
+function keyboardColorOfNote(noteStr: NoteStr, playing: boolean): "black" | "white" | "orange" {
+  if (playing) {
+    return "orange";
+  }
   return noteStr.length === 2 ? "black" : "white";
 }
 
@@ -62,6 +69,15 @@ export function MidiClipEditor({
   const [panelTool] = usePrimitive(project.panelTool);
   const [bpm] = usePrimitive(project.tempo);
   const timelineLen = useContainer(clip.timelineLength);
+  const playingNotes = useContainer(track.pianoRoll.playingNotes);
+
+  const noteAtY = useCallback(
+    (y: number): number => {
+      const note = TOTAL_VERTICAL_NOTES - Math.floor(y / noteHeight + 1);
+      return note;
+    },
+    [noteHeight],
+  );
 
   const secsToPixels = useCallback(
     (secs: number, tempo: number) => {
@@ -72,6 +88,58 @@ export function MidiClipEditor({
     [clip.detailedViewport],
   );
 
+  useMousePressMove(
+    pianoRollCanvasRef,
+    useCallback(
+      function mousedown(e) {
+        const note = noteAtY(e.offsetY);
+        track.noteOn(note);
+        playingNotes.add(note);
+        return { note };
+      },
+      [noteAtY, playingNotes, track],
+    ),
+    useCallback(
+      function mouse(meta, e) {
+        switch (meta.event) {
+          case "mousemove": {
+            {
+              if (e.target !== pianoRollCanvasRef.current) {
+                return;
+              }
+
+              const newNote = noteAtY(e.offsetY);
+              if (newNote != meta.mousedown.note) {
+                track.noteOff(meta.mousedown.note);
+                playingNotes.delete(meta.mousedown.note);
+                meta.mousedown.note = newNote;
+                track.noteOn(meta.mousedown.note);
+                playingNotes.add(meta.mousedown.note);
+              }
+              break;
+            }
+          }
+          case "mouseenter": {
+            const note = noteAtY(e.offsetY);
+            meta.mousedown.note = note;
+            track.noteOn(meta.mousedown.note);
+            playingNotes.add(meta.mousedown.note);
+            break;
+          }
+
+          case "mouseup":
+          case "mouseleave": {
+            console.log("leave");
+            playingNotes.clear();
+            track.allNotesOff();
+          }
+        }
+      },
+      [noteAtY, playingNotes, track],
+    ),
+  );
+
+  const playingNotesHash = playingNotes._hash;
   useDrawOnCanvas(
     pianoRollCanvasRef,
     useCallback(
@@ -82,8 +150,8 @@ export function MidiClipEditor({
 
         for (let n = 0; n < TOTAL_VERTICAL_NOTES; n++) {
           const noteStr = NOTES[n % NOTES.length];
-          ctx.fillStyle = keyboardColorOfNote(noteStr);
-
+          ctx.fillStyle = keyboardColorOfNote(noteStr, playingNotes.has(TOTAL_VERTICAL_NOTES - n - 1));
+          void playingNotesHash;
           ctx.fillRect(0, n * noteHeight, PIANO_ROLL_WIDTH, noteHeight);
 
           // https://stackoverflow.com/questions/13879322/drawing-a-1px-thick-line-in-canvas-creates-a-2px-thick-line
@@ -95,8 +163,8 @@ export function MidiClipEditor({
 
         ctx.scale(1, 1);
       },
-      // TODO: rn need pxPerPulse for updating
-      [noteHeight],
+      // we need the hash to update when playing notes updates
+      [noteHeight, playingNotes, playingNotesHash],
     ),
   );
 
@@ -238,7 +306,6 @@ export function MidiClipEditor({
         const tick = noteX * DEFAULT_NOTE_DURATION;
 
         const prevNote = clip.findNote(tick, noteNum);
-        console.log("prev", prevNote, tick, noteNum);
         const panelTool = project.panelTool.get();
 
         switch (panelTool) {
@@ -273,9 +340,7 @@ export function MidiClipEditor({
   return (
     <>
       <ClipPropsEditor clip={clip} project={project} track={track} />
-      {/* <button onMouseDown={() => track.noteOn(60)} onMouseUp={() => track.noteOff(60)}>
-        flobasf
-      </button> */}
+
       <div
         style={{ display: "grid", gridTemplateRows: "1fr auto", gridTemplateColumns: "auto 1fr", flexGrow: 1, gap: 4 }}
       >
@@ -341,7 +406,7 @@ export function MidiClipEditor({
             height={CANVAS_SCALE * noteHeight * TOTAL_VERTICAL_NOTES}
             width={CANVAS_SCALE * PIANO_ROLL_WIDTH}
             style={{
-              pointerEvents: "none",
+              // pointerEvents: "none",
               position: "sticky",
               left: 0,
               height: noteHeight * TOTAL_VERTICAL_NOTES,

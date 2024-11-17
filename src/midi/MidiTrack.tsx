@@ -77,8 +77,8 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
 
   // todo: instrument can be empty?
   // TODO: SPrimitive holds Structs.
-  instrument: SPrimitive<MidiInstrument>;
-  pianoRoll: PianoRollModule;
+  private instrument: SPrimitive<MidiInstrument>;
+  readonly pianoRoll: PianoRollModule;
 
   // the pianoRoll to play. same as .pianoRoll when playing live,
   // a clone in an offline context when bouncing
@@ -100,7 +100,7 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
     //            when action is first taken, when action is undone, when action is redone.
     //            with argument to wether we're currently in an "act", "undo" or "redo"
     //            wont work, cause what if track gets deleted in history. we don't have a reference to the regenerated track.
-    // todo: replace instrument
+    // todo: replace instrument, with correct DSP connections
   }
 
   static construct(auto: JSONOfAuto<AutoMidiTrack>): MidiTrack {
@@ -117,9 +117,13 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
     this.name = SPrimitive.of(name);
     this.height = SPrimitive.of<number>(CLIP_HEIGHT);
 
+    // connect sequencer and instrument
     // gain.connect(liveAudioContext.destination);
     instrument.module.audioNode.connect(pianoRoll.audioNode);
     pianoRoll.audioNode.connectEvents(instrument.module.instanceId);
+
+    // connect instrument to rest of track dsp
+    this.dsp.connectToDSPForPlayback(this.instrument.get().node);
 
     if (clips.length === 0) this.createSampleMidiClip();
   }
@@ -152,8 +156,12 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
 
     // Setup the new instrument
     this.instrument.set(instrument);
+    // connect to piano roll
     instrument.module.audioNode.connect(this.pianoRoll.audioNode);
     this.pianoRoll.audioNode.connectEvents(instrument.module.instanceId);
+    // connect to rest of track dsp
+    this.dsp.connectToDSPForPlayback(this.instrument.get().node);
+
     console.log("chagned instrument to", instrument.url);
     await liveAudioContext().resume();
   }
@@ -176,17 +184,12 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
       ? ([project.loopStart.pulses(project), project.loopEnd.pulses(project)] as const)
       : null;
 
-    console.log(`midi looping`, loop);
-
     // lines from: called: this.pianoRoll.sendClipsForPlayback(simpleClips);
     this.messageSequencer({
       action: "prepare_playback",
       seqClips: this.clipsForProcessor(),
       loop,
     });
-
-    // connect effect chain
-    this.dsp.connectToDSPForPlayback(this.instrument.get().node);
   }
 
   clipsForProcessor(): SimpleMidiClip[] {
@@ -210,18 +213,26 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
   }
 
   noteOn(note: number) {
-    console.log("PLAY NOTE NOW");
+    this.pianoRoll.playingNotes.add(note);
     this.messageSequencer({
       action: "immEvent",
-      event: "on",
+      event: ["on", note, 100],
     });
   }
 
   noteOff(note: number) {
-    console.log("PLAY NOTE NOW");
+    this.pianoRoll.playingNotes.delete(note);
     this.messageSequencer({
       action: "immEvent",
-      event: "off",
+      event: ["off", note, 100],
+    });
+  }
+
+  allNotesOff() {
+    this.pianoRoll.playingNotes.clear();
+    this.messageSequencer({
+      action: "immEvent",
+      event: ["alloff"],
     });
   }
 

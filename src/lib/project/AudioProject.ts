@@ -102,6 +102,10 @@ export class AudioProject {
     scaleFactor: number,
     viewportStartPx: number,
   ) {
+    allTracks.map((track) => {
+      track.dsp.connect(appEnvironment.renderer.analizedPlayer.mixDownNode);
+    });
+
     this.viewport = Structured.create(ProjectViewport, this, number(0), number(scaleFactor), number(viewportStartPx));
   }
 
@@ -153,6 +157,7 @@ export class AudioProject {
       console.log("ADDED TO PLAYBACK");
       player.addTrackToPlayback(project, newTrack, project.cursorPos.get(), project.tempo.get());
     }
+    newTrack.dsp.connect(appEnvironment.renderer.analizedPlayer.mixDownNode);
     return newTrack;
   }
 
@@ -163,6 +168,8 @@ export class AudioProject {
     } else {
       project.allTracks.push(newTrack);
     }
+
+    newTrack.dsp.connect(appEnvironment.renderer.analizedPlayer.mixDownNode);
     return newTrack;
   }
 
@@ -173,13 +180,14 @@ export class AudioProject {
       return;
     }
 
-    project.allTracks.splice(pos, 1);
-
     // Remove it from playback
     if (player.isAudioPlaying) {
       console.log("TODO: delete track while playing");
       // player.removeTrackFromPlayback(track);
     }
+
+    project.allTracks.splice(pos, 1);
+    track.dsp.disconnectAll();
 
     // Update selected
     if (selected && selected.status === "tracks" && selected.test.has(track)) {

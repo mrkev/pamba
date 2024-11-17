@@ -1,15 +1,22 @@
-import type { AudioWorkletGlobalScope, WamEventBase, WamMidiData, WamTransportData } from "@webaudiomodules/api";
+import type {
+  AudioWorkletGlobalScope,
+  WamEvent,
+  WamEventBase,
+  WamMidiData,
+  WamProcessor as WamProcessorT,
+  WamTransportData,
+} from "@webaudiomodules/api";
 import { OrderedMap } from "../../lib/data/OrderedMap";
 import type { Note, PianoRollProcessorMessage, SimpleMidiClip } from "../../midi/SharedMidiTypes";
 import { nullthrows } from "../../utils/nullthrows";
-import { MIDI, MIDIConfiguration, PPQN } from "./MIDIConfiguration";
+import { MIDI, MIDIConfiguration, midiOfPartial, PPQN } from "./MIDIConfiguration";
 import { MIDINoteRecorder, PianoRollClip } from "./PianoRollClip";
 
 const MODULE_ID = "com.foo.pianoRoll";
 
 const audioWorkletGlobalScope: AudioWorkletGlobalScope = globalThis as unknown as AudioWorkletGlobalScope;
 const ModuleScope = audioWorkletGlobalScope.webAudioModules.getModuleScope(MODULE_ID);
-const WamProcessor = ModuleScope.WamProcessor;
+const WamProcessor = ModuleScope.WamProcessor; //as typeof WamProcessorT;
 
 class PianoRollProcessor extends WamProcessor {
   _generateWamParameterInfo() {
@@ -26,6 +33,7 @@ class PianoRollProcessor extends WamProcessor {
   count: number;
 
   readonly clips: Map<string, PianoRollClip> = new Map();
+  readonly playingNotes = new Set<number>();
   // new system
   seqClips: OrderedMap<string, SimpleMidiClip> = new OrderedMap();
   loop: readonly [number, number] | null = null;
@@ -45,10 +53,10 @@ class PianoRollProcessor extends WamProcessor {
 
   readonly immediateMessages: WamEventBase<"wam-midi">[] = [];
 
-  midiEvent(type: "on" | "off" | "cc", note: number, velocity: number, tickMoment?: number): WamEventBase<"wam-midi"> {
+  midiEvent(bytes: number[], tickMoment?: number): WamEventBase<"wam-midi"> {
     const result: WamEventBase<"wam-midi"> = {
       type: "wam-midi",
-      data: { bytes: [MIDI.kind(type) | this.midiConfig.outputMidiChannel, note, velocity] },
+      data: { bytes },
     } as const;
     if (tickMoment != null) {
       result.time = tickMoment;
@@ -83,6 +91,13 @@ class PianoRollProcessor extends WamProcessor {
 
   _process(startSample: number, endSample: number, inputs: Float32Array[][], outputs: Float32Array[][]) {
     const { currentTime } = audioWorkletGlobalScope;
+
+    // Flush immediate events, immediately
+    let ev;
+    while ((ev = this.immediateMessages.pop())) {
+      console.log("ev", ev);
+      this.emitEvents(ev);
+    }
 
     if (this.pendingClipChange && this.pendingClipChange.timestamp <= currentTime) {
       this.currentClipId = this.pendingClipChange.id;
@@ -121,15 +136,6 @@ class PianoRollProcessor extends WamProcessor {
     }
 
     // console.log(this.transportData!.playing, this.transportData!.currentBarStarted <= schedulerTime);
-
-    // Flush immediate evens
-
-    // NOTE: DOESNT WORK UNTIL WE START PLAYBACK, because thing is suspended or something I guess? The node map is not built?
-    let ev;
-    while ((ev = this.immediateMessages.pop())) {
-      this.emitEvents(ev);
-      console.log("EMMITED", ev);
-    }
 
     // Run new playback system
     if (
@@ -194,16 +200,11 @@ class PianoRollProcessor extends WamProcessor {
       notesForTickNew(loopedTicks, [...theClips.values()]).forEach(([ntick, nnumber, nduration, nvelocity]: Note) => {
         // console.log("events", tickMoment);
         this.emitEvents(
-          {
-            type: "wam-midi",
-            time: tickMoment,
-            data: { bytes: [MIDI.NOTE_ON | this.midiConfig.outputMidiChannel, nnumber, nvelocity] },
-          },
-          {
-            type: "wam-midi",
-            time: tickMoment + nduration * secondsPerTick - 0.001,
-            data: { bytes: [MIDI.NOTE_OFF | this.midiConfig.outputMidiChannel, nnumber, nvelocity] },
-          },
+          this.midiEvent([MIDI.NOTE_ON | this.midiConfig.outputMidiChannel, nnumber, nvelocity], tickMoment),
+          this.midiEvent(
+            [MIDI.NOTE_OFF | this.midiConfig.outputMidiChannel, nnumber, nvelocity],
+            tickMoment + nduration * secondsPerTick - 0.001,
+          ),
         );
       });
     }
@@ -244,9 +245,14 @@ class PianoRollProcessor extends WamProcessor {
       }
 
       case "immEvent": {
-        console.log(message);
-        // [tick84, num60, dur6, vel100]
-        this.immediateMessages.push(this.midiEvent(payload.event, 60, 100));
+        const midiEv = payload.event;
+        switch (midiEv[0]) {
+          case "off":
+          case "on":
+            this.immediateMessages.push(this.midiEvent(midiOfPartial(midiEv, this.midiConfig.outputMidiChannel)));
+          case "alloff":
+          // this.immediateMessages.push(this.midiEvent(midiOfPartial(midiEv, this.midiConfig.outputMidiChannel)));
+        }
         return;
       }
 

@@ -5,11 +5,14 @@ import { ignorePromise } from "../../utils/ignorePromise";
 import { EmptyObj } from "../../utils/types";
 import PianoRollProcessorUrl from "./PianoRollProcessor?worker&url";
 import DescriptorUrl from "./descriptor.json?url";
+import { set } from "structured-state";
 
 /// MAIN THING
 export class PianoRollModule extends WebAudioModule<PianoRollNode> {
   override _descriptor: any;
   wamNode: PianoRollNode = null as any; // todo as any
+  readonly playingNotes = set<number>();
+
   // transport?: WamTransportData;
 
   // public sendClipsForPlayback(seqClips: SimpleMidiClip[]) {

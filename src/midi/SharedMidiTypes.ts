@@ -1,5 +1,7 @@
 // Shared with audio worker
 
+import { MIDI } from "../wam/pianorollme/MIDIConfiguration";
+
 export type Note = readonly [tick: number, number: number, duration: number, velocity: number];
 export function note(tick: number, number: number, duration: number, velocity: number): Note {
   return [tick, number, duration, velocity];
@@ -25,6 +27,10 @@ export type PianoRollProcessorMessage =
   | { action: "play"; id: string }
   | { action: "prepare_playback"; seqClips: SimpleMidiClip[]; loop: readonly [number, number] | null }
   | { action: "set_clips"; seqClips: SimpleMidiClip[] }
-  | { action: "immEvent"; event: "on" | "off" };
+  // immediates
+  | {
+      action: "immEvent";
+      event: ["on", note: number, velocity: number] | ["off", note: number, velocity: number] | ["alloff"];
+    };
 
 // | { action: "setPlaybackStartOffset"; offsetSec: number };

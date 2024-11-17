@@ -7,11 +7,57 @@ export type MIDIConfiguration = {
   outputMidiChannel: number;
 };
 
+export type PartialMIDI =
+  | ["on", note: number, velocity: number]
+  | ["off", note: number, velocity: number]
+  | ["cc", number: number, value: number]
+  | ["alloff"];
+
+export function midiOfPartial(partial: PartialMIDI, channel: number) {
+  switch (partial[0]) {
+    case "on": {
+      const [_, note, velocity] = partial;
+      return MIDI.noteOn(channel, note, velocity);
+    }
+    case "off": {
+      const [_, note, velocity] = partial;
+      return MIDI.noteOff(channel, note, velocity);
+    }
+    case "cc": {
+      const [_, num, value] = partial;
+      return MIDI.cc(channel, num, value);
+    }
+    case "alloff": {
+      return MIDI.alloff(channel);
+    }
+    default:
+      exhaustive(partial);
+  }
+}
+
 export class MIDI {
   static NOTE_ON = 144;
   static NOTE_OFF = 128;
   static CC = 176;
-  static kind(type: "on" | "off" | "cc") {
+  static ALL_NOTES_OFF = 123; // http://midi.teragonaudio.com/tech/midispec/ntnoff.htm
+
+  static noteOn(channel: number, note: number, velocity: number) {
+    return [MIDI.NOTE_ON | channel, note, velocity];
+  }
+
+  static noteOff(channel: number, note: number, velocity: number) {
+    return [MIDI.NOTE_OFF | channel, note, velocity];
+  }
+
+  static cc(channel: number, num: number, value: number) {
+    return [MIDI.CC | channel, num, value];
+  }
+
+  static alloff(channel: number) {
+    return [MIDI.ALL_NOTES_OFF | channel, 0];
+  }
+
+  static kind(type: PartialMIDI[0]) {
     switch (type) {
       case "cc":
         return MIDI.CC;
@@ -19,6 +65,8 @@ export class MIDI {
         return MIDI.NOTE_OFF;
       case "on":
         return MIDI.NOTE_ON;
+      case "alloff":
+        return MIDI.ALL_NOTES_OFF;
       default:
         exhaustive(type);
     }

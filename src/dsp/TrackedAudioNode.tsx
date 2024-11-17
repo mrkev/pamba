@@ -17,7 +17,7 @@ export class TrackedAudioNode<T extends AudioNode = AudioNode> {
 
   public connect(dest: TrackedAudioNode): void {
     if (this._destinations.has(dest)) {
-      console.warn("Destination already connected");
+      console.warn("Destination already connected", this, "->", dest);
       return;
     }
     this._destinations.add(dest);

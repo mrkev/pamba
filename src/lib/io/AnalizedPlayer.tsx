@@ -22,7 +22,7 @@ export class AnalizedPlayer {
 
   // Nodes
   private readonly playbackTimeNode: TrackedAudioNode<ScriptProcessorNode>;
-  private readonly mixDownNode: TrackedAudioNode<AudioWorkletNode>;
+  readonly mixDownNode: TrackedAudioNode<AudioWorkletNode>;
   // private readonly noiseNode: AudioWorkletNode = new AudioWorkletNode(liveAudioContext, "white-noise-processor");
   public isAudioPlaying: boolean = false;
   private cursorAtPlaybackStart: number = 0;
@@ -92,6 +92,10 @@ export class AnalizedPlayer {
         // console.log("NOTHING");
       }
     };
+
+    // Need to connect to dest, otherwrise audio just doesn't flow through. This adds nothing, just silence though
+    this.oscilloscope.connect(this.destination);
+    this.playbackTimeNode.connect(this.destination);
   }
 
   private drawPlaybackTime(playbackTime: number) {
@@ -112,10 +116,6 @@ export class AnalizedPlayer {
 
     console.log("play tracks");
 
-    // Need to connect to dest, otherwrise audio just doesn't flow through. This adds nothing, just silence though
-    this.oscilloscope.connect(this.destination);
-    this.playbackTimeNode.connect(this.destination);
-
     this.cursorAtPlaybackStart = cursorPos;
     const loop = AudioProject.playbackWillLoop(project, cursorPos)
       ? ([project.loopStart.secs(project), project.loopEnd.secs(project)] as const)
@@ -126,7 +126,7 @@ export class AnalizedPlayer {
     // sync as possible
     for (const track of tracks) {
       track.prepareForPlayback(project, liveAudioContext, cursorPos);
-      track.dsp.connect(this.mixDownNode);
+      // track.dsp.connect(this.mixDownNode);
     }
     for (const track of tracks) {
       track.startPlayback(tempo, liveAudioContext, cursorPos);
@@ -176,10 +176,8 @@ export class AnalizedPlayer {
     }
     for (const track of this.playingTracks) {
       track.stopPlayback(liveAudioContext);
-      track.dsp.disconnect(this.mixDownNode);
+      // track.dsp.disconnect(this.mixDownNode);
     }
     this.isAudioPlaying = false;
-    this.playbackTimeNode.disconnect(this.destination);
-    this.oscilloscope.disconnect(this.destination);
   }
 }
