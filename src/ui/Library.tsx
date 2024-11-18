@@ -14,7 +14,7 @@ import { ProjectTrack } from "../lib/ProjectTrack";
 import { addAvailableWamToTrack } from "../lib/addAvailableWamToTrack";
 import { AudioProject } from "../lib/project/AudioProject";
 import { useLinkedMap } from "../lib/state/LinkedMap";
-import { pressedState } from "../pressedState";
+import { pressedState } from "./pressedState";
 import { exhaustive } from "../utils/exhaustive";
 import { ignorePromise } from "../utils/ignorePromise";
 import { nullthrows } from "../utils/nullthrows";

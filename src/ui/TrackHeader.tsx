@@ -10,7 +10,7 @@ import { ProjectSelection } from "../lib/project/ProjectSelection";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { userActions } from "../lib/userActions";
 import { MidiTrack } from "../midi/MidiTrack";
-import { pressedState } from "../pressedState";
+import { pressedState } from "./pressedState";
 import { RenamableLabel } from "./RenamableLabel";
 import { UtilityToggle } from "./UtilityToggle";
 import { cx } from "./cx";

@@ -3,8 +3,8 @@ import type { AudioTrack } from "../lib/AudioTrack";
 import type { AudioProject } from "../lib/project/AudioProject";
 import { MidiClip } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
-import { modifierState } from "../ModifierState";
-import { pressedState } from "../pressedState";
+import { modifierState } from "./ModifierState";
+import { pressedState } from "./pressedState";
 
 // import { dataWaveformToCanvas } from "../lib/waveformAsync";
 type ClipTrackCombo =

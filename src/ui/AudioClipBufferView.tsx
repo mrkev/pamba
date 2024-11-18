@@ -5,7 +5,7 @@ import { GPUWaveform } from "webgpu-waveform-react";
 import { AnalizedPlayer } from "../lib/io/AnalizedPlayer";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioProject } from "../lib/project/AudioProject";
-import { pressedState } from "../pressedState";
+import { pressedState } from "./pressedState";
 import { nullthrows } from "../utils/nullthrows";
 import { useEventListener } from "./useEventListener";
 import { useSelectOnSurface } from "./useSelectOnSurface";

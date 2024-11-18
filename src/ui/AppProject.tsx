@@ -8,7 +8,7 @@ import { AudioRecorder } from "../lib/io/AudioRecorder";
 import { AudioRenderer } from "../lib/io/AudioRenderer";
 import { AudioProject } from "../lib/project/AudioProject";
 import { useLinkedState } from "../lib/state/LinkedState";
-import { modifierState, useSingletonKeyboardModifierState } from "../ModifierState";
+import { modifierState, useSingletonKeyboardModifierState } from "./ModifierState";
 import { AboutPanel } from "./AboutPanel";
 import { BottomPanel } from "./BottomPanel";
 import { DebugContent } from "./DebugData";

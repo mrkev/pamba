@@ -18,7 +18,7 @@ import { snapped } from "../lib/viewport/ProjectViewport";
 import { ProjectTrack } from "../lib/ProjectTrack";
 import { MidiClip } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
-import { pressedState } from "../pressedState";
+import { pressedState } from "../ui/pressedState";
 import { useDocumentEventListener, useEventListener } from "../ui/useEventListener";
 import { exhaustive } from "../utils/exhaustive";
 import { clamp } from "../utils/math";

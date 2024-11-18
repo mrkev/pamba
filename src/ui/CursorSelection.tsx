@@ -3,7 +3,7 @@ import { AudioTrack } from "../lib/AudioTrack";
 import { AudioProject } from "../lib/project/AudioProject";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { MidiTrack } from "../midi/MidiTrack";
-import { pressedState } from "../pressedState";
+import { pressedState } from "./pressedState";
 
 export function CursorSelection({
   project,

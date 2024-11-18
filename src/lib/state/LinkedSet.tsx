@@ -142,7 +142,7 @@ export function useLinkedSet<S>(linkedSet: LinkedSet<S>): [LinkedSet<S>, StateDi
         linkedSet._setRaw(newVal);
       }
     },
-    [linkedSet]
+    [linkedSet],
   );
 
   return [linkedSet, setter];

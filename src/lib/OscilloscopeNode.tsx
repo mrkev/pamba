@@ -10,9 +10,10 @@ export class OscilloscopeNode extends DSPStep<TrackedAudioNode> {
   override readonly name = string("OscilloscopeNode");
   override bypass = boolean(false);
 
-  override cloneToOfflineContext(context: OfflineAudioContext): Promise<DSPStep<TrackedAudioNode> | null> {
+  override cloneToOfflineContext(_: OfflineAudioContext): Promise<DSPStep<TrackedAudioNode> | null> {
     throw new Error("OscilloscopeNode: cloneToOfflineContext: Method not implemented.");
   }
+
   override effectId: string = "OscilloscopeNode";
   private readonly amplitudeArray: Uint8Array = new Uint8Array();
   private readonly analyserNode = TrackedAudioNode.of(liveAudioContext().createAnalyser());

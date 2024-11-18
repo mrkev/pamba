@@ -29,6 +29,7 @@ export default tseslint.config(
       "packages",
       "build",
       "src/wam/pianorollme",
+      "src/zexp",
     ],
   },
   ...fixupConfigRules(compat.extends("plugin:react/recommended", "plugin:react-hooks/recommended")),

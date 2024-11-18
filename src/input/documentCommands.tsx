@@ -7,7 +7,7 @@ import { ProjectPersistance } from "../lib/ProjectPersistance";
 import { ProjectSelection } from "../lib/project/ProjectSelection";
 import { clipsLimits } from "../lib/project/timeline";
 import { userActions } from "../lib/userActions";
-import { pressedState } from "../pressedState";
+import { pressedState } from "../ui/pressedState";
 import { closeProject } from "../ui/header/ToolHeader";
 import { exhaustive } from "../utils/exhaustive";
 import { nullthrows } from "../utils/nullthrows";

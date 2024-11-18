@@ -1,4 +1,3 @@
-import { addClip, deleteTime, pushClip, removeClip } from "./AbstractClip";
 import { AbstractClip, Pulses, Seconds } from "./AbstractClip";
 import { StateChangeHandler } from "./state/LinkedState";
 import { MutationHashable } from "./state/MutationHashable";

@@ -1,4 +1,4 @@
-import { modifierState } from "../../ModifierState";
+import { modifierState } from "../../ui/ModifierState";
 import { FaustAudioEffect } from "../../dsp/FaustAudioEffect";
 import { MidiTrack } from "../../midi/MidiTrack";
 import { exhaustive } from "../../utils/exhaustive";

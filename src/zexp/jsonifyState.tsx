@@ -1,5 +1,4 @@
-import { AudioClip } from "./lib/AudioClip";
-import { AudioTrack } from "./lib/AudioTrack";
+import { AudioClip } from "../lib/AudioClip";
 
 function jsonifyState(val: unknown): any {
   if (typeof val === "number" || typeof val === "string" || typeof val === "undefined") {

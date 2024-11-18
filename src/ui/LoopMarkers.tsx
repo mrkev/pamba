@@ -4,7 +4,7 @@ import { useContainer, usePrimitive } from "structured-state";
 import { AudioProject } from "../lib/project/AudioProject";
 import { time } from "../lib/project/TimelineT";
 import { useLinkedState } from "../lib/state/LinkedState";
-import { pressedState } from "../pressedState";
+import { pressedState } from "./pressedState";
 import { set } from "../utils/set";
 import { PPQN } from "../wam/pianorollme/MIDIConfiguration";
 

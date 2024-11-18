@@ -8,7 +8,7 @@ import { useTimelineMouseEvents } from "../input/useProjectMouseEvents";
 import { AudioRenderer } from "../lib/io/AudioRenderer";
 import { AudioProject } from "../lib/project/AudioProject";
 import { AudioStorage } from "../lib/project/AudioStorage";
-import { pressedState } from "../pressedState";
+import { pressedState } from "./pressedState";
 import { clamp } from "../utils/math";
 import { nullthrows } from "../utils/nullthrows";
 import { Axis } from "./Axis";

@@ -2,7 +2,7 @@ import classNames from "classnames";
 import { useCallback, useRef } from "react";
 import { createUseStyles } from "react-jss";
 import { history, usePrimitive } from "structured-state";
-import { modifierState } from "../ModifierState";
+import { modifierState } from "./ModifierState";
 import { AudioProject } from "../lib/project/AudioProject";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { MidiViewport } from "../lib/viewport/MidiViewport";

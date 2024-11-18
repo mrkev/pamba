@@ -12,7 +12,7 @@ import { AudioProject } from "../lib/project/AudioProject";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { MidiClip } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
-import { pressedState } from "../pressedState";
+import { pressedState } from "./pressedState";
 import { nullthrows } from "../utils/nullthrows";
 import { ClipA } from "./ClipA";
 import { ClipInvalid } from "./ClipInvalid";

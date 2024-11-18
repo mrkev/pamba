@@ -11,7 +11,6 @@ import {
   Structured,
 } from "structured-state";
 import { CLIP_HEIGHT } from "../constants";
-import { SAudioTrack } from "../data/serializable";
 import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
 import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
 import { MidiTrack } from "../midi/MidiTrack";
@@ -89,14 +88,6 @@ export class AudioTrack extends Structured<AutoAudioTrack, typeof AudioTrack> im
     );
   }
 
-  static old_construct(json: SAudioTrack): AudioTrack {
-    const { name, clips: sClips, effects: sEffects, height } = json;
-    const clips = sClips.map((clip) => AudioClip.of(clip));
-    // TODO: effects
-    // const effects = await Promise.all(sEffects.map((effect) => construct(effect)));
-    return AudioTrack.of(name, clips, [], height);
-  }
-
   static empty() {
     return Structured.create(AudioTrack, string("Audio"), arrayOf([AudioClip], []), [], number(CLIP_HEIGHT));
   }
@@ -117,6 +108,7 @@ export class AudioTrack extends Structured<AutoAudioTrack, typeof AudioTrack> im
     // We need to keep a reference to our source node for play/pause
     this.playingSource = TrackedAudioNode.of(this.getSourceNode(context));
     this.dsp.connectToDSPForPlayback(this.playingSource);
+
     if (AudioProject.playbackWillLoop(project, startingAt)) {
       this.playingSource.get().loop = true;
       this.playingSource.get().loopStart = project.loopStart.secs(project);

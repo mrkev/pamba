@@ -26,7 +26,6 @@ export class PBGainNode extends DSPStep<TrackedAudioNode> {
   }
 
   override cloneToOfflineContext(context: OfflineAudioContext): Promise<PBGainNode> {
-    console.log("MAKING OFFLINE GAIN");
     const node = makeOffline(this.node.get(), context);
     return Promise.resolve(node);
   }

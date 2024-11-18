@@ -67,7 +67,7 @@ export class Command<S extends string[] = string[]> {
 export class CommandBlock<S extends string[], T extends Record<string, Command>> {
   private readonly byId: T;
   private readonly byKeyCode: Map<string, Command>;
-  constructor(byId: T, byKeyCode: Map<string, Command>, sections: S) {
+  constructor(byId: T, byKeyCode: Map<string, Command>, _sections: S) {
     this.byId = byId;
     this.byKeyCode = byKeyCode;
   }

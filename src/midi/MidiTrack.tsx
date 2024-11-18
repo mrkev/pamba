@@ -77,7 +77,7 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
 
   // todo: instrument can be empty?
   // TODO: SPrimitive holds Structs.
-  private instrument: SPrimitive<MidiInstrument>;
+  instrument: SPrimitive<MidiInstrument>;
   readonly pianoRoll: PianoRollModule;
 
   // the pianoRoll to play. same as .pianoRoll when playing live,

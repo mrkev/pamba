@@ -1,4 +1,4 @@
-import { pressedState } from "../../pressedState";
+import { pressedState } from "../pressedState";
 import { exhaustive } from "../../utils/exhaustive";
 import {
   AudioClipInstanceTransferResource,

@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { pressedState } from "../pressedState";
+import { pressedState } from "./pressedState";
 import { useEventListener } from "./useEventListener";
 
 export function useSelectOnSurface(

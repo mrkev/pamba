@@ -4,7 +4,7 @@ import { ProjectTrack } from "../lib/ProjectTrack";
 import { AudioProject } from "../lib/project/AudioProject";
 import { PrimarySelectionState } from "../lib/project/SelectionState";
 import { useLinkedState } from "../lib/state/LinkedState";
-import { pressedState } from "../pressedState";
+import { pressedState } from "./pressedState";
 import { exhaustive } from "../utils/exhaustive";
 
 export function stringOfSelected(sel: PrimarySelectionState | null): string {

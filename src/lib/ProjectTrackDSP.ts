@@ -1,4 +1,5 @@
 import { boolean, SArray, SString } from "structured-state";
+import { WebAudioPeakMeter } from "web-audio-peak-meter";
 import { liveAudioContext } from "../constants";
 import { DSPStep } from "../dsp/DSPNode";
 import { FaustEffectID } from "../dsp/FAUST_EFFECTS";
@@ -10,7 +11,6 @@ import { AbstractClip } from "./AbstractClip";
 import { appEnvironment } from "./AppEnvironment";
 import { connectSerialNodes, disconnectSerialNodes } from "./connectSerialNodes";
 import { PBGainNode } from "./offlineNodes";
-import { WebAudioPeakMeter } from "web-audio-peak-meter";
 
 export class ProjectTrackDSP<T extends AbstractClip<any>> extends DSPStep<null> {
   // DSP
@@ -117,15 +117,5 @@ export class ProjectTrackDSP<T extends AbstractClip<any>> extends DSPStep<null> 
     } else {
       this.effects.splice(index, 0, effect);
     }
-  }
-
-  async addWAM(url: string) {
-    const [hostGroupId] = nullthrows(appEnvironment.wamHostGroup.get());
-    const module = await PambaWamNode.fromURL(url, hostGroupId, liveAudioContext());
-    if (module == null) {
-      console.error("Error: NO MODULE");
-      return;
-    }
-    this.effects.push(module);
   }
 }

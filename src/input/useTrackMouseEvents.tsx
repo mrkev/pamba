@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { AudioTrack } from "../lib/AudioTrack";
 import { AudioProject } from "../lib/project/AudioProject";
-import { pressedState } from "../pressedState";
+import { pressedState } from "../ui/pressedState";
 import { useEventListener } from "../ui/useEventListener";
 import { snapped } from "../lib/viewport/ProjectViewport";
 import { MidiTrack } from "../midi/MidiTrack";

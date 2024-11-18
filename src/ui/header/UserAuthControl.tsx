@@ -44,15 +44,15 @@ export function UserAuthControl() {
     const mode = formData.get("mode");
 
     try {
-      const userCredential =
+      const _userCredential =
         mode === "login"
           ? await signInWithEmailAndPassword(firebaseAuth, email, password)
           : await createUserWithEmailAndPassword(firebaseAuth, email, password);
 
       // firebaseUser.set(userCredential.user);
     } catch (error: any) {
-      const errorCode = error.code;
-      const errorMessage = error.message;
+      const _errorCode = error.code;
+      const _errorMessage = error.message;
       console.error(error);
     }
   };
