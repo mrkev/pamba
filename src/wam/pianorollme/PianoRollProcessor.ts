@@ -248,8 +248,11 @@ class PianoRollProcessor extends WamProcessor {
         const midiEv = payload.event;
         switch (midiEv[0]) {
           case "off":
+            this.immediateMessages.push(this.midiEvent(midiOfPartial(midiEv, this.midiConfig.outputMidiChannel)));
+            break;
           case "on":
             this.immediateMessages.push(this.midiEvent(midiOfPartial(midiEv, this.midiConfig.outputMidiChannel)));
+            break;
           case "alloff":
           // this.immediateMessages.push(this.midiEvent(midiOfPartial(midiEv, this.midiConfig.outputMidiChannel)));
         }

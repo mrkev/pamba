@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, writeFileSync } from "fs";
 import { resolve } from "path";
-import { faustLoaderWasmImpl } from "./faustLoaderWasm";
+import { faustLoaderWasmImpl } from "./FaustLoader.js";
 
 const datorro = `
 declare name "dattorro";
@@ -29,11 +29,5 @@ async function main() {
     },
     "dattorro",
     datorro,
-    {
-      path: `${__dirname}/testtmp`,
-      cleanup: async () => {
-        console.log("cleanup called");
-      },
-    },
   );
 }

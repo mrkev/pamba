@@ -185,7 +185,7 @@ function GPUWaveform({
 
   useEffect(() => {
     const context = nullthrows(nullthrows(canvasRef.current).getContext("webgpu"), "nil webgpu context");
-    renderer.render(context, scale, offset, 1, 1, color);
+    renderer.render(context, scale, offset, color);
     // renderer.render(context, s, offset, width, height, color);
   }, [color, offset, renderer, scale, style?.width]);
 

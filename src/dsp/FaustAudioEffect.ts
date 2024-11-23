@@ -11,9 +11,9 @@ import { DSPStep } from "./DSPNode";
 import { TrackedAudioNode } from "./TrackedAudioNode";
 import { FAUST_EFFECTS, FaustEffectID } from "./FAUST_EFFECTS";
 
-export type ProcessorLoader = (
-  context: BaseAudioContext,
-) => Promise<{ faustNode: IFaustMonoWebAudioNode; dspMeta: FaustDspMeta } | null | undefined>;
+// export type ProcessorLoader = (
+//   context: BaseAudioContext,
+// ) => Promise<{ faustNode: IFaustMonoWebAudioNode; dspMeta: FaustDspMeta } | null | undefined>;
 
 // from: https://github.com/Fr0stbyteR/faust-ui/blob/7665c7a754b4f856a5b60b7148963e263bf45e14/src/types.d.ts#L23
 export interface LayoutTypeMap {
@@ -102,9 +102,8 @@ export class FaustAudioEffect extends DSPStep<TrackedAudioNode> {
     id: keyof typeof FAUST_EFFECTS,
     initialParamValues?: Array<[address: string, value: number]>,
   ): Promise<FaustAudioEffect | null> {
-    const mod: { default: ProcessorLoader } = await FAUST_EFFECTS[id]();
-    const creator = mod.default;
-    const result = await creator(context);
+    const mod = await FAUST_EFFECTS[id]();
+    const result = await mod.default(context);
     if (result == null) {
       return null;
     }
