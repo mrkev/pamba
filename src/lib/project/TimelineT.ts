@@ -4,10 +4,10 @@ import { PPQN } from "../../wam/pianorollme/MIDIConfiguration";
 import { Pulses, Seconds } from "../AbstractClip";
 import { exhaustive } from "../state/Subbable";
 import { AudioProject } from "./AudioProject";
+import { STimelineT } from "../../data/serializable";
 
 export type TimeUnit = "pulses" | "seconds" | "bars";
 
-export type STimelineT = Readonly<{ t: number; u: TimeUnit }>;
 type AutoTimelineT = STimelineT;
 
 function pulsesToFr(pulses: number, bpm: number) {

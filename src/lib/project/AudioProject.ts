@@ -4,12 +4,12 @@ import {
   SNumber,
   SPrimitive,
   SSchemaArray,
-  SSet,
   SString,
   Structured,
   arrayOf,
   boolean,
   number,
+  set,
   string,
 } from "structured-state";
 import { ulid } from "ulid";
@@ -17,10 +17,10 @@ import { DEFAULT_TEMPO } from "../../constants";
 import { MidiClip } from "../../midi/MidiClip";
 import { MidiTrack } from "../../midi/MidiTrack";
 import { PPQN } from "../../wam/pianorollme/MIDIConfiguration";
-import { AnalizedPlayer } from "../io/AnalizedPlayer";
 import { appEnvironment } from "../AppEnvironment";
 import { AudioClip } from "../AudioClip";
 import { AudioTrack } from "../AudioTrack";
+import { AnalizedPlayer } from "../io/AnalizedPlayer";
 import { ProjectTrack, StandardTrack } from "../ProjectTrack";
 import { LinkedState } from "../state/LinkedState";
 import { ProjectViewport } from "../viewport/ProjectViewport";
@@ -60,9 +60,10 @@ export class AudioProject {
   readonly viewport: ProjectViewport;
 
   // Tracks //
-  readonly solodTracks = SSet.create<AudioTrack | MidiTrack>(); // TODO: single track kind?
-  readonly dspExpandedTracks = SSet.create<AudioTrack | MidiTrack>();
-  readonly lockedTracks = SSet.create<AudioTrack | MidiTrack | StandardTrack<any>>();
+  // TODO: setOf
+  readonly solodTracks = set<AudioTrack | MidiTrack>(); // TODO: single track kind?
+  readonly dspExpandedTracks = set<AudioTrack | MidiTrack>();
+  readonly lockedTracks = set<AudioTrack | MidiTrack | StandardTrack<any>>();
   // much like live, there's always an active track. Logic is a great model since
   // the active track is clearly discernable in spite of multi-track selection.
   // TODO: when undoing a track deletion, activetrack.name is being set to {_value: 'Audio', _id: '...'}. WHY?
@@ -78,7 +79,7 @@ export class AudioProject {
   // TODO: Rename cursor time width or something?
   readonly selectionWidth = SPrimitive.of<number | null>(null);
   readonly cursorPos = SPrimitive.of(0);
-  readonly cursorTracks = SSet.create<AudioTrack | MidiTrack>();
+  readonly cursorTracks = set<AudioTrack | MidiTrack>();
   // ^^ TODO: a weak linked set might be a good idea
 
   // Selection //

@@ -1,3 +1,4 @@
+import { WamParameterDataMap } from "@webaudiomodules/api";
 import { arrayOf, boolean, number, string } from "structured-state";
 import { liveAudioContext } from "../constants";
 import { FaustEffectID } from "../dsp/FAUST_EFFECTS";
@@ -6,7 +7,7 @@ import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioTrack } from "../lib/AudioTrack";
 import { AudioProject } from "../lib/project/AudioProject";
-import { STimelineT, time } from "../lib/project/TimelineT";
+import { time, TimeUnit } from "../lib/project/TimelineT";
 import { SMidiViewport } from "../lib/viewport/MidiViewport";
 import { MidiClip } from "../midi/MidiClip";
 import { MidiInstrument } from "../midi/MidiInstrument";
@@ -16,7 +17,6 @@ import { exhaustive } from "../utils/exhaustive";
 import { nullthrows } from "../utils/nullthrows";
 import { mutable } from "../utils/types";
 import { PambaWamNode } from "../wam/PambaWamNode";
-import { WamParameterDataMap } from "@webaudiomodules/api";
 
 export type SAudioClip = {
   kind: "AudioClip";
@@ -70,6 +70,8 @@ export type SAudioProject = {
   scaleFactor: number;
   viewportStartPx: number;
 };
+
+export type STimelineT = Readonly<{ t: number; u: TimeUnit }>;
 
 export type SFaustAudioEffect = {
   kind: "FaustAudioEffect";
