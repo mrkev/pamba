@@ -4,7 +4,8 @@ import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import svgrPlugin from "vite-plugin-svgr";
 import viteTsconfigPaths from "vite-tsconfig-paths";
-import { faustLoader } from "./faustLoader/faustLoder";
+// import { faustLoader } from "./faustLoader/faustLoder";
+import faustLoader from "vite-plugin-faust";
 
 // To polyfill Buffer
 import { NodeGlobalsPolyfillPlugin } from "@esbuild-plugins/node-globals-polyfill";

@@ -8,7 +8,6 @@ import { AudioRecorder } from "../lib/io/AudioRecorder";
 import { AudioRenderer } from "../lib/io/AudioRenderer";
 import { AudioProject } from "../lib/project/AudioProject";
 import { useLinkedState } from "../lib/state/LinkedState";
-import { modifierState, useSingletonKeyboardModifierState } from "./ModifierState";
 import { AboutPanel } from "./AboutPanel";
 import { BottomPanel } from "./BottomPanel";
 import { DebugContent } from "./DebugData";
@@ -17,6 +16,7 @@ import { TransportControl } from "./header/TransportControl";
 import { HelpPanel } from "./HelpPanel";
 import { HistoryPanel, Settings } from "./HistoryPanel";
 import { Library } from "./Library";
+import { modifierState, useSingletonKeyboardModifierState } from "./ModifierState";
 import { ProjectEditor } from "./ProjectEditor";
 import { TimelineView } from "./TimelineView";
 import { UtilityTabbedPanel } from "./UtilityTabbedPanel";
@@ -30,8 +30,6 @@ function useStopPlaybackOnUnmount(renderer: AudioRenderer) {
     };
   }, [renderer.analizedPlayer]);
 }
-
-// TODO: useLocalStorage out here
 
 export function AppProject({ project }: { project: AudioProject }) {
   const styles = useStyles();
