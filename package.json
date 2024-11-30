@@ -2,6 +2,7 @@
   "name": "pamba",
   "version": "0.2.5",
   "private": true,
+  "type": "module",
   "//notes": [
     "svgo for types in vite-plugin-svgr"
   ],

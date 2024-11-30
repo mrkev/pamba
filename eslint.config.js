@@ -21,7 +21,7 @@ export default tseslint.config(
   ...tseslint.configs.recommended,
   {
     ignores: [
-      "vite.config.mts",
+      "vite.config.ts",
       "faustLoader/**/*",
       "src/midi/**/*",
       "public",

@@ -26,6 +26,6 @@
     "noImplicitOverride": true,
     "types": ["vite/client", "@webgpu/types"]
   },
-  "include": ["src", "eslint.config.mjs"],
+  "include": ["src", "eslint.config.js"],
   "exclude": ["packages"]
 }
