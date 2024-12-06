@@ -8,7 +8,7 @@ import { appEnvironment } from "./AppEnvironment";
  * Also includes rendering mechanism.
  */
 export class SharedAudioBuffer implements AudioBuffer {
-  readonly channels: ArrayBuffer[] = [];
+  readonly channels: SharedArrayBuffer[] = [];
   // channels: SharedArrayBuffer[] = [];
   readonly length: number;
   readonly duration: number;
