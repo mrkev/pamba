@@ -1,17 +1,24 @@
-import { ensureError } from "./ensureError";
-
-type Result<T> =
-  | Readonly<{
-      status: "success";
-      value: T;
-    }>
-  | Readonly<{
-      status: "error";
-      error: Error;
-    }>;
+import { LinkedMap } from "./lib/state/LinkedMap";
+import { result, Result } from "./Result";
 
 export class MidiDevices {
+  readonly inputs = LinkedMap.create<string, MIDIInput>();
+  readonly outputs = LinkedMap.create<string, MIDIOutput>();
+
   private constructor(private midiAccess: MIDIAccess) {
+    for (const [id, input] of this.midiAccess.inputs) {
+      this.inputs.set(id, input);
+    }
+
+    for (const [id, output] of this.midiAccess.outputs) {
+      this.outputs.set(id, output);
+    }
+
+    this.midiAccess.onstatechange = (event) => {
+      // todo, some connection changed
+      // console.log(event.port.name, event.port.manufacturer, event.port.state);
+    };
+
     function onMIDIMessage(this: MIDIInput, ev: MIDIMessageEvent) {
       let str = `MIDI message received at timestamp ${ev.timeStamp}[${ev.data?.length} bytes]: `;
       for (const character of ev.data ?? []) {
@@ -27,16 +34,10 @@ export class MidiDevices {
 
   static async initialize(): Promise<Result<MidiDevices>> {
     try {
-      const midiAccess = await navigator.requestMIDIAccess();
-      return {
-        status: "success",
-        value: new MidiDevices(midiAccess),
-      };
+      const midiAccess = await navigator.requestMIDIAccess({ sysex: true });
+      return result.success(new MidiDevices(midiAccess));
     } catch (e) {
-      return {
-        status: "error",
-        error: ensureError(e),
-      };
+      return result.error(e);
     }
   }
 

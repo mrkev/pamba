@@ -7,7 +7,7 @@ export function UtilityToggle({
   style: styleArg,
   toggleStyle = { backgroundColor: "var(--control-subtle-highlight)" },
   toggled,
-  onToggle: onToggle,
+  onToggle,
   ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement> & {
   toggleStyle?: React.CSSProperties;

@@ -22,6 +22,7 @@ import { AudioProject } from "./project/AudioProject";
 import { AudioStorage } from "./project/AudioStorage";
 import { LinkedSet } from "./state/LinkedSet";
 import { LinkedState } from "./state/LinkedState";
+import { MidiDevices } from "../MidiDevices";
 
 const dummyObj = array();
 
@@ -63,7 +64,9 @@ export class AppEnvironment {
     "side-panel-active",
     "library",
   );
+
   readonly activeBottomPanel = LocalSPrimitive.create<"editor" | "debug" | "about" | null>("bottom-panel-active", null);
+  public midiIO: MidiDevices | null = null;
 
   // System
   renderer: AudioRenderer = null as any; // TODO: do this in a way that avoids the null?
@@ -112,6 +115,13 @@ export class AppEnvironment {
       // if (storage !== "no-storage") {
       const audioStorage = AudioStorage.init();
       this.audioStorage.set(audioStorage);
+
+      const midiResult = await MidiDevices.initialize();
+      if (midiResult.status === "error") {
+        console.warn("no midi", midiResult.error);
+      } else {
+        this.midiIO = midiResult.value;
+      }
 
       // WebGPU
       if (!navigator.gpu) {
