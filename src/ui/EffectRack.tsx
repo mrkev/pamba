@@ -257,7 +257,6 @@ function InstrumentEffect({ track }: { track: MidiTrack; project: AudioProject; 
         {/* TODO: this wont be reactive: the window won't render the new instrument when we change it */}
         <button onClick={() => appEnvironment.openEffects.add(instrument)}>Configure</button>
       </Effect>
-      {"→"}
     </React.Fragment>
   );
 }

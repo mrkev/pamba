@@ -1,11 +1,11 @@
 import classNames from "classnames";
 import { utility } from "./utility";
 
-// TODO make default toggle color orange
+// "var(--control-subtle-highlight)"
 export function UtilityToggle({
   className,
   style: styleArg,
-  toggleStyle = { backgroundColor: "var(--control-subtle-highlight)" },
+  toggleStyle = { backgroundColor: "orange" },
   toggled,
   onToggle,
   ...props

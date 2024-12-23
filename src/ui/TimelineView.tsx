@@ -12,6 +12,8 @@ import { CursorSelection } from "./CursorSelection";
 import { LoopMarkers } from "./LoopMarkers";
 import { ProjectView } from "./ProjectView";
 import { TrackHeaderContainer } from "./TrackHeaderContainer";
+import { UtilityToggle } from "./UtilityToggle";
+import { utility } from "./utility";
 
 export function TimelineView({
   project,
@@ -35,6 +37,15 @@ export function TimelineView({
       onMouseDownCapture={() => project.activePanel.set("primary")}
       className={classNames(classes.container, "scrollbar-track")}
     >
+      {/* <div
+        className={classes.axisSpacer}
+        style={{
+          borderTop: activePanel === "primary" ? "4px solid var(--timeline-text)" : "4px solid var(--timeline-tick)",
+        }}
+      >
+        {"↓"}
+      </div> */}
+
       <div
         ref={axisContainerRef}
         className={classes.axisContainer}
@@ -45,36 +56,44 @@ export function TimelineView({
         <Axis project={project} isHeader />
         <LoopMarkers project={project} />
         <CursorSelection track={null} project={project} leftOffset={-viewportStartPx} />
-        {/* <TimelineCursor project={project} isHeader /> */}
       </div>
-      {/* 1. Track header overhang (bounce button) */}
-      <div
-        className={classes.axisSpacer}
-        style={
-          {
-            // background: activePanel === "primary" ? "var(--timeline-text)" : undefined,
-          }
-        }
-      >
-        {/* <button
-          style={{ position: "absolute", left: "4px" }}
-          onClick={() => {
-            AudioProject.addAudioTrack(project, player);
+      {/* 1. Track header overhang */}
+      <div className={classes.axisSpacer}>{"↑"}</div>
+
+      {/* <div className={classes.trackHeaders}>
+        <button
+          disabled={false}
+          className={classNames(utility.button)}
+          style={1 === 1 ? { background: "red" } : undefined}
+          title="arm track (record to this track)"
+          onClick={function (e) {
+            // if (isArmed) {
+            //   project.armedTrack.set(null);
+            // } else {
+            //   project.armedTrack.set(track);
+            // }
+            // e.stopPropagation();
           }}
-          title="Add new track"
         >
-          +
-        </button> */}
-        {/* <UtilityMenu
-          style={{ position: "absolute", left: "4px" }}
-          label={"+"}
-          items={{
-            "audio track": () => documentCommands.execById("createAudioTrack", project),
-            "midi track": () => documentCommands.execById("createMidiTrack", project),
+          {"\u23fa"}
+        </button>
+        <button
+          disabled={false}
+          className={classNames(utility.button)}
+          style={1 === 1 ? { background: "red" } : undefined}
+          title="arm track (record to this track)"
+          onClick={function (e) {
+            // if (isArmed) {
+            //   project.armedTrack.set(null);
+            // } else {
+            //   project.armedTrack.set(track);
+            // }
+            // e.stopPropagation();
           }}
-        /> */}
-        {"↑"}
-      </div>
+        >
+          {"\u23fa"}
+        </button>
+      </div> */}
 
       {/* 2. Project */}
       <ProjectView project={project} renderer={renderer} />
@@ -93,6 +112,7 @@ const useStyles = createUseStyles({
     gridTemplateRows: "30px 1fr",
     // 150 is TRACK_HEADER_WIDTH
     gridTemplateColumns: "1fr 150px",
+    // gridTemplateColumns: "24px 1fr 150px",
     gridColumnGap: 0,
     gridRowGap: 0,
     overflowY: "scroll",
@@ -127,5 +147,13 @@ const useStyles = createUseStyles({
     zIndex: 2,
     background: "var(--timeline-bg)",
     borderBottom: "1px solid var(--axis-timeline-separator)",
+  },
+  trackHeaders: {
+    position: "sticky",
+    right: 0,
+    zIndex: 1,
+    display: "flex",
+    flexDirection: "column",
+    flexShrink: 0,
   },
 });

@@ -6,6 +6,7 @@ import { PrimarySelectionState } from "../lib/project/SelectionState";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { pressedState } from "./pressedState";
 import { exhaustive } from "../utils/exhaustive";
+import { DebugOut } from "structured-state";
 
 export function stringOfSelected(sel: PrimarySelectionState | null): string {
   if (!sel) {
@@ -68,15 +69,27 @@ export function DebugContent({ project }: { project: AudioProject }) {
     })
     .join("\n");
 
-  const value =
-    " ## Track Structure<br /><br />" +
-    hljs.highlight(debugOut(tracks, 0, false), {
-      language: "javascript",
-    }).value;
+  // const value =
+  //   " ## Track Structure<br /><br />" +
+  //   hljs.highlight(debugOut(tracks, 0, false), {
+  //     language: "javascript",
+  //   }).value;
 
   return (
     <>
-      <pre
+      <DebugOut
+        val={tracks}
+        showUnknowns={false}
+        style={{
+          background: "#222",
+          margin: "0px 4px 0px 0px",
+          padding: "4px",
+          width: 400,
+          fontSize: 12,
+          userSelect: "text",
+        }}
+      />
+      {/* <pre
         style={{
           overflow: "scroll",
           background: "#222",
@@ -87,7 +100,7 @@ export function DebugContent({ project }: { project: AudioProject }) {
           userSelect: "text",
         }}
         dangerouslySetInnerHTML={{ __html: value }}
-      ></pre>
+      ></pre> */}
       <div style={{ overflow: "scroll", background: "#222", flexGrow: 1 }}>
         <pre>
           Project: {project.projectId}
