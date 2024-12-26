@@ -13,8 +13,25 @@ x live note editing
 x CMD+D for clips
 x midi drag clips
 x close plugin window if plugin is deleted/replaced(instrument)
+- persist solo / mute
+  - substate don't duplicate sset contents
 - persist wam params
 - duplicate doesn't correctly delete destination
+
+/**
+ * TODO:
+ * - Make timeline view track separator taller, like the one on the TrackHeader
+ *   so it's easier to grab.
+ * [x] Render with panning, gain, effects.
+ * - Level Meters in DSP
+ * [x] Drop to upload audio file
+ * - DSP Bypass button get working
+ * [x] DSP Search Box get working
+ * [x] Overscroll towards the end of the project means we got to scroll extra to come back
+ * [x] resizing with slider should resize around the cursor, not 0:00
+ * [x] Load previous project if it exists, instead of creating a new one
+ */
+
 
 todo:
 - bypass for all audio effects

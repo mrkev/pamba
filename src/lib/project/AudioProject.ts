@@ -1,9 +1,9 @@
-import type { ScaleLinear } from "d3-scale";
 import {
   SBoolean,
   SNumber,
   SPrimitive,
   SSchemaArray,
+  SSet,
   SString,
   Structured,
   arrayOf,
@@ -27,60 +27,19 @@ import { ProjectViewport } from "../viewport/ProjectViewport";
 import { PanelSelectionState, PrimarySelectionState } from "./SelectionState";
 import { TimelineT, time } from "./TimelineT";
 
-/**
- * TODO:
- * - Make timeline view track separator taller, like the one on the TrackHeader
- *   so it's easier to grab.
- * [x] Render with panning, gain, effects.
- * - Level Meters in DSP
- * [x] Drop to upload audio file
- * - DSP Bypass button get working
- * [x] DSP Search Box get working
- * [x] Overscroll towards the end of the project means we got to scroll extra to come back
- * [x] resizing with slider should resize around the cursor, not 0:00
- * [x] Load previous project if it exists, instead of creating a new one
- */
-
-export type XScale = ScaleLinear<number, number>;
-
 export type PointerTool = "move" | "trimStart" | "trimEnd" | "slice";
 export type SecondaryTool = "move" | "draw";
 export type Panel = "primary" | "secondary" | "sidebar";
-
 export type TimeSignature = readonly [numerator: number, denominator: number];
 export type AxisMeasure = "tempo" | "time";
 
 export class AudioProject {
   // settings //
-  readonly timeSignature = SPrimitive.of([4, 4] as const); // TODO: serialize
-  readonly primaryAxis = SPrimitive.of<AxisMeasure>("tempo"); // TODO: serialize
-  readonly snapToGrid = SPrimitive.of(false); // per project setting?
+  readonly timeSignature = SPrimitive.of([4, 4] as const); // TODO: serialize, unused
+  readonly primaryAxis = SPrimitive.of<AxisMeasure>("tempo"); // TODO: serialize, unused
 
   // systems //
   readonly viewport: ProjectViewport;
-
-  // Tracks //
-  // TODO: setOf
-  readonly solodTracks = set<AudioTrack | MidiTrack>(); // TODO: single track kind?
-  readonly dspExpandedTracks = set<AudioTrack | MidiTrack>();
-  readonly lockedTracks = set<AudioTrack | MidiTrack | StandardTrack<any>>();
-  // much like live, there's always an active track. Logic is a great model since
-  // the active track is clearly discernable in spite of multi-track selection.
-  // TODO: when undoing a track deletion, activetrack.name is being set to {_value: 'Audio', _id: '...'}. WHY?
-  // I'm guessing it's becuase history looks at every change, and tries to undo everything that happened when doing
-  // history.record(...). But why is activeTrack.name not set properly though?
-  readonly activeTrack = SPrimitive.of<AudioTrack | MidiTrack | null>(null);
-  readonly armedTrack = SPrimitive.of<AudioTrack | MidiTrack | null>(null);
-
-  // Pointer //
-  readonly pointerTool = SPrimitive.of<PointerTool>("move");
-  readonly panelTool = SPrimitive.of<SecondaryTool>("draw");
-  // the width of the selection at the playback cursor
-  // TODO: Rename cursor time width or something?
-  readonly selectionWidth = SPrimitive.of<number | null>(null);
-  readonly cursorPos = SPrimitive.of(0);
-  readonly cursorTracks = set<AudioTrack | MidiTrack>();
-  // ^^ TODO: a weak linked set might be a good idea
 
   // Selection //
 
@@ -92,14 +51,36 @@ export class AudioProject {
   constructor(
     readonly projectId: string,
     readonly projectName: SString,
-    // tracks
+    // tracks //
     readonly allTracks: SSchemaArray<AudioTrack | MidiTrack>,
-    // settings
+    readonly solodTracks: SSet<AudioTrack | MidiTrack>,
+    readonly dspExpandedTracks: SSet<AudioTrack | MidiTrack>,
+    readonly lockedTracks: SSet<AudioTrack | MidiTrack | StandardTrack<any>>,
+    // much like live, there's always an active track. Logic is a great model since
+    // the active track is clearly discernable in spite of multi-track selection.
+    // TODO: when undoing a track deletion, activetrack.name is being set to {_value: 'Audio', _id: '...'}. WHY?
+    // I'm guessing it's becuase history looks at every change, and tries to undo everything that happened when doing
+    // history.record(...). But why is activeTrack.name not set properly though?
+    readonly activeTrack: SPrimitive<AudioTrack | MidiTrack | null>,
+    readonly armedTrack: SPrimitive<AudioTrack | MidiTrack | null>,
+    // settings //
     readonly tempo: SNumber,
-    // looping
+    readonly snapToGrid: SBoolean,
+    // looping //
     readonly loopStart: TimelineT,
     readonly loopEnd: TimelineT,
     readonly loopOnPlayback: SBoolean,
+    // pointer //
+    readonly pointerTool: SPrimitive<PointerTool>,
+    readonly panelTool: SPrimitive<SecondaryTool>,
+    // the width of the selection at the playback cursor
+    // TODO: Rename cursor time width or something?
+    readonly selectionWidth: SPrimitive<number | null>,
+    readonly cursorPos: SNumber,
+    readonly cursorTracks: SSet<AudioTrack | MidiTrack>,
+    // ^^ TODO: a weak linked set might be a good idea
+
+    // viewport //
     scaleFactor: number,
     viewportStartPx: number,
   ) {
@@ -122,10 +103,21 @@ export class AudioProject {
       id,
       string("untitled"),
       arrayOf([AudioTrack, MidiTrack], []),
+      set<AudioTrack | MidiTrack>(),
+      set<AudioTrack | MidiTrack>(),
+      set<AudioTrack | MidiTrack | StandardTrack<any>>(),
+      SPrimitive.of<AudioTrack | MidiTrack | null>(null),
+      SPrimitive.of<AudioTrack | MidiTrack | null>(null),
       number(DEFAULT_TEMPO),
+      boolean(false),
       time(0, "pulses"),
       time(PPQN * 4, "pulses"),
       boolean(false),
+      SPrimitive.of<PointerTool>("move"),
+      SPrimitive.of<SecondaryTool>("draw"),
+      SPrimitive.of<number | null>(null),
+      SPrimitive.of(0),
+      set<AudioTrack | MidiTrack>(),
       10,
       0,
     );

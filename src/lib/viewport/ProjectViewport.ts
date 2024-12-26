@@ -1,11 +1,11 @@
-import { scaleLinear } from "d3-scale";
+import { ScaleLinear, scaleLinear } from "d3-scale";
 import { InitFunctions, JSONOfAuto, number, ReplaceFunctions, SNumber, Structured } from "structured-state";
 import { SECS_IN_MIN } from "../../constants";
 import { clamp, stepNumber } from "../../utils/math";
 import { nullthrows } from "../../utils/nullthrows";
 import { PPQN } from "../../wam/pianorollme/MIDIConfiguration";
 import { appEnvironment } from "../AppEnvironment";
-import { AudioProject, XScale } from "../project/AudioProject";
+import { AudioProject } from "../project/AudioProject";
 import { pulsesToSec, TimelineT } from "../project/TimelineT";
 import { DerivedState } from "../state/DerivedState";
 
@@ -13,6 +13,8 @@ type AutoProjectViewport = {
   viewportStartPx: SNumber;
   scaleFactor: SNumber;
 };
+
+export type XScale = ScaleLinear<number, number>;
 
 export class ProjectViewport extends Structured<AutoProjectViewport, typeof ProjectViewport> {
   readonly project: AudioProject;

@@ -1,12 +1,12 @@
 import { WamParameterDataMap } from "@webaudiomodules/api";
-import { arrayOf, boolean, number, string } from "structured-state";
+import { arrayOf, boolean, number, set, SPrimitive, string } from "structured-state";
 import { liveAudioContext } from "../constants";
 import { FaustEffectID } from "../dsp/FAUST_EFFECTS";
 import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioTrack } from "../lib/AudioTrack";
-import { AudioProject } from "../lib/project/AudioProject";
+import { AudioProject, PointerTool, SecondaryTool } from "../lib/project/AudioProject";
 import { time, TimeUnit } from "../lib/project/TimelineT";
 import { SMidiViewport } from "../lib/viewport/MidiViewport";
 import { MidiClip } from "../midi/MidiClip";
@@ -17,6 +17,7 @@ import { exhaustive } from "../utils/exhaustive";
 import { nullthrows } from "../utils/nullthrows";
 import { mutable } from "../utils/types";
 import { PambaWamNode } from "../wam/PambaWamNode";
+import { StandardTrack } from "../lib/ProjectTrack";
 
 export type SAudioClip = {
   kind: "AudioClip";
@@ -69,6 +70,9 @@ export type SAudioProject = {
   loopOnPlayback: boolean;
   scaleFactor: number;
   viewportStartPx: number;
+  snapToGrid: boolean;
+  pointerTool: PointerTool;
+  panelTool: SecondaryTool;
 };
 
 export type STimelineT = Readonly<{ t: number; u: TimeUnit }>;
@@ -165,6 +169,9 @@ export async function serializable(
       loopOnPlayback: obj.loopOnPlayback.get(),
       scaleFactor: obj.viewport.scaleFactor.get(),
       viewportStartPx: obj.viewport.viewportStartPx.get(),
+      snapToGrid: obj.snapToGrid.get(),
+      pointerTool: obj.pointerTool.get(),
+      panelTool: obj.panelTool.get(),
     };
   }
 
@@ -246,10 +253,21 @@ export async function construct(
         projectId,
         string(projectName),
         arrayOf([AudioTrack, MidiTrack], tracks),
+        set<AudioTrack | MidiTrack>(), // todo
+        set<AudioTrack | MidiTrack>(), // todo
+        set<AudioTrack | MidiTrack | StandardTrack<any>>(), // todo
+        SPrimitive.of<AudioTrack | MidiTrack | null>(null), // todo
+        SPrimitive.of<AudioTrack | MidiTrack | null>(null), // todo
         number(tempo),
+        boolean(rep.snapToGrid ?? false),
         time(loopStart.t, loopStart.u),
         time(loopEnd.t, loopEnd.u),
         boolean(loopOnPlayback),
+        SPrimitive.of<PointerTool>(rep.pointerTool ?? "move"), // todo
+        SPrimitive.of<SecondaryTool>(rep.panelTool ?? "draw"), // todo
+        SPrimitive.of<number | null>(null), // todo
+        SPrimitive.of(0), // todo
+        set<AudioTrack | MidiTrack>(), // todo
         scaleFactor,
         viewportStartPx,
       );
