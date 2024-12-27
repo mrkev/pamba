@@ -148,11 +148,6 @@ export const TrackHeader = React.memo(function TrackHeader({
             title="mute track"
             onClick={function (e) {
               setMuted((prev) => {
-                // if (!prev) {
-                //   track.dsp.setGain(0);
-                // } else {
-                //   track.dsp.setGain(gain);
-                // }
                 return !prev;
               });
               e.stopPropagation();

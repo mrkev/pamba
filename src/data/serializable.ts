@@ -300,13 +300,15 @@ export async function construct(
     }
 
     case "ProjectTrackDSP": {
-      console.log("rep.gain", rep.gain);
-      return new ProjectTrackDSP(
+      const result = new ProjectTrackDSP(
         string(rep.name),
         PBGainNode.of(rep.gain, liveAudioContext()),
         SArray.create([]),
         boolean(rep.bypass),
       );
+      console.log("rep.gain", rep.gain, result);
+
+      return result;
     }
 
     case "MidiInstrument": {

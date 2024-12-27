@@ -11,8 +11,8 @@ export class PBGainNode implements DSPStep<TrackedAudioNode> {
   readonly node: TrackedAudioNode<GainNode>;
   readonly gain: AudioParam;
 
-  private constructor(readonly gainNode: GainNode = new GainNode(liveAudioContext())) {
-    this.node = TrackedAudioNode.of(new GainNode(liveAudioContext()));
+  private constructor(gainNode: GainNode) {
+    this.node = TrackedAudioNode.of(gainNode);
     this.gain = this.node.get().gain;
   }
 
@@ -21,7 +21,7 @@ export class PBGainNode implements DSPStep<TrackedAudioNode> {
   }
 
   static defaultLive() {
-    return new PBGainNode();
+    return new PBGainNode(new GainNode(liveAudioContext()));
   }
 
   public inputNode(): TrackedAudioNode {

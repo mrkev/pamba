@@ -13,10 +13,12 @@ x live note editing
 x CMD+D for clips
 x midi drag clips
 x close plugin window if plugin is deleted/replaced(instrument)
-- persist solo / mute
-  - substate don't duplicate sset contents
+x persist solo / mute
+x persist track gain
 - persist wam params
 - duplicate doesn't correctly delete destination
+- undo solo / mute
+  - substate don't duplicate sset contents
 
 /**
  * TODO:
