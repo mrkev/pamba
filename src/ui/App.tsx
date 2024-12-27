@@ -133,15 +133,6 @@ export function App(): React.ReactElement {
   }
 }
 
-function AppLoadingProgress() {
-  const plugins = useContainer(appEnvironment.wamPlugins);
-  return (
-    <progress key="progress" max={WAMPLUGINS.length} value={plugins.size}>
-      Loading
-    </progress>
-  );
-}
-
 function InitButtion() {
   const [clicked, setClicked] = useState(false);
 

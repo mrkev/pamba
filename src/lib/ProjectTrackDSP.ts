@@ -1,15 +1,15 @@
 import { SArray, SBoolean, SString } from "structured-state";
 import { WebAudioPeakMeter } from "web-audio-peak-meter";
 import { liveAudioContext } from "../constants";
-import { DSPStep, DSPStepI } from "../dsp/DSPNode";
+import { DSPStep } from "../dsp/DSPStep";
 import { FaustEffectID } from "../dsp/FAUST_EFFECTS";
 import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
 import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
 import { PambaWamNode } from "../wam/PambaWamNode";
-import { DSP } from "./DSP";
+import { DSP } from "../dsp/DSP";
 import { PBGainNode } from "./offlineNodes";
 
-export class ProjectTrackDSP implements DSPStepI<null> {
+export class ProjectTrackDSP implements DSPStep<null> {
   readonly effectId = "builtin:ProjectTrackNode";
 
   // Hidden gain node, just for solo-ing tracks.

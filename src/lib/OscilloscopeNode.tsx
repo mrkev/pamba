@@ -1,35 +1,34 @@
 import { boolean, string } from "structured-state";
 import { CANVAS_HEIGHT, CANVAS_WIDTH, liveAudioContext, sampleSize } from "../constants";
-import { DSPStep } from "../dsp/DSPNode";
+import { DSPStep } from "../dsp/DSPStep";
 import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
 
 /**
  * Given a canvas, draws an oscilloscope waveform on it
  */
-export class OscilloscopeNode extends DSPStep<TrackedAudioNode> {
-  override readonly name = string("OscilloscopeNode");
-  override bypass = boolean(false);
+export class OscilloscopeNode implements DSPStep<TrackedAudioNode> {
+  readonly effectId: string = "OscilloscopeNode";
+  readonly name = string("OscilloscopeNode");
+  readonly bypass = boolean(false);
 
-  override cloneToOfflineContext(_: OfflineAudioContext): Promise<DSPStep<TrackedAudioNode> | null> {
+  public cloneToOfflineContext(_: OfflineAudioContext): Promise<DSPStep<TrackedAudioNode> | null> {
     throw new Error("OscilloscopeNode: cloneToOfflineContext: Method not implemented.");
   }
 
-  override effectId: string = "OscilloscopeNode";
   private readonly amplitudeArray: Uint8Array = new Uint8Array();
   private readonly analyserNode = TrackedAudioNode.of(liveAudioContext().createAnalyser());
   private readonly javascriptNode = TrackedAudioNode.of(liveAudioContext().createScriptProcessor(sampleSize, 1, 1));
   public canvasCtx: CanvasRenderingContext2D | null = null;
 
-  public override inputNode(): TrackedAudioNode {
+  public inputNode(): TrackedAudioNode {
     return this.analyserNode;
   }
 
-  public override outputNode(): TrackedAudioNode {
+  public outputNode(): TrackedAudioNode {
     return this.javascriptNode;
   }
 
   constructor() {
-    super();
     // Create the array for the data values
     this.amplitudeArray = new Uint8Array(this.analyserNode.get().frequencyBinCount);
     // Setup the event handler that is triggered every time enough samples have been collected

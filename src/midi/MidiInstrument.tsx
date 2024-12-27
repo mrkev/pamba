@@ -2,7 +2,7 @@ import type { WamNode, WamParameterDataMap, WebAudioModule } from "@webaudiomodu
 import { boolean, SString, string } from "structured-state";
 import { liveAudioContext } from "../constants";
 import { SMidiInstrument } from "../data/serializable";
-import { DSPStep } from "../dsp/DSPNode";
+import { DSPStep } from "../dsp/DSPStep";
 import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
 import { appEnvironment, WAMAvailablePlugin } from "../lib/AppEnvironment";
 import { LinkedState } from "../lib/state/LinkedState";
@@ -10,10 +10,10 @@ import { assert, nullthrows } from "../utils/nullthrows";
 import { Position } from "../wam/WindowPanel";
 
 // TODO: merge with PambaWamNode??
-export class MidiInstrument extends DSPStep<null> {
-  override effectId: string;
-  override name: SString;
-  override bypass = boolean(false);
+export class MidiInstrument implements DSPStep<null> {
+  readonly effectId: string;
+  readonly name: SString;
+  readonly bypass = boolean(false);
 
   readonly url: string;
 
@@ -23,10 +23,10 @@ export class MidiInstrument extends DSPStep<null> {
 
   public dom: Element | null;
 
-  override inputNode(): null {
+  public inputNode(): null {
     return null;
   }
-  override outputNode(): TrackedAudioNode {
+  public outputNode(): TrackedAudioNode {
     return this.node;
   }
 
@@ -47,7 +47,6 @@ export class MidiInstrument extends DSPStep<null> {
   readonly windowPanelPosition = LinkedState.of<Position>([10, 10]);
 
   constructor(module: WebAudioModule<WamNode>, url: string) {
-    super();
     this.module = module;
     this.node = TrackedAudioNode.of(this.module.audioNode);
     this.effectId = this.module.moduleId;

@@ -13,19 +13,20 @@ import {
   string,
 } from "structured-state";
 import { CLIP_HEIGHT, SECS_IN_MINUTE, SOUND_FONT_URL, TIME_SIGNATURE, liveAudioContext } from "../constants";
+import { connectSerialNodes } from "../dsp/connectSerialNodes";
+import { DSP } from "../dsp/DSP";
 import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
 import { appEnvironment } from "../lib/AppEnvironment";
+import { PBGainNode } from "../lib/offlineNodes";
+import { AudioProject } from "../lib/project/AudioProject";
 import { StandardTrack } from "../lib/ProjectTrack";
 import { ProjectTrackDSP } from "../lib/ProjectTrackDSP";
-import { connectSerialNodes } from "../lib/connectSerialNodes";
-import { AudioProject } from "../lib/project/AudioProject";
 import { nullthrows } from "../utils/nullthrows";
 import { MIDIConfiguration } from "../wam/pianorollme/MIDIConfiguration";
 import { PianoRollModule, PianoRollNode } from "../wam/pianorollme/PianoRollModule";
 import { MidiClip } from "./MidiClip";
 import { MidiInstrument } from "./MidiInstrument";
 import type { PianoRollProcessorMessage, SimpleMidiClip } from "./SharedMidiTypes";
-import { PBGainNode } from "../lib/offlineNodes";
 
 type AutoMidiTrack = {
   name: SString;
@@ -152,7 +153,7 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
     currInstr.module.audioNode.disconnect(this.pianoRoll.audioNode);
     this.pianoRoll.audioNode.disconnectEvents(instrument.module.instanceId);
     this.pianoRoll.audioNode.clearEvents();
-    currInstr.disconnectAll();
+    DSP.disconnectAll(currInstr);
     currInstr.module.audioNode.disconnect();
     currInstr.module.audioNode.disconnectEvents();
     currInstr.destroy();

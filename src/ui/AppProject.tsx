@@ -105,9 +105,7 @@ export function AppProject({ project }: { project: AudioProject }) {
           styles.secondaryPanel,
           activePanel === "secondary" ? styles.secondaryPanelActive : styles.secondaryPanelInactive,
         )}
-        extraControls={
-          <TransportControl style={{ marginTop: 2 }} project={project} renderer={renderer} recorder={recorder} />
-        }
+        extraControls={<TransportControl style={{ marginTop: 2 }} project={project} />}
         panels={{
           editor: {
             icon: <i className="ri-edit-line"></i>,

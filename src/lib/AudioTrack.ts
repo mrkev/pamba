@@ -19,7 +19,7 @@ import { MidiTrack } from "../midi/MidiTrack";
 import { mixDown } from "../mixDown";
 import { PambaWamNode } from "../wam/PambaWamNode";
 import { AudioClip } from "./AudioClip";
-import { connectSerialNodes } from "./connectSerialNodes";
+import { connectSerialNodes } from "../dsp/connectSerialNodes";
 import { AudioContextInfo } from "./initAudioContext";
 import { AudioProject } from "./project/AudioProject";
 import { ProjectTrack, StandardTrack } from "./ProjectTrack";

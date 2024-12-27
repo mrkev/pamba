@@ -7,9 +7,9 @@ import type {
   IFaustMonoWebAudioNode,
 } from "@grame/faustwasm";
 import { SBoolean, SMap, SString, string } from "structured-state";
-import { DSPStep } from "./DSPNode";
-import { TrackedAudioNode } from "./TrackedAudioNode";
+import { DSPStep } from "./DSPStep";
 import { FAUST_EFFECTS, FaustEffectID } from "./FAUST_EFFECTS";
+import { TrackedAudioNode } from "./TrackedAudioNode";
 
 // export type ProcessorLoader = (
 //   context: BaseAudioContext,
@@ -34,7 +34,7 @@ export interface LayoutTypeMap {
   radio: FaustUIInputItem;
 }
 
-export class FaustAudioEffect extends DSPStep<TrackedAudioNode> {
+export class FaustAudioEffect implements DSPStep<TrackedAudioNode> {
   private readonly faustNode: TrackedAudioNode<IFaustMonoWebAudioNode>;
   public readonly effectId: FaustEffectID;
   public readonly ui: FaustUIDescriptor;
@@ -42,7 +42,7 @@ export class FaustAudioEffect extends DSPStep<TrackedAudioNode> {
   public readonly params: SMap<string, number>;
 
   // TODO: serialize
-  override readonly bypass = SBoolean.create(false);
+  readonly bypass = SBoolean.create(false);
 
   private constructor(
     faustNode: IFaustMonoWebAudioNode,
@@ -50,7 +50,6 @@ export class FaustAudioEffect extends DSPStep<TrackedAudioNode> {
     effectId: FaustEffectID,
     params: Array<[string, number]>,
   ) {
-    super();
     this.effectId = effectId;
     this.faustNode = TrackedAudioNode.of(faustNode);
     this.ui = dspMeta.ui;
@@ -64,10 +63,10 @@ export class FaustAudioEffect extends DSPStep<TrackedAudioNode> {
     }
   }
 
-  override inputNode(): TrackedAudioNode {
+  public inputNode(): TrackedAudioNode {
     return this.faustNode;
   }
-  override outputNode(): TrackedAudioNode {
+  public outputNode(): TrackedAudioNode {
     return this.faustNode;
   }
 

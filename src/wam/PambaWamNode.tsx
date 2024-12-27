@@ -1,7 +1,7 @@
 import { WamNode as IWamNode } from "@webaudiomodules/api";
 import { boolean, SString, string } from "structured-state";
 import type { WebAudioModule } from "../../packages/sdk/dist";
-import { DSPStep } from "../dsp/DSPNode";
+import { DSPStep } from "../dsp/DSPStep";
 import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioContextInfo } from "../lib/initAudioContext";
@@ -9,17 +9,17 @@ import { LinkedState } from "../lib/state/LinkedState";
 import { Position } from "./WindowPanel";
 import { WAMImport } from "./wam";
 
-export class PambaWamNode extends DSPStep {
-  override name: SString;
-  override effectId: string;
+export class PambaWamNode implements DSPStep {
+  readonly name: SString;
+  readonly effectId: string;
   readonly url: string;
-  override bypass = boolean(false);
+  readonly bypass = boolean(false);
 
-  override inputNode(): TrackedAudioNode {
+  public inputNode(): TrackedAudioNode {
     return this.node;
   }
 
-  override outputNode(): TrackedAudioNode {
+  public outputNode(): TrackedAudioNode {
     return this.node;
   }
 
@@ -46,7 +46,6 @@ export class PambaWamNode extends DSPStep {
   }
 
   constructor(module: WebAudioModule<IWamNode>, dom: Element, url: string) {
-    super();
     this.module = module;
     this.node = TrackedAudioNode.of(module.audioNode);
     this.dom = dom;
@@ -74,7 +73,7 @@ export class PambaWamNode extends DSPStep {
     return new PambaWamNode(module, pluginDom1, url);
   }
 
-  override async cloneToOfflineContext(
+  public async cloneToOfflineContext(
     context: OfflineAudioContext,
     offlineContextInfo: AudioContextInfo,
   ): Promise<PambaWamNode | null> {

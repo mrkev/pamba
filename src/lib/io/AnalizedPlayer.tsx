@@ -2,10 +2,10 @@ import { SPrimitive } from "structured-state";
 import { liveAudioContext as liveAudioContextFn, sampleSize } from "../../constants";
 import { MidiTrack } from "../../midi/MidiTrack";
 // import SharedBufferWorkletNode from "./lib/shared-buffer-worklet-node";
+import { DSP } from "../../dsp/DSP";
 import { TrackedAudioNode } from "../../dsp/TrackedAudioNode";
 import { Seconds } from "../AbstractClip";
 import { AudioTrack } from "../AudioTrack";
-import { DSP } from "../DSP";
 import { OscilloscopeNode } from "../OscilloscopeNode";
 import { AudioProject } from "../project/AudioProject";
 
@@ -95,7 +95,7 @@ export class AnalizedPlayer {
     };
 
     // Need to connect to dest, otherwrise audio just doesn't flow through. This adds nothing, just silence though
-    this.oscilloscope.connect(this.destination);
+    DSP.connect(this.oscilloscope, this.destination);
     this.playbackTimeNode.connect(this.destination);
   }
 

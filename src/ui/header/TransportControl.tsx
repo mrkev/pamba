@@ -10,23 +10,10 @@ import { exhaustive } from "../../utils/exhaustive";
 import { utility } from "../utility";
 import { CommandButton } from "./CommandButton";
 
-export function TransportControl({
-  project,
-  renderer,
-  recorder,
-  style,
-}: {
-  project: AudioProject;
-  renderer: AudioRenderer;
-  recorder: AudioRecorder;
-  style?: React.CSSProperties;
-}) {
+export function TransportControl({ project, style }: { project: AudioProject; style?: React.CSSProperties }) {
   const cursorCanvasRef = useRef<HTMLCanvasElement>(null);
-  const [isAudioPlaying] = usePrimitive(renderer.isAudioPlaying);
   const [selectionWidth] = usePrimitive(project.selectionWidth);
-  const [recorderStatus] = useLinkedState(recorder.status);
   const [cursorPos] = usePrimitive(project.cursorPos);
-  const isRecording = recorderStatus === "recording";
 
   useEffect(() => {
     const canvas = cursorCanvasRef.current;

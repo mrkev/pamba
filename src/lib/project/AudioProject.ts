@@ -26,7 +26,7 @@ import { LinkedState } from "../state/LinkedState";
 import { ProjectViewport } from "../viewport/ProjectViewport";
 import { PanelSelectionState, PrimarySelectionState } from "./SelectionState";
 import { TimelineT, time } from "./TimelineT";
-import { DSP } from "../DSP";
+import { DSP } from "../../dsp/DSP";
 
 export type PointerTool = "move" | "trimStart" | "trimEnd" | "slice";
 export type SecondaryTool = "move" | "draw";

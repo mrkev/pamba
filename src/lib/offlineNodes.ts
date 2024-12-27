@@ -1,9 +1,9 @@
 import { boolean, string } from "structured-state";
 import { liveAudioContext } from "../constants";
-import { DSPStepI } from "../dsp/DSPNode";
+import { DSPStep } from "../dsp/DSPStep";
 import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
 
-export class PBGainNode implements DSPStepI<TrackedAudioNode> {
+export class PBGainNode implements DSPStep<TrackedAudioNode> {
   readonly effectId: string = "PBGainNode";
   readonly name = string("PBGainNode");
   readonly bypass = boolean(false);
