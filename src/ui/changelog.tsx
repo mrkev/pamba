@@ -2,6 +2,7 @@ export const changelog = `
 next
 - save track mute stauts
 - persist track gain
+- fix persisting effects
 
 v0.2.6
 - add pro54 and TX81Z synths

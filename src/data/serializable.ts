@@ -6,6 +6,9 @@ import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioTrack } from "../lib/AudioTrack";
+import { StandardTrack } from "../lib/ProjectTrack";
+import { ProjectTrackDSP } from "../lib/ProjectTrackDSP";
+import { PBGainNode } from "../lib/offlineNodes";
 import { AudioProject, PointerTool, SecondaryTool } from "../lib/project/AudioProject";
 import { time, TimeUnit } from "../lib/project/TimelineT";
 import { SMidiViewport } from "../lib/viewport/MidiViewport";
@@ -17,9 +20,6 @@ import { exhaustive } from "../utils/exhaustive";
 import { nullthrows } from "../utils/nullthrows";
 import { mutable } from "../utils/types";
 import { PambaWamNode } from "../wam/PambaWamNode";
-import { StandardTrack } from "../lib/ProjectTrack";
-import { ProjectTrackDSP } from "../lib/ProjectTrackDSP";
-import { PBGainNode } from "../lib/offlineNodes";
 
 export type SAudioClip = {
   kind: "AudioClip";
@@ -43,7 +43,6 @@ export type SMidiClip = Readonly<{
 export type SAudioTrack = {
   kind: "AudioTrack";
   clips: Array<SAudioClip>;
-  effects: Array<SFaustAudioEffect | SPambaWamNode>;
   height: number;
   name: string;
   dsp: SProjectTrackDSP;
@@ -61,6 +60,7 @@ export type SProjectTrackDSP = {
   name: string;
   bypass: boolean;
   gain: number;
+  effects: Array<SFaustAudioEffect | SPambaWamNode>;
 };
 
 export type SMidiInstrument = {
@@ -162,7 +162,6 @@ export async function serializable(
     return {
       kind: "AudioTrack",
       clips: await Promise.all(obj.clips._getRaw().map((clip) => serializable(clip))),
-      effects: await Promise.all(obj.dsp.effects._getRaw().map((effect) => serializable(effect))),
       height: obj.height.get(),
       name: obj.name.get(),
       dsp: await serializable(obj.dsp),
@@ -182,6 +181,7 @@ export async function serializable(
     return {
       kind: "ProjectTrackDSP",
       name: obj.name.get(),
+      effects: await Promise.all(obj.effects._getRaw().map((effect) => serializable(effect))),
       bypass: obj.bypass.get(),
       gain: obj.gainNode.gain.value,
     };
@@ -277,18 +277,12 @@ export async function construct(
       return MidiClip.of(name, startOffsetPulses, lengthPulses, mutable(notes));
     }
     case "AudioTrack": {
-      const { name, clips: sClips, effects: sEffects, height } = rep;
+      const { name, clips: sClips, height } = rep;
       const clips = await Promise.all(sClips.map((clip) => construct(clip)));
-      const effects = await Promise.all(sEffects.map((effect) => construct(effect)));
       const projectTrackDSP =
         "dsp" in rep
           ? await construct(rep.dsp)
-          : new ProjectTrackDSP(
-              string("AudioTrackDSP"),
-              PBGainNode.defaultLive(),
-              SArray.create(effects),
-              boolean(false),
-            );
+          : new ProjectTrackDSP(string("AudioTrackDSP"), PBGainNode.defaultLive(), SArray.create([]), boolean(false));
       return AudioTrack.of(name, clips, height, projectTrackDSP);
     }
 
@@ -300,10 +294,12 @@ export async function construct(
     }
 
     case "ProjectTrackDSP": {
+      const effects = await Promise.all(rep.effects?.map((effect) => construct(effect)) ?? []);
+
       const result = new ProjectTrackDSP(
         string(rep.name),
         PBGainNode.of(rep.gain, liveAudioContext()),
-        SArray.create([]),
+        SArray.create(effects),
         boolean(rep.bypass),
       );
       console.log("rep.gain", rep.gain, result);

@@ -48,7 +48,6 @@ export function trackHeaderContainerCanHandleTransfer(dataTransfer: DataTransfer
 // so best we can do is accept any file with "Files". We just know if the dataTransfer has files
 // when "Files" shoes up in dataTransfer.types
 export function hasResouceKind(dataTransfer: DataTransfer, ...kinds: (PambaDataTransferResourceKind | "Files")[]) {
-  console.log(dataTransfer.types);
   for (const kind of kinds) {
     if (dataTransfer.types.indexOf(kind) > -1) {
       return true;
