@@ -5,19 +5,19 @@ import { useContainer, usePrimitive } from "structured-state";
 import useResizeObserver from "use-resize-observer";
 import { MAX_TIMELINE_SCALE, MIN_TIMELINE_SCALE } from "../constants";
 import { useTimelineMouseEvents } from "../input/useProjectMouseEvents";
+import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioRenderer } from "../lib/io/AudioRenderer";
 import { AudioProject } from "../lib/project/AudioProject";
 import { AudioStorage } from "../lib/project/AudioStorage";
-import { pressedState } from "./pressedState";
 import { clamp } from "../utils/math";
 import { nullthrows } from "../utils/nullthrows";
 import { Axis } from "./Axis";
 import { getTrackAcceptableDataTransferResources } from "./dragdrop/getTrackAcceptableDataTransferResources";
 import { handleDropOntoTimelineWhitespace } from "./dragdrop/resourceDrop";
-import { TimelineCursor } from "./TimelineCursor";
+import { pressedState } from "./pressedState";
+import { TimelineCursor, TimelineLine } from "./TimelineCursor";
 import { TrackS } from "./TrackS";
 import { useEventListener } from "./useEventListener";
-import { appEnvironment } from "../lib/AppEnvironment";
 
 export async function getDroppedAudioURL(audioStorage: AudioStorage | null, dataTransfer: DataTransfer) {
   if (audioStorage == null) {
@@ -50,6 +50,7 @@ export async function getDroppedAudioURL(audioStorage: AudioStorage | null, data
 }
 
 export function ProjectView({ project, renderer }: { project: AudioProject; renderer: AudioRenderer }) {
+  const classes = useStyles();
   const projectDivRef = useRef<HTMLDivElement | null>(null);
   const dspExpandedTracks = useContainer(project.dspExpandedTracks);
   const [draggingOver, setDraggingOver] = useState<boolean>(false);
@@ -59,6 +60,7 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
   const playbackPosDiv = useRef<null | HTMLDivElement>(null);
   const player = renderer.analizedPlayer;
   const [scale] = usePrimitive(project.viewport.scaleFactor);
+  const [loopPlayback] = usePrimitive(project.loopOnPlayback);
 
   useLayoutEffect(() => {
     const pbdiv = playbackPosDiv.current;
@@ -66,6 +68,21 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
       pbdiv.style.left = String(project.viewport.secsToPx(player.playbackTime)) + "px";
     }
   }, [player, project.viewport, scale]);
+
+  useLayoutEffect(() => {
+    const width = projectDivRef.current?.getBoundingClientRect().width;
+    if (width) {
+      project.viewport.projectDivWidth.set(width);
+    }
+  }, [project.viewport.projectDivWidth]);
+
+  useLayoutEffect(() => {
+    if (!projectDivRef) {
+      return;
+    }
+
+    projectDivRef.current?.scrollTo({ left: viewportStartPx, behavior: "instant" });
+  }, [viewportStartPx]);
 
   useEffect(() => {
     player.onFrame = function (playbackTime) {
@@ -134,21 +151,6 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
     ),
   });
 
-  useLayoutEffect(() => {
-    const width = projectDivRef.current?.getBoundingClientRect().width;
-    if (width) {
-      project.viewport.projectDivWidth.set(width);
-    }
-  }, [project.viewport.projectDivWidth]);
-
-  useLayoutEffect(() => {
-    if (!projectDivRef) {
-      return;
-    }
-
-    projectDivRef.current?.scrollTo({ left: viewportStartPx, behavior: "instant" });
-  }, [viewportStartPx]);
-
   const onDrop = useCallback(
     async (ev: React.DragEvent<HTMLDivElement>) => {
       ev.preventDefault();
@@ -176,7 +178,6 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
     [audioStorage, project],
   );
 
-  const classes = useStyles();
   return (
     <div
       id="projectDiv"
@@ -232,8 +233,12 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
           Create a new track from audio
         </div>
       )}
+      {/*  */}
       <TimelineCursor project={project} />
       <div ref={playbackPosDiv} className={classes.playbackPosDiv}></div>
+
+      {loopPlayback && <TimelineLine project={project} pos={project.loopStart} color={"rgb(255,165,0)"} />}
+      {loopPlayback && <TimelineLine project={project} pos={project.loopEnd} color={"rgb(255,165,0)"} />}
     </div>
   );
 }

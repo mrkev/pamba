@@ -1,6 +1,31 @@
-import { usePrimitive } from "structured-state";
+import { useContainer, usePrimitive } from "structured-state";
 import { AudioProject } from "../lib/project/AudioProject";
 import { useDerivedState } from "../lib/state/DerivedState";
+import { TimelineT } from "../lib/project/TimelineT";
+
+export function TimelineLine({ project, pos, color }: { project: AudioProject; pos: TimelineT; color: string }) {
+  const linePos = useContainer(pos);
+
+  // just to listen to it
+  // todo: a way to subscribe to any viewport change?
+  usePrimitive(project.viewport.scaleFactor);
+  const [viewportStartPx] = usePrimitive(project.viewport.viewportStartPx);
+
+  return (
+    <div
+      style={{
+        borderLeft: `1px solid ${color}`,
+        height: "100%",
+        position: "absolute",
+        userSelect: "none",
+        pointerEvents: "none",
+        // huh?
+        left: linePos.px(project) + viewportStartPx,
+        top: 0,
+      }}
+    />
+  );
+}
 
 export function TimelineCursor({ project, isHeader }: { project: AudioProject; isHeader?: boolean }) {
   const secsToPx = useDerivedState(project.viewport.secsToPxDS);

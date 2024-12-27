@@ -3,6 +3,7 @@ next
 - save track mute stauts
 - persist track gain
 - fix persisting effects
+- looping line markers
 
 v0.2.6
 - add pro54 and TX81Z synths
