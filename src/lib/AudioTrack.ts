@@ -13,18 +13,18 @@ import {
   Structured,
 } from "structured-state";
 import { CLIP_HEIGHT } from "../constants";
+import { DSP } from "../dsp/DSP";
 import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
 import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
 import { MidiTrack } from "../midi/MidiTrack";
 import { mixDown } from "../mixDown";
 import { PambaWamNode } from "../wam/PambaWamNode";
 import { AudioClip } from "./AudioClip";
-import { connectSerialNodes } from "../dsp/connectSerialNodes";
 import { AudioContextInfo } from "./initAudioContext";
+import { PBGainNode } from "./offlineNodes";
 import { AudioProject } from "./project/AudioProject";
 import { ProjectTrack, StandardTrack } from "./ProjectTrack";
 import { ProjectTrackDSP } from "./ProjectTrackDSP";
-import { PBGainNode } from "./offlineNodes";
 // import { TrackThread } from "./TrackThread";
 
 type AutoAudioTrack = {
@@ -80,21 +80,22 @@ export class AudioTrack extends Structured<AutoAudioTrack, typeof AudioTrack> im
   }
 
   static construct(auto: JSONOfAuto<AutoAudioTrack>, init: InitFunctions): AudioTrack {
+    const projectTrackDSP = new ProjectTrackDSP(
+      string("AudioTrackDSP"),
+      PBGainNode.defaultLive(),
+      SArray.create(
+        // todo effects
+        [],
+      ),
+      boolean(false),
+    );
+
     return Structured.create(
       AudioTrack,
       init.string(auto.name),
       init.schemaArray(auto.clips, [AudioClip]),
-
       init.number(auto.height),
-      new ProjectTrackDSP(
-        string("AudioTrackDSP"),
-        boolean(false),
-        PBGainNode.defaultLive(),
-        SArray.create(
-          // todo effects
-          [],
-        ),
-      ),
+      projectTrackDSP,
     );
   }
 
@@ -105,7 +106,7 @@ export class AudioTrack extends Structured<AutoAudioTrack, typeof AudioTrack> im
       string("Audio"),
       arrayOf([AudioClip], []),
       number(CLIP_HEIGHT),
-      new ProjectTrackDSP(string("AudioTrackDSP"), boolean(false), PBGainNode.defaultLive(), effects),
+      new ProjectTrackDSP(string("AudioTrackDSP"), PBGainNode.defaultLive(), effects, boolean(false)),
     );
   }
 
@@ -162,7 +163,7 @@ export class AudioTrack extends Structured<AutoAudioTrack, typeof AudioTrack> im
 
     const _hiddenGainNode = await this.dsp._hiddenGainNode.cloneToOfflineContext(context);
 
-    connectSerialNodes([
+    DSP.connectSerialNodes([
       ///
       this.playingSource,
       await this.dsp.gainNode.cloneToOfflineContext(context),

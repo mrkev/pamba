@@ -285,9 +285,9 @@ export async function construct(
           ? await construct(rep.dsp)
           : new ProjectTrackDSP(
               string("AudioTrackDSP"),
-              boolean(false),
               PBGainNode.defaultLive(),
               SArray.create(effects),
+              boolean(false),
             );
       return AudioTrack.of(name, clips, height, projectTrackDSP);
     }
@@ -303,9 +303,9 @@ export async function construct(
       console.log("rep.gain", rep.gain);
       return new ProjectTrackDSP(
         string(rep.name),
-        boolean(rep.bypass),
         PBGainNode.of(rep.gain, liveAudioContext()),
         SArray.create([]),
+        boolean(rep.bypass),
       );
     }
 

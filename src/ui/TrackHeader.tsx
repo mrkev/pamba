@@ -33,7 +33,7 @@ export const TrackHeader = React.memo(function TrackHeader({
 }) {
   const styles = useStyles();
   const [gain, setGain] = useState<number>(track.dsp.getCurrentGain().value);
-  const [muted, setMuted] = useState<boolean>(false);
+  const [muted, setMuted] = usePrimitive<boolean>(track.dsp.bypass);
   const dspExpandedTracks = useContainer(project.dspExpandedTracks);
   const solodTracks = useContainer(project.solodTracks);
   const lockedTracks = useContainer(project.lockedTracks);
@@ -148,11 +148,11 @@ export const TrackHeader = React.memo(function TrackHeader({
             title="mute track"
             onClick={function (e) {
               setMuted((prev) => {
-                if (!prev) {
-                  track.dsp.setGain(0);
-                } else {
-                  track.dsp.setGain(gain);
-                }
+                // if (!prev) {
+                //   track.dsp.setGain(0);
+                // } else {
+                //   track.dsp.setGain(gain);
+                // }
                 return !prev;
               });
               e.stopPropagation();

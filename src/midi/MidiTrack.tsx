@@ -117,7 +117,7 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
     this.playingSource = null;
     this.pianoRoll = pianoRoll as any;
     this.instrument = SPrimitive.of(instrument);
-    this.dsp = new ProjectTrackDSP(string("MidiTrackDSP"), boolean(false), PBGainNode.defaultLive(), SArray.create([]));
+    this.dsp = new ProjectTrackDSP(string("MidiTrackDSP"), PBGainNode.defaultLive(), SArray.create([]), boolean(false));
     this.name = SPrimitive.of(name);
     this.height = SPrimitive.of<number>(CLIP_HEIGHT);
 

@@ -1,12 +1,12 @@
 import { SArray, SBoolean, SString } from "structured-state";
 import { WebAudioPeakMeter } from "web-audio-peak-meter";
 import { liveAudioContext } from "../constants";
+import { DSP } from "../dsp/DSP";
 import { DSPStep } from "../dsp/DSPStep";
 import { FaustEffectID } from "../dsp/FAUST_EFFECTS";
 import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
 import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
 import { PambaWamNode } from "../wam/PambaWamNode";
-import { DSP } from "../dsp/DSP";
 import { PBGainNode } from "./offlineNodes";
 
 export class ProjectTrackDSP implements DSPStep<null> {
@@ -19,13 +19,16 @@ export class ProjectTrackDSP implements DSPStep<null> {
 
   constructor(
     readonly name: SString,
-    readonly bypass: SBoolean,
     readonly gainNode: PBGainNode, // The "volume" of the track
     readonly effects: SArray<FaustAudioEffect | PambaWamNode>,
+    readonly bypass: SBoolean, // effectively used as mute
   ) {
     this._hiddenGainNode = PBGainNode.defaultLive();
     // TODO: garbage collect?
     this.meterInstance = new WebAudioPeakMeter(this._hiddenGainNode.outputNode().get(), undefined as any);
+
+    // connections //
+    DSP.connect(this.gainNode, this._hiddenGainNode.node);
   }
 
   inputNode(): null {
@@ -41,34 +44,29 @@ export class ProjectTrackDSP implements DSPStep<null> {
   }
 
   connectToDSPForPlayback(source: TrackedAudioNode): void {
-    // We need to keep a reference to our source node for play/pause
-    const effectNodes = this.effects._getRaw();
+    if (this.bypass.get()) {
+      return;
+    }
+
     DSP.connectSerialNodes([
       ///
       source,
-      ...effectNodes,
+      ...this.effects._getRaw(),
       this.gainNode,
-      this._hiddenGainNode.node,
     ]);
   }
 
   disconnectDSPAfterPlayback(source: TrackedAudioNode): void {
-    const chain = [
-      // foo
+    if (this.bypass.get()) {
+      return;
+    }
+
+    DSP.disconnectSerialNodes([
+      ///
       source,
       ...this.effects._getRaw(),
       this.gainNode.node,
-      this._hiddenGainNode.node,
-    ];
-
-    DSP.disconnectSerialNodes(chain);
-
-    // for (let i = 0; i < chain.length - 1; i++) {
-    //   const currentNode = chain[i];
-    //   const nextNode = chain[i + 1];
-
-    //   currentNode.disconnect(nextNode);
-    // }
+    ]);
   }
 
   ////////////////////// GAIN ///////////////////////
