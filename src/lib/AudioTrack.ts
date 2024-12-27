@@ -1,5 +1,6 @@
 import {
   arrayOf,
+  boolean,
   InitFunctions,
   JSONOfAuto,
   number,
@@ -51,7 +52,7 @@ export class AudioTrack extends Structured<AutoAudioTrack, typeof AudioTrack> im
   ) {
     super();
     this.playingSource = null;
-    this.dsp = new ProjectTrackDSP(string("AudioTrackDSP"), effects);
+    this.dsp = new ProjectTrackDSP(string("AudioTrackDSP"), boolean(false), effects);
   }
 
   static of(name: string, clips: AudioClip[], effects: (FaustAudioEffect | PambaWamNode)[], height: number) {

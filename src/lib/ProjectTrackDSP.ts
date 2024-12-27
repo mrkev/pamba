@@ -1,4 +1,4 @@
-import { boolean, SArray, SString } from "structured-state";
+import { SArray, SBoolean, SString } from "structured-state";
 import { WebAudioPeakMeter } from "web-audio-peak-meter";
 import { liveAudioContext } from "../constants";
 import { DSPStep, DSPStepI } from "../dsp/DSPNode";
@@ -11,7 +11,6 @@ import { PBGainNode } from "./offlineNodes";
 
 export class ProjectTrackDSP implements DSPStepI<null> {
   readonly effectId = "builtin:ProjectTrackNode";
-  readonly bypass = boolean(false);
 
   // DSP
   public readonly effects: SArray<FaustAudioEffect | PambaWamNode>;
@@ -24,6 +23,7 @@ export class ProjectTrackDSP implements DSPStepI<null> {
 
   constructor(
     readonly name: SString,
+    readonly bypass: SBoolean,
     effects: (FaustAudioEffect | PambaWamNode)[],
   ) {
     this.effects = SArray.create(effects);

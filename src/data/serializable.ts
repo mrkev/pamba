@@ -18,6 +18,7 @@ import { nullthrows } from "../utils/nullthrows";
 import { mutable } from "../utils/types";
 import { PambaWamNode } from "../wam/PambaWamNode";
 import { StandardTrack } from "../lib/ProjectTrack";
+import { ProjectTrackDSP } from "../lib/ProjectTrackDSP";
 
 export type SAudioClip = {
   kind: "AudioClip";
@@ -51,6 +52,12 @@ export type SMidiTrack = {
   clips: Array<SMidiClip>;
   name: string;
   instrument: SMidiInstrument;
+};
+
+export type SProjectTrackDSP = {
+  kind: "ProjectTrackDSP";
+  name: string;
+  bypass: boolean;
 };
 
 export type SMidiInstrument = {
@@ -101,8 +108,18 @@ export async function serializable(obj: AudioTrack | MidiTrack): Promise<SAudioT
 export async function serializable(obj: AudioClip): Promise<SAudioClip>;
 export async function serializable(obj: MidiClip): Promise<SMidiClip>;
 export async function serializable(obj: MidiInstrument): Promise<SMidiInstrument>;
+export async function serializable(obj: ProjectTrackDSP): Promise<SProjectTrackDSP>;
 export async function serializable(
-  obj: AudioClip | AudioTrack | MidiClip | MidiTrack | AudioProject | FaustAudioEffect | PambaWamNode | MidiInstrument,
+  obj:
+    | AudioClip
+    | AudioTrack
+    | MidiClip
+    | MidiTrack
+    | AudioProject
+    | FaustAudioEffect
+    | PambaWamNode
+    | MidiInstrument
+    | ProjectTrackDSP,
 ): Promise<
   | SAudioClip
   | SAudioTrack
@@ -112,6 +129,7 @@ export async function serializable(
   | SFaustAudioEffect
   | SPambaWamNode
   | SMidiInstrument
+  | SProjectTrackDSP
 > {
   if (obj instanceof AudioClip) {
     const { name, bufferURL, bufferOffset, timelineStart, timelineLength } = obj;
@@ -153,6 +171,14 @@ export async function serializable(
       name: obj.name.get(),
       clips: await Promise.all(obj.clips.map((clip) => serializable(clip) as any)), // TODO: as any?
       instrument: await obj.instrument.get().serialize(),
+    };
+  }
+
+  if (obj instanceof ProjectTrackDSP) {
+    return {
+      kind: "ProjectTrackDSP",
+      name: obj.name.get(),
+      bypass: obj.bypass.get(),
     };
   }
 
@@ -212,6 +238,7 @@ export async function construct(rep: SAudioClip): Promise<AudioClip>;
 export async function construct(rep: SMidiClip): Promise<MidiClip>;
 export async function construct(rep: SAudioTrack | SMidiTrack): Promise<AudioTrack | MidiTrack>;
 export async function construct(rep: SMidiInstrument): Promise<MidiInstrument>;
+export async function construct(rep: SProjectTrackDSP): Promise<ProjectTrackDSP>;
 export async function construct(
   rep:
     | SAudioClip
@@ -221,9 +248,18 @@ export async function construct(
     | SAudioProject
     | SFaustAudioEffect
     | SPambaWamNode
-    | SMidiInstrument,
+    | SMidiInstrument
+    | SProjectTrackDSP,
 ): Promise<
-  AudioClip | MidiClip | AudioTrack | MidiTrack | AudioProject | FaustAudioEffect | PambaWamNode | MidiInstrument
+  | AudioClip
+  | MidiClip
+  | AudioTrack
+  | MidiTrack
+  | AudioProject
+  | FaustAudioEffect
+  | PambaWamNode
+  | MidiInstrument
+  | ProjectTrackDSP
 > {
   switch (rep.kind) {
     case "AudioClip": {
@@ -247,6 +283,10 @@ export async function construct(
       const clips = await Promise.all(sClips.map((clip) => construct(clip)));
       const instrument = await construct(rep.instrument);
       return MidiTrack.createWithInstrument(instrument, name, clips);
+    }
+
+    case "ProjectTrackDSP": {
+      return new ProjectTrackDSP(string(rep.name), boolean(rep.bypass), []);
     }
 
     case "MidiInstrument": {

@@ -5,9 +5,9 @@ import { MidiTrack } from "../../midi/MidiTrack";
 import { TrackedAudioNode } from "../../dsp/TrackedAudioNode";
 import { Seconds } from "../AbstractClip";
 import { AudioTrack } from "../AudioTrack";
+import { DSP } from "../DSP";
 import { OscilloscopeNode } from "../OscilloscopeNode";
 import { AudioProject } from "../project/AudioProject";
-import { DSP } from "../DSP";
 
 // sbwNode.onInitialized = () => {
 //   oscillator.connect(sbwNode).connect(context.destination);

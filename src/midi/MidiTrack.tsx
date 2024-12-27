@@ -8,6 +8,7 @@ import {
   SString,
   Structured,
   arrayOf,
+  boolean,
   string,
 } from "structured-state";
 import { CLIP_HEIGHT, SECS_IN_MINUTE, SOUND_FONT_URL, TIME_SIGNATURE, liveAudioContext } from "../constants";
@@ -113,7 +114,7 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
     this.playingSource = null;
     this.pianoRoll = pianoRoll as any;
     this.instrument = SPrimitive.of(instrument);
-    this.dsp = new ProjectTrackDSP(string("MidiTrackDSP"), []);
+    this.dsp = new ProjectTrackDSP(string("MidiTrackDSP"), boolean(false), []);
     this.name = SPrimitive.of(name);
     this.height = SPrimitive.of<number>(CLIP_HEIGHT);
 
