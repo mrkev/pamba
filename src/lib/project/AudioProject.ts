@@ -26,6 +26,7 @@ import { LinkedState } from "../state/LinkedState";
 import { ProjectViewport } from "../viewport/ProjectViewport";
 import { PanelSelectionState, PrimarySelectionState } from "./SelectionState";
 import { TimelineT, time } from "./TimelineT";
+import { DSP } from "../DSP";
 
 export type PointerTool = "move" | "trimStart" | "trimEnd" | "slice";
 export type SecondaryTool = "move" | "draw";
@@ -73,6 +74,7 @@ export class AudioProject {
     // pointer //
     readonly pointerTool: SPrimitive<PointerTool>,
     readonly panelTool: SPrimitive<SecondaryTool>,
+    // selection //
     // the width of the selection at the playback cursor
     // TODO: Rename cursor time width or something?
     readonly selectionWidth: SPrimitive<number | null>,
@@ -85,7 +87,7 @@ export class AudioProject {
     viewportStartPx: number,
   ) {
     allTracks.map((track) => {
-      track.dsp.connect(appEnvironment.renderer.analizedPlayer.mixDownNode);
+      DSP.connect(track.dsp, appEnvironment.renderer.analizedPlayer.mixDownNode);
     });
 
     this.viewport = Structured.create(ProjectViewport, this, number(0), number(scaleFactor), number(viewportStartPx));
@@ -150,7 +152,8 @@ export class AudioProject {
       console.log("ADDED TO PLAYBACK");
       player.addTrackToPlayback(project, newTrack, project.cursorPos.get(), project.tempo.get());
     }
-    newTrack.dsp.connect(appEnvironment.renderer.analizedPlayer.mixDownNode);
+
+    DSP.connect(newTrack.dsp, appEnvironment.renderer.analizedPlayer.mixDownNode);
     return newTrack;
   }
 
@@ -162,7 +165,7 @@ export class AudioProject {
       project.allTracks.push(newTrack);
     }
 
-    newTrack.dsp.connect(appEnvironment.renderer.analizedPlayer.mixDownNode);
+    DSP.connect(newTrack.dsp, appEnvironment.renderer.analizedPlayer.mixDownNode);
     return newTrack;
   }
 
@@ -180,7 +183,8 @@ export class AudioProject {
     }
 
     project.allTracks.splice(pos, 1);
-    track.dsp.disconnectAll();
+
+    DSP.disconnectAll(track.dsp);
 
     // Update selected
     if (selected && selected.status === "tracks" && selected.test.has(track)) {

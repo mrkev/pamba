@@ -6,6 +6,7 @@ next
 - fix midi clip moving
 - CMD+D duplicates selected clip
 - when replacing and open instrument, new instrument window replaces the old one
+- save solo'd, dsp expanded, locked track status
 
 v0.2.5
 - live midi node editing

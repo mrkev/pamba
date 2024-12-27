@@ -32,7 +32,7 @@ type AutoMidiTrack = {
 
 export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> implements StandardTrack<MidiClip> {
   public readonly name: SString;
-  public readonly dsp: ProjectTrackDSP<MidiClip>;
+  public readonly dsp: ProjectTrackDSP;
   public readonly clips: SSchemaArray<MidiClip>;
   public readonly height: SNumber;
 

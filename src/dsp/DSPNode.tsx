@@ -4,7 +4,7 @@ import type { AudioContextInfo } from "../lib/initAudioContext";
 import type { TrackedAudioNode } from "./TrackedAudioNode";
 
 /** todo, eventaully make an interface probably */
-export abstract class DSPStep<I extends TrackedAudioNode | null = TrackedAudioNode> {
+export abstract class DSPStep<I extends TrackedAudioNode | null = TrackedAudioNode> implements DSPStepI<I> {
   abstract readonly effectId: string;
 
   abstract readonly name: SString;
@@ -29,4 +29,16 @@ export abstract class DSPStep<I extends TrackedAudioNode | null = TrackedAudioNo
   public disconnectAll() {
     DSP.disconnectAll(this);
   }
+}
+
+export interface DSPStepI<I extends TrackedAudioNode | null = TrackedAudioNode> {
+  readonly effectId: string;
+
+  readonly name: SString;
+  readonly bypass: SBoolean;
+
+  inputNode(): I;
+  outputNode(): TrackedAudioNode;
+
+  cloneToOfflineContext(context: OfflineAudioContext, offlineContextInfo: AudioContextInfo): Promise<DSPStep | null>;
 }

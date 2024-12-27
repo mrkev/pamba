@@ -65,6 +65,9 @@ export type SAudioProject = {
   projectName: string;
   tempo: number;
   tracks: Array<SAudioTrack | SMidiTrack>;
+  solodTracks: Array<number>;
+  dspExpandedTracks: Array<number>;
+  lockedTracks: Array<number>;
   loopStart: STimelineT;
   loopEnd: STimelineT;
   loopOnPlayback: boolean;
@@ -158,12 +161,19 @@ export async function serializable(
   }
 
   if (obj instanceof AudioProject) {
+    const allTracks = obj.allTracks._getRaw();
+    const solodTracks = obj.solodTracks.map((track) => allTracks.indexOf(track));
+    const lockedTracks = obj.lockedTracks.map((track) => allTracks.indexOf(track as any));
+    const dspExpandedTracks = obj.dspExpandedTracks.map((track) => allTracks.indexOf(track));
     return {
       kind: "AudioProject",
       projectId: obj.projectId,
       projectName: obj.projectName.get(),
       tempo: obj.tempo.get(),
-      tracks: await Promise.all(obj.allTracks._getRaw().map((track) => serializable(track))),
+      tracks: await Promise.all(allTracks.map((track) => serializable(track))),
+      solodTracks,
+      lockedTracks,
+      dspExpandedTracks,
       loopStart: obj.loopStart.serialize(),
       loopEnd: obj.loopEnd.serialize(),
       loopOnPlayback: obj.loopOnPlayback.get(),
@@ -249,13 +259,16 @@ export async function construct(
     case "AudioProject": {
       const tracks = await Promise.all(rep.tracks.map((clip) => construct(clip)));
       const { projectId, projectName, tempo, loopStart, loopEnd, loopOnPlayback, scaleFactor, viewportStartPx } = rep;
+      const solodTracks = rep.solodTracks?.map((index) => tracks[index]) ?? [];
+      const dspExpandedTracks = rep.dspExpandedTracks?.map((index) => tracks[index]) ?? [];
+      const lockedTracks = rep.lockedTracks?.map((index) => tracks[index]) ?? [];
       return new AudioProject(
         projectId,
         string(projectName),
         arrayOf([AudioTrack, MidiTrack], tracks),
-        set<AudioTrack | MidiTrack>(), // todo
-        set<AudioTrack | MidiTrack>(), // todo
-        set<AudioTrack | MidiTrack | StandardTrack<any>>(), // todo
+        set<AudioTrack | MidiTrack>(solodTracks),
+        set<AudioTrack | MidiTrack>(dspExpandedTracks),
+        set<AudioTrack | MidiTrack | StandardTrack<any>>(lockedTracks),
         SPrimitive.of<AudioTrack | MidiTrack | null>(null), // todo
         SPrimitive.of<AudioTrack | MidiTrack | null>(null), // todo
         number(tempo),
@@ -263,8 +276,8 @@ export async function construct(
         time(loopStart.t, loopStart.u),
         time(loopEnd.t, loopEnd.u),
         boolean(loopOnPlayback),
-        SPrimitive.of<PointerTool>(rep.pointerTool ?? "move"), // todo
-        SPrimitive.of<SecondaryTool>(rep.panelTool ?? "draw"), // todo
+        SPrimitive.of<PointerTool>(rep.pointerTool ?? "move"), // todo: save this?
+        SPrimitive.of<SecondaryTool>(rep.panelTool ?? "draw"),
         SPrimitive.of<number | null>(null), // todo
         SPrimitive.of(0), // todo
         set<AudioTrack | MidiTrack>(), // todo

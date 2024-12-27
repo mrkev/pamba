@@ -32,7 +32,7 @@ type AutoAudioTrack = {
 };
 
 export class AudioTrack extends Structured<AutoAudioTrack, typeof AudioTrack> implements StandardTrack<AudioClip> {
-  public readonly dsp: ProjectTrackDSP<AudioClip>;
+  public readonly dsp: ProjectTrackDSP;
 
   // For background processing
   // private thread_UNUSED = new TrackThread();

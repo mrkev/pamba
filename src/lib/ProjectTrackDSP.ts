@@ -1,35 +1,31 @@
 import { boolean, SArray, SString } from "structured-state";
 import { WebAudioPeakMeter } from "web-audio-peak-meter";
 import { liveAudioContext } from "../constants";
-import { DSPStep } from "../dsp/DSPNode";
+import { DSPStep, DSPStepI } from "../dsp/DSPNode";
 import { FaustEffectID } from "../dsp/FAUST_EFFECTS";
 import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
 import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
-import { nullthrows } from "../utils/nullthrows";
 import { PambaWamNode } from "../wam/PambaWamNode";
-import { AbstractClip } from "./AbstractClip";
-import { appEnvironment } from "./AppEnvironment";
 import { connectSerialNodes, disconnectSerialNodes } from "./connectSerialNodes";
 import { PBGainNode } from "./offlineNodes";
 
-export class ProjectTrackDSP<T extends AbstractClip<any>> extends DSPStep<null> {
+export class ProjectTrackDSP implements DSPStepI<null> {
+  readonly effectId = "builtin:ProjectTrackNode";
+  readonly bypass = boolean(false);
+
   // DSP
   public readonly effects: SArray<FaustAudioEffect | PambaWamNode>;
   // The "volume" of the track
   public readonly gainNode: PBGainNode;
   // Hidden gain node, just for solo-ing tracks.
   public readonly _hiddenGainNode: PBGainNode;
-  override bypass = boolean(false);
-
-  override readonly effectId = "builtin:ProjectTrackNode";
 
   readonly meterInstance: WebAudioPeakMeter;
 
   constructor(
-    override readonly name: SString,
+    readonly name: SString,
     effects: (FaustAudioEffect | PambaWamNode)[],
   ) {
-    super();
     this.effects = SArray.create(effects);
     this.gainNode = new PBGainNode();
     this._hiddenGainNode = new PBGainNode();
@@ -37,15 +33,15 @@ export class ProjectTrackDSP<T extends AbstractClip<any>> extends DSPStep<null> 
     this.meterInstance = new WebAudioPeakMeter(this._hiddenGainNode.outputNode().get(), undefined as any);
   }
 
-  override inputNode(): null {
+  inputNode(): null {
     return null;
   }
 
-  override outputNode() {
+  outputNode() {
     return this._hiddenGainNode.outputNode();
   }
 
-  override cloneToOfflineContext(_context: OfflineAudioContext): Promise<DSPStep<TrackedAudioNode> | null> {
+  cloneToOfflineContext(_context: OfflineAudioContext): Promise<DSPStep<TrackedAudioNode> | null> {
     throw new Error("AudioTrack: DSPNode: can't cloneToOfflineContext.");
   }
 

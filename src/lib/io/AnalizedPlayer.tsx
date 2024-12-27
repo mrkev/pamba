@@ -7,6 +7,7 @@ import { Seconds } from "../AbstractClip";
 import { AudioTrack } from "../AudioTrack";
 import { OscilloscopeNode } from "../OscilloscopeNode";
 import { AudioProject } from "../project/AudioProject";
+import { DSP } from "../DSP";
 
 // sbwNode.onInitialized = () => {
 //   oscillator.connect(sbwNode).connect(context.destination);
@@ -147,7 +148,8 @@ export class AnalizedPlayer {
       // TODO: mke playing tracks and isAudioPlaying the same state
       throw new Error("No tracks playing");
     }
-    track.dsp.connect(this.mixDownNode);
+
+    DSP.connect(track.dsp, this.mixDownNode);
     this.playingTracks = this.playingTracks.concat(track);
     const LATENCY = 10;
     track.prepareForPlayback(project, liveAudioContext, startAt);

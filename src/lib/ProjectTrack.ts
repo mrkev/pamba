@@ -9,7 +9,7 @@ import { AudioProject } from "./project/AudioProject";
 
 // TODO: move these things out of the abstract class
 export interface StandardTrack<T extends AbstractClip<any>> {
-  readonly dsp: ProjectTrackDSP<T>;
+  readonly dsp: ProjectTrackDSP;
   readonly name: SPrimitive<string>;
   readonly height: SPrimitive<number>;
   // A track is a collection of non-overalping clips.
