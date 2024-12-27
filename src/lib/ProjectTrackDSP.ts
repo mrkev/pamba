@@ -6,16 +6,12 @@ import { FaustEffectID } from "../dsp/FAUST_EFFECTS";
 import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
 import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
 import { PambaWamNode } from "../wam/PambaWamNode";
-import { connectSerialNodes, disconnectSerialNodes } from "./connectSerialNodes";
+import { DSP } from "./DSP";
 import { PBGainNode } from "./offlineNodes";
 
 export class ProjectTrackDSP implements DSPStepI<null> {
   readonly effectId = "builtin:ProjectTrackNode";
 
-  // DSP
-  public readonly effects: SArray<FaustAudioEffect | PambaWamNode>;
-  // The "volume" of the track
-  public readonly gainNode: PBGainNode;
   // Hidden gain node, just for solo-ing tracks.
   public readonly _hiddenGainNode: PBGainNode;
 
@@ -24,11 +20,10 @@ export class ProjectTrackDSP implements DSPStepI<null> {
   constructor(
     readonly name: SString,
     readonly bypass: SBoolean,
-    effects: (FaustAudioEffect | PambaWamNode)[],
+    readonly gainNode: PBGainNode, // The "volume" of the track
+    readonly effects: SArray<FaustAudioEffect | PambaWamNode>,
   ) {
-    this.effects = SArray.create(effects);
-    this.gainNode = new PBGainNode();
-    this._hiddenGainNode = new PBGainNode();
+    this._hiddenGainNode = PBGainNode.defaultLive();
     // TODO: garbage collect?
     this.meterInstance = new WebAudioPeakMeter(this._hiddenGainNode.outputNode().get(), undefined as any);
   }
@@ -48,7 +43,7 @@ export class ProjectTrackDSP implements DSPStepI<null> {
   connectToDSPForPlayback(source: TrackedAudioNode): void {
     // We need to keep a reference to our source node for play/pause
     const effectNodes = this.effects._getRaw();
-    connectSerialNodes([
+    DSP.connectSerialNodes([
       ///
       source,
       ...effectNodes,
@@ -66,7 +61,7 @@ export class ProjectTrackDSP implements DSPStepI<null> {
       this._hiddenGainNode.node,
     ];
 
-    disconnectSerialNodes(chain);
+    DSP.disconnectSerialNodes(chain);
 
     // for (let i = 0; i < chain.length - 1; i++) {
     //   const currentNode = chain[i];

@@ -1,5 +1,5 @@
 import { WamParameterDataMap } from "@webaudiomodules/api";
-import { arrayOf, boolean, number, set, SPrimitive, string } from "structured-state";
+import { arrayOf, boolean, number, SArray, set, SPrimitive, string } from "structured-state";
 import { liveAudioContext } from "../constants";
 import { FaustEffectID } from "../dsp/FAUST_EFFECTS";
 import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
@@ -19,6 +19,7 @@ import { mutable } from "../utils/types";
 import { PambaWamNode } from "../wam/PambaWamNode";
 import { StandardTrack } from "../lib/ProjectTrack";
 import { ProjectTrackDSP } from "../lib/ProjectTrackDSP";
+import { PBGainNode } from "../lib/offlineNodes";
 
 export type SAudioClip = {
   kind: "AudioClip";
@@ -45,6 +46,7 @@ export type SAudioTrack = {
   effects: Array<SFaustAudioEffect | SPambaWamNode>;
   height: number;
   name: string;
+  dsp: SProjectTrackDSP;
 };
 
 export type SMidiTrack = {
@@ -58,6 +60,7 @@ export type SProjectTrackDSP = {
   kind: "ProjectTrackDSP";
   name: string;
   bypass: boolean;
+  gain: number;
 };
 
 export type SMidiInstrument = {
@@ -162,6 +165,7 @@ export async function serializable(
       effects: await Promise.all(obj.dsp.effects._getRaw().map((effect) => serializable(effect))),
       height: obj.height.get(),
       name: obj.name.get(),
+      dsp: await serializable(obj.dsp),
     };
   }
 
@@ -179,6 +183,7 @@ export async function serializable(
       kind: "ProjectTrackDSP",
       name: obj.name.get(),
       bypass: obj.bypass.get(),
+      gain: obj.gainNode.gain.value,
     };
   }
 
@@ -275,7 +280,16 @@ export async function construct(
       const { name, clips: sClips, effects: sEffects, height } = rep;
       const clips = await Promise.all(sClips.map((clip) => construct(clip)));
       const effects = await Promise.all(sEffects.map((effect) => construct(effect)));
-      return AudioTrack.of(name, clips, effects, height);
+      const projectTrackDSP =
+        "dsp" in rep
+          ? await construct(rep.dsp)
+          : new ProjectTrackDSP(
+              string("AudioTrackDSP"),
+              boolean(false),
+              PBGainNode.defaultLive(),
+              SArray.create(effects),
+            );
+      return AudioTrack.of(name, clips, height, projectTrackDSP);
     }
 
     case "MidiTrack": {
@@ -286,7 +300,13 @@ export async function construct(
     }
 
     case "ProjectTrackDSP": {
-      return new ProjectTrackDSP(string(rep.name), boolean(rep.bypass), []);
+      console.log("rep.gain", rep.gain);
+      return new ProjectTrackDSP(
+        string(rep.name),
+        boolean(rep.bypass),
+        PBGainNode.of(rep.gain, liveAudioContext()),
+        SArray.create([]),
+      );
     }
 
     case "MidiInstrument": {

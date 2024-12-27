@@ -1,5 +1,5 @@
 export const changelog = `
-next
+v0.2.6
 - add pro54 and TX81Z synths
 - can drop midi files onto midi tracks
 - can drop midi files onto timeline to create new tracks
@@ -7,6 +7,7 @@ next
 - CMD+D duplicates selected clip
 - when replacing and open instrument, new instrument window replaces the old one
 - save solo'd, dsp expanded, locked track status
+- prevent deletion of current open project
 
 v0.2.5
 - live midi node editing

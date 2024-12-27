@@ -284,6 +284,7 @@ export function Library({
             case "project": {
               if (item.data.id === project.projectId) {
                 alert("cant delete current project");
+                return;
                 // todo: auto-close, create new empty project, etc
               }
 

@@ -1,27 +1,27 @@
 import { DSPStep, DSPStepI } from "../dsp/DSPNode";
 import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
-import { exhaustive } from "./state/Subbable";
+import { connectSerialNodes, disconnectSerialNodes } from "./connectSerialNodes";
 
 export const DSP = {
-  inputOf(step: DSPStep | TrackedAudioNode): TrackedAudioNode {
+  inputOf(step: DSPStep | TrackedAudioNode | DSPStepI): TrackedAudioNode {
     switch (true) {
       case step instanceof DSPStep:
         return step.inputNode();
       case step instanceof TrackedAudioNode:
         return step;
       default:
-        exhaustive(step);
+        return step.inputNode();
     }
   },
 
-  outputOf(step: DSPStep | TrackedAudioNode): TrackedAudioNode {
+  outputOf(step: DSPStep | TrackedAudioNode | DSPStepI): TrackedAudioNode {
     switch (true) {
       case step instanceof DSPStep:
         return step.outputNode();
       case step instanceof TrackedAudioNode:
         return step;
       default:
-        exhaustive(step);
+        return step.outputNode();
     }
   },
 
@@ -36,4 +36,7 @@ export const DSP = {
   disconnectAll(step: DSPStepI<any>) {
     step.outputNode().disconnectAll();
   },
+
+  connectSerialNodes,
+  disconnectSerialNodes,
 };

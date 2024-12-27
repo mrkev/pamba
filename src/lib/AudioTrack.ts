@@ -5,6 +5,7 @@ import {
   JSONOfAuto,
   number,
   ReplaceFunctions,
+  SArray,
   SNumber,
   SSchemaArray,
   SString,
@@ -23,6 +24,7 @@ import { AudioContextInfo } from "./initAudioContext";
 import { AudioProject } from "./project/AudioProject";
 import { ProjectTrack, StandardTrack } from "./ProjectTrack";
 import { ProjectTrackDSP } from "./ProjectTrackDSP";
+import { PBGainNode } from "./offlineNodes";
 // import { TrackThread } from "./TrackThread";
 
 type AutoAudioTrack = {
@@ -33,7 +35,7 @@ type AutoAudioTrack = {
 };
 
 export class AudioTrack extends Structured<AutoAudioTrack, typeof AudioTrack> implements StandardTrack<AudioClip> {
-  public readonly dsp: ProjectTrackDSP;
+  // public readonly dsp: ProjectTrackDSP;
 
   // For background processing
   // private thread_UNUSED = new TrackThread();
@@ -47,16 +49,15 @@ export class AudioTrack extends Structured<AutoAudioTrack, typeof AudioTrack> im
   constructor(
     readonly name: SString,
     readonly clips: SSchemaArray<AudioClip>,
-    effects: (FaustAudioEffect | PambaWamNode)[],
     readonly height: SNumber,
+    readonly dsp: ProjectTrackDSP,
   ) {
     super();
     this.playingSource = null;
-    this.dsp = new ProjectTrackDSP(string("AudioTrackDSP"), boolean(false), effects);
   }
 
-  static of(name: string, clips: AudioClip[], effects: (FaustAudioEffect | PambaWamNode)[], height: number) {
-    return Structured.create(AudioTrack, string(name), arrayOf([AudioClip], clips), effects, number(height));
+  static of(name: string, clips: AudioClip[], height: number, projectTrackDSP: ProjectTrackDSP) {
+    return Structured.create(AudioTrack, string(name), arrayOf([AudioClip], clips), number(height), projectTrackDSP);
   }
 
   override autoSimplify(): AutoAudioTrack {
@@ -83,14 +84,29 @@ export class AudioTrack extends Structured<AutoAudioTrack, typeof AudioTrack> im
       AudioTrack,
       init.string(auto.name),
       init.schemaArray(auto.clips, [AudioClip]),
-      // todo effects
-      [],
+
       init.number(auto.height),
+      new ProjectTrackDSP(
+        string("AudioTrackDSP"),
+        boolean(false),
+        PBGainNode.defaultLive(),
+        SArray.create(
+          // todo effects
+          [],
+        ),
+      ),
     );
   }
 
   static empty() {
-    return Structured.create(AudioTrack, string("Audio"), arrayOf([AudioClip], []), [], number(CLIP_HEIGHT));
+    const effects = SArray.create([]);
+    return Structured.create(
+      AudioTrack,
+      string("Audio"),
+      arrayOf([AudioClip], []),
+      number(CLIP_HEIGHT),
+      new ProjectTrackDSP(string("AudioTrackDSP"), boolean(false), PBGainNode.defaultLive(), effects),
+    );
   }
 
   //////////// Playback ////////////

@@ -40,5 +40,5 @@ export interface DSPStepI<I extends TrackedAudioNode | null = TrackedAudioNode> 
   inputNode(): I;
   outputNode(): TrackedAudioNode;
 
-  cloneToOfflineContext(context: OfflineAudioContext, offlineContextInfo: AudioContextInfo): Promise<DSPStep | null>;
+  cloneToOfflineContext(context: OfflineAudioContext, offlineContextInfo: AudioContextInfo): Promise<DSPStepI | null>;
 }

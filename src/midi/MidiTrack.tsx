@@ -2,6 +2,7 @@ import type { WebAudioModule } from "@webaudiomodules/api";
 import {
   JSONOfAuto,
   ReplaceFunctions,
+  SArray,
   SNumber,
   SPrimitive,
   SSchemaArray,
@@ -24,6 +25,7 @@ import { PianoRollModule, PianoRollNode } from "../wam/pianorollme/PianoRollModu
 import { MidiClip } from "./MidiClip";
 import { MidiInstrument } from "./MidiInstrument";
 import type { PianoRollProcessorMessage, SimpleMidiClip } from "./SharedMidiTypes";
+import { PBGainNode } from "../lib/offlineNodes";
 
 type AutoMidiTrack = {
   name: SString;
@@ -114,7 +116,7 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
     this.playingSource = null;
     this.pianoRoll = pianoRoll as any;
     this.instrument = SPrimitive.of(instrument);
-    this.dsp = new ProjectTrackDSP(string("MidiTrackDSP"), boolean(false), []);
+    this.dsp = new ProjectTrackDSP(string("MidiTrackDSP"), boolean(false), PBGainNode.defaultLive(), SArray.create([]));
     this.name = SPrimitive.of(name);
     this.height = SPrimitive.of<number>(CLIP_HEIGHT);
 

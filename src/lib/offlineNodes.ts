@@ -1,37 +1,43 @@
 import { boolean, string } from "structured-state";
 import { liveAudioContext } from "../constants";
-import { DSPStep } from "../dsp/DSPNode";
+import { DSPStepI } from "../dsp/DSPNode";
 import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
 
-export class PBGainNode extends DSPStep<TrackedAudioNode> {
-  override name = string("PBGainNode");
-  override effectId: string = "PBGainNode";
-  override bypass = boolean(false);
+export class PBGainNode implements DSPStepI<TrackedAudioNode> {
+  readonly effectId: string = "PBGainNode";
+  readonly name = string("PBGainNode");
+  readonly bypass = boolean(false);
 
   readonly node: TrackedAudioNode<GainNode>;
   readonly gain: AudioParam;
 
-  constructor(gainNode: GainNode = new GainNode(liveAudioContext())) {
-    super();
-    this.node = TrackedAudioNode.of(gainNode);
+  private constructor(readonly gainNode: GainNode = new GainNode(liveAudioContext())) {
+    this.node = TrackedAudioNode.of(new GainNode(liveAudioContext()));
     this.gain = this.node.get().gain;
   }
 
-  override inputNode(): TrackedAudioNode {
+  static of(gain: number, context: BaseAudioContext): PBGainNode {
+    return new PBGainNode(new GainNode(context, { gain }));
+  }
+
+  static defaultLive() {
+    return new PBGainNode();
+  }
+
+  public inputNode(): TrackedAudioNode {
     return this.node;
   }
 
-  override outputNode(): TrackedAudioNode {
+  public outputNode(): TrackedAudioNode {
     return this.node;
   }
 
-  override cloneToOfflineContext(context: OfflineAudioContext): Promise<PBGainNode> {
+  public cloneToOfflineContext(context: OfflineAudioContext): Promise<PBGainNode> {
     const node = makeOffline(this.node.get(), context);
     return Promise.resolve(node);
   }
 }
 
 export function makeOffline(node: GainNode, context: OfflineAudioContext): PBGainNode {
-  const offline = new GainNode(context, { gain: node.gain.value });
-  return new PBGainNode(offline);
+  return PBGainNode.of(node.gain.value, context);
 }
