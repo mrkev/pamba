@@ -1,20 +1,18 @@
 import React, { useCallback, useMemo, useState } from "react";
-import { createUseStyles } from "react-jss";
 import { useContainer, usePrimitive } from "structured-state";
 import { LIBRARY_SEARCH_INPUT_ID } from "../constants";
 import { AudioPackage } from "../data/AudioPackage";
 import { FAUST_EFFECTS, FaustEffectID } from "../dsp/FAUST_EFFECTS";
-import { AnalizedPlayer } from "../lib/io/AnalizedPlayer";
 import { WAMAvailablePlugin, appEnvironment } from "../lib/AppEnvironment";
 import { AudioClip } from "../lib/AudioClip";
-import { AudioRenderer } from "../lib/io/AudioRenderer";
 import { AudioTrack } from "../lib/AudioTrack";
 import { ProjectPersistance } from "../lib/ProjectPersistance";
 import { ProjectTrack } from "../lib/ProjectTrack";
 import { addAvailableWamToTrack } from "../lib/addAvailableWamToTrack";
+import { AnalizedPlayer } from "../lib/io/AnalizedPlayer";
+import { AudioRenderer } from "../lib/io/AudioRenderer";
 import { AudioProject } from "../lib/project/AudioProject";
 import { useLinkedMap } from "../lib/state/LinkedMap";
-import { pressedState } from "./pressedState";
 import { exhaustive } from "../utils/exhaustive";
 import { ignorePromise } from "../utils/ignorePromise";
 import { nullthrows } from "../utils/nullthrows";
@@ -23,6 +21,7 @@ import { UploadAudioButton } from "./UploadAudioButton";
 import { ListEntry, UtilityDataList } from "./UtilityList";
 import { transferObject } from "./dragdrop/setTransferData";
 import { closeProject } from "./header/ToolHeader";
+import { pressedState } from "./pressedState";
 
 const STATIC_AUDIO_FILES = ["drums.mp3", "clav.mp3", "bassguitar.mp3", "horns.mp3", "leadguitar.mp3"];
 
@@ -64,7 +63,6 @@ export function Library({
   renderer: AudioRenderer;
   player: AnalizedPlayer;
 }) {
-  const classes = useStyles();
   const [isAudioPlaying] = usePrimitive(renderer.isAudioPlaying);
   const [libraryFilter, setLibraryFilter] = useState("");
   const audioLibrary = useAudioLibrary(project, libraryFilter);
@@ -137,7 +135,7 @@ export function Library({
         }
       }),
       "separator",
-      ...[...wamPlugins.entries()].map(([key, { plugin, localDesc }]): ListEntry<LibraryItem> => {
+      ...[...wamPlugins.entries()].map(([_key, { plugin, localDesc }]): ListEntry<LibraryItem> => {
         return {
           title: localDesc.name,
           icon: localDesc.kind === "m-a" ? <i style={{ fontSize: 11 }}>♩</i> : <i className="ri-pulse-fill"></i>,
@@ -288,7 +286,7 @@ export function Library({
                 // todo: auto-close, create new empty project, etc
               }
 
-              const result = await appEnvironment.localFiles.projectLib.delete(item.data.id);
+              // const result = await appEnvironment.localFiles.projectLib.delete(item.data.id);
               // todo do something with result? necessary?
               break;
             }
@@ -304,21 +302,10 @@ export function Library({
       {/* </AudioFileUploadDropzone> */}
 
       {/* TODO: library won't be updated when new audio gets uploaded, unless it's constantly executed when I think it might be */}
-      <UploadAudioButton project={project} loadClip={loadClip} />
+      <UploadAudioButton loadClip={loadClip} />
       <hr style={{ width: "100%", borderColor: "var(--border-against-bg)", borderStyle: "dotted" }} />
 
       {/* <UserAuthControl /> */}
     </>
   );
 }
-
-const useStyles = createUseStyles({
-  list: {
-    display: "flex",
-    flexDirection: "column",
-    borderRadius: "3px",
-    flexGrow: 1,
-    fontSize: 12,
-    flexShrink: 1,
-  },
-});

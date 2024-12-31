@@ -1,4 +1,3 @@
-import { useRef } from "react";
 import { usePrimitive } from "structured-state";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioTrack } from "../lib/AudioTrack";
@@ -33,7 +32,6 @@ export function BottomPanel({
   const [selected] = useLinkedState(project.selected);
   const primarySelection = getValidEditorSelection(selected);
 
-  const testref = useRef<HTMLDivElement>(null);
   // useMousePressMove(
   //   testref,
   //   useCallback((kind) => {

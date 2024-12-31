@@ -29,7 +29,7 @@
  * @class SharedBufferWorkletNode
  * @extends AudioWorkletNode
  */
-export default class SharedBufferWorkletNode // eslint-disable-line no-unused-vars
+export default class SharedBufferWorkletNode  
   extends AudioWorkletNode
 {
   onInitialized = function () {};

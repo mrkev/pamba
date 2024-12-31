@@ -86,8 +86,8 @@ export function UserAuthControl() {
               try {
                 await signOut(firebaseAuth);
               } catch (error: any) {
-                const errorCode = error.code;
-                const errorMessage = error.message;
+                // const errorCode = error.code;
+                // const errorMessage = error.message;
                 console.error(error);
               }
             }}

@@ -12,8 +12,6 @@ import { CursorSelection } from "./CursorSelection";
 import { LoopMarkers } from "./LoopMarkers";
 import { ProjectView } from "./ProjectView";
 import { TrackHeaderContainer } from "./TrackHeaderContainer";
-import { UtilityToggle } from "./UtilityToggle";
-import { utility } from "./utility";
 
 export function TimelineView({
   project,

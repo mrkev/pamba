@@ -84,10 +84,10 @@ export function NoteR({
       //   return;
       // }
       const deltaX = e.clientX - meta.mousedown.clientX;
-      const deltaY = e.clientY - meta.mousedown.clientY;
+      // const deltaY = e.clientY - meta.mousedown.clientY;
 
       const deltaXPulses = Math.floor(clip.detailedViewport.pxToPulses(deltaX));
-      const deltaYNotes = Math.floor(clip.detailedViewport.pxToVerticalNotes(deltaY));
+      // const deltaYNotes = Math.floor(clip.detailedViewport.pxToVerticalNotes(deltaY));
 
       console.log("moving", deltaXPulses);
     }, []),

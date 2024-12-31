@@ -3,7 +3,7 @@ import { Command } from "../input/Command";
 import { documentCommands } from "../input/documentCommands";
 import { AudioProject } from "../lib/project/AudioProject";
 
-export function HelpPanel({ project }: { project: AudioProject }) {
+export function HelpPanel(_: { project: AudioProject }) {
   return (
     <>
       <b style={{ fontSize: "12px" }}>Help:</b>
@@ -25,7 +25,7 @@ export function HelpPanel({ project }: { project: AudioProject }) {
         className="scrollbar-track"
         style={{ display: "flex", flexDirection: "column", overflowY: "scroll", padding: "2px 2px 2px 0px", gap: 4 }}
       >
-        {[...documentCommands.getCommandsBySection().entries()].map(([s, cs], i) => {
+        {[...documentCommands.getCommandsBySection().entries()].map(([s, cs]) => {
           const slabel = s == null ? "Other" : s;
           return (
             <React.Fragment key={slabel}>
@@ -103,7 +103,7 @@ function Key({ str }: { str: string }) {
   );
 }
 
-export function Shortcuts({ project }: { project: AudioProject }) {
+export function Shortcuts(_: { project: AudioProject }) {
   return (
     <>
       {documentCommands.getAllCommands().map((c, i) => {

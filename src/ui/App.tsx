@@ -1,13 +1,12 @@
 import React, { useCallback, useState } from "react";
 // import { TrackThread } from "../lib/TrackThread";
 import "remixicon/fonts/remixicon.css";
-import { useContainer, usePrimitive } from "structured-state";
+import { usePrimitive } from "structured-state";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { ProjectPersistance } from "../lib/ProjectPersistance";
 import { useLinkedSet } from "../lib/state/LinkedSet";
 import { MidiInstrument } from "../midi/MidiInstrument";
 import { PambaWamNode } from "../wam/PambaWamNode";
-import { WAMPLUGINS } from "../wam/plugins";
 import { AppProject } from "./AppProject";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { PambaWamNodeWindowPanel } from "./PambaWamNodeWindowPanel";

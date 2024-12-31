@@ -24,10 +24,6 @@ const CANVAS_SCALE = Math.floor(window.devicePixelRatio);
 const PIANO_ROLL_WIDTH = 24;
 const MAX_H_SCALE = 20;
 
-function foo(x: any) {
-  console.log(x);
-}
-
 type NoteStr = "C" | "C#" | "D" | "D#" | "E" | "F" | "F#" | "G" | "G#" | "A" | "A#" | "B";
 const NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"] as const;
 

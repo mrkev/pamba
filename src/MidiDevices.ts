@@ -14,7 +14,7 @@ export class MidiDevices {
       this.outputs.set(id, output);
     }
 
-    this.midiAccess.onstatechange = (event) => {
+    this.midiAccess.onstatechange = (_event) => {
       // todo, some connection changed
       // console.log(event.port.name, event.port.manufacturer, event.port.state);
     };

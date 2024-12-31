@@ -31,7 +31,6 @@ export function OldMidiClipEditor({ clip, player }: { clip: PianoRollClip; playe
   const styles = useStyles();
   const containerRef = useRef<HTMLDivElement>(null);
   const cursorDiv = useRef<HTMLDivElement>(null);
-  const backgroundRef = useRef(null);
   const notes = clip.state.notes;
   const [, rerender] = useState({});
 

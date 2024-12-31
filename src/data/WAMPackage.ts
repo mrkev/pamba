@@ -15,7 +15,7 @@ import { FSDir } from "./FSDir";
 export type WAMKind = "-m" | "-a" | "m-a" | "a-a";
 
 // TODO: how to update
-class WAMPackage {
+class _WAMPackage {
   static readonly INDEX_FILE_NAME = "index.js";
   static readonly METADATA_FILE_NAME = "metadata";
   static readonly DESCRIPTOR_FILE_NAME = "descriptor";
@@ -30,9 +30,9 @@ class WAMPackage {
   static async existingPackage(pkgDir: FSDir) {
     // dont need metadata atm but open for good measure?
     const [indexHandle, metadataHandle, descriptorHandle] = await pAll(
-      pTry(pkgDir.handle.getFileHandle(WAMPackage.INDEX_FILE_NAME), "error" as const),
-      pTry(pkgDir.handle.getFileHandle(WAMPackage.METADATA_FILE_NAME), "error" as const),
-      pTry(pkgDir.handle.getFileHandle(WAMPackage.DESCRIPTOR_FILE_NAME), "error" as const),
+      pTry(pkgDir.handle.getFileHandle(_WAMPackage.INDEX_FILE_NAME), "error" as const),
+      pTry(pkgDir.handle.getFileHandle(_WAMPackage.METADATA_FILE_NAME), "error" as const),
+      pTry(pkgDir.handle.getFileHandle(_WAMPackage.DESCRIPTOR_FILE_NAME), "error" as const),
     );
 
     if (indexHandle === "error" || metadataHandle === "error" || descriptorHandle === "error") {
@@ -56,6 +56,6 @@ class WAMPackage {
       throw new Error("descriptor is not a record!");
     }
 
-    return new WAMPackage(pkgDir, file, metadata as any, descriptor as any);
+    return new _WAMPackage(pkgDir, file, metadata as any, descriptor as any);
   }
 }

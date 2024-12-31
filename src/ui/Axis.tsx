@@ -216,18 +216,18 @@ export function Axis({ project, isHeader = false }: { project: AudioProject; isH
   );
 }
 
-function Marker({ style, onClick }: { style?: React.CSSProperties; onClick?: () => void }) {
-  return (
-    <svg viewBox="0 0 17 10" width="17" height="10" style={style} onClick={onClick}>
-      <path
-        d="M 8.5 0 L 17 10 L 0 10 L 8.5 0 Z"
-        style={{
-          fill: "rgb(0, 0, 0)",
-        }}
-      ></path>
-    </svg>
-  );
-}
+// function Marker({ style, onClick }: { style?: React.CSSProperties; onClick?: () => void }) {
+//   return (
+//     <svg viewBox="0 0 17 10" width="17" height="10" style={style} onClick={onClick}>
+//       <path
+//         d="M 8.5 0 L 17 10 L 0 10 L 8.5 0 Z"
+//         style={{
+//           fill: "rgb(0, 0, 0)",
+//         }}
+//       ></path>
+//     </svg>
+//   );
+// }
 
 /**
  * TODO:

@@ -14,7 +14,6 @@ export class FSDir {
     const results = [];
     // https://github.com/microsoft/TypeScript-DOM-lib-generator/issues/1639
     for await (const [_, child] of (this.handle as any).entries()) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       child as FileSystemDirectoryHandle | FileSystemFileHandle;
 
       if (child instanceof FileSystemFileHandle) {
@@ -35,7 +34,7 @@ export class FSDir {
   public async delete(name: string) {
     try {
       await this.handle.removeEntry(name, { recursive: true });
-    } catch (e) {
+    } catch (_e) {
       return "error";
     }
     return null;
