@@ -1,12 +1,10 @@
-import hljs from "highlight.js";
-import { debugOut, useContainer, usePrimitive } from "structured-state";
+import { DebugOut, useContainer, usePrimitive } from "structured-state";
 import { ProjectTrack } from "../lib/ProjectTrack";
 import { AudioProject } from "../lib/project/AudioProject";
 import { PrimarySelectionState } from "../lib/project/SelectionState";
 import { useLinkedState } from "../lib/state/LinkedState";
-import { pressedState } from "./pressedState";
 import { exhaustive } from "../utils/exhaustive";
-import { DebugOut } from "structured-state";
+import { pressedState } from "./pressedState";
 
 export function stringOfSelected(sel: PrimarySelectionState | null): string {
   if (!sel) {

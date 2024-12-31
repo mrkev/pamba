@@ -1,6 +1,6 @@
-import { useCallback, useRef } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useContainer, usePrimitive } from "structured-state";
-import useResizeObserver from "use-resize-observer";
+import useResizeObserver from "@react-hook/resize-observer";
 import { GPUWaveform } from "webgpu-waveform-react";
 import { AnalizedPlayer } from "../lib/io/AnalizedPlayer";
 import { AudioClip } from "../lib/AudioClip";
@@ -169,9 +169,13 @@ export function AudioClipBufferView({
   // }, [player, player.isAudioPlaying, timelineSecsToClipPx]);
   const cursorPosInClipPx = timelineSecsToClipPx(cursorPos);
   const playbackDivLeft = timelineSecsToClipPx(playbackPos);
-  const { width } = useResizeObserver<HTMLCanvasElement>({
-    ref: waveformRef,
-  });
+  const [width, setWidth] = useState(0);
+  useResizeObserver<HTMLCanvasElement>(
+    waveformRef,
+    useCallback((entry) => {
+      setWidth(entry.contentRect.width ?? 0);
+    }, []),
+  );
 
   return (
     <div

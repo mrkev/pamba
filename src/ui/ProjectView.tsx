@@ -2,7 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import { flushSync } from "react-dom";
 import { createUseStyles } from "react-jss";
 import { useContainer, usePrimitive } from "structured-state";
-import useResizeObserver from "use-resize-observer";
+import useResizeObserver from "@react-hook/resize-observer";
 import { MAX_TIMELINE_SCALE, MIN_TIMELINE_SCALE } from "../constants";
 import { useTimelineMouseEvents } from "../input/useProjectMouseEvents";
 import { appEnvironment } from "../lib/AppEnvironment";
@@ -141,15 +141,15 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
 
   useTimelineMouseEvents(project, projectDivRef);
 
-  useResizeObserver<HTMLDivElement>({
-    ref: projectDivRef,
-    onResize: useCallback(
-      ({ width }: { width?: number; height?: number }) => {
-        project.viewport.projectDivWidth.set(width ?? 0);
+  useResizeObserver<HTMLDivElement>(
+    projectDivRef,
+    useCallback(
+      (entry) => {
+        project.viewport.projectDivWidth.set(entry.contentRect.width ?? 0);
       },
       [project.viewport.projectDivWidth],
     ),
-  });
+  );
 
   const onDrop = useCallback(
     async (ev: React.DragEvent<HTMLDivElement>) => {
