@@ -3,7 +3,7 @@ import { pressedState } from "../pressedState";
 import { useEventListener } from "../useEventListener";
 
 export function useDropzoneBehaviour(
-  containerRef: RefObject<HTMLDivElement>,
+  containerRef: RefObject<HTMLDivElement | null | undefined>,
   canHandleTransfer: (dataTransfer: DataTransfer) => boolean,
   dragOver?: (e: DragEvent) => void,
   dragLeave?: (e: DragEvent) => void,

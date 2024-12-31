@@ -9,7 +9,7 @@ export function UtilityToggle({
   toggled,
   onToggle,
   ...props
-}: React.ButtonHTMLAttributes<HTMLButtonElement> & {
+}: Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "onToggle"> & {
   toggleStyle?: React.CSSProperties;
   toggled: boolean;
   onToggle: (toggled: boolean) => void;

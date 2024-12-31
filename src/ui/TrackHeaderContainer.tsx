@@ -75,7 +75,9 @@ export const TrackHeaderContainer = React.memo(function TrackHeaderContainerImpl
 
   const trackHeaders = [
     <TrackHeaderSeparator
-      ref={(ref) => (dropzonesRef.current[0] = ref)}
+      ref={(ref) => {
+        dropzonesRef.current[0] = ref;
+      }}
       key={`sep-${0}`}
       showActiveDropzone={highlightedDropzone === 0}
       firstDropzone

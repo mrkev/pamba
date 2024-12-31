@@ -1,7 +1,7 @@
 import { useCallback, useEffect } from "react";
 
 /** Adds an event listener to a ref */
-export function useEventListener<K extends keyof HTMLElementEventMap, T extends HTMLElement>(
+export function useEventListener<K extends keyof HTMLElementEventMap, T extends HTMLElement | null | undefined>(
   type: K,
   ref: React.RefObject<T> | React.MutableRefObject<T>,
   listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any,
@@ -42,7 +42,7 @@ export type MousePressMoveMeta<T extends Record<string, unknown> | void> = {
 };
 
 export function useMousePressMove<T extends Record<string, unknown> | void>(
-  elemRef: React.RefObject<HTMLElement> | React.MutableRefObject<HTMLElement>,
+  elemRef: React.RefObject<HTMLElement | null | undefined>,
   mousedown: (ev: MouseEvent) => T | "done",
   listener: (metadata: MousePressMoveMeta<T>, ev: MouseEvent) => void,
 ): void {

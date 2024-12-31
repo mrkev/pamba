@@ -5,7 +5,7 @@ import { RenamableLabel } from "./RenamableLabel";
 export type Point = [number, number];
 
 export function useMouseDrag<T>(
-  ref: React.RefObject<HTMLDivElement>,
+  ref: React.RefObject<HTMLDivElement | null | undefined>,
   onMove: (e: MouseEvent, delta: [number, number], initialState: T) => void,
   initialState?: (e: MouseEvent) => T,
 ) {

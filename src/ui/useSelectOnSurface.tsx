@@ -3,7 +3,7 @@ import { pressedState } from "./pressedState";
 import { useEventListener } from "./useEventListener";
 
 export function useSelectOnSurface(
-  elemRef: React.RefObject<HTMLElement>,
+  elemRef: React.RefObject<HTMLElement | null | undefined>,
   downCb?: (e: MouseEvent) => void,
   moveCb?: (e: MouseEvent, down: { clientX: number; clientY: number }) => void,
   upCb?: (e: MouseEvent) => void,

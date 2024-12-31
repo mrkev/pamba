@@ -8,7 +8,7 @@ import { MidiTrack } from "../midi/MidiTrack";
 
 // TODO: merge into project mouse events?
 export function useTrackMouseEvents(
-  trackRef: React.RefObject<HTMLDivElement>,
+  trackRef: React.RefObject<HTMLDivElement | null | undefined>,
   project: AudioProject,
   track: AudioTrack | MidiTrack,
 ) {
