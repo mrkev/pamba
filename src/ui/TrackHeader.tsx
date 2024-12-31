@@ -14,7 +14,8 @@ import { pressedState } from "./pressedState";
 import { RenamableLabel } from "./RenamableLabel";
 import { UtilityToggle } from "./UtilityToggle";
 import { cx } from "./cx";
-import { UtilitySlider, utility } from "./utility";
+import { utility } from "./utility";
+import { UtilityNumberSlider } from "./UtilitySlider";
 import { nullthrows } from "../utils/nullthrows";
 
 export const TrackHeader = React.memo(function TrackHeader({
@@ -155,7 +156,7 @@ export const TrackHeader = React.memo(function TrackHeader({
           >
             M
           </button>
-          <UtilitySlider
+          <UtilityNumberSlider
             value={gain}
             min={0}
             max={2}

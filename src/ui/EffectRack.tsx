@@ -189,7 +189,13 @@ export const EffectRack = React.memo(function EffectRack({
               onDragStart(ev, i);
             }}
           >
-            <button onClick={() => appEnvironment.openEffects.add(effect)}>Configure</button>
+            <button
+              className="utilityButton"
+              style={{ margin: "4px 4px" }}
+              onClick={() => appEnvironment.openEffects.add(effect)}
+            >
+              Configure
+            </button>
           </Effect>,
         );
         break;
@@ -255,7 +261,13 @@ function InstrumentEffect({ track }: { track: MidiTrack; project: AudioProject; 
         title={instrument.name}
       >
         {/* TODO: this wont be reactive: the window won't render the new instrument when we change it */}
-        <button onClick={() => appEnvironment.openEffects.add(instrument)}>Configure</button>
+        <button
+          className="utilityButton"
+          style={{ margin: "4px 4px" }}
+          onClick={() => appEnvironment.openEffects.add(instrument)}
+        >
+          Configure
+        </button>
       </Effect>
     </React.Fragment>
   );

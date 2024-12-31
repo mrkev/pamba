@@ -24,3 +24,9 @@ export function returnClosest(num: number, option1: number, ...options: number[]
 export function relu(num: number) {
   return Math.max(0, num);
 }
+
+// from: https://stackoverflow.com/questions/17369098/simplest-way-of-getting-the-number-of-decimals-in-a-number-in-javascript
+export function countDecimals(num: number) {
+  if (Math.floor(num.valueOf()) === num.valueOf()) return 0;
+  return num.toString().split(".")[1].length || 0;
+}

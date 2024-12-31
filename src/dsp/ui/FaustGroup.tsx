@@ -12,6 +12,7 @@ const useStyles = createUseStyles({
     background: "gray",
     fontSize: 12,
     userSelect: "none",
+    gap: 4,
   },
   faustTopLevelHeader: {
     display: "flex",
@@ -32,9 +33,9 @@ export function faustGroupStyle(kind: FaustUIGroupType): React.CSSProperties {
         columnGap: 6,
       }
     : kind === "vgroup"
-    ? { display: "flex", flexDirection: "column", height: "100%" }
-    : // tgroup
-      {};
+      ? { display: "flex", flexDirection: "column", height: "100%" }
+      : // tgroup
+        {};
 }
 
 export function FaustGroup({

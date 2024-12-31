@@ -8,11 +8,51 @@ input:focus {
   background: var(--control-bg-color);
 }
 .utilitySlider::-webkit-slider-thumb {
-  width: 1px;
+  inline-size: 1px;
   appearance: none;
-  height: 16px;
+  block-size: 16px;
   background: black;
 }
+
+
+
+
+.utilitySliderS {
+  appearance: none;
+  background: var(--control-bg-color);
+  border: 1px solid var(--timeline-tick);
+  box-sizing: border-box;
+  min-block-size: 3px;
+  min-inline-size: 3px;
+  box-sizing: border-box;
+}
+
+.utilitySliderS::-webkit-slider-thumb {
+  inline-size: 1px;
+  appearance: none;
+  block-size: 12px;
+  background: black;
+}
+
+.utilitySliderS::-webkit-slider-thumb::before {
+  content: '⛅ ';
+
+}
+
+
+.utilitySliderS:focus {
+  background: Highlight;
+  outline: none;
+  border: 1px solid black;
+
+}
+
+/* .utilitySliderS::-webkit-slider-runnable-track {
+  background: black;
+  block-size: 1px;
+} */
+
+
 
 /* input[type="range"] {
   cursor: inherit;
