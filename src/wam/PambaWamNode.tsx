@@ -1,4 +1,4 @@
-import { WamNode as IWamNode } from "@webaudiomodules/api";
+import { WamNode as IWamNode, WamParameterDataMap, WamParameterInfoMap } from "@webaudiomodules/api";
 import { boolean, SString, string } from "structured-state";
 import type { WebAudioModule } from "../../packages/sdk/dist";
 import { DSPStep } from "../dsp/DSPStep";
@@ -12,7 +12,6 @@ import { WAMImport } from "./wam";
 export class PambaWamNode implements DSPStep {
   readonly name: SString;
   readonly effectId: string;
-  readonly url: string;
   readonly bypass = boolean(false);
 
   public inputNode(): TrackedAudioNode {
@@ -24,70 +23,86 @@ export class PambaWamNode implements DSPStep {
   }
 
   // WAM
-  readonly module: WebAudioModule<IWamNode>;
   readonly node: TrackedAudioNode<IWamNode>;
-  readonly dom: Element;
 
   // Window Panel
   readonly windowPanelPosition = LinkedState.of<Position>([10, 10]);
 
   public destroy() {
-    this.module.destroyGui(this.dom);
+    this.wamInstance.destroyGui(this.dom);
     appEnvironment.openEffects.delete(this);
   }
 
   async getState(): Promise<unknown> {
-    const state: unknown = await this.module.audioNode.getState();
+    const state: unknown = await this.wamInstance.audioNode.getState();
     return state;
   }
 
   async setState(state: unknown) {
-    await this.module.audioNode.setState(state);
+    await this.wamInstance.audioNode.setState(state);
   }
 
-  constructor(module: WebAudioModule<IWamNode>, dom: Element, url: string) {
-    this.module = module;
-    this.node = TrackedAudioNode.of(module.audioNode);
-    this.dom = dom;
-    this.effectId = this.module.moduleId;
-    this.name = string(this.module.descriptor.name);
-    this.url = url;
+  private constructor(
+    // WAM
+    readonly wamInstance: WebAudioModule<IWamNode>,
+    readonly dom: Element,
+    readonly url: string,
+    readonly parameterInfo: WamParameterInfoMap,
+    readonly parameterValues: WamParameterDataMap,
+  ) {
+    this.node = TrackedAudioNode.of(wamInstance.audioNode);
+    this.effectId = this.wamInstance.moduleId;
+    this.name = string(this.wamInstance.descriptor.name);
+  }
+
+  static async fromImportAtURL(
+    wamImport: WAMImport,
+    wamURL: string,
+    hostGroupId: string,
+    audioCtx: BaseAudioContext,
+    state: unknown | null,
+  ) {
+    const wamInstance = await wamImport.createInstance(hostGroupId, audioCtx);
+    if (state != null) {
+      await wamInstance.audioNode.setState(state);
+    }
+    const wamDom = await wamInstance.createGui();
+    const paramInfo = await wamInstance.audioNode.getParameterInfo();
+    const paramValues = await wamInstance.audioNode.getParameterValues();
+    return new PambaWamNode(wamInstance, wamDom, wamURL, paramInfo, paramValues);
   }
 
   // TODO: simplify now that we pre-fetch wam plugins?
-  static async fromURL(pluginUrl: string, hostGroupId: string, audioCtx: BaseAudioContext) {
+  static async fromURLAndState(
+    pluginUrl: string,
+    state: unknown | null,
+    hostGroupId: string,
+    audioCtx: BaseAudioContext,
+  ) {
     console.log("WAM: LOADING fromURL", pluginUrl);
     const rawModule = await import(/* @vite-ignore */ pluginUrl);
     if (rawModule == null) {
       console.error("could not import", rawModule);
       return null;
     }
-    const WAM1: WAMImport = rawModule.default;
-    const pluginInstance1 = await WAM1.createInstance(hostGroupId, audioCtx);
-    const pluginDom1 = await pluginInstance1.createGui();
-    return new PambaWamNode(pluginInstance1, pluginDom1, pluginUrl);
-  }
-
-  static async wrapModule(module: WebAudioModule<IWamNode>, url: string) {
-    const pluginDom1 = await module.createGui();
-    return new PambaWamNode(module, pluginDom1, url);
+    const wamImport: WAMImport = rawModule.default;
+    return PambaWamNode.fromImportAtURL(wamImport, pluginUrl, hostGroupId, audioCtx, state);
   }
 
   public async cloneToOfflineContext(
     context: OfflineAudioContext,
     offlineContextInfo: AudioContextInfo,
   ): Promise<PambaWamNode | null> {
-    const state = await this.getState();
     const {
       wamHostGroup: [wamHostGroupId],
     } = offlineContextInfo;
 
-    const pambaWamNode = await PambaWamNode.fromURL(this.url, wamHostGroupId, context);
+    const state = await this.getState();
+    const pambaWamNode = await PambaWamNode.fromURLAndState(this.url, state, wamHostGroupId, context);
     if (pambaWamNode == null) {
       return null;
     }
 
-    await pambaWamNode.setState(state);
     return pambaWamNode;
   }
 }

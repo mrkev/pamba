@@ -39,6 +39,9 @@ export function TimelineView({
         className={classes.axisSpacer}
         style={{
           borderTop: activePanel === "primary" ? "4px solid var(--timeline-text)" : "4px solid var(--timeline-tick)",
+          background: "var(--timeline-bg)",
+          height: "unset",
+          borderBottom: "1px solid var(--axis-timeline-separator)",
         }}
       >
         {"↓"}
@@ -58,38 +61,19 @@ export function TimelineView({
       {/* 1. Track header overhang */}
       <div className={classes.axisSpacer}>{"↑"}</div>
 
-      {/* <div className={classes.trackHeaders}>
+      {/* <div
+        className={classes.trackHeaders}
+        style={{
+          background: "var(--background)",
+        }}
+      >
         <button
-          disabled={false}
-          className={classNames(utility.button)}
-          style={1 === 1 ? { background: "red" } : undefined}
-          title="arm track (record to this track)"
-          onClick={function (e) {
-            // if (isArmed) {
-            //   project.armedTrack.set(null);
-            // } else {
-            //   project.armedTrack.set(track);
-            // }
-            // e.stopPropagation();
+          style={{
+            border: "none",
+            background: "var(--control-bg-color)",
           }}
         >
-          {"\u23fa"}
-        </button>
-        <button
-          disabled={false}
-          className={classNames(utility.button)}
-          style={1 === 1 ? { background: "red" } : undefined}
-          title="arm track (record to this track)"
-          onClick={function (e) {
-            // if (isArmed) {
-            //   project.armedTrack.set(null);
-            // } else {
-            //   project.armedTrack.set(track);
-            // }
-            // e.stopPropagation();
-          }}
-        >
-          {"\u23fa"}
+          .
         </button>
       </div> */}
 
@@ -110,7 +94,7 @@ const useStyles = createUseStyles({
     gridTemplateRows: "30px 1fr",
     // 150 is TRACK_HEADER_WIDTH
     gridTemplateColumns: "1fr 150px",
-    // gridTemplateColumns: "24px 1fr 150px",
+    // gridTemplateColumns: "16px 1fr 150px",
     gridColumnGap: 0,
     gridRowGap: 0,
     overflowY: "scroll",

@@ -98,6 +98,7 @@ function EffectHeader({
         background: isSelected ? "#555" : undefined,
         display: "flex",
         flexDirection: "row",
+        borderBottom: "1px solid black",
         gap: 4,
       }}
     >

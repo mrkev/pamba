@@ -84,7 +84,7 @@ export function PambaWamNodeWindowPanel({
             overflow: "scroll",
           }}
         >
-          {printInfo((effect.module as any)["_descriptor"])}
+          {printInfo((effect.instance as any)["_descriptor"])}
         </div>
       )}
     </WindowPanel>,

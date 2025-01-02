@@ -20,9 +20,7 @@ export async function addAvailableWamToTrack(
     case "-m":
       throw new Error(`Generator of kind ${wam.pluginKind} can't be dynamically added, unsupported`);
     case "a-a": {
-      const pluginInstance1 = await wam.import.createInstance(hostGroupId, liveAudioContext());
-      const pluginDom1 = await pluginInstance1.createGui();
-      const module = new PambaWamNode(pluginInstance1, pluginDom1, wam.url);
+      const module = await PambaWamNode.fromImportAtURL(wam.import, wam.url, hostGroupId, liveAudioContext(), null);
       track.dsp.addEffect(module, index);
       break;
     }

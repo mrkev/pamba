@@ -354,10 +354,9 @@ export async function construct(
       const { pluginURL, state } = rep;
       const [wamHostGroupId] = nullthrows(appEnvironment.wamHostGroup.get(), "wam host not initialized yet!");
       const pambaWamNode = nullthrows(
-        await PambaWamNode.fromURL(pluginURL, wamHostGroupId, liveAudioContext()),
+        await PambaWamNode.fromURLAndState(pluginURL, state, wamHostGroupId, liveAudioContext()),
         "could not create PambaWamNode",
       );
-      await pambaWamNode.setState(state);
       return pambaWamNode;
     }
 

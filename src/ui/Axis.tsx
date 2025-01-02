@@ -148,6 +148,7 @@ export function Axis({ project, isHeader = false }: { project: AudioProject; isH
         style={{
           left: !isHeader ? viewportStartPx : 0,
           pointerEvents: "none",
+          overflow: "visible",
         }}
       >
         {(isHeader || primaryAxis === "tempo") &&

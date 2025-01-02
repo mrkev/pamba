@@ -1,5 +1,5 @@
 import { LinkedMap } from "./lib/state/LinkedMap";
-import { result, Result } from "./Result";
+import { result, Result } from "./result";
 
 export class MidiDevices {
   readonly inputs = LinkedMap.create<string, MIDIInput>();

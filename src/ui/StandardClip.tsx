@@ -4,19 +4,7 @@ import { useContainer, usePrimitive } from "structured-state";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioClip } from "../lib/AudioClip";
 import { MidiClip } from "../midi/MidiClip";
-import { exhaustive } from "../utils/exhaustive";
 import { useEventListener } from "./useEventListener";
-
-function kindOfClip(clip: AudioClip | MidiClip) {
-  switch (true) {
-    case clip instanceof AudioClip:
-      return "audio";
-    case clip instanceof MidiClip:
-      return "midi";
-    default:
-      exhaustive(clip);
-  }
-}
 
 /** Standard component renderer for clips on the timeline */
 export function StandardClip({
