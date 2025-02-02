@@ -15,7 +15,7 @@ import type { MidiInstrument } from "../midi/MidiInstrument";
 import { LocalSPrimitive } from "../ui/useLocalStorage";
 import { PambaWamNode } from "../wam/PambaWamNode";
 import { KINDS_SORT, PambaWAMPluginDescriptor, WAMPLUGINS } from "../wam/plugins";
-import { WAMImport, fetchWam } from "../wam/wam";
+import { WAMImport, fetchWam } from "../wam/fetchWam";
 import { orderedMap } from "./data/SOrderedMap";
 import { initAudioContext } from "./initAudioContext";
 import { AnalizedPlayer } from "./io/AnalizedPlayer";

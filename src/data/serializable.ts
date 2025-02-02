@@ -173,7 +173,7 @@ export async function serializable(
       kind: "MidiTrack",
       name: obj.name.get(),
       clips: await Promise.all(obj.clips.map((clip) => serializable(clip) as any)), // TODO: as any?
-      instrument: await obj.instrument.get().serialize(),
+      instrument: await serializable(obj.instrument.get()),
     };
   }
 
@@ -188,7 +188,16 @@ export async function serializable(
   }
 
   if (obj instanceof MidiInstrument) {
-    return obj.serialize();
+    console.log({
+      kind: "MidiInstrument",
+      url: obj.url,
+      state: await obj.getState(),
+    });
+    return {
+      kind: "MidiInstrument",
+      url: obj.url,
+      state: await obj.getState(),
+    };
   }
 
   if (obj instanceof AudioProject) {

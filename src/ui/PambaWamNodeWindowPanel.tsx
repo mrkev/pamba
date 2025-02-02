@@ -2,11 +2,10 @@ import { useState } from "react";
 import ReactDOM from "react-dom";
 import { usePrimitive } from "structured-state";
 import { useLinkedState } from "../lib/state/LinkedState";
-import { MidiInstrument } from "../midi/MidiInstrument";
 import { nullthrows } from "../utils/nullthrows";
 import { PambaWamNode } from "../wam/PambaWamNode";
 import { WamPluginContent } from "../wam/WamPluginContent";
-import { WindowPanel } from "../wam/WindowPanel";
+import { WindowPanel } from "./WindowPanel";
 import { UtilityToggle } from "./UtilityToggle";
 
 function printInfo(descriptor: any) {
@@ -38,13 +37,7 @@ function printInfo(descriptor: any) {
   );
 }
 
-export function PambaWamNodeWindowPanel({
-  effect,
-  onClose,
-}: {
-  effect: PambaWamNode | MidiInstrument;
-  onClose: () => void;
-}) {
+export function PambaWamNodeWindowPanel({ effect, onClose }: { effect: PambaWamNode; onClose: () => void }) {
   const [position, setPosition] = useLinkedState(effect.windowPanelPosition);
   const [showInfo, setShowInfo] = useState(false);
   const [name] = usePrimitive(effect.name);

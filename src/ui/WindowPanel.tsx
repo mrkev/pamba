@@ -1,6 +1,6 @@
 import React, { useCallback, useRef, useState } from "react";
 import { createUseStyles } from "react-jss";
-import { useDocumentEventListener, useEventListener } from "../ui/useEventListener";
+import { useDocumentEventListener, useEventListener } from "./useEventListener";
 import { exhaustive } from "../utils/exhaustive";
 
 export type Position = [x: number, y: number];

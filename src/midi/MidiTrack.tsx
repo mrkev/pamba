@@ -123,11 +123,11 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
 
     // connect sequencer and instrument
     // gain.connect(liveAudioContext.destination);
-    instrument.wamInstance.audioNode.connect(pianoRoll.audioNode);
+    instrument.pambaWam.wamInstance.audioNode.connect(pianoRoll.audioNode);
     pianoRoll.audioNode.connectEvents(instrument.wamInstance.instanceId);
 
     // connect instrument to rest of track dsp
-    this.dsp.connectToDSPForPlayback(this.instrument.get().node);
+    this.dsp.connectToDSPForPlayback(this.instrument.get().pambaWam.node);
 
     if (clips.length === 0) this.createSampleMidiClip();
   }
@@ -150,12 +150,12 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
     // TODO: ensure audio not playing?
     // Disconnect and destroy the old instrument
     await liveAudioContext().suspend();
-    currInstr.wamInstance.audioNode.disconnect(this.pianoRoll.audioNode);
+    currInstr.pambaWam.wamInstance.audioNode.disconnect(this.pianoRoll.audioNode);
     this.pianoRoll.audioNode.disconnectEvents(instrument.wamInstance.instanceId);
     this.pianoRoll.audioNode.clearEvents();
     DSP.disconnectAll(currInstr);
-    currInstr.wamInstance.audioNode.disconnect();
-    currInstr.wamInstance.audioNode.disconnectEvents();
+    currInstr.pambaWam.wamInstance.audioNode.disconnect();
+    currInstr.pambaWam.wamInstance.audioNode.disconnectEvents();
     currInstr.destroy();
 
     // Setup the new instrument
@@ -164,7 +164,7 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
     instrument.wamInstance.audioNode.connect(this.pianoRoll.audioNode);
     this.pianoRoll.audioNode.connectEvents(instrument.wamInstance.instanceId);
     // connect to rest of track dsp
-    this.dsp.connectToDSPForPlayback(this.instrument.get().node);
+    this.dsp.connectToDSPForPlayback(this.instrument.get().pambaWam.node);
 
     console.log("chagned instrument to", instrument.url);
     await liveAudioContext().resume();

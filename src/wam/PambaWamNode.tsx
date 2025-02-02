@@ -6,8 +6,8 @@ import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioContextInfo } from "../lib/initAudioContext";
 import { LinkedState } from "../lib/state/LinkedState";
-import { Position } from "./WindowPanel";
-import { WAMImport } from "./wam";
+import { Position } from "../ui/WindowPanel";
+import { WAMImport } from "./fetchWam";
 
 export class PambaWamNode implements DSPStep {
   readonly name: SString;

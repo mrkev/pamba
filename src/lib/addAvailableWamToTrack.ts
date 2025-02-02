@@ -1,7 +1,7 @@
 import { liveAudioContext } from "../constants";
 import { MidiInstrument } from "../midi/MidiInstrument";
 import { MidiTrack } from "../midi/MidiTrack";
-import { nullthrows } from "../utils/nullthrows";
+import { assert, nullthrows } from "../utils/nullthrows";
 import { PambaWamNode } from "../wam/PambaWamNode";
 import { WAMAvailablePlugin, appEnvironment } from "./AppEnvironment";
 import { AudioTrack } from "./AudioTrack";
@@ -30,17 +30,8 @@ export async function addAvailableWamToTrack(
         break;
       }
 
-      const instrument = await MidiInstrument.fromImportAtURL(
-        wam.import,
-        wam.url,
-        hostGroupId,
-        liveAudioContext(),
-        null,
-      );
-
-      // const instance = await wam.import.createInstance(hostGroupId, liveAudioContext());
-      // const dom = await instance.createGui();
-      // const instrument = new MidiInstrument(instance, wam.url, dom);
+      assert(wam.pluginKind === "m-a", "plugin is not an instrument");
+      const instrument = await MidiInstrument.createFromPlugin(wam as any);
 
       const open = appEnvironment.openEffects.has(track.instrument.get());
       await track.changeInstrument(instrument);

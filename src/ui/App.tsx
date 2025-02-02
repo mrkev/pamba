@@ -118,7 +118,9 @@ export function App(): React.ReactElement {
             return <PambaWamNodeWindowPanel key={i} effect={effect} onClose={() => openEffects.delete(effect)} />;
           }
           if (effect instanceof MidiInstrument) {
-            return <PambaWamNodeWindowPanel key={i} effect={effect} onClose={() => openEffects.delete(effect)} />;
+            return (
+              <PambaWamNodeWindowPanel key={i} effect={effect.pambaWam} onClose={() => openEffects.delete(effect)} />
+            );
           }
 
           return null;

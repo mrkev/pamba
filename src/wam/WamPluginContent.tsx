@@ -1,12 +1,8 @@
 import React, { useEffect, useRef } from "react";
-import { MidiInstrument } from "../midi/MidiInstrument";
 import { PambaWamNode } from "./PambaWamNode";
 
-export const WamPluginContent = React.memo(function WamPluginContentImpl({
-  wam,
-}: {
-  wam: PambaWamNode | MidiInstrument;
-}) {
+// used in window panels
+export const WamPluginContent = React.memo(function WamPluginContentImpl({ wam }: { wam: PambaWamNode }) {
   const divRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const div = divRef.current;
