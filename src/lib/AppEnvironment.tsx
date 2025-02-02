@@ -2,11 +2,13 @@ import { WamDescriptor } from "@webaudiomodules/api";
 import { FirebaseApp } from "firebase/app";
 import { Auth, User, getAuth } from "firebase/auth";
 import { DirtyObserver, SPrimitive, array } from "structured-state";
+import { MidiDevices } from "../MidiDevices";
 import { FIREBASE_ENABLED } from "../constants";
 import { ProjectPackage } from "../data/ProjectPackage";
 import { WAMKind } from "../data/WAMPackage";
 import { LocalFilesystem } from "../data/localFilesystem";
 import { FAUST_EFFECTS } from "../dsp/FAUST_EFFECTS";
+import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
 import { ensureError } from "../ensureError";
 import { initFirebaseApp } from "../firebase/firebaseConfig";
 import type { MidiInstrument } from "../midi/MidiInstrument";
@@ -14,15 +16,14 @@ import { LocalSPrimitive } from "../ui/useLocalStorage";
 import { PambaWamNode } from "../wam/PambaWamNode";
 import { KINDS_SORT, PambaWAMPluginDescriptor, WAMPLUGINS } from "../wam/plugins";
 import { WAMImport, fetchWam } from "../wam/wam";
-import { AnalizedPlayer } from "./io/AnalizedPlayer";
-import { AudioRenderer } from "./io/AudioRenderer";
 import { orderedMap } from "./data/SOrderedMap";
 import { initAudioContext } from "./initAudioContext";
+import { AnalizedPlayer } from "./io/AnalizedPlayer";
+import { AudioRenderer } from "./io/AudioRenderer";
 import { AudioProject } from "./project/AudioProject";
 import { AudioStorage } from "./project/AudioStorage";
 import { LinkedSet } from "./state/LinkedSet";
 import { LinkedState } from "./state/LinkedState";
-import { MidiDevices } from "../MidiDevices";
 
 const dummyObj = array();
 
@@ -37,6 +38,11 @@ export type WAMAvailablePlugin = {
 type ProjectState = { status: "idle" } | { status: "loading" } | { status: "loaded"; project: AudioProject };
 
 type Status = { is: "initing" } | { is: "ready" };
+
+type MidiLearningStatus =
+  | { status: "off" }
+  | { status: "waiting" }
+  | { status: "learning"; effect: FaustAudioEffect; address: string };
 
 export class AppEnvironment {
   readonly status: SPrimitive<Status>;
@@ -60,16 +66,19 @@ export class AppEnvironment {
   readonly projectPacakge: LinkedState<ProjectPackage | null>; // null if never saved
   // UI
   readonly openEffects: LinkedSet<PambaWamNode | MidiInstrument>;
-  readonly activeSidePanel = LocalSPrimitive.create<"library" | "project" | "history" | "settings" | "help" | null>(
+  readonly activeSidePanel = LocalSPrimitive.create<"library" | "project" | "history" | "midi" | "help" | null>(
     "side-panel-active",
     "library",
   );
 
   readonly activeBottomPanel = LocalSPrimitive.create<"editor" | "debug" | "about" | null>("bottom-panel-active", null);
-  public midiIO: MidiDevices | null = null;
+
+  // MIDI
+  readonly midiLearning: SPrimitive<MidiLearningStatus> = SPrimitive.of({ status: "off" });
+  public midiDevices: MidiDevices = null as any; // TODO: do this in a way that avoids the null?
 
   // System
-  renderer: AudioRenderer = null as any; // TODO: do this in a way that avoids the null?
+  public renderer: AudioRenderer = null as any; // TODO: do this in a way that avoids the null?
 
   readonly webgpu = SPrimitive.of<
     { status: "ok"; adapter: GPUAdapter; device: GPUDevice } | { status: "pending" } | { status: "error"; error: Error }
@@ -120,7 +129,7 @@ export class AppEnvironment {
       if (midiResult.status === "error") {
         console.warn("no midi", midiResult.error);
       } else {
-        this.midiIO = midiResult.value;
+        this.midiDevices = midiResult.value;
       }
 
       // WebGPU

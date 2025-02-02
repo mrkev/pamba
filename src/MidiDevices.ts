@@ -1,9 +1,9 @@
-import { LinkedMap } from "./lib/state/LinkedMap";
+import { SMap } from "structured-state";
 import { result, Result } from "./result";
 
 export class MidiDevices {
-  readonly inputs = LinkedMap.create<string, MIDIInput>();
-  readonly outputs = LinkedMap.create<string, MIDIOutput>();
+  readonly inputs = SMap.create<string, MIDIInput>();
+  readonly outputs = SMap.create<string, MIDIOutput>();
 
   private constructor(private midiAccess: MIDIAccess) {
     for (const [id, input] of this.midiAccess.inputs) {
@@ -14,9 +14,9 @@ export class MidiDevices {
       this.outputs.set(id, output);
     }
 
-    this.midiAccess.onstatechange = (_event) => {
+    this.midiAccess.onstatechange = (event) => {
       // todo, some connection changed
-      // console.log(event.port.name, event.port.manufacturer, event.port.state);
+      console.log("onstatechange", event.port?.name, event.port?.manufacturer, event.port?.state);
     };
 
     function onMIDIMessage(this: MIDIInput, ev: MIDIMessageEvent) {

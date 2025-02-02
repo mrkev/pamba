@@ -14,7 +14,8 @@ import { DebugContent } from "./DebugData";
 import { ToolHeader } from "./header/ToolHeader";
 import { TransportControl } from "./header/TransportControl";
 import { HelpPanel } from "./HelpPanel";
-import { HistoryPanel, Settings } from "./HistoryPanel";
+import { HistoryPanel } from "./HistoryPanel";
+import { MIDIPanel } from "./MIDIPanel";
 import { Library } from "./Library";
 import { modifierState, useSingletonKeyboardModifierState } from "./ModifierState";
 import { ProjectEditor } from "./ProjectEditor";
@@ -71,20 +72,20 @@ export function AppProject({ project }: { project: AudioProject }) {
               title: "Library",
               render: () => <Library project={project} renderer={renderer} player={renderer.analizedPlayer} />,
             },
-            project: {
-              icon: <i className="ri-file-music-line" />,
-              title: "Project",
-              render: () => <ProjectEditor project={project} />,
+            midi: {
+              icon: <i className="ri-link" style={{ paddingRight: 2 }}></i>,
+              title: "MIDI",
+              render: () => <MIDIPanel project={project} />,
             },
             history: {
               icon: <i className="ri-history-line" style={{ paddingRight: 2 }}></i>,
               title: "History",
               render: () => <HistoryPanel project={project} />,
             },
-            settings: {
-              icon: <i className="ri-settings-3-line" style={{ paddingRight: 2 }}></i>,
-              title: "Settings",
-              render: () => <Settings project={project} />,
+            project: {
+              icon: <i className="ri-file-music-line" />,
+              title: "Project",
+              render: () => <ProjectEditor project={project} />,
             },
             help: {
               icon: <i className="ri-questionnaire-line"></i>,

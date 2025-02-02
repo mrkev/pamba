@@ -199,6 +199,8 @@ export function UtilitySlider({
   onChange,
   label,
   style,
+  onClick,
+  onMouseDownCapture,
   ...rest
 }: Omit<React.InputHTMLAttributes<HTMLInputElement>, "value" | "step" | "min" | "max"> & {
   vertical?: boolean;
@@ -218,6 +220,8 @@ export function UtilitySlider({
   return (
     <div
       className={styles.container}
+      onClick={onClick}
+      onMouseDownCapture={onMouseDownCapture}
       style={{
         flexDirection: vertical ? "column-reverse" : "row",
         // border: document.activeElement?.id === id ? "1px solid red" : undefined,

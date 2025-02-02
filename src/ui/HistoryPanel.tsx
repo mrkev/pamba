@@ -26,7 +26,3 @@ export function HistoryPanel(_: { project: AudioProject }) {
     </>
   );
 }
-
-export function Settings(_: { project: AudioProject }) {
-  return <>Settings</>;
-}

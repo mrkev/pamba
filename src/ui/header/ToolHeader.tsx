@@ -12,7 +12,7 @@ import { useLinkedState } from "../../lib/state/LinkedState";
 import { doConfirm } from "../ConfirmDialog";
 import { RenamableLabel } from "../RenamableLabel";
 import { UtilityNumber } from "../UtilityNumber";
-import { UtilityToggle } from "../UtilityToggle";
+import { UtilitySToggle, UtilityToggle } from "../UtilityToggle";
 import { utility } from "../utility";
 import { BounceButton } from "./BounceButton";
 import { CommandButton } from "./CommandButton";
@@ -222,6 +222,7 @@ export function ToolHeader({
           />
           <ToolSelector project={project} />
           <div style={{ flexGrow: 1 }}></div>
+
           <BounceButton project={project} renderer={renderer} />
 
           <button

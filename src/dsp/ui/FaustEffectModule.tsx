@@ -3,6 +3,7 @@ import { Effect } from "../../ui/Effect";
 import { FaustAudioEffect } from "../FaustAudioEffect";
 import { faustGroupStyle } from "./FaustGroup";
 import { FaustItem } from "./FaustItem";
+import { usePrimitive } from "structured-state";
 
 /** Renders a FaustAudioEffect */
 export default function FaustEffectModule({
@@ -25,6 +26,8 @@ export default function FaustEffectModule({
   isSelected: boolean;
   onDragStart?: (e: React.DragEvent<HTMLDivElement>) => void;
 }) {
+  const [name] = usePrimitive(effect.name);
+
   // Use the top-most group as the overall wrapper, with the close button etc
   if ((effect.ui.length === 1 && effect.ui[0].type === "hgroup") || effect.ui[0].type === "vgroup") {
     const item = effect.ui[0];
@@ -33,7 +36,7 @@ export default function FaustEffectModule({
 
     return (
       <Effect
-        title={effect.name}
+        title={name}
         canDelete={canDelete}
         canBypass={canBypass}
         onClickBypass={() => onClickBypass(effect)}
@@ -54,7 +57,7 @@ export default function FaustEffectModule({
 
   return (
     <Effect
-      title={effect.name}
+      title={name}
       onClickBypass={() => onClickBypass(effect)}
       onClickRemove={() => onClickRemove(effect)}
       onHeaderMouseDown={() => onHeaderMouseDown(effect)}

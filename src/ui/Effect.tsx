@@ -1,6 +1,6 @@
 import { useCallback, useRef } from "react";
 import { createUseStyles } from "react-jss";
-import { SBoolean, SString, usePrimitive } from "structured-state";
+import { SBoolean, usePrimitive } from "structured-state";
 import { UtilityToggle } from "./UtilityToggle";
 import { useEventListener } from "./useEventListener";
 import { utility } from "./utility";
@@ -18,8 +18,8 @@ export function Effect({
   onDragStart,
 }: {
   children?: React.ReactNode;
-  title: SString;
-  onClickRemove: () => void;
+  title: string;
+  onClickRemove?: () => void;
   onHeaderMouseDown: () => void;
   onClickBypass: () => void;
   isSelected?: boolean;
@@ -28,8 +28,7 @@ export function Effect({
   bypass?: SBoolean;
   onDragStart?: (e: React.DragEvent<HTMLDivElement>) => void;
 }) {
-  // todo: take a string?
-  const [titleS] = usePrimitive(title);
+  console.log(title);
   return (
     <div
       style={{
@@ -43,7 +42,7 @@ export function Effect({
       }}
     >
       <EffectHeader
-        title={titleS}
+        title={title}
         isSelected={isSelected}
         onClickBypass={onClickBypass}
         onClickRemove={onClickRemove}

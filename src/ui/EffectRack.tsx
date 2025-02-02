@@ -184,7 +184,7 @@ export const EffectRack = React.memo(function EffectRack({
             onHeaderMouseDown={() => ProjectSelection.selectEffect(project, effect, track)}
             onClickBypass={() => AudioTrack.bypassEffect(track, effect)}
             isSelected={selected?.status === "effects" && selected.test.has(effect)}
-            title={effect.name}
+            title={effect.name.get()}
             onDragStart={(ev) => {
               onDragStart(ev, i);
             }}
@@ -226,6 +226,7 @@ export const EffectRack = React.memo(function EffectRack({
         }}
         className={styles.effectRack}
       >
+        {track instanceof MidiTrack && <MidiInputEffect track={track} project={project} renderer={renderer} />}
         {track instanceof MidiTrack && <InstrumentEffect track={track} project={project} renderer={renderer} />}
         {chain}
         <div
@@ -246,30 +247,42 @@ export const EffectRack = React.memo(function EffectRack({
   );
 });
 
+function MidiInputEffect({ track }: { track: MidiTrack; project: AudioProject; renderer: AudioRenderer }) {
+  return (
+    <Effect
+      canDelete={false}
+      onHeaderMouseDown={() => console.log("TODO")}
+      onClickBypass={() => console.log("TODO")}
+      isSelected={false}
+      title={"MIDI"}
+    >
+      Input:
+      <input type="checkbox" />
+      <input type="checkbox" />
+    </Effect>
+  );
+}
+
 function InstrumentEffect({ track }: { track: MidiTrack; project: AudioProject; renderer: AudioRenderer }) {
   const [instrument] = usePrimitive(track.instrument);
+  const [name] = usePrimitive(instrument.name);
   return (
-    <React.Fragment>
-      <Effect
-        canDelete={false}
-        onClickRemove={() => {
-          console.log("CANT REMOVE");
-        }}
-        onHeaderMouseDown={() => console.log("TODO")}
-        onClickBypass={() => console.log("TODO")}
-        isSelected={false}
-        title={instrument.name}
+    <Effect
+      canDelete={false}
+      onHeaderMouseDown={() => console.log("TODO")}
+      onClickBypass={() => console.log("TODO")}
+      isSelected={false}
+      title={name}
+    >
+      {/* TODO: this wont be reactive: the window won't render the new instrument when we change it */}
+      <button
+        className="utilityButton"
+        style={{ margin: "4px 4px" }}
+        onClick={() => appEnvironment.openEffects.add(instrument)}
       >
-        {/* TODO: this wont be reactive: the window won't render the new instrument when we change it */}
-        <button
-          className="utilityButton"
-          style={{ margin: "4px 4px" }}
-          onClick={() => appEnvironment.openEffects.add(instrument)}
-        >
-          Configure
-        </button>
-      </Effect>
-    </React.Fragment>
+        Configure
+      </button>
+    </Effect>
   );
 }
 
