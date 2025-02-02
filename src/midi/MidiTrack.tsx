@@ -123,8 +123,8 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
 
     // connect sequencer and instrument
     // gain.connect(liveAudioContext.destination);
-    instrument.module.audioNode.connect(pianoRoll.audioNode);
-    pianoRoll.audioNode.connectEvents(instrument.module.instanceId);
+    instrument.wamInstance.audioNode.connect(pianoRoll.audioNode);
+    pianoRoll.audioNode.connectEvents(instrument.wamInstance.instanceId);
 
     // connect instrument to rest of track dsp
     this.dsp.connectToDSPForPlayback(this.instrument.get().node);
@@ -150,19 +150,19 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
     // TODO: ensure audio not playing?
     // Disconnect and destroy the old instrument
     await liveAudioContext().suspend();
-    currInstr.module.audioNode.disconnect(this.pianoRoll.audioNode);
-    this.pianoRoll.audioNode.disconnectEvents(instrument.module.instanceId);
+    currInstr.wamInstance.audioNode.disconnect(this.pianoRoll.audioNode);
+    this.pianoRoll.audioNode.disconnectEvents(instrument.wamInstance.instanceId);
     this.pianoRoll.audioNode.clearEvents();
     DSP.disconnectAll(currInstr);
-    currInstr.module.audioNode.disconnect();
-    currInstr.module.audioNode.disconnectEvents();
+    currInstr.wamInstance.audioNode.disconnect();
+    currInstr.wamInstance.audioNode.disconnectEvents();
     currInstr.destroy();
 
     // Setup the new instrument
     this.instrument.set(instrument);
     // connect to piano roll
-    instrument.module.audioNode.connect(this.pianoRoll.audioNode);
-    this.pianoRoll.audioNode.connectEvents(instrument.module.instanceId);
+    instrument.wamInstance.audioNode.connect(this.pianoRoll.audioNode);
+    this.pianoRoll.audioNode.connectEvents(instrument.wamInstance.instanceId);
     // connect to rest of track dsp
     this.dsp.connectToDSPForPlayback(this.instrument.get().node);
 
@@ -257,8 +257,8 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
       throw new Error("failed to clone instrument to offline audio context");
     }
 
-    instrument.module.audioNode.connect(pianoRoll.audioNode);
-    pianoRoll.audioNode.connectEvents(instrument.module.instanceId);
+    instrument.wamInstance.audioNode.connect(pianoRoll.audioNode);
+    pianoRoll.audioNode.connectEvents(instrument.wamInstance.instanceId);
 
     this.playingSource = pianoRoll as any;
 

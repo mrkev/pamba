@@ -41,6 +41,12 @@ export type MousePressMoveMeta<T extends Record<string, unknown> | void> = {
   mousedown: T;
 };
 
+/**
+ *
+ * @param elemRef
+ * @param mousedown
+ * @param listener
+ */
 export function useMousePressMove<T extends Record<string, unknown> | void>(
   elemRef: React.RefObject<HTMLElement | null | undefined>,
   mousedown: (ev: MouseEvent) => T | "done",

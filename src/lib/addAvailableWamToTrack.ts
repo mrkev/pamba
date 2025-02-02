@@ -29,8 +29,18 @@ export async function addAvailableWamToTrack(
         console.warn("Can't add an instrument to a non-midi track");
         break;
       }
-      const instance = await wam.import.createInstance(hostGroupId, liveAudioContext());
-      const instrument = new MidiInstrument(instance, wam.url);
+
+      const instrument = await MidiInstrument.fromImportAtURL(
+        wam.import,
+        wam.url,
+        hostGroupId,
+        liveAudioContext(),
+        null,
+      );
+
+      // const instance = await wam.import.createInstance(hostGroupId, liveAudioContext());
+      // const dom = await instance.createGui();
+      // const instrument = new MidiInstrument(instance, wam.url, dom);
 
       const open = appEnvironment.openEffects.has(track.instrument.get());
       await track.changeInstrument(instrument);

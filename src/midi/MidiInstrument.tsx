@@ -8,6 +8,8 @@ import { appEnvironment, WAMAvailablePlugin } from "../lib/AppEnvironment";
 import { LinkedState } from "../lib/state/LinkedState";
 import { assert, nullthrows } from "../utils/nullthrows";
 import { Position } from "../wam/WindowPanel";
+import { WAMImport } from "../wam/wam";
+import { PambaWamNode } from "../wam/PambaWamNode";
 
 // TODO: merge with PambaWamNode??
 export class MidiInstrument implements DSPStep<null> {
@@ -15,13 +17,8 @@ export class MidiInstrument implements DSPStep<null> {
   readonly name: SString;
   readonly bypass = boolean(false);
 
-  readonly url: string;
-
   // WAM
-  readonly module: WebAudioModule<WamNode>;
   readonly node: TrackedAudioNode<WamNode>;
-
-  public dom: Element | null;
 
   public inputNode(): null {
     return null;
@@ -46,27 +43,47 @@ export class MidiInstrument implements DSPStep<null> {
   // Window Panel
   readonly windowPanelPosition = LinkedState.of<Position>([10, 10]);
 
-  constructor(module: WebAudioModule<WamNode>, url: string) {
-    this.module = module;
-    this.node = TrackedAudioNode.of(this.module.audioNode);
-    this.effectId = this.module.moduleId;
-    this.name = string(this.module.descriptor.name);
-    this.dom = null;
+  constructor(
+    readonly wamInstance: WebAudioModule<WamNode>,
+    readonly url: string,
+    readonly dom: Element,
+  ) {
+    this.node = TrackedAudioNode.of(this.wamInstance.audioNode);
+    this.effectId = this.wamInstance.moduleId;
+    this.name = string(this.wamInstance.descriptor.name);
     this.url = url;
   }
 
   public destroy() {
     appEnvironment.openEffects.delete(this);
     if (this.dom) {
-      this.module.destroyGui(this.dom);
+      this.wamInstance.destroyGui(this.dom);
     }
+  }
+
+  static async fromImportAtURL(
+    wamImport: WAMImport,
+    wamURL: string,
+    hostGroupId: string,
+    audioCtx: BaseAudioContext,
+    state: unknown | null,
+  ) {
+    const wamInstance = await wamImport.createInstance(hostGroupId, audioCtx);
+    if (state != null) {
+      await wamInstance.audioNode.setState(state);
+    }
+    const wamDom = await wamInstance.createGui();
+    // const paramInfo = await wamInstance.audioNode.getParameterInfo();
+    // const paramValues = await wamInstance.audioNode.getParameterValues();
+    return new MidiInstrument(wamInstance, wamURL, wamDom);
   }
 
   static async createFromUrl(pluginUrl: string, wamHostGroupId: string, audioContext: BaseAudioContext) {
     const { plugin, localDesc } = nullthrows(appEnvironment.wamPlugins.get(pluginUrl));
     assert(localDesc.kind === "m-a", "plugin is not an instrument");
-    const module = await plugin.import.createInstance(wamHostGroupId, audioContext);
-    return new MidiInstrument(module, pluginUrl);
+    const wamInstance = await plugin.import.createInstance(wamHostGroupId, audioContext);
+    const wamDom = await wamInstance.createGui();
+    return new MidiInstrument(wamInstance, pluginUrl, wamDom);
   }
 
   static async createFromPlugin(insturment: WAMAvailablePlugin & { pluginKind: "m-a" }) {
@@ -94,13 +111,13 @@ export class MidiInstrument implements DSPStep<null> {
     // const state = await this.module.audioNode.getParameterValues();
     // return state;
 
-    const state = await this.module.audioNode.getState();
+    const state = await this.wamInstance.audioNode.getState();
     return state;
   }
 
   async setState(state: WamParameterDataMap) {
     console.log(state);
-    await this.module.audioNode.setState(state);
+    await this.wamInstance.audioNode.setState(state);
     // TODO: not working with OBXD because getParameterValues returns nothing
     // await this.module.audioNode.setParameterValues(state);
   }

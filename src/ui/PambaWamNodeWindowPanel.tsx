@@ -5,8 +5,8 @@ import { useLinkedState } from "../lib/state/LinkedState";
 import { MidiInstrument } from "../midi/MidiInstrument";
 import { nullthrows } from "../utils/nullthrows";
 import { PambaWamNode } from "../wam/PambaWamNode";
+import { WamPluginContent } from "../wam/WamPluginContent";
 import { WindowPanel } from "../wam/WindowPanel";
-import { WamInstrumentContent, WamPluginContent } from "../wam/wam";
 import { UtilityToggle } from "./UtilityToggle";
 
 function printInfo(descriptor: any) {
@@ -69,7 +69,7 @@ export function PambaWamNodeWindowPanel({
       position={position}
       onPositionChange={setPosition}
     >
-      {effect instanceof PambaWamNode ? <WamPluginContent wam={effect} /> : <WamInstrumentContent wam={effect} />}
+      <WamPluginContent wam={effect} />
       {showInfo && (
         <div
           style={{
@@ -84,7 +84,7 @@ export function PambaWamNodeWindowPanel({
             overflow: "scroll",
           }}
         >
-          {printInfo((effect.instance as any)["_descriptor"])}
+          {printInfo((effect.wamInstance as any)["_descriptor"])}
         </div>
       )}
     </WindowPanel>,

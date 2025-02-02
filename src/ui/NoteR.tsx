@@ -41,6 +41,7 @@ export function NoteR({
         if (e.button !== 0) {
           return "done";
         }
+
         // if (editable === true)
         switch (panelTool) {
           case "draw": {
@@ -50,6 +51,7 @@ export function NoteR({
             });
             return "done";
           }
+
           case "move": {
             project.secondarySelection.setDyn((prev) => {
               const selectAdd = modifierState.meta || modifierState.shift;
@@ -63,6 +65,8 @@ export function NoteR({
                 };
               }
             });
+
+            // info to keep for the other events
             return {
               clientX: e.clientX,
               clientY: e.clientY,
@@ -75,22 +79,36 @@ export function NoteR({
       },
       [clip, note, panelTool, project.secondarySelection, track],
     ),
-    useCallback((meta, e) => {
-      console.log(meta, e);
-      // pressedState.set(null);
+    useCallback(
+      (meta, e) => {
+        console.log("move", meta, e);
 
-      // const pressed = pressedState.get();
-      // if (!pressed || pressed.status != "moving_notes") {
-      //   return;
-      // }
-      const deltaX = e.clientX - meta.mousedown.clientX;
-      // const deltaY = e.clientY - meta.mousedown.clientY;
+        switch (meta.event) {
+          case "mouseenter":
+          case "mouseleave":
+          case "mousemove":
+          case "mouseup":
+            break;
+          default:
+            exhaustive(meta.event);
+        }
 
-      const deltaXPulses = Math.floor(clip.detailedViewport.pxToPulses(deltaX));
-      // const deltaYNotes = Math.floor(clip.detailedViewport.pxToVerticalNotes(deltaY));
+        // pressedState.set(null);
 
-      console.log("moving", deltaXPulses);
-    }, []),
+        // const pressed = pressedState.get();
+        // if (!pressed || pressed.status != "moving_notes") {
+        //   return;
+        // }
+        const deltaX = e.clientX - meta.mousedown.clientX;
+        // const deltaY = e.clientY - meta.mousedown.clientY;
+
+        const deltaXPulses = Math.floor(clip.detailedViewport.pxToPulses(deltaX));
+        // const deltaYNotes = Math.floor(clip.detailedViewport.pxToVerticalNotes(deltaY));
+
+        console.log("moving", deltaXPulses);
+      },
+      [clip.detailedViewport],
+    ),
   );
 
   // useEventListener(

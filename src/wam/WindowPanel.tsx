@@ -20,11 +20,12 @@ export function WindowPanel({
   onPositionChange: SetState<Position>;
 }) {
   const classes = useStyles();
+  const titleBarRef = useRef<HTMLDivElement>(null);
   const [cursor, setCursor] = useState<{ status: "idle" } | { status: "moving"; start: Position }>({
     status: "idle",
   });
-  const titleBarRef = useRef<HTMLDivElement>(null);
 
+  console.log("window panel");
   useEventListener(
     "mousedown",
     titleBarRef,
@@ -44,7 +45,6 @@ export function WindowPanel({
     "mouseup",
     useCallback((_e: MouseEvent) => {
       setCursor({ status: "idle" });
-      // e.stopImmediatePropagation();
     }, []),
   );
 
@@ -61,7 +61,6 @@ export function WindowPanel({
           default:
             exhaustive(cursor);
         }
-        // e.stopImmediatePropagation();
       },
       [cursor, onPositionChange],
     ),

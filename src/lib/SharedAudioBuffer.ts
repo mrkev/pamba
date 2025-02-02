@@ -9,7 +9,6 @@ import { appEnvironment } from "./AppEnvironment";
  */
 export class SharedAudioBuffer implements AudioBuffer {
   readonly channels: SharedArrayBuffer[] = [];
-  // channels: SharedArrayBuffer[] = [];
   readonly length: number;
   readonly duration: number;
   readonly numberOfChannels: number;
@@ -21,7 +20,6 @@ export class SharedAudioBuffer implements AudioBuffer {
       // TODO: Can I already shere these buffers?
       const floats = audioBuffer.getChannelData(c);
       const sab = new SharedArrayBuffer(floats.buffer.byteLength);
-      console.log("init with", SharedArrayBuffer);
       const sharedFloats = new Float32Array(sab);
       sharedFloats.set(floats, 0);
       this.channels.push(sab);

@@ -89,12 +89,12 @@ async function startHost() {
   const track = await MidiTrack.createWithInstrument(obxd, "midi track");
 
   let gain = liveAudioContext.createGain();
-  let pluginDom2 = await obxd.module.createGui();
+  let pluginDom2 = await obxd.wamInstance.createGui();
 
-  obxd.module.audioNode.connect(gain);
+  obxd.wamInstance.audioNode.connect(gain);
   gain.connect(liveAudioContext.destination);
-  obxd.module.audioNode.connect(track.pianoRoll.audioNode);
-  track.pianoRoll.audioNode.connectEvents(obxd.module.instanceId);
+  obxd.wamInstance.audioNode.connect(track.pianoRoll.audioNode);
+  track.pianoRoll.audioNode.connectEvents(obxd.wamInstance.instanceId);
 
   /**
    * Mount the plugins to the host.
