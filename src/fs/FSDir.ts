@@ -68,7 +68,10 @@ export class FSDir {
   public async ensure(kind: "dir" | "file", name: string): Promise<FSDir | FSFile | "invalid"> {
     switch (kind) {
       case "dir": {
-        const res = await pTry(this.handle.getDirectoryHandle(name, { create: true }), "invalid" as const);
+        const res = await pTry(this.handle.getDirectoryHandle(name, { create: true }), (e) => {
+          console.error(e);
+          return "invalid" as const;
+        });
         if (res === "invalid") {
           return res;
         }
@@ -83,6 +86,21 @@ export class FSDir {
       }
     }
   }
+
+  public async ensureThrow(kind: "dir", name: string): Promise<FSDir>;
+  public async ensureThrow(kind: "file", name: string): Promise<FSFile>;
+  public async ensureThrow(kind: "dir" | "file", name: string): Promise<FSDir | FSFile> {
+    switch (kind) {
+      case "dir": {
+        const res = await this.handle.getDirectoryHandle(name, { create: true });
+        return new FSDir(res, this.path.concat(res.name));
+      }
+      case "file": {
+        const res = await this.handle.getFileHandle(name, { create: true });
+        return new FSFile(res, this.path.concat(res.name));
+      }
+    }
+  }
 }
 
 export class FSFile {
@@ -90,4 +108,10 @@ export class FSFile {
     public readonly handle: FileSystemFileHandle,
     public readonly path: readonly string[],
   ) {}
+
+  public async write(file: FileSystemWriteChunkType) {
+    const writable = await this.handle.createWritable();
+    await writable.write(file);
+    await writable.close();
+  }
 }

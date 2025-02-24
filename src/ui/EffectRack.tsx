@@ -226,7 +226,7 @@ export const EffectRack = React.memo(function EffectRack({
         }}
         className={styles.effectRack}
       >
-        {track instanceof MidiTrack && <MidiInputEffect track={track} project={project} renderer={renderer} />}
+        {/* {track instanceof MidiTrack && <MidiInputEffect track={track} project={project} renderer={renderer} />} */}
         {track instanceof MidiTrack && <InstrumentEffect track={track} project={project} renderer={renderer} />}
         {chain}
         <div

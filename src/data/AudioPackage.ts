@@ -1,7 +1,7 @@
 import * as musicMetadata from "music-metadata-browser";
-import { isRecord } from "../lib/nw/nwschema";
-import { pAll, pTry, runAll } from "../utils/ignorePromise";
 import { FSDir } from "../fs/FSDir";
+import { isRecord } from "../lib/nw/nwschema";
+import { pAll, pTry } from "../utils/ignorePromise";
 
 /**
  * Represents an audio file in the virtual filesystem
@@ -80,7 +80,7 @@ export class AudioPackage {
     // Write locally
     const existing = await dir.open("dir", file.name);
     if (existing instanceof FSDir) {
-      return "error_file_exists";
+      return "error_dir_exists";
     }
 
     const newPackage = await dir.ensure("dir", file.name);
@@ -89,24 +89,18 @@ export class AudioPackage {
       return "error_creating";
     }
 
-    const [audioBufferHandle, metadataHandle] = await pAll(
-      newPackage.handle.getFileHandle("audio", { create: true }),
-      newPackage.handle.getFileHandle("metadata", { create: true }),
+    const [audioBufferFile, metadataFile] = await pAll(
+      // todo: ensure? what if they already exist?
+      newPackage.ensureThrow("file", "audio"),
+      newPackage.ensureThrow("file", "metadata"),
     );
 
     console.log("attempting to save");
 
-    await runAll(
-      async () => {
-        const writable = await audioBufferHandle.createWritable();
-        await writable.write(file);
-        await writable.close();
-      },
-      async () => {
-        const writable = await metadataHandle.createWritable();
-        await writable.write(JSON.stringify({ musicMetadata: metadata }));
-        await writable.close();
-      },
+    await pAll(
+      //
+      audioBufferFile.write(file),
+      metadataFile.write(JSON.stringify({ musicMetadata: metadata })),
     );
 
     return new AudioPackage(file.name, file, metadata, newPackage);
