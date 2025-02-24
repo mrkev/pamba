@@ -45,7 +45,7 @@ export class ProjectPackage {
       return { status: "invalid" } as const;
     }
 
-    const file = await projectFS.getFile();
+    const file = await projectFS.read();
 
     try {
       const parsed = JSON.parse(await file.text());
@@ -73,8 +73,8 @@ export class ProjectPackage {
       return { status: "invalid" } as const;
     }
 
-    let size = (await projectHandle.getFile()).size;
-    size += (await metadataHandle.getFile()).size;
+    let size = (await projectHandle.read()).size;
+    size += (await metadataHandle.read()).size;
 
     return size;
   }
@@ -122,7 +122,7 @@ export class ProjectPackage {
     if (metadataHandle === "invalid") {
       return "invalid";
     }
-    const file = await metadataHandle.getFile();
+    const file = await metadataHandle.read();
     const metadata = JSON.parse(await file.text());
     if (!isRecord(metadata)) {
       throw new Error("metadata is not a record!");

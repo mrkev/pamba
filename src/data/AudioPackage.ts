@@ -34,7 +34,7 @@ export class AudioPackage {
       throw new Error("ERROR: " + pkgDir.path);
     }
 
-    const [file, metadataFile] = await pAll(fileHandle.getFile(), metadataHandle.getFile());
+    const [file, metadataFile] = await pAll(fileHandle.read(), metadataHandle.read());
     const metadata = JSON.parse(await metadataFile.text());
     if (!isRecord(metadata)) {
       throw new Error("metadata is not a record!");

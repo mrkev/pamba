@@ -130,7 +130,7 @@ export class FSFile {
     await writable.close();
   }
 
-  public async getFile() {
+  public async read() {
     return this.handle.getFile();
   }
 }

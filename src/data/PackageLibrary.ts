@@ -34,7 +34,7 @@ export class PackageLibrary<P> {
 
       const pkg = await this.existingPackage(child);
       if (typeof pkg === "string") {
-        console.warn("Package", child.handle.name, "returned error", result);
+        console.warn("Package", child.name, "returned error", result);
       } else {
         result.set(child.name, pkg);
       }

@@ -30,9 +30,9 @@ class _WAMPackage {
   static async existingPackage(pkgDir: FSDir) {
     // dont need metadata atm but open for good measure?
     const [indexHandle, metadataHandle, descriptorHandle] = await pAll(
-      pTry(pkgDir.handle.getFileHandle(_WAMPackage.INDEX_FILE_NAME), "error" as const),
-      pTry(pkgDir.handle.getFileHandle(_WAMPackage.METADATA_FILE_NAME), "error" as const),
-      pTry(pkgDir.handle.getFileHandle(_WAMPackage.DESCRIPTOR_FILE_NAME), "error" as const),
+      pTry(pkgDir.openThrow("file", _WAMPackage.INDEX_FILE_NAME), "error" as const),
+      pTry(pkgDir.openThrow("file", _WAMPackage.METADATA_FILE_NAME), "error" as const),
+      pTry(pkgDir.openThrow("file", _WAMPackage.DESCRIPTOR_FILE_NAME), "error" as const),
     );
 
     if (indexHandle === "error" || metadataHandle === "error" || descriptorHandle === "error") {
@@ -40,9 +40,9 @@ class _WAMPackage {
     }
 
     const [file, metadataFile, descriptorFile] = await pAll(
-      indexHandle.getFile(),
-      metadataHandle.getFile(),
-      descriptorHandle.getFile(),
+      indexHandle.read(),
+      metadataHandle.read(),
+      descriptorHandle.read(),
     );
 
     // TODO: verify type
