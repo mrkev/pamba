@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
+import { usePrimitive } from "structured-state";
 import { AudioPackage } from "../data/AudioPackage";
 import { niceBytes } from "../data/niceBytes";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioProject } from "../lib/project/AudioProject";
+import { useLinkedMapMaybe } from "../lib/state/LinkedMap";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { pAll } from "../utils/ignorePromise";
-import { ListEntry, UtilityDataList } from "./UtilityList";
-import { usePrimitive } from "structured-state";
+import { UtilityDataList } from "./UtilityList";
 
 const STATUS_PENDING = { status: "pending" } as const;
 
@@ -32,31 +33,32 @@ function useAsync<T>(promise: Promise<T>): AsyncResult<T> {
 export function ProjectEditor({ project }: { project: AudioProject }) {
   const [name] = usePrimitive(project.projectName);
   const [projectPackage] = useLinkedState(appEnvironment.projectPacakge);
+  const projectAudioFiles = useLinkedMapMaybe(projectPackage?.audioLibRef.state);
+
+  // TODO: doesn't seem to update when we add a new audio file to projectPackage?.audioLibRef.state?
+  // (ie, when recording new audio)
+  const items =
+    projectAudioFiles?.map((ap) => {
+      return {
+        title: ap.name,
+        data: ap,
+      };
+    }) ?? [];
+
   const results = useAsync(
     useMemo(async () => {
       if (projectPackage == null) {
         return null;
       }
 
-      const [size, projectAudioFiles] = await pAll(projectPackage.getProjectSize(), projectPackage.projectAudioFiles());
+      const [size] = await pAll(projectPackage.getProjectSize());
       if (!(typeof size === "number")) {
         throw new Error(size.status);
       }
 
-      return { size, projectAudioFiles };
+      return { size };
     }, [projectPackage]),
   );
-
-  const items: ListEntry<AudioPackage>[] = useMemo(() => {
-    return results.status !== "resolved" || results.value == null
-      ? ([] as ListEntry<AudioPackage>[])
-      : results.value.projectAudioFiles.map((ap) => {
-          return {
-            title: ap.name,
-            data: ap,
-          };
-        });
-  }, [results.status]);
 
   return (
     <>

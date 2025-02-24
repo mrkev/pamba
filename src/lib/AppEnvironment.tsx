@@ -57,7 +57,7 @@ export class AppEnvironment {
   readonly wamPlugins = orderedMap<string, { plugin: WAMAvailablePlugin; localDesc: PambaWAMPluginDescriptor }>();
   readonly faustEffects = Object.keys(FAUST_EFFECTS) as (keyof typeof FAUST_EFFECTS)[];
   // FS
-  readonly localFiles: LocalFilesystem = new LocalFilesystem();
+  readonly localFiles: LocalFilesystem = null as any; // TODO: do this in a way that avoids the null?
   readonly audioStorage = SPrimitive.of<AudioStorage | null>(null);
 
   // Project
@@ -121,6 +121,8 @@ export class AppEnvironment {
     const [audioContextInfo] = await Promise.all([initAudioContext(liveAudioContext)]);
 
     try {
+      (this as any).localFiles = (await LocalFilesystem.initialize()) as any;
+
       // if (storage !== "no-storage") {
       const audioStorage = AudioStorage.init();
       this.audioStorage.set(audioStorage);

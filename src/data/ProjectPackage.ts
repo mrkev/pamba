@@ -4,7 +4,6 @@ import { isRecord } from "../lib/nw/nwschema";
 import { AudioProject } from "../lib/project/AudioProject";
 import { pAll, pTry } from "../utils/ignorePromise";
 import { AudioPackage } from "./AudioPackage";
-import { AudioPackageList } from "./AudioPackageList";
 import { PackageLibrary } from "./PackageLibrary";
 import { SAudioProject, construct } from "./serializable";
 
@@ -28,12 +27,10 @@ export class ProjectPackage {
   // https://bugs.chromium.org/p/chromium/issues/detail?id=1522410
   static readonly AUDIO_DIR_NAME = "audiolib" as const;
 
-  private _localAudioLib: PackageLibrary<AudioPackage> | null = null;
-
   private constructor(
     public readonly id: string,
     public readonly name: string,
-    public readonly audioLibRef: AudioPackageList,
+    public readonly audioLibRef: PackageLibrary<AudioPackage>,
     private readonly pkgDir: FSDir,
   ) {}
 
@@ -82,24 +79,20 @@ export class ProjectPackage {
     return size;
   }
 
-  async localAudioLib(): Promise<PackageLibrary<AudioPackage>> {
-    if (this._localAudioLib != null) {
-      return this._localAudioLib;
-    }
-
-    const audioLibDir = await this.pkgDir.ensure("dir", ProjectPackage.AUDIO_DIR_NAME);
-    if (typeof audioLibDir === "string") {
-      throw new Error("Error: can't find or create local audio lib");
-    }
-    const lib = new PackageLibrary(audioLibDir.path, async (dir) => await AudioPackage.existingPackage(dir));
-    await lib._initState();
-    this._localAudioLib = lib;
-    return lib;
+  // atm only recorded audio goes in the project
+  async projectAudioFiles() {
+    return [...(await this.audioLibRef.getAll())];
   }
 
-  // TODO: remove, no functionality to consolidate audio inside project yet
-  async projectAudioFiles() {
-    return [...(await this.audioLibRef.getAllAudioLibFiles()).values()];
+  public async saveAudio(file: File) {
+    // TODO: check existence to prevent override?
+    const pkg = await AudioPackage.newUpload(file, await this.audioLibRef.getDir());
+    if (pkg instanceof AudioPackage) {
+      // todo: automanage this to not have to update manually
+      console.log("HERE SET");
+      this.audioLibRef.state.set(pkg.name, pkg);
+    }
+    return pkg;
   }
 
   static async existingPackage(projRoot: FSDir): Promise<ProjectPackage | "invalid"> {
@@ -111,9 +104,12 @@ export class ProjectPackage {
       return "invalid";
     }
 
-    const projectAudioLib = new AudioPackageList(audioLibDir);
-    const name = (metadata.projectName ?? "untitled") as string;
+    const projectAudioLib = await PackageLibrary.init<AudioPackage>(
+      audioLibDir,
+      async (dir) => await AudioPackage.existingPackage(dir),
+    );
 
+    const name = (metadata.projectName ?? "untitled") as string;
     return new ProjectPackage(id, name, projectAudioLib, projRoot);
   }
 
@@ -136,7 +132,7 @@ export class ProjectPackage {
 
   // TODO: replace with save project to package, and provide a project package?
   static async saveProject(projectId: string, projectName: string, data: SAudioProject) {
-    const [projects] = await pAll(appEnvironment.localFiles.projectLib.dir());
+    const [projects] = await pAll(appEnvironment.localFiles.projectLib.getDir());
     const projectDir = await projects.ensure("dir", projectId);
     if (projectDir === "invalid") {
       throw new Error("save: dir could not be ensured. invalid.");
@@ -158,6 +154,11 @@ export class ProjectPackage {
       metadataHandle.write(JSON.stringify({ projectName })),
     );
 
-    return new ProjectPackage(projectId, projectName, new AudioPackageList(audioLibDir), projectDir);
+    const projectAudioLib = await PackageLibrary.init<AudioPackage>(
+      audioLibDir,
+      async (dir) => await AudioPackage.existingPackage(dir),
+    );
+
+    return new ProjectPackage(projectId, projectName, projectAudioLib, projectDir);
   }
 }

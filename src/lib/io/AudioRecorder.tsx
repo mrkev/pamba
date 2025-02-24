@@ -127,7 +127,7 @@ export class AudioRecorder {
         return;
       }
 
-      const audioPackage = await projectPackage.audioLibRef.saveAudio(file);
+      const audioPackage = await projectPackage.saveAudio(file);
       if (!(audioPackage instanceof AudioPackage)) {
         this.status.set("error");
         console.error(audioPackage);

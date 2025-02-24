@@ -1,6 +1,6 @@
+import { FSDir, FSFile } from "../fs/FSDir";
 import { AudioProject } from "../lib/project/AudioProject";
 import { AudioPackage } from "./AudioPackage";
-import { FSDir, FSFile } from "../fs/FSDir";
 import { PackageLibrary } from "./PackageLibrary";
 import { ProjectPackage } from "./ProjectPackage";
 import { serializable } from "./serializable";
@@ -27,17 +27,26 @@ export class LocalFilesystem {
   static readonly PROJECTS_DIR = "projects";
   static readonly GLOBAL_AUDIO_LIB_DIR = "audiolib";
 
-  // audio
-  readonly audioLib = new PackageLibrary<AudioPackage>(
-    [LocalFilesystem.ROOT_NAME, LocalFilesystem.GLOBAL_AUDIO_LIB_DIR],
-    async (dir) => await AudioPackage.existingPackage(dir),
-  );
+  private constructor(
+    public readonly audioLib: PackageLibrary<AudioPackage>,
+    public readonly projectLib: PackageLibrary<ProjectPackage>,
+  ) {}
 
-  // projects
-  readonly projectLib = new PackageLibrary<ProjectPackage>(
-    [LocalFilesystem.ROOT_NAME, LocalFilesystem.PROJECTS_DIR],
-    async (dir) => await ProjectPackage.existingPackage(dir),
-  );
+  static async initialize() {
+    // audio
+    const audioLib = await PackageLibrary.init<AudioPackage>(
+      await LocalFilesystem.walk([LocalFilesystem.ROOT_NAME, LocalFilesystem.GLOBAL_AUDIO_LIB_DIR], { create: true }),
+      async (dir) => await AudioPackage.existingPackage(dir),
+    );
+
+    // projects
+    const projectLib = await PackageLibrary.init<ProjectPackage>(
+      await LocalFilesystem.walk([LocalFilesystem.ROOT_NAME, LocalFilesystem.PROJECTS_DIR], { create: true }),
+      async (dir) => await ProjectPackage.existingPackage(dir),
+    );
+
+    return new LocalFilesystem(audioLib, projectLib);
+  }
 
   /** Walks down the filesystem looking for or creating directories */
   static async walk(path: readonly string[], opts: { create: boolean }) {

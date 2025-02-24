@@ -152,9 +152,10 @@ function InitButtion() {
           className={utility.button}
           onClick={async () => {
             setClicked(true);
-            await appEnvironment.readyPromise; //resolves when done initializing
+            await appEnvironment.readyPromise; // resolves when done initializing
             appEnvironment.projectStatus.set({ status: "loading" });
             // ignorePromise(init());
+            console.log("HERE");
             await ProjectPersistance.openLastProject(appEnvironment.localFiles);
           }}
         >

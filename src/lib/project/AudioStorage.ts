@@ -13,7 +13,7 @@ export class AudioStorage {
   }
 
   async uploadToLibrary(file: File, onFormatInfo?: (format: IFormat) => void): Promise<AudioPackage | Error> {
-    const audioPackage = await AudioPackage.newUpload(file, await appEnvironment.localFiles.audioLib.dir());
+    const audioPackage = await AudioPackage.newUpload(file, await appEnvironment.localFiles.audioLib.getDir());
     if (typeof audioPackage === "string") {
       return new Error(audioPackage);
     }
@@ -32,9 +32,9 @@ export class AudioStorage {
       throw new Error("No open project package to save to");
     }
 
-    const audioLib = await projectPackage.localAudioLib();
+    const audioLib = projectPackage.audioLibRef;
 
-    const audioPackage = await AudioPackage.newUpload(file, await audioLib.dir());
+    const audioPackage = await AudioPackage.newUpload(file, await audioLib.getDir());
     if (typeof audioPackage === "string") {
       return new Error(audioPackage);
     }

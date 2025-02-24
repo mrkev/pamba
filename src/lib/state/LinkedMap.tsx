@@ -132,19 +132,46 @@ export function useLinkedMap<K, V>(linkedMap: LinkedMap<K, V>): [LinkedMap<K, V>
         linkedMap._setRaw(newVal);
       }
     },
-    [linkedMap]
+    [linkedMap],
   );
 
   return [linkedMap, setter];
 }
 
+export function useLinkedMapMaybe<K, V>(
+  linkedMap: LinkedMap<K, V> | null | undefined,
+): LinkedMap<K, V> | null | undefined {
+  useSubscribeToSubbableMutationHashableMaybe(linkedMap);
+  return linkedMap;
+}
+
 export function useSubscribeToSubbableMutationHashable<T extends MutationHashable & Subbable<any>>(
   obj: T,
-  cb?: () => void
+  cb?: () => void,
 ): T {
   const [, setHash] = useState(() => MutationHashable.getMutationHash(obj));
 
   useEffect(() => {
+    return subscribe(obj, () => {
+      setHash((prev) => (prev + 1) % Number.MAX_SAFE_INTEGER);
+      cb?.();
+    });
+  }, [cb, obj]);
+
+  return obj;
+}
+
+export function useSubscribeToSubbableMutationHashableMaybe<T extends MutationHashable & Subbable<any>>(
+  obj: T | null | undefined,
+  cb?: () => void,
+): T | null | undefined {
+  const [, setHash] = useState(() => (obj ? MutationHashable.getMutationHash(obj) : 0));
+
+  useEffect(() => {
+    if (obj == null) {
+      return;
+    }
+
     return subscribe(obj, () => {
       setHash((prev) => (prev + 1) % Number.MAX_SAFE_INTEGER);
       cb?.();
