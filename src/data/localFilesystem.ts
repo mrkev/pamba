@@ -1,6 +1,6 @@
 import { AudioProject } from "../lib/project/AudioProject";
 import { AudioPackage } from "./AudioPackage";
-import { FSDir, FSFile } from "./FSDir";
+import { FSDir, FSFile } from "../fs/FSDir";
 import { PackageLibrary } from "./PackageLibrary";
 import { ProjectPackage } from "./ProjectPackage";
 import { serializable } from "./serializable";

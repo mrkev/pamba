@@ -4,7 +4,7 @@ import { AudioProject } from "../lib/project/AudioProject";
 import { pAll, pTry, runAll } from "../utils/ignorePromise";
 import { AudioPackage } from "./AudioPackage";
 import { AudioPackageList } from "./AudioPackageList";
-import { FSDir } from "./FSDir";
+import { FSDir } from "../fs/FSDir";
 import { PackageLibrary } from "./PackageLibrary";
 import { SAudioProject, construct } from "./serializable";
 

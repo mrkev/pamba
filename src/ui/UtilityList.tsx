@@ -68,7 +68,7 @@ export function UtilityDataList<T>({
             className={classNames(
               classes.listItem,
               disabled && classes.listItemDisabled,
-              item.icon && classes.listItemWithIcon
+              item.icon && classes.listItemWithIcon,
             )}
             key={i}
             draggable={!disableDrag && draggable && !disabled}
@@ -125,7 +125,7 @@ export function UtilityDataList<T>({
             }}
           >
             {item.icon}
-            {item.title}
+            <span style={{ overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>{item.title}</span>
             {/* <input
               type="text"
               style={{ fontSize: "inherit", fontWeight: "inherit", border: "none", padding: 0, margin: 0 }}
@@ -160,7 +160,6 @@ const useStyles = createUseStyles({
   },
   listItem: {
     textOverflow: "ellipsis",
-    overflow: "hidden",
     whiteSpace: "nowrap",
     padding: "0px 2px",
     flexShrink: 0,

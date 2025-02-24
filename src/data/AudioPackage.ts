@@ -1,7 +1,7 @@
 import * as musicMetadata from "music-metadata-browser";
 import { isRecord } from "../lib/nw/nwschema";
 import { pAll, pTry, runAll } from "../utils/ignorePromise";
-import { FSDir } from "./FSDir";
+import { FSDir } from "../fs/FSDir";
 
 /**
  * Represents an audio file in the virtual filesystem

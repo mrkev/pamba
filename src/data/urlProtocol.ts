@@ -1,6 +1,6 @@
 import { exhaustive } from "../utils/exhaustive";
 import { AudioPackage } from "./AudioPackage";
-import { FSFile } from "./FSDir";
+import { FSFile } from "../fs/FSDir";
 import { LocalFilesystem } from "./localFilesystem";
 
 // I'm thinking here:

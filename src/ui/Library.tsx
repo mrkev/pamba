@@ -22,6 +22,7 @@ import { ListEntry, UtilityDataList } from "./UtilityList";
 import { transferObject } from "./dragdrop/setTransferData";
 import { closeProject } from "./header/ToolHeader";
 import { pressedState } from "./pressedState";
+import { UtilityMenu } from "./UtilityMenu";
 
 const STATIC_AUDIO_FILES = ["drums.mp3", "clav.mp3", "bassguitar.mp3", "horns.mp3", "leadguitar.mp3"];
 
@@ -104,8 +105,19 @@ export function Library({
             p.id === project.projectId ? (
               <i style={{ color: "gray" }}>open</i>
             ) : (
-              ""
-              // <UtilityMenu label={"foobar"} items={{ delete: () => {} }} />
+              <UtilityMenu
+                kind="none"
+                anchor="tr"
+                label={"..."}
+                items={{
+                  delete: () => {
+                    alert("TODO: not implemented");
+                  },
+                  rename: () => {
+                    alert("TODO: not implemented");
+                  },
+                }}
+              />
               // <button
               //   style={{ border: "none", padding: "0px 2px", fontSize: "10px", fontWeight: 800, background: "none" }}
               // >

@@ -3,7 +3,7 @@
 import { WamDescriptor } from "@webaudiomodules/api";
 import { isRecord } from "../lib/nw/nwschema";
 import { pAll, pTry } from "../utils/ignorePromise";
-import { FSDir } from "./FSDir";
+import { FSDir } from "../fs/FSDir";
 
 /**
  * <wam_package>

@@ -1,5 +1,5 @@
 import { LinkedMap } from "../lib/state/LinkedMap";
-import { FSDir, FSFile } from "./FSDir";
+import { FSDir, FSFile } from "../fs/FSDir";
 import { LocalFilesystem } from "./localFilesystem";
 
 export class PackageLibrary<P> {
