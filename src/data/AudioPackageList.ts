@@ -30,6 +30,8 @@ export class AudioPackageList {
         continue;
       }
 
+      console.log("FOOO", pkg.handle.name, pkg.name);
+
       const audioPackage = await AudioPackage.existingPackage(pkg);
       result.set(pkg.handle.name, audioPackage);
     }

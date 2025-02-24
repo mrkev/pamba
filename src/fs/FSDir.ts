@@ -7,6 +7,10 @@ export class FSDir {
   ) {}
 
   get name() {
+    // TODO: remove this assertion, but here just so I don't forget this is what this is suppossed to be
+    if (this.path[this.path.length - 1] !== this.handle.name) {
+      throw new Error("mismatching names");
+    }
     return this.path[this.path.length - 1];
   }
 
@@ -28,6 +32,7 @@ export class FSDir {
 
       console.warn("FSDir: child is unknown type:", child);
     }
+
     return results;
   }
 
@@ -54,13 +59,16 @@ export class FSDir {
     }
   }
 
-  public async open(kind: "dir", name: string): Promise<FSDir | "not_found"> {
-    const result = await pTry(this.handle.getDirectoryHandle(name), "not_found" as const);
-    if (result === "not_found") {
-      return result;
-    }
+  public async open(kind: "dir", name: string): Promise<FSDir | "not_found">;
+  public async open(kind: "file", name: string): Promise<FSFile | "not_found">;
+  public async open(kind: "dir" | "file", name: string): Promise<FSDir | FSFile | "not_found"> {
+    const result = await (
+      kind === "dir"
+        ? this.handle.getDirectoryHandle(name).then((handle) => new FSDir(handle, this.path.concat(handle.name)))
+        : this.handle.getFileHandle(name).then((handle) => new FSFile(handle, this.path.concat(handle.name)))
+    ).catch(() => "not_found" as const);
 
-    return new FSDir(result, this.path.concat(result.name));
+    return result;
   }
 
   public async ensure(kind: "dir", name: string): Promise<FSDir | "invalid">;
@@ -87,19 +95,26 @@ export class FSDir {
     }
   }
 
+  public async openThrow(kind: "dir", name: string): Promise<FSDir>;
+  public async openThrow(kind: "file", name: string): Promise<FSFile>;
+  public async openThrow(kind: "dir" | "file", name: string): Promise<FSDir | FSFile> {
+    const result = await (kind === "dir"
+      ? this.handle.getDirectoryHandle(name).then((handle) => new FSDir(handle, this.path.concat(handle.name)))
+      : this.handle.getFileHandle(name).then((handle) => new FSFile(handle, this.path.concat(handle.name))));
+    return result;
+  }
+
   public async ensureThrow(kind: "dir", name: string): Promise<FSDir>;
   public async ensureThrow(kind: "file", name: string): Promise<FSFile>;
   public async ensureThrow(kind: "dir" | "file", name: string): Promise<FSDir | FSFile> {
-    switch (kind) {
-      case "dir": {
-        const res = await this.handle.getDirectoryHandle(name, { create: true });
-        return new FSDir(res, this.path.concat(res.name));
-      }
-      case "file": {
-        const res = await this.handle.getFileHandle(name, { create: true });
-        return new FSFile(res, this.path.concat(res.name));
-      }
-    }
+    const result = await (kind === "dir"
+      ? this.handle
+          .getDirectoryHandle(name, { create: true })
+          .then((handle) => new FSDir(handle, this.path.concat(handle.name)))
+      : this.handle
+          .getFileHandle(name, { create: true })
+          .then((handle) => new FSFile(handle, this.path.concat(handle.name))));
+    return result;
   }
 }
 
@@ -113,5 +128,9 @@ export class FSFile {
     const writable = await this.handle.createWritable();
     await writable.write(file);
     await writable.close();
+  }
+
+  public async getFile() {
+    return this.handle.getFile();
   }
 }

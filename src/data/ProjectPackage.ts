@@ -1,10 +1,10 @@
+import { FSDir } from "../fs/FSDir";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { isRecord } from "../lib/nw/nwschema";
 import { AudioProject } from "../lib/project/AudioProject";
-import { pAll, pTry, runAll } from "../utils/ignorePromise";
+import { pAll, pTry } from "../utils/ignorePromise";
 import { AudioPackage } from "./AudioPackage";
 import { AudioPackageList } from "./AudioPackageList";
-import { FSDir } from "../fs/FSDir";
 import { PackageLibrary } from "./PackageLibrary";
 import { SAudioProject, construct } from "./serializable";
 
@@ -39,15 +39,16 @@ export class ProjectPackage {
 
   async readProject(): Promise<{ status: "invalid" } | AudioProject> {
     // dont need metadata atm but open for good measure?
-    const [projectHandle, metadataHandle] = await pAll(
-      pTry(this.pkgDir.handle.getFileHandle(ProjectPackage.DOCUMENT_FILE_NAME), "invalid" as const),
-      pTry(this.pkgDir.handle.getFileHandle(ProjectPackage.METADATA_FILE_NAME), "invalid" as const),
+    const [projectFS, metadataFS] = await pAll(
+      pTry(this.pkgDir.openThrow("file", ProjectPackage.DOCUMENT_FILE_NAME), "invalid" as const),
+      pTry(this.pkgDir.openThrow("file", ProjectPackage.METADATA_FILE_NAME), "invalid" as const),
     );
-    if (projectHandle === "invalid" || metadataHandle === "invalid") {
+
+    if (projectFS === "invalid" || metadataFS === "invalid") {
       return { status: "invalid" } as const;
     }
 
-    const file = await projectHandle.getFile();
+    const file = await projectFS.getFile();
 
     try {
       const parsed = JSON.parse(await file.text());
@@ -68,8 +69,8 @@ export class ProjectPackage {
 
   async getProjectSize() {
     const [projectHandle, metadataHandle] = await pAll(
-      pTry(this.pkgDir.handle.getFileHandle(ProjectPackage.DOCUMENT_FILE_NAME), "invalid" as const),
-      pTry(this.pkgDir.handle.getFileHandle(ProjectPackage.METADATA_FILE_NAME), "invalid" as const),
+      pTry(this.pkgDir.openThrow("file", ProjectPackage.DOCUMENT_FILE_NAME), "invalid" as const),
+      pTry(this.pkgDir.openThrow("file", ProjectPackage.METADATA_FILE_NAME), "invalid" as const),
     );
     if (projectHandle === "invalid" || metadataHandle === "invalid") {
       return { status: "invalid" } as const;
@@ -96,17 +97,16 @@ export class ProjectPackage {
     return lib;
   }
 
-  // TODO: remove
+  // TODO: remove, no functionality to consolidate audio inside project yet
   async projectAudioFiles() {
     return [...(await this.audioLibRef.getAllAudioLibFiles()).values()];
   }
 
   static async existingPackage(projRoot: FSDir): Promise<ProjectPackage | "invalid"> {
-    const location = projRoot.handle;
-    const metadata = await this.getProjectMetadata(location);
+    const metadata = await this.getProjectMetadata(projRoot);
     const audioLibDir = await projRoot.ensure("dir", ProjectPackage.AUDIO_DIR_NAME);
 
-    const id = location.name;
+    const id = projRoot.name;
     if (metadata === "invalid" || audioLibDir === "invalid") {
       return "invalid";
     }
@@ -117,9 +117,12 @@ export class ProjectPackage {
     return new ProjectPackage(id, name, projectAudioLib, projRoot);
   }
 
-  static async getProjectMetadata(project: FileSystemDirectoryHandle) {
+  static async getProjectMetadata(projRoot: FSDir) {
     // dont need metadata atm but open for good measure?
-    const metadataHandle = await pTry(project.getFileHandle(ProjectPackage.METADATA_FILE_NAME), "invalid" as const);
+    const metadataHandle = await pTry(
+      projRoot.openThrow("file", ProjectPackage.METADATA_FILE_NAME),
+      "invalid" as const,
+    );
     if (metadataHandle === "invalid") {
       return "invalid";
     }
@@ -140,8 +143,8 @@ export class ProjectPackage {
     }
 
     const [projectHandle, metadataHandle, audioLibDir] = await pAll(
-      projectDir.handle.getFileHandle(ProjectPackage.DOCUMENT_FILE_NAME, { create: true }),
-      projectDir.handle.getFileHandle(ProjectPackage.METADATA_FILE_NAME, { create: true }),
+      projectDir.ensureThrow("file", ProjectPackage.DOCUMENT_FILE_NAME),
+      projectDir.ensureThrow("file", ProjectPackage.METADATA_FILE_NAME),
       projectDir.ensure("dir", ProjectPackage.AUDIO_DIR_NAME),
     );
 
@@ -149,17 +152,10 @@ export class ProjectPackage {
       throw new Error("save: project audiolibdir could not be ensured. invalid.");
     }
 
-    await runAll(
-      async () => {
-        const writable = await projectHandle.createWritable();
-        await writable.write(JSON.stringify(data));
-        await writable.close();
-      },
-      async () => {
-        const writable = await metadataHandle.createWritable();
-        await writable.write(JSON.stringify({ projectName }));
-        await writable.close();
-      },
+    await pAll(
+      //
+      projectHandle.write(JSON.stringify(data)),
+      metadataHandle.write(JSON.stringify({ projectName })),
     );
 
     return new ProjectPackage(projectId, projectName, new AudioPackageList(audioLibDir), projectDir);
