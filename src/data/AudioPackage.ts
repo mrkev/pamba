@@ -26,8 +26,8 @@ export class AudioPackage {
   static async existingPackage(pkgDir: FSDir) {
     // dont need metadata atm but open for good measure?
     const [fileHandle, metadataHandle] = await pAll(
-      pTry(pkgDir.handle.getFileHandle(AudioPackage.BUFFER_FILE_NAME), "error" as const),
-      pTry(pkgDir.handle.getFileHandle(AudioPackage.METADATA_FILE_NAME), "error" as const),
+      pTry(pkgDir.openThrow("file", AudioPackage.BUFFER_FILE_NAME), "error" as const),
+      pTry(pkgDir.openThrow("file", AudioPackage.METADATA_FILE_NAME), "error" as const),
     );
 
     if (fileHandle === "error" || metadataHandle === "error") {
@@ -40,9 +40,7 @@ export class AudioPackage {
       throw new Error("metadata is not a record!");
     }
 
-    const name = pkgDir.handle.name;
-
-    return new AudioPackage(name, file, metadata as any, pkgDir);
+    return new AudioPackage(pkgDir.name, file, metadata as any, pkgDir);
   }
 
   static async newUpload(file: File, dir: FSDir) {
