@@ -13,14 +13,12 @@ export class AudioStorage {
   }
 
   async uploadToLibrary(file: File, onFormatInfo?: (format: IFormat) => void): Promise<AudioPackage | Error> {
-    const audioPackage = await AudioPackage.newUpload(file, await appEnvironment.localFiles.audioLib.getDir());
+    const audioPackage = await AudioPackage.newUpload(file, appEnvironment.localFiles.audioLib);
     if (typeof audioPackage === "string") {
       return new Error(audioPackage);
     }
 
     onFormatInfo?.(audioPackage.metadata.format);
-    // TODO: remove need to _initState()
-    await appEnvironment.localFiles.audioLib._initState();
     return audioPackage;
   }
 
@@ -34,15 +32,12 @@ export class AudioStorage {
 
     const audioLib = projectPackage.audioLibRef;
 
-    const audioPackage = await AudioPackage.newUpload(file, await audioLib.getDir());
+    const audioPackage = await AudioPackage.newUpload(file, audioLib);
     if (typeof audioPackage === "string") {
       return new Error(audioPackage);
     }
 
     onFormatInfo?.(audioPackage.metadata.format);
-    // TODO: remove need to _initState()
-    await audioLib._initState();
-
     return audioPackage;
   }
 }

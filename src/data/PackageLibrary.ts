@@ -18,12 +18,8 @@ export class PackageLibrary<P> {
     return pkgLib;
   }
 
-  public async getDir(): Promise<FSDir> {
-    return await this.dir;
-  }
-
   /** Make sure to call _initState() before usage! */
-  async _initState() {
+  private async _initState() {
     const dirList = await (await this.dir).list();
     // https://github.com/microsoft/TypeScript-DOM-lib-generator/issues/1639\
     const result = new Map();
@@ -41,6 +37,10 @@ export class PackageLibrary<P> {
     }
 
     this.state._setRaw(result);
+  }
+
+  public async getDir(): Promise<FSDir> {
+    return await this.dir;
   }
 
   public async getAll(): Promise<P[]> {
@@ -64,4 +64,6 @@ export class PackageLibrary<P> {
     this.state.delete(id);
     return null;
   }
+
+  async add() {}
 }

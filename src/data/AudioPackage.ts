@@ -2,9 +2,10 @@ import * as musicMetadata from "music-metadata-browser";
 import { FSDir } from "../fs/FSDir";
 import { isRecord } from "../lib/nw/nwschema";
 import { pAll, pTry } from "../utils/ignorePromise";
+import { PackageLibrary } from "./PackageLibrary";
 
 /**
- * Represents an audio file in the virtual filesystem
+ * Represents an audio file in the virtual filesystem.
  */
 export class AudioPackage {
   readonly kind = "AudioPackage.local" as const;
@@ -43,7 +44,7 @@ export class AudioPackage {
     return new AudioPackage(pkgDir.name, file, metadata as any, pkgDir);
   }
 
-  static async newUpload(file: File, dir: FSDir) {
+  static async newUpload(file: File, dest: FSDir | PackageLibrary<AudioPackage>) {
     // Verify type
     // note: to support the format "audio/ogg; codecs=opus"
     // see: https://developer.mozilla.org/en-US/docs/Web/Media/Formats/codecs_parameter
@@ -75,6 +76,8 @@ export class AudioPackage {
       skipCovers: true,
     });
 
+    const dir = dest instanceof PackageLibrary ? await dest.getDir() : dest;
+
     // Write locally
     const existing = await dir.open("dir", file.name);
     if (existing instanceof FSDir) {
@@ -101,6 +104,12 @@ export class AudioPackage {
       metadataFile.write(JSON.stringify({ musicMetadata: metadata })),
     );
 
-    return new AudioPackage(file.name, file, metadata, newPackage);
+    const result = new AudioPackage(file.name, file, metadata, newPackage);
+
+    if (dest instanceof PackageLibrary) {
+      dest.state.set(file.name, result);
+    }
+
+    return result;
   }
 }

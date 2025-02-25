@@ -86,7 +86,7 @@ export class ProjectPackage {
 
   public async saveAudio(file: File) {
     // TODO: check existence to prevent override?
-    const pkg = await AudioPackage.newUpload(file, await this.audioLibRef.getDir());
+    const pkg = await AudioPackage.newUpload(file, this.audioLibRef);
     if (pkg instanceof AudioPackage) {
       // todo: automanage this to not have to update manually
       console.log("HERE SET");

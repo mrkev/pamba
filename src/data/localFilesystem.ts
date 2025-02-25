@@ -79,7 +79,7 @@ export class LocalFilesystem {
         throw new Error(`fs: path doesn't start at root: ${path}`);
     }
 
-    let currentDir: FSDir | FSFile | "err" = await navigator.storage.getDirectory().then((dir) => {
+    let currentDir: FSDir | FSFile | "not_found" = await navigator.storage.getDirectory().then((dir) => {
       return new FSDir(dir, []);
     });
     for (let i = 1; i < path.length; i++) {
@@ -95,7 +95,7 @@ export class LocalFilesystem {
       }
     }
 
-    return currentDir;
+    return currentDir === "not_found" ? "err" : currentDir;
   }
 
   async saveProject(project: AudioProject) {

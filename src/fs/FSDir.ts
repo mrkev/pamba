@@ -1,3 +1,4 @@
+import { exhaustive } from "../utils/exhaustive";
 import { pTry } from "../utils/ignorePromise";
 
 export class FSDir {
@@ -45,8 +46,7 @@ export class FSDir {
     return null;
   }
 
-  // todo: more descriptive errors
-  public async openAny(name: string): Promise<FSDir | FSFile | "err"> {
+  public async openAny(name: string): Promise<FSDir | FSFile | "not_found"> {
     const resultDir = await pTry(this.handle.getDirectoryHandle(name), "err" as const);
     const resultFile = await pTry(this.handle.getFileHandle(name), "err" as const);
 
@@ -55,7 +55,7 @@ export class FSDir {
     } else if (resultFile instanceof FileSystemFileHandle) {
       return new FSFile(resultFile, this.path.concat(resultFile.name));
     } else {
-      return "err";
+      return "not_found";
     }
   }
 
@@ -95,6 +95,38 @@ export class FSDir {
     }
   }
 
+  public async hasChild(name: string) {
+    const child = await this.openAny(name);
+    return child !== "not_found";
+  }
+
+  public async isChild(check: FSDir | FSFile) {
+    const child = await this.openAny(check.handle.name);
+    if (child === "not_found") {
+      return false;
+    }
+    return await child.handle.isSameEntry(check.handle);
+  }
+
+  ////////////// throw
+
+  public async deleteThrow(name: string) {
+    await this.handle.removeEntry(name, { recursive: true });
+  }
+
+  public async openAnyThrow(name: string): Promise<FSDir | FSFile> {
+    const resultDir = await pTry(this.handle.getDirectoryHandle(name), "err" as const);
+    const resultFile = await pTry(this.handle.getFileHandle(name), "err" as const);
+
+    if (resultDir instanceof FileSystemDirectoryHandle) {
+      return new FSDir(resultDir, this.path.concat(resultDir.name));
+    } else if (resultFile instanceof FileSystemFileHandle) {
+      return new FSFile(resultFile, this.path.concat(resultFile.name));
+    } else {
+      throw new Error("Not found");
+    }
+  }
+
   public async openThrow(kind: "dir", name: string): Promise<FSDir>;
   public async openThrow(kind: "file", name: string): Promise<FSFile>;
   public async openThrow(kind: "dir" | "file", name: string): Promise<FSDir | FSFile> {
@@ -116,6 +148,29 @@ export class FSDir {
           .then((handle) => new FSFile(handle, this.path.concat(handle.name))));
     return result;
   }
+
+  // TODO: could also just use ids, and name is metadata
+  public async renameThrow(from: string | FSDir | FSFile, to: string) {
+    const src = typeof from === "string" ? await this.openAnyThrow(from) : from;
+    if (!this.isChild(src)) {
+      throw new Error(`${src.name} is not a child of ${this.path.join("/")}`);
+    }
+
+    const dest = await this.openAny(to);
+    if (dest !== "not_found") {
+      throw new Error(`destination ${to} is not empty`);
+    }
+
+    if (src instanceof FSDir) {
+      // todo: rename
+    } else if (src instanceof FSFile) {
+      const data = await src.read();
+      const newFile = await this.ensureThrow("file", to);
+      await newFile.write(data);
+    } else {
+      exhaustive(src);
+    }
+  }
 }
 
 export class FSFile {
@@ -123,6 +178,14 @@ export class FSFile {
     public readonly handle: FileSystemFileHandle,
     public readonly path: readonly string[],
   ) {}
+
+  get name() {
+    // TODO: remove this assertion, but here just so I don't forget this is what this is suppossed to be
+    if (this.path[this.path.length - 1] !== this.handle.name) {
+      throw new Error("mismatching names");
+    }
+    return this.path[this.path.length - 1];
+  }
 
   public async write(file: FileSystemWriteChunkType) {
     const writable = await this.handle.createWritable();

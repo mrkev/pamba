@@ -59,7 +59,9 @@ export function UtilityMenu({
       <button
         ref={buttonRef}
         className={utility.button}
-        style={kind === "none" ? { background: open ? "rgba(0,0,0,0.1)" : "none" } : undefined}
+        style={
+          kind === "none" ? { background: open ? "rgba(0,0,0,0.1)" : "none", padding: 0, height: "initial" } : undefined
+        }
       >
         {label}
       </button>
