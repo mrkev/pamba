@@ -1,5 +1,5 @@
 {
-  "identifier": "com.foo.pianoRoll",
+  "identifier": "com.aykev.pianoRoll",
   "name": "Piano Roll",
   "vendor": "Sequencer Party",
   "description": "Piano Roll.  Supports variable length clips.",

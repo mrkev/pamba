@@ -10,7 +10,7 @@ import { MidiTrack } from "../../midi/MidiTrack";
 import { exhaustive } from "../../utils/exhaustive";
 import { ignorePromise } from "../../utils/ignorePromise";
 import { nullthrows } from "../../utils/nullthrows";
-import { ONE_BAR_PULSES } from "../../wam/pianorollme/MIDIConfiguration";
+import { ONE_BAR_PULSES } from "../../wam/miditrackwam/MIDIConfiguration";
 import { TransferableResource } from "./getTrackAcceptableDataTransferResources";
 
 export const addMidiClipsIntoTrack = (project: AudioProject, track: MidiTrack, clips: MidiClip[]): void => {

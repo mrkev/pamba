@@ -1,7 +1,7 @@
 import { MidiClip } from "../midi/MidiClip";
 import { getOneTickLen } from "../ui/Axis";
 import { clamp, returnClosest, stepNumber } from "../utils/math";
-import { PPQN } from "../wam/pianorollme/MIDIConfiguration";
+import { PPQN } from "../wam/miditrackwam/MIDIConfiguration";
 import { AudioClip } from "./AudioClip";
 import { AudioProject } from "./project/AudioProject";
 import { TimelineT } from "./project/TimelineT";

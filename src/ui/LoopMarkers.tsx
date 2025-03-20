@@ -6,7 +6,7 @@ import { time } from "../lib/project/TimelineT";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { pressedState } from "./pressedState";
 import { set } from "../utils/set";
-import { PPQN } from "../wam/pianorollme/MIDIConfiguration";
+import { PPQN } from "../wam/miditrackwam/MIDIConfiguration";
 
 export function LoopMarkers({ project }: { project: AudioProject }) {
   const styles = useStyles();

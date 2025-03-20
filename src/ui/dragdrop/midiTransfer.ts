@@ -1,7 +1,7 @@
 import midiFile from "midi-file";
 import { note, Note } from "../../midi/SharedMidiTypes";
 import { MidiTransfer } from "./getTrackAcceptableDataTransferResources";
-import { PPQN } from "../../wam/pianorollme/MIDIConfiguration";
+import { PPQN } from "../../wam/miditrackwam/MIDIConfiguration";
 
 // midiFile.parseMidi()
 

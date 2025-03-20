@@ -11,7 +11,7 @@ import { MidiTrack } from "../midi/MidiTrack";
 import { exhaustive } from "../utils/exhaustive";
 import { clamp } from "../utils/math";
 import { nullthrows } from "../utils/nullthrows";
-import { PPQN } from "../wam/pianorollme/MIDIConfiguration";
+import { PPQN } from "../wam/miditrackwam/MIDIConfiguration";
 import { ClipPropsEditor } from "./ClipPropsEditor";
 import { NoteR } from "./NoteR";
 import { UtilityToggle } from "./UtilityToggle";

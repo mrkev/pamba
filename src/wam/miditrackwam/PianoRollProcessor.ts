@@ -12,7 +12,7 @@ import { nullthrows } from "../../utils/nullthrows";
 import { MIDI, MIDIConfiguration, midiOfPartial, PPQN } from "./MIDIConfiguration";
 import { MIDINoteRecorder, PianoRollClip } from "./PianoRollClip";
 
-const MODULE_ID = "com.foo.pianoRoll";
+const MODULE_ID = "com.aykev.pianoRoll";
 
 const audioWorkletGlobalScope: AudioWorkletGlobalScope = globalThis as unknown as AudioWorkletGlobalScope;
 const ModuleScope = audioWorkletGlobalScope.webAudioModules.getModuleScope(MODULE_ID);
@@ -23,28 +23,28 @@ class PianoRollProcessor extends WamProcessor {
     return {};
   }
 
-  lastTime: number | null;
-  isPlaying: boolean;
+  private lastTime: number | null = null;
+  private isPlaying: boolean = false;
 
-  ticks: number;
-  startingTicks: number = 0;
+  private ticks: number = -1;
+  private startingTicks: number = 0;
 
-  transportData?: WamTransportData;
-  count: number;
+  private transportData?: WamTransportData;
+  private count: number = 0;
 
-  readonly clips: Map<string, PianoRollClip> = new Map();
+  private readonly clips: Map<string, PianoRollClip> = new Map();
   readonly playingNotes = new Set<number>();
   // new system
-  seqClips: OrderedMap<string, SimpleMidiClip> = new OrderedMap();
-  loop: readonly [number, number] | null = null;
+  private seqClips: OrderedMap<string, SimpleMidiClip> = new OrderedMap();
+  private loop: readonly [number, number] | null = null;
 
-  pendingClipChange?: { id: string; timestamp: number };
-  currentClipId: string;
+  private pendingClipChange?: { id: string; timestamp: number };
+  private currentClipId: string = "default";
 
-  noteRecorder: MIDINoteRecorder;
+  private noteRecorder: MIDINoteRecorder;
 
   // default config
-  midiConfig: MIDIConfiguration = {
+  private midiConfig: MIDIConfiguration = {
     hostRecordingArmed: false,
     pluginRecordingArmed: false,
     inputMidiChannel: -1,
@@ -66,16 +66,7 @@ class PianoRollProcessor extends WamProcessor {
 
   constructor(options: { processorOptions: { moduleId: string; instanceId: string } }) {
     console.log("PIANO ROLL CONSTRUCTOR");
-    // console.log("PRE");
     super(options);
-
-    const { moduleId, instanceId } = options.processorOptions;
-
-    this.lastTime = null;
-    this.ticks = -1;
-    this.currentClipId = "default";
-    this.count = 0;
-    this.isPlaying = false;
 
     this.noteRecorder = new MIDINoteRecorder(
       () => {
@@ -224,7 +215,7 @@ class PianoRollProcessor extends WamProcessor {
       case "clip": {
         // todo: delete, old clips message
         console.log("OLD CLIP MESSAGE");
-        let clip = new PianoRollClip(payload.id, payload.state);
+        const clip = new PianoRollClip(payload.id, payload.state);
         this.clips.set(payload.id, clip);
         return;
       }

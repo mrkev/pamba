@@ -1,6 +1,6 @@
 // Shared with audio worker
 
-import { MIDI } from "../wam/pianorollme/MIDIConfiguration";
+import { MIDI } from "../wam/miditrackwam/MIDIConfiguration";
 
 export type Note = readonly [tick: number, number: number, duration: number, velocity: number];
 export function note(tick: number, number: number, duration: number, velocity: number): Note {

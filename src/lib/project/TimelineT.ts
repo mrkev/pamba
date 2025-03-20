@@ -1,6 +1,6 @@
 import { JSONOfAuto, Structured } from "structured-state";
 import { liveAudioContext, PULSES_PER_BAR, SECS_IN_MIN } from "../../constants";
-import { PPQN } from "../../wam/pianorollme/MIDIConfiguration";
+import { PPQN } from "../../wam/miditrackwam/MIDIConfiguration";
 import { Pulses, Seconds } from "../AbstractClip";
 import { exhaustive } from "../state/Subbable";
 import { AudioProject } from "./AudioProject";

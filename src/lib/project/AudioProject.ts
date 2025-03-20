@@ -16,7 +16,7 @@ import { ulid } from "ulid";
 import { DEFAULT_TEMPO } from "../../constants";
 import { MidiClip } from "../../midi/MidiClip";
 import { MidiTrack } from "../../midi/MidiTrack";
-import { PPQN } from "../../wam/pianorollme/MIDIConfiguration";
+import { PPQN } from "../../wam/miditrackwam/MIDIConfiguration";
 import { appEnvironment } from "../AppEnvironment";
 import { AudioClip } from "../AudioClip";
 import { AudioTrack } from "../AudioTrack";
