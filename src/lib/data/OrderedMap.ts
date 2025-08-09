@@ -87,6 +87,14 @@ export class OrderedMap<K, V> implements Map<K, V> {
     this._order.push(key);
     return this;
   }
+
+  at(index: number): V | undefined {
+    const key = this._order.at(index);
+    if (key == null) {
+      return undefined;
+    }
+    return this._map.get(key);
+  }
 }
 
 // class Foo implements Array<string> {

@@ -12,13 +12,13 @@ import {
   string,
   Structured,
 } from "structured-state";
-import { CLIP_HEIGHT } from "../constants";
+import { CLIP_HEIGHT, liveAudioContext } from "../constants";
 import { DSP } from "../dsp/DSP";
-import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
 import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
-import { MidiTrack } from "../midi/MidiTrack";
 import { mixDown } from "../mixDown";
-import { PambaWamNode } from "../wam/PambaWamNode";
+import { nullthrows } from "../utils/nullthrows";
+import { AudioTrackModule } from "../wam/audiotrack/AudioTrackModule";
+import { appEnvironment } from "./AppEnvironment";
 import { AudioClip } from "./AudioClip";
 import { AudioContextInfo } from "./initAudioContext";
 import { PBGainNode } from "./offlineNodes";
@@ -51,13 +51,23 @@ export class AudioTrack extends Structured<AutoAudioTrack, typeof AudioTrack> im
     readonly clips: SSchemaArray<AudioClip>,
     readonly height: SNumber,
     readonly dsp: ProjectTrackDSP,
+    readonly wamModule: AudioTrackModule,
   ) {
     super();
     this.playingSource = null;
   }
 
-  static of(name: string, clips: AudioClip[], height: number, projectTrackDSP: ProjectTrackDSP) {
-    return Structured.create(AudioTrack, string(name), arrayOf([AudioClip], clips), number(height), projectTrackDSP);
+  static async of(name: string, clips: AudioClip[], height: number, projectTrackDSP: ProjectTrackDSP) {
+    const trackWAM = nullthrows(appEnvironment.audioTrackWAMBank.pop()); // todo replace
+
+    return Structured.create(
+      AudioTrack,
+      string(name),
+      arrayOf([AudioClip], clips),
+      number(height),
+      projectTrackDSP,
+      trackWAM,
+    );
   }
 
   override autoSimplify(): AutoAudioTrack {
@@ -90,23 +100,29 @@ export class AudioTrack extends Structured<AutoAudioTrack, typeof AudioTrack> im
       boolean(false),
     );
 
+    const trackWAM = nullthrows(appEnvironment.audioTrackWAMBank.pop()); // todo replace
+
     return Structured.create(
       AudioTrack,
       init.string(auto.name),
       init.schemaArray(auto.clips, [AudioClip]),
       init.number(auto.height),
       projectTrackDSP,
+      trackWAM,
     );
   }
 
   static empty() {
     const effects = SArray.create([]);
+    const trackWAM = nullthrows(appEnvironment.audioTrackWAMBank.pop()); // todo replace
+
     return Structured.create(
       AudioTrack,
       string("Audio"),
       arrayOf([AudioClip], []),
       number(CLIP_HEIGHT),
       new ProjectTrackDSP(string("AudioTrackDSP"), PBGainNode.defaultLive(), effects, boolean(false)),
+      trackWAM,
     );
   }
 
@@ -201,14 +217,32 @@ export class AudioTrack extends Structured<AutoAudioTrack, typeof AudioTrack> im
     return track;
   }
 
-  ///////////// statics
-
-  static removeEffect(track: AudioTrack | MidiTrack, effect: FaustAudioEffect | PambaWamNode) {
-    track.dsp.effects.remove(effect);
-    effect.destroy();
+  public flushFirstClipToProcessor() {
+    this.wamModule.sendMessageToProcessor({
+      action: "set_clips",
+      seqClips: [nullthrows(this.clips.at(0), "no clip").toSimple()],
+    });
   }
 
-  static bypassEffect(track: AudioTrack | MidiTrack, effect: FaustAudioEffect | PambaWamNode) {
-    console.log("todo: bypass", effect);
+  public testWAMPlayback() {
+    const context = liveAudioContext();
+
+    this.wamModule.wamNode.connect(context.destination);
+
+    this.wamModule.sendMessageToProcessor({
+      action: "play",
+    });
   }
 }
+
+/**
+ * TODO: play only on press play
+ * clip sync:
+ *  - init, send all clips
+ *  - clip creation
+ *  - clip deletion
+ *  - clip moving
+ *  - clip trimming
+ *  - etc?
+ *  - do this via substate? keep track clip array in sync?
+ */

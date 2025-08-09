@@ -3,7 +3,7 @@ import { FirebaseApp } from "firebase/app";
 import { Auth, User, getAuth } from "firebase/auth";
 import { DirtyObserver, SPrimitive, array } from "structured-state";
 import { MidiDevices } from "../MidiDevices";
-import { FIREBASE_ENABLED } from "../constants";
+import { FIREBASE_ENABLED, MAX_NUMBER_OF_TRACKS } from "../constants";
 import { ProjectPackage } from "../data/ProjectPackage";
 import { WAMKind } from "../data/WAMPackage";
 import { LocalFilesystem } from "../data/localFilesystem";
@@ -24,6 +24,8 @@ import { AudioProject } from "./project/AudioProject";
 import { AudioStorage } from "./project/AudioStorage";
 import { LinkedSet } from "./state/LinkedSet";
 import { LinkedState } from "./state/LinkedState";
+import { AudioTrackNode } from "../wam/audiotrack/AudioTrackNode";
+import { AudioTrackModule } from "../wam/audiotrack/AudioTrackModule";
 
 const dummyObj = array();
 
@@ -79,6 +81,9 @@ export class AppEnvironment {
 
   // System
   public renderer: AudioRenderer = null as any; // TODO: do this in a way that avoids the null?
+
+  // a bunch of audio track wams ready for usage
+  public readonly audioTrackWAMBank: AudioTrackModule[] = [];
 
   readonly webgpu = SPrimitive.of<
     { status: "ok"; adapter: GPUAdapter; device: GPUDevice } | { status: "pending" } | { status: "error"; error: Error }
@@ -166,11 +171,19 @@ export class AppEnvironment {
     );
 
     this.wamPlugins.sort(([, a], [, b]) => KINDS_SORT[a.localDesc.kind] - KINDS_SORT[b.localDesc.kind]);
-
     this.wamStatus.set("ready");
 
     // IDEA: Maybe merge player and renderer?
     this.renderer = new AudioRenderer(new AnalizedPlayer(liveAudioContext));
+    const [groupId] = audioContextInfo.wamHostGroup;
+
+    for (let i = 0; i < MAX_NUMBER_OF_TRACKS; i++) {
+      const audioTrackModule = (await AudioTrackModule.createInstance<AudioTrackNode>(
+        groupId,
+        liveAudioContext,
+      )) as AudioTrackModule;
+      this.audioTrackWAMBank.push(audioTrackModule);
+    }
 
     this.status.set({ is: "ready" });
     // once plugins have been loaded, so they're available to the project

@@ -9,6 +9,8 @@ import { SharedAudioBuffer } from "./SharedAudioBuffer";
 import { SOUND_LIB_FOR_HISTORY, loadSound, loadSoundFromAudioPackage } from "./loadSound";
 import { TimelineT, time } from "./project/TimelineT";
 import { AudioViewport } from "./viewport/AudioViewport";
+import { SimpleAudioClip } from "../wam/audiotrack/SharedAudioTrackTypes";
+import { v4 as uuidv4 } from "uuid";
 
 type AutoAudioClip = {
   name: SString;
@@ -34,6 +36,7 @@ type AutoAudioClip = {
 export class AudioClip extends Structured<AutoAudioClip, typeof AudioClip> implements AbstractClip<Seconds> {
   // constants
   readonly sampleRate: number; // how many frames per second
+  readonly id = uuidv4();
 
   // status, from construction
   readonly status: "ready" | "missing";
@@ -357,5 +360,13 @@ export class AudioClip extends Structured<AutoAudioClip, typeof AudioClip> imple
     const bo = this.bufferOffset.toString();
     const len = this.timelineLength.toString();
     return `[AudioClip.${this._id}, start:${start}, bo:${bo}, len:${len}]`;
+  }
+
+  public toSimple(): Readonly<SimpleAudioClip> {
+    return {
+      channels: nullthrows(this.buffer).channels,
+      id: this.id,
+      startOffsetSec: 0,
+    };
   }
 }

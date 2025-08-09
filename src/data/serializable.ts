@@ -292,7 +292,7 @@ export async function construct(
         "dsp" in rep
           ? await construct(rep.dsp)
           : new ProjectTrackDSP(string("AudioTrackDSP"), PBGainNode.defaultLive(), SArray.create([]), boolean(false));
-      return AudioTrack.of(name, clips, height, projectTrackDSP);
+      return await AudioTrack.of(name, clips, height, projectTrackDSP);
     }
 
     case "MidiTrack": {

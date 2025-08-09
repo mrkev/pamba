@@ -116,7 +116,7 @@ export const TrackHeader = React.memo(function TrackHeader({
             onClick={async () => await userActions.deleteTrack(track, player, project)}
           >
             <i className="ri-close-line"></i>
-          </button>{" "}
+          </button>
         </div>
         <div className={styles.buttonRow}>
           <button
@@ -227,7 +227,24 @@ export const TrackHeader = React.memo(function TrackHeader({
             {isLocked ? "\u26BF" : "\u26f6" /* squared key, square four corners */}
           </button>
           {/* {isLocked ? <i style={{ paddingLeft: 2 }}>Locked</i> : null} */}
-          <PeakMeter track={track} />
+          {track instanceof AudioTrack ? (
+            <div>
+              <button
+                className={cx("utilityButton", styles.deleteTrackButton)}
+                onClick={async () => track.flushFirstClipToProcessor()}
+              >
+                test
+              </button>
+              <button
+                className={cx("utilityButton", styles.deleteTrackButton)}
+                onClick={async () => track.testWAMPlayback()}
+              >
+                two
+              </button>
+            </div>
+          ) : (
+            <PeakMeter track={track} />
+          )}
         </div>
 
         <div style={{ flexGrow: 1 }}></div>

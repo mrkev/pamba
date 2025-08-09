@@ -1,5 +1,5 @@
 import React from "react";
-import { Effect } from "../../ui/Effect";
+import { EffectBox } from "../../ui/EffectBox";
 import { FaustAudioEffect } from "../FaustAudioEffect";
 import { faustGroupStyle } from "./FaustGroup";
 import { FaustItem } from "./FaustItem";
@@ -35,7 +35,7 @@ export default function FaustEffectModule({
     const groupStyle = faustGroupStyle(type);
 
     return (
-      <Effect
+      <EffectBox
         title={name}
         canDelete={canDelete}
         canBypass={canBypass}
@@ -51,12 +51,12 @@ export default function FaustEffectModule({
             return <FaustItem key={i} item={item} effect={effect} arrPos={i} />;
           })}
         </div>
-      </Effect>
+      </EffectBox>
     );
   }
 
   return (
-    <Effect
+    <EffectBox
       title={name}
       onClickBypass={() => onClickBypass(effect)}
       onClickRemove={() => onClickRemove(effect)}
@@ -68,6 +68,6 @@ export default function FaustEffectModule({
       {effect.ui.map((item, i) => {
         return <FaustItem key={i} item={item} effect={effect} arrPos={i} />;
       })}
-    </Effect>
+    </EffectBox>
   );
 }

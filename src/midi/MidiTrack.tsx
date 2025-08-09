@@ -1,4 +1,3 @@
-import type { WebAudioModule } from "@webaudiomodules/api";
 import {
   JSONOfAuto,
   ReplaceFunctions,
@@ -82,7 +81,7 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
   // todo: instrument can be empty?
   // TODO: SPrimitive holds Structs.
   instrument: SPrimitive<MidiInstrument>;
-  readonly pianoRoll: PianoRollModule;
+  // readonly pianoRoll: PianoRollModule;
 
   // the pianoRoll to play. same as .pianoRoll when playing live,
   // a clone in an offline context when bouncing
@@ -111,11 +110,15 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
     throw new Error("Need async construct to construct MidiTrack");
   }
 
-  constructor(name: string, pianoRoll: WebAudioModule<PianoRollNode>, instrument: MidiInstrument, clips: MidiClip[]) {
+  constructor(
+    name: string,
+    readonly pianoRoll: PianoRollModule,
+    instrument: MidiInstrument,
+    clips: MidiClip[],
+  ) {
     super();
     this.clips = arrayOf([MidiClip], clips);
     this.playingSource = null;
-    this.pianoRoll = pianoRoll as any;
     this.instrument = SPrimitive.of(instrument);
     this.dsp = new ProjectTrackDSP(string("MidiTrackDSP"), PBGainNode.defaultLive(), SArray.create([]), boolean(false));
     this.name = SPrimitive.of(name);
@@ -140,7 +143,10 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
 
   static async createWithInstrument(instrument: MidiInstrument, name: string, clips?: MidiClip[]) {
     const [groupId] = nullthrows(appEnvironment.wamHostGroup.get());
-    const pianoRoll = await PianoRollModule.createInstance<PianoRollNode>(groupId, liveAudioContext());
+    const pianoRoll = (await PianoRollModule.createInstance<PianoRollNode>(
+      groupId,
+      liveAudioContext(),
+    )) as PianoRollModule;
     return Structured.create(MidiTrack, name, pianoRoll, instrument, clips ?? []);
   }
 

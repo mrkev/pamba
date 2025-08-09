@@ -54,3 +54,6 @@ export const PULSES_PER_BAR = 6 * 4;
 export const SYNTH_101_URL = "https://mainline.i3s.unice.fr/wam2/packages/synth101/dist/index.js";
 // export const OBXD_URL = "https://mainline.i3s.unice.fr/wam2/packages/obxd/index.js";
 export const SOUND_FONT_URL = "https://www.webaudiomodules.com/community/plugins/burns-audio/soundfont/index.js";
+
+// NOTE: used only for the premade queues right now
+export const MAX_NUMBER_OF_TRACKS = 32;

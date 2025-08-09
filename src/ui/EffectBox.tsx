@@ -5,7 +5,7 @@ import { UtilityToggle } from "./UtilityToggle";
 import { useEventListener } from "./useEventListener";
 import { utility } from "./utility";
 
-export function Effect({
+export function EffectBox({
   children,
   title,
   onClickBypass,
@@ -28,7 +28,6 @@ export function Effect({
   bypass?: SBoolean;
   onDragStart?: (e: React.DragEvent<HTMLDivElement>) => void;
 }) {
-  console.log(title);
   return (
     <div
       style={{
