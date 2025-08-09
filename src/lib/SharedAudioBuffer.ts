@@ -46,7 +46,10 @@ export class SharedAudioBuffer implements AudioBuffer {
     const channel = this.getChannelData(channelNumber);
     channel.set(source, bufferOffset);
   }
-  getChannelData(channel: number): Float32Array {
-    return nullthrows(new Float32Array(this.channels[channel]), `Channel ${channel} does not exist`);
+  getChannelData(channel: number): Float32Array<ArrayBuffer> {
+    // this.channels[0]
+    const channelData = this.channels[channel] as unknown as ArrayBuffer; // TODO: hopefully this works?? they don't fully overlap.
+    // const floatbuff = (new Float32Array(channelData);
+    return nullthrows(new Float32Array(channelData), `Channel ${channel} does not exist`);
   }
 }

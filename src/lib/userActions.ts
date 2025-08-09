@@ -115,7 +115,8 @@ export const userActions = {
     // TODO: History
     for (const { track, effect } of primarySelection.effects) {
       console.log("remove", primarySelection);
-      AudioTrack.removeEffect(track, effect);
+      alert("TODO: remove effect");
+      // AudioTrack.removeEffect(track, effect);
       project.selected.set(null);
     }
   },

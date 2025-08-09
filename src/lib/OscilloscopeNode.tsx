@@ -37,7 +37,7 @@ export class OscilloscopeNode implements DSPStep<TrackedAudioNode> {
   }
 
   private onAduioProcess = () => {
-    this.analyserNode.get().getByteTimeDomainData(this.amplitudeArray);
+    this.analyserNode.get().getByteTimeDomainData(this.amplitudeArray as any); // todo: as any?
     this.drawTimeDomain(this.amplitudeArray);
   };
 

@@ -18,6 +18,7 @@ root.render(
         <Route path="*" element={<div>404</div>} />
         <Route path="/" element={<App />} />
         <Route path="/mini/" element={<App />} />
+        <Route path="/midi/" element={<App />} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>,
