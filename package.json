@@ -51,8 +51,8 @@
     "vite-plugin-inspect": "^11.3.2",
     "vitest": "^3.2.4",
     "wam-extensions": "^0.2.3",
-    "webgpu-waveform": "file:../webgpu-waveform/packages/webgpu-waveform",
-    "webgpu-waveform-react": "file:../webgpu-waveform/packages/webgpu-waveform-react"
+    "webgpu-waveform": "^3.3.0",
+    "webgpu-waveform-react": "^3.4.0"
   },
   "scripts": {
     "dev": "vite dev",
