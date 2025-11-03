@@ -9,7 +9,7 @@
   "dependencies": {
     "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
     "@esbuild-plugins/node-modules-polyfill": "^0.2.2",
-    "@grame/faustwasm": "^0.11.0",
+    "@grame/faustwasm": "^0.12.0",
     "@react-hook/resize-observer": "^2.0.2",
     "@shren/typed-event-emitter": "1.1.1",
     "@types/audiobuffer-to-wav": "1.0.4",
@@ -48,7 +48,7 @@
     "typescript-eslint": "^8.46.2",
     "ulid": "^2.4.0",
     "uuid": "^13.0.0",
-    "vite-plugin-faust": "^1.0.0",
+    "vite-plugin-faust": "^2.0.0",
     "vite-plugin-inspect": "^11.3.3",
     "vitest": "^4.0.5",
     "wam-extensions": "^0.2.3",
@@ -57,7 +57,7 @@
   },
   "scripts": {
     "dev": "vite dev",
-    "tsc": "npx tsc",
+    "tsc": "tsc",
     "lint": "eslint .",
     "build": "vite build",
     "test": "vitest",
