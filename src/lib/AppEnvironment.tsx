@@ -118,6 +118,7 @@ export class AppEnvironment {
       status: "loaded",
       project,
     });
+    (window as any).project = project;
     this.projectDirtyObserver = new DirtyObserver(project.allTracks, "clean");
   }
 

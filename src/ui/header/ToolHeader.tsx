@@ -1,24 +1,24 @@
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { createUseStyles } from "react-jss";
 import { getGlobalState, useContainer, usePrimitive, useSubscribeToSubbableMutationHashable } from "structured-state";
 import { CANVAS_HEIGHT, CANVAS_WIDTH, MAX_TIMELINE_SCALE, MIN_TIMELINE_SCALE } from "../../constants";
 import { documentCommands } from "../../input/documentCommands";
-import { AnalizedPlayer } from "../../lib/io/AnalizedPlayer";
 import { appEnvironment } from "../../lib/AppEnvironment";
+import { AnalizedPlayer } from "../../lib/io/AnalizedPlayer";
 import { AudioRecorder } from "../../lib/io/AudioRecorder";
 import { AudioRenderer } from "../../lib/io/AudioRenderer";
 import { AudioProject } from "../../lib/project/AudioProject";
 import { useLinkedState } from "../../lib/state/LinkedState";
 import { doConfirm } from "../ConfirmDialog";
 import { RenamableLabel } from "../RenamableLabel";
+import { UtilityMenu } from "../UtilityMenu";
 import { UtilityNumber } from "../UtilityNumber";
-import { UtilitySToggle, UtilityToggle } from "../UtilityToggle";
+import { UtilityToggle } from "../UtilityToggle";
 import { utility } from "../utility";
 import { BounceButton } from "./BounceButton";
 import { CommandButton } from "./CommandButton";
 import { ToolSelector } from "./ToolSelector";
 import { PlaybackControl } from "./TransportControl";
-import { UtilityMenu } from "../UtilityMenu";
 
 export async function closeProject(project: AudioProject) {
   const selection = await doConfirm(`Save changes to "${project.projectName.get()}"?`, "yes", "no", "cancel");
@@ -65,6 +65,10 @@ export function PlaybeatTime({ project, player }: { project: AudioProject; playe
     [project.tempo, project.timeSignature],
   );
 
+  useEffect(() => {
+    return player.addEventListener("frame", drawPlaybeatTime);
+  }, [drawPlaybeatTime, player]);
+
   return (
     <canvas
       style={{
@@ -75,10 +79,7 @@ export function PlaybeatTime({ project, player }: { project: AudioProject; playe
       }}
       width={2 * 72 + "px"}
       height={2 * 18 + "px"}
-      ref={(ref) => {
-        playbeatCanvasRef.current = ref;
-        player.drawPlaybeatTime = drawPlaybeatTime;
-      }}
+      ref={playbeatCanvasRef}
     />
   );
 }

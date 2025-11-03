@@ -10,15 +10,6 @@ import { OscilloscopeNode } from "../OscilloscopeNode";
 import { AudioProject } from "../project/AudioProject";
 import { TypedEmitter } from "../TypedEmitter";
 
-// sbwNode.onInitialized = () => {
-//   oscillator.connect(sbwNode).connect(context.destination);
-//   oscillator.start();
-// };
-
-// sbwNode.onError = (errorData) => {
-//   logger.post('[ERROR] ' + errorData.detail);
-// };
-
 export class AnalizedPlayer extends TypedEmitter<{
   frame: number; // playback time
 }> {
@@ -51,8 +42,6 @@ export class AnalizedPlayer extends TypedEmitter<{
     this.drawPlaybackTime(0);
   }
 
-  drawPlaybeatTime: ((playbackTime: number) => void) | null = null;
-
   readonly destination: TrackedAudioNode<AudioDestinationNode>;
 
   constructor(liveAudioContext: AudioContext) {
@@ -83,7 +72,6 @@ export class AnalizedPlayer extends TypedEmitter<{
             // console.log("loop");
           }
           this.drawPlaybackTime(currentTimeInBuffer);
-          this.drawPlaybeatTime?.(currentTimeInBuffer);
           this.emitEvent("frame", currentTimeInBuffer);
           this.playbackPos.set(currentTimeInBuffer);
           this.playbackTime = currentTimeInBuffer;
@@ -98,6 +86,7 @@ export class AnalizedPlayer extends TypedEmitter<{
     this.playbackTimeNode.connect(this.destination);
   }
 
+  // todo: move to react, like drawPlaybeatTime in ToolHeader?
   private drawPlaybackTime(playbackTime: number) {
     const ctx = this.playtimeCtx;
     if (ctx == null) return;

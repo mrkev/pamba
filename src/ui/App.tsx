@@ -109,7 +109,6 @@ export function App(): React.ReactElement {
       </pre>
     );
   } else {
-    (window as any).project = projectStatus.project;
     return (
       <>
         {/* RENDER WAM WINDOWS OUT HERE */}
@@ -155,7 +154,7 @@ function InitButtion() {
             await appEnvironment.readyPromise; // resolves when done initializing
             appEnvironment.projectStatus.set({ status: "loading" });
             // ignorePromise(init());
-            console.log("HERE");
+            (window as any).project = "loading";
             await ProjectPersistance.openLastProject(appEnvironment.localFiles);
           }}
         >

@@ -2,11 +2,11 @@ import { useEffect, useMemo, useState } from "react";
 import { usePrimitive } from "structured-state";
 import { AudioPackage } from "../data/AudioPackage";
 import { niceBytes } from "../data/niceBytes";
+import { ProjectPackage } from "../data/ProjectPackage";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioProject } from "../lib/project/AudioProject";
 import { useLinkedMapMaybe } from "../lib/state/LinkedMap";
 import { useLinkedState } from "../lib/state/LinkedState";
-import { pAll } from "../utils/ignorePromise";
 import { UtilityDataList } from "./UtilityList";
 
 const STATUS_PENDING = { status: "pending" } as const;
@@ -30,6 +30,19 @@ function useAsync<T>(promise: Promise<T>): AsyncResult<T> {
   return result;
 }
 
+async function getProjectSizeOrThrow(projectPackage: ProjectPackage | null) {
+  if (projectPackage == null) {
+    return null;
+  }
+
+  const size = await projectPackage.getProjectSize();
+  if (!(typeof size === "number")) {
+    throw new Error(size.status);
+  }
+
+  return { size };
+}
+
 export function ProjectEditor({ project }: { project: AudioProject }) {
   const [name] = usePrimitive(project.projectName);
   const [projectPackage] = useLinkedState(appEnvironment.projectPacakge);
@@ -45,20 +58,7 @@ export function ProjectEditor({ project }: { project: AudioProject }) {
       };
     }) ?? [];
 
-  const results = useAsync(
-    useMemo(async () => {
-      if (projectPackage == null) {
-        return null;
-      }
-
-      const [size] = await pAll(projectPackage.getProjectSize());
-      if (!(typeof size === "number")) {
-        throw new Error(size.status);
-      }
-
-      return { size };
-    }, [projectPackage]),
-  );
+  const results = useAsync(useMemo(() => getProjectSizeOrThrow(projectPackage), [projectPackage]));
 
   return (
     <>
