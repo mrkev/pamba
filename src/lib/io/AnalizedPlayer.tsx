@@ -8,6 +8,7 @@ import { Seconds } from "../AbstractClip";
 import { AudioTrack } from "../AudioTrack";
 import { OscilloscopeNode } from "../OscilloscopeNode";
 import { AudioProject } from "../project/AudioProject";
+import { TypedEmitter } from "../TypedEmitter";
 
 // sbwNode.onInitialized = () => {
 //   oscillator.connect(sbwNode).connect(context.destination);
@@ -18,7 +19,9 @@ import { AudioProject } from "../project/AudioProject";
 //   logger.post('[ERROR] ' + errorData.detail);
 // };
 
-export class AnalizedPlayer {
+export class AnalizedPlayer extends TypedEmitter<{
+  frame: number; // playback time
+}> {
   private readonly oscilloscope = new OscilloscopeNode();
 
   // Nodes
@@ -30,10 +33,6 @@ export class AnalizedPlayer {
 
   private playtimeCtx: CanvasRenderingContext2D | null = null;
 
-  // For main timeline
-  public onFrame: ((playbackTime: number) => void) | null = null;
-  // For subview timeline, (ie, clip editor)
-  public onFrame2: ((playbackTime: number) => void) | null = null;
   public playbackTime: number = 0;
   public playbackPos = SPrimitive.of(0); // todo keep only hte SState?
 
@@ -57,6 +56,7 @@ export class AnalizedPlayer {
   readonly destination: TrackedAudioNode<AudioDestinationNode>;
 
   constructor(liveAudioContext: AudioContext) {
+    super();
     this.destination = TrackedAudioNode.of(liveAudioContext.destination);
     this.playbackTimeNode = TrackedAudioNode.of(liveAudioContext.createScriptProcessor(sampleSize, 1, 1));
     this.mixDownNode = TrackedAudioNode.of(new AudioWorkletNode(liveAudioContext, "mix-down-processor"));
@@ -84,8 +84,7 @@ export class AnalizedPlayer {
           }
           this.drawPlaybackTime(currentTimeInBuffer);
           this.drawPlaybeatTime?.(currentTimeInBuffer);
-          if (this.onFrame) this.onFrame(currentTimeInBuffer);
-          if (this.onFrame2) this.onFrame2(currentTimeInBuffer);
+          this.emitEvent("frame", currentTimeInBuffer);
           this.playbackPos.set(currentTimeInBuffer);
           this.playbackTime = currentTimeInBuffer;
         });

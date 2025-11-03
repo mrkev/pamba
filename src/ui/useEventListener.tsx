@@ -3,7 +3,7 @@ import { useCallback, useEffect } from "react";
 /** Adds an event listener to a ref */
 export function useEventListener<K extends keyof HTMLElementEventMap, T extends HTMLElement | null | undefined>(
   type: K,
-  ref: React.RefObject<T> | React.MutableRefObject<T>,
+  ref: React.RefObject<T>,
   listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any,
   options?: AddEventListenerOptions,
 ): void {

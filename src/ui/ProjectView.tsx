@@ -85,12 +85,12 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
   }, [viewportStartPx]);
 
   useEffect(() => {
-    player.onFrame = function (playbackTime) {
+    return player.addEventListener("frame", function updateProjectViewCursor(playbackTime) {
       const pbdiv = playbackPosDiv.current;
       if (pbdiv) {
         pbdiv.style.left = String(project.viewport.secsToPx(playbackTime)) + "px";
       }
-    };
+    });
   }, [player, project.viewport]);
 
   // useEventListener(

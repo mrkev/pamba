@@ -260,7 +260,8 @@ export function MidiClipEditor({
   }, [clip.detailedViewport.scrollLeftPx, clip.detailedViewport.scrollTopPx]);
 
   useEffect(() => {
-    player.onFrame2 = function (playbackTimeSecs) {
+    // update cursor to move on playback
+    return player.addEventListener("frame", function updateMidiClipEditorCursor(playbackTimeSecs) {
       const cursorElem = cursorDiv.current;
       if (cursorElem == null) {
         return;
@@ -281,7 +282,7 @@ export function MidiClipEditor({
 
       cursorElem.style.left = String(secsToPixels(playbackTimeSecs, bpm)) + "px";
       cursorElem.style.display = "block";
-    };
+    });
   }, [bpm, clip, player, player.isAudioPlaying, project, secsToPixels]);
 
   useEventListener(

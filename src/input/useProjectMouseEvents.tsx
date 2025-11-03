@@ -35,52 +35,50 @@ export function timelineSecs(e: MouseEvent, projectDiv: HTMLDivElement, project:
 
 export function useAxisContainerMouseEvents(
   project: AudioProject,
-  axisContainer: React.MutableRefObject<HTMLDivElement | null>,
+  axisContainer: React.RefObject<HTMLDivElement | null>,
 ) {
-  useEventListener(
-    "mousedown",
-    axisContainer,
-    useCallback(
-      (e: MouseEvent) => {
-        const div = axisContainer.current;
-        if (div == null) {
-          return;
-        }
+  const pointerDownCallback = useCallback(
+    (e: MouseEvent) => {
+      const div = axisContainer.current;
+      if (div == null) {
+        return;
+      }
 
-        if (project.pointerTool.get() != "move") {
-          return;
-        }
+      if (project.pointerTool.get() != "move") {
+        return;
+      }
 
-        if (e.button !== 0) {
-          return;
-        }
+      if (e.button !== 0) {
+        return;
+      }
 
-        const viewportStartPx = project.viewport.viewportStartPx.get();
-        const position = {
-          x: e.clientX + div.scrollLeft - div.getBoundingClientRect().x,
-          y: e.clientY + div.scrollTop - div.getBoundingClientRect().y,
-        };
-        const asSecs = project.viewport.pxToSecs(position.x + viewportStartPx);
+      const viewportStartPx = project.viewport.viewportStartPx.get();
+      const position = {
+        x: e.clientX + div.scrollLeft - div.getBoundingClientRect().x,
+        y: e.clientY + div.scrollTop - div.getBoundingClientRect().y,
+      };
+      const asSecs = project.viewport.pxToSecs(position.x + viewportStartPx);
 
-        const newPos = snapped(project, e, asSecs);
-        // player.setCursorPos(asSecs);
-        project.cursorPos.set(newPos);
-        project.selectionWidth.set(null);
-        pressedState.set({
-          status: "selecting_global_time",
-          clientX: e.clientX,
-          clientY: e.clientY,
-          startTime: newPos,
-        });
-      },
-      [axisContainer, project],
-    ),
+      const newPos = snapped(project, e, asSecs);
+      // player.setCursorPos(asSecs);
+      project.cursorPos.set(newPos);
+      project.selectionWidth.set(null);
+      pressedState.set({
+        status: "selecting_global_time",
+        clientX: e.clientX,
+        clientY: e.clientY,
+        startTime: newPos,
+      });
+    },
+    [axisContainer, project],
   );
+
+  useEventListener("pointerdown", axisContainer, pointerDownCallback);
 }
 
 export function useTimelineMouseEvents(
   project: AudioProject,
-  projectDivRef: React.MutableRefObject<HTMLDivElement | null>,
+  projectDivRef: React.RefObject<HTMLDivElement | null>,
 ): void {
   useEventListener(
     "mousedown",

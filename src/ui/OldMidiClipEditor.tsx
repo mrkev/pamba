@@ -35,12 +35,12 @@ export function OldMidiClipEditor({ clip, player }: { clip: PianoRollClip; playe
   const [, rerender] = useState({});
 
   useEffect(() => {
-    player.onFrame2 = function (playbackTimeSecs) {
-      const pbdiv = cursorDiv.current;
-      if (pbdiv) {
-        pbdiv.style.left = String(secsToPx(playbackTimeSecs)) + "px";
-      }
-    };
+    // player.onFrame2 = function (playbackTimeSecs) {
+    //   const pbdiv = cursorDiv.current;
+    //   if (pbdiv) {
+    //     pbdiv.style.left = String(secsToPx(playbackTimeSecs)) + "px";
+    //   }
+    // };
   }, [clip.state.length, player, player.isAudioPlaying]);
 
   useEventListener(
