@@ -38,6 +38,7 @@ export function NoteR({
     divRef,
     useCallback(
       (e) => {
+        console.log("mousedown: noter");
         if (e.button !== 0) {
           return "done";
         }
@@ -81,7 +82,7 @@ export function NoteR({
     ),
     useCallback(
       (meta, e) => {
-        console.log("move", meta, e);
+        console.log("mouse: noter", meta, e);
 
         switch (meta.event) {
           case "mouseenter":

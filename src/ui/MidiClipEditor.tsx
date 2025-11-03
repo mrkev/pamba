@@ -84,6 +84,7 @@ export function MidiClipEditor({
     [clip.detailedViewport],
   );
 
+  // Piano Roll click plays note
   useMousePressMove(
     pianoRollCanvasRef,
     useCallback(
