@@ -89,6 +89,7 @@ export default defineConfig([
       "spaced-comment": "off",
       "react-hooks/rules-of-hooks": "error",
       "react-hooks/exhaustive-deps": "warn",
+      "react-hooks/refs": "off",
       "react/react-in-jsx-scope": "off",
       "react/no-unescaped-entities": "off",
       "react/prop-types": "off",
