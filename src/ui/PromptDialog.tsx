@@ -1,12 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { MarkedValue, subbable, useLinkAsState } from "marked-subbable";
+import React, { useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom";
-import { LinkedState, useLinkedState } from "../lib/state/LinkedState";
-import { subscribe } from "../lib/state/Subbable";
 import { nullthrows } from "../utils/nullthrows";
-import React from "react";
 import { useStyles } from "./ConfirmDialog";
 
-const confirmationModal = LinkedState.of<
+const confirmationModal = MarkedValue.create<
   | { status: "open"; message: string; defaultValue?: string; okString?: string; cancelString?: string }
   | { status: "closed"; value: string | null }
 >({
@@ -26,7 +24,7 @@ export function doPrompt(
 
   return new Promise((res) => {
     confirmationModal.set({ status: "open", message, defaultValue, okString, cancelString });
-    const usubscribe = subscribe(confirmationModal, () => {
+    const usubscribe = subbable.subscribe(confirmationModal, () => {
       const value = confirmationModal.get();
       if (value.status === "open") {
         console.error("Confirmation modal already open!");
@@ -44,7 +42,7 @@ export function PromptDialog() {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const okRef = useRef<HTMLButtonElement>(null);
   // const okRef = useRef<HTMLInputElement>(null);
-  const [prompt] = useLinkedState(confirmationModal);
+  const [prompt] = useLinkAsState(confirmationModal);
   const [value, setValue] = useState<string | null>(null);
 
   useEffect(() => {

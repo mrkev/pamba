@@ -3,20 +3,20 @@ import React, { useEffect, useRef, useState } from "react";
 import { createUseStyles } from "react-jss";
 import { useContainer, usePrimitive } from "structured-state";
 import { EFFECT_HEIGHT, TRACK_SEPARATOR_HEIGHT } from "../constants";
-import { AnalizedPlayer } from "../lib/io/AnalizedPlayer";
 import { AudioTrack } from "../lib/AudioTrack";
+import { AnalizedPlayer } from "../lib/io/AnalizedPlayer";
 import { AudioProject } from "../lib/project/AudioProject";
 import { ProjectSelection } from "../lib/project/ProjectSelection";
 import { useLinkedState } from "../lib/state/LinkedState";
 import { userActions } from "../lib/userActions";
 import { MidiTrack } from "../midi/MidiTrack";
+import { nullthrows } from "../utils/nullthrows";
+import { cx } from "./cx";
 import { pressedState } from "./pressedState";
 import { RenamableLabel } from "./RenamableLabel";
-import { UtilityToggle } from "./UtilityToggle";
-import { cx } from "./cx";
 import { utility } from "./utility";
 import { UtilityNumberSlider } from "./UtilitySlider";
-import { nullthrows } from "../utils/nullthrows";
+import { UtilityToggle } from "./UtilityToggle";
 
 export const TrackHeader = React.memo(function TrackHeader({
   track,

@@ -1,3 +1,4 @@
+import { MarkedValue } from "marked-subbable";
 import { FaustAudioEffect } from "../../dsp/FaustAudioEffect";
 import { MidiClip } from "../../midi/MidiClip";
 import { MidiTrack } from "../../midi/MidiTrack";
@@ -5,7 +6,6 @@ import { PambaWamNode } from "../../wam/PambaWamNode";
 import { AudioClip } from "../AudioClip";
 import { AudioTrack } from "../AudioTrack";
 import { ProjectTrack } from "../ProjectTrack";
-import { LinkedState } from "../state/LinkedState";
 import { exhaustive } from "../state/Subbable";
 import { AudioProject } from "./AudioProject";
 import { pulsesToSec } from "./TimelineT";
@@ -24,7 +24,7 @@ export type ClipboardState =
       effects: ReadonlyArray<{ effect: FaustAudioEffect | PambaWamNode }>;
     };
 
-export const clipboard = LinkedState.of<ClipboardState | null>(null);
+export const clipboard = MarkedValue.create<ClipboardState | null>(null);
 
 export function doPaste(project: AudioProject) {
   const copied = clipboard.get();

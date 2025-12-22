@@ -1,6 +1,6 @@
-import { modifierState } from "../../ui/ModifierState";
 import { FaustAudioEffect } from "../../dsp/FaustAudioEffect";
 import { MidiTrack } from "../../midi/MidiTrack";
+import { modifierState } from "../../ui/ModifierState";
 import { exhaustive } from "../../utils/exhaustive";
 import { PambaWamNode } from "../../wam/PambaWamNode";
 import { AudioTrack } from "../AudioTrack";
