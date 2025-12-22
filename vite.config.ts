@@ -1,10 +1,10 @@
 /// <reference types="vitest/config" />
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
+import faustLoader from "vite-plugin-faust";
 import svgrPlugin from "vite-plugin-svgr";
 import viteTsconfigPaths from "vite-tsconfig-paths";
-// import { faustLoader } from "./faustLoader/faustLoder";
-import faustLoader from "vite-plugin-faust";
+import tailwindcss from "@tailwindcss/vite";
 
 // To polyfill Buffer
 import { NodeGlobalsPolyfillPlugin } from "@esbuild-plugins/node-globals-polyfill";
@@ -17,7 +17,7 @@ export default defineConfig({
     root: "src",
     environment: "jsdom",
   },
-  plugins: [react(), viteTsconfigPaths(), svgrPlugin(), faustLoader()],
+  plugins: [react(), tailwindcss(), viteTsconfigPaths(), svgrPlugin(), faustLoader()],
   define: {
     __APP_VERSION__: JSON.stringify(process.env.npm_package_version),
   },

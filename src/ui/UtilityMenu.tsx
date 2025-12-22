@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { createUseStyles } from "react-jss";
+import { cn } from "../utils/cn";
 import { utility } from "./utility";
 
 export function UtilityMenu({
@@ -59,28 +60,42 @@ export function UtilityMenu({
       <button
         ref={buttonRef}
         className={utility.button}
-        style={
-          kind === "none" ? { background: open ? "rgba(0,0,0,0.1)" : "none", padding: 0, height: "initial" } : undefined
-        }
+        style={{
+          background:
+            kind === "none"
+              ? open
+                ? "rgba(0,0,0,0.1)"
+                : "none"
+              : open
+                ? "var(--control-subtle-highlight)"
+                : undefined,
+          padding: kind === "none" ? 0 : undefined,
+          height: kind === "none" ? "initial" : undefined,
+        }}
       >
         {label}
       </button>
       {open && (
         <div
+          className="absolute top-full z-10"
           style={{
-            position: "absolute",
+            // position: "absolute",
             left: anchorLeft ? 0 : undefined,
             right: anchorLeft ? undefined : 0,
-            top: "100%",
             background: "var(--control-bg-color)",
             minWidth: 70,
             fontSize: 12,
             borderBottom: "1px solid var(--control-subtle-highlight)",
-            zIndex: 10,
+            // borderRight: "1px solid var(--control-subtle-highlight)",
+            // borderLeft: "1px solid var(--control-subtle-highlight)",
           }}
         >
           {Object.entries(items).map(([label, cb]) => (
-            <div key={label} className={styles.menuItem} onMouseDown={cb}>
+            <div
+              key={label}
+              className={cn(styles.menuItem, "cursor-pointer whitespace-nowrap font-bold")}
+              onMouseDown={cb}
+            >
               {label}
             </div>
           ))}
@@ -92,10 +107,7 @@ export function UtilityMenu({
 
 const useStyles = createUseStyles({
   menuItem: {
-    cursor: "pointer",
-    fontWeight: "bold",
     padding: "1px 6px",
-    whiteSpace: "nowrap",
     color: "var(--control-text-color)",
     "&:hover": {
       background: "#23272D",

@@ -11,7 +11,9 @@ import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
 import { ensureError } from "../ensureError";
 import { initFirebaseApp } from "../firebase/firebaseConfig";
 import type { MidiInstrument } from "../midi/MidiInstrument";
+import { isInstrumentPlugin } from "../midi/isInstrumentPlugin";
 import { LocalSPrimitive } from "../ui/useLocalStorage";
+import { nullthrows } from "../utils/nullthrows";
 import { PambaWamNode } from "../wam/PambaWamNode";
 import { AudioTrackModule } from "../wam/audiotrack/AudioTrackModule";
 import { AudioTrackNode } from "../wam/audiotrack/AudioTrackNode";
@@ -23,8 +25,6 @@ import { AnalizedPlayer } from "./io/AnalizedPlayer";
 import { AudioRenderer } from "./io/AudioRenderer";
 import { AudioProject } from "./project/AudioProject";
 import { AudioStorage } from "./project/AudioStorage";
-import { nullthrows } from "../utils/nullthrows";
-import { isInstrumentPlugin } from "../midi/isInstrumentPlugin";
 
 const dummyObj = array();
 
