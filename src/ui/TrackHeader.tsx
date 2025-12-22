@@ -1,6 +1,6 @@
 import classNames from "classnames";
 import { useLinkAsState } from "marked-subbable";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState } from "react";
 import { createUseStyles } from "react-jss";
 import { useContainer, usePrimitive } from "structured-state";
 import { EFFECT_HEIGHT, TRACK_SEPARATOR_HEIGHT } from "../constants";
@@ -10,10 +10,10 @@ import { AudioProject } from "../lib/project/AudioProject";
 import { ProjectSelection } from "../lib/project/ProjectSelection";
 import { userActions } from "../lib/userActions";
 import { MidiTrack } from "../midi/MidiTrack";
-import { nullthrows } from "../utils/nullthrows";
 import { cx } from "./cx";
 import { pressedState } from "./pressedState";
 import { RenamableLabel } from "./RenamableLabel";
+import { TrackPeakMeter } from "./TrackPeakMeter";
 import { utility } from "./utility";
 import { UtilityNumberSlider } from "./UtilitySlider";
 import { UtilityToggle } from "./UtilityToggle";
@@ -68,51 +68,46 @@ export const TrackHeader = React.memo(function TrackHeader({
 
   return (
     <div
+      className="relative cursor-pointer"
       draggable
       style={{
         background: isSelected ? "#222324" : "var(--background)",
-        position: "relative",
         // borderBottom: `${TRACK_SEPARATOR_HEIGHT}px solid var(--track-separator)`,
-        cursor: "pointer",
       }}
       onClick={() => ProjectSelection.selectTrack(project, track)}
       onDragStart={onDragStart}
     >
       <div
+        className="flex flex-col select-none relative"
         style={{
-          // background: isSelected ? "#eee" : "white",
           height: height - TRACK_SEPARATOR_HEIGHT,
-          position: "relative",
-          userSelect: "none",
-          display: "flex",
-          flexDirection: "column",
-
+          paddingLeft: 4,
           // borderBottom: isDspExpanded ? `${TRACK_SEPARATOR_HEIGHT}px solid #444444` : undefined,
         }}
       >
         <div
-          className="header"
+          // header, title
+          className={"flex flex-row justify-between items-stretch select-none"}
           style={{
-            background: isSelected ? "var(--selected-track-header-bg)" : "none",
+            background: isSelected ? "none" : "green",
             color: isSelected ? "white" : "var(--text-on-background)",
-            userSelect: "none",
-            display: "flex",
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "stretch",
             fontSize: "10px",
           }}
         >
           <span
-            className={classNames(styles.trackNumber, isActive && styles.trackNumberActive)}
+            className={classNames(
+              styles.trackNumber,
+              "text-white flex justify-center items-center border-r border-[green]",
+              isActive && "border-r border-[green]",
+            )}
             style={{ marginRight: 4 }}
           >
             {trackNumber}
           </span>
           <RenamableLabel value={trackName} setValue={setTrackName} />
-          <div style={{ flexGrow: 1 }}></div>
+          <div className="grow"></div>
           <button
-            className={cx("utilityButton", styles.deleteTrackButton)}
+            className={cx("utilityButton", styles.deleteTrackButton, "cursor-pointer text-white")}
             onClick={async () => await userActions.deleteTrack(track, player, project)}
           >
             <i className="ri-close-line"></i>
@@ -227,7 +222,7 @@ export const TrackHeader = React.memo(function TrackHeader({
             {isLocked ? "\u26BF" : "\u26f6" /* squared key, square four corners */}
           </button>
           {/* {isLocked ? <i style={{ paddingLeft: 2 }}>Locked</i> : null} */}
-          {track instanceof AudioTrack ? (
+          {/* {track instanceof AudioTrack ? (
             <div>
               <button
                 className={cx("utilityButton", styles.deleteTrackButton)}
@@ -244,14 +239,15 @@ export const TrackHeader = React.memo(function TrackHeader({
             </div>
           ) : (
             <PeakMeter track={track} />
-          )}
+          )} */}
+          <TrackPeakMeter track={track} />
         </div>
 
         <div style={{ flexGrow: 1 }}></div>
         {/* TODO: allow rezising track by dragging either line below dsp, or line between dsp and clips */}
 
         <UtilityToggle
-          style={{ margin: "2px 4px 0px 4px", fontWeight: 200, fontSize: 10, height: 14 }}
+          style={{ margin: "2px 0px 2px 0px", fontWeight: 200, fontSize: 10, height: 14 }}
           toggled={isDspExpanded}
           onToggle={function (): void {
             if (dspExpandedTracks.has(track)) {
@@ -260,6 +256,7 @@ export const TrackHeader = React.memo(function TrackHeader({
               dspExpandedTracks.add(track);
             }
           }}
+          toggleClassName="bg-black text-white"
           toggleStyle={{ background: "black", color: "white" }}
           title={isDspExpanded ? "hide DSP rack" : "show DSP rack"}
         >
@@ -334,34 +331,24 @@ export const TrackHeader = React.memo(function TrackHeader({
 
 const useStyles = createUseStyles({
   deleteTrackButton: {
-    cursor: "pointer",
     border: "none",
     background: "var(--control-bg-color)",
     fontSize: 11,
-    color: "white",
     "&:not(:active)": {
       background: "none",
     },
   },
   trackNumber: {
     width: 17.5,
-    display: "flex",
     alignItems: "center",
-    justifyContent: "center",
     background: "none",
-    color: "var(--text-on-background)",
-  },
-  trackNumberActive: {
-    color: "white",
-    background: "var(--selected-track-header-background)",
-    borderRight: "1px solid #eee",
   },
   buttonRow: {
     display: "flex",
     flexDirection: "row",
     alignItems: "center",
     gap: "2px",
-    padding: "2px 0px 0px 4px",
+    padding: "2px 0px 0px 0px",
   },
   headerButton: {
     fontSize: "10px",
@@ -380,7 +367,7 @@ export const TrackHeaderSeparator = React.forwardRef<
     <div
       ref={ref}
       style={{
-        height: firstDropzone ? 1 : TRACK_SEPARATOR_HEIGHT,
+        height: firstDropzone ? (showActiveDropzone ? 1 : 0) : TRACK_SEPARATOR_HEIGHT,
         backgroundColor: showActiveDropzone
           ? "orange"
           : firstDropzone
@@ -405,92 +392,3 @@ export function audioClipPath(db: number, dbRangeMin: number, dbRangeMax: number
 
   return 1 - clipPercent;
 }
-
-class RollingAvg {
-  private i = 0;
-  private readonly buffer: Array<number>;
-  constructor(readonly size: number) {
-    this.buffer = new Array(size).fill(0);
-  }
-
-  push(num: number) {
-    this.buffer[this.i] = num;
-    this.i = (this.i + 1) % this.size;
-  }
-
-  avg() {
-    let sum = 0;
-    for (const num of this.buffer) {
-      sum += num;
-    }
-    return sum / this.size;
-  }
-
-  has(cb: (value: number, index: number, obj: number[]) => boolean) {
-    return this.buffer.find(cb) != null;
-  }
-}
-
-const SPACE_BETWEEN_CHANNEL_PEAK_METERS = 2 * devicePixelRatio;
-const PeakMeter = React.memo(function PeakMeter({ track }: { track: AudioTrack | MidiTrack }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  // TODO: only run raf when playing
-  useEffect(() => {
-    const canvas = nullthrows(canvasRef.current);
-    const context = nullthrows(canvas.getContext("2d"));
-    const toRef: { rafId: null | number } = { rafId: null };
-
-    // we get peaks to make a rolling avg per channel
-    const rollingAvgs = track.dsp.meterInstance.getPeaks().currentDB.map(() => new RollingAvg(4));
-
-    toRef.rafId = requestAnimationFrame(function rAF() {
-      const peaks = track.dsp.meterInstance.getPeaks();
-      // context.fillStyle = "#454648";
-      context.clearRect(0, 0, canvas.width, canvas.height);
-
-      const numChannels = rollingAvgs.length;
-      const channelHeight = canvas.height / numChannels;
-
-      for (let i = 0; i < numChannels; i++) {
-        const peak = peaks.currentDB[i];
-        const rollingAvg = rollingAvgs[i];
-        if (rollingAvg.has((x) => x > 0)) {
-          context.fillStyle = "red";
-        } else {
-          context.fillStyle = "orange";
-        }
-        rollingAvg.push(peak);
-
-        const filledProportionAvg = audioClipPath(rollingAvg.avg(), -48, 0);
-        const margin = SPACE_BETWEEN_CHANNEL_PEAK_METERS / numChannels;
-        context.fillRect(0, i * channelHeight + i * margin, canvas.width * filledProportionAvg, channelHeight - margin);
-
-        context.fillRect(0, i * channelHeight + i * margin, canvas.width * filledProportionAvg, channelHeight - margin);
-      }
-
-      requestAnimationFrame(rAF);
-    });
-    return () => {
-      toRef.rafId && cancelAnimationFrame(toRef.rafId);
-    };
-  });
-
-  return (
-    <>
-      <canvas
-        height={18 * devicePixelRatio}
-        width={98 * devicePixelRatio}
-        ref={canvasRef}
-        style={{ height: 18, width: 98, borderRight: "1px solid var(--timeline-tick)", boxSizing: "border-box" }}
-      />
-      {/* <button
-        onClick={() => {
-          console.log(JSON.stringify(track.dsp.meterInstance.getPeaks(), null, 2));
-        }}
-      >
-        on
-      </button> */}
-    </>
-  );
-});

@@ -1,6 +1,7 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
+import "./ui/utility.css";
 import { App } from "./ui/App";
 import { nullthrows } from "./utils/nullthrows";
 import { appEnvironment } from "./lib/AppEnvironment";

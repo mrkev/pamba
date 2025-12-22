@@ -109,7 +109,7 @@ export function TrackS({
         style={{
           position: "relative",
           height: height - TRACK_SEPARATOR_HEIGHT,
-          background: activeTrack === track ? "rgba(64,64,64,0.1)" : "none",
+          background: activeTrack === track ? "rgba(64,64,64,0.4)" : "none",
           filter: darkenOnDrag ? "brightness(0.7)" : undefined,
           ...style,
         }}

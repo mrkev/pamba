@@ -1,17 +1,19 @@
 import classNames from "classnames";
-import { utility } from "./utility";
 import { SBoolean, usePrimitive } from "structured-state";
+import { utility } from "./utility";
 
 // "var(--control-subtle-highlight)"
 export function UtilityToggle({
   className,
   style: styleArg,
   toggleStyle = { backgroundColor: "orange" },
+  toggleClassName,
   toggled,
   onToggle,
   ...props
 }: Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "onToggle"> & {
   toggleStyle?: React.CSSProperties;
+  toggleClassName?: string;
   toggled: boolean;
   onToggle: (toggled: boolean) => void;
   title: string | null;
@@ -19,7 +21,7 @@ export function UtilityToggle({
   const style = toggled ? { ...styleArg, ...toggleStyle } : styleArg;
   return (
     <button
-      className={classNames(utility.button, className)}
+      className={classNames(utility.button, className, toggled && toggleClassName)}
       style={style}
       {...props}
       onClick={function (e) {

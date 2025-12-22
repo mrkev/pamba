@@ -1,5 +1,5 @@
 import "./UtilitySlider.css";
-import "./utility.css";
+// import "./utility.css";
 
 export const utility = {
   button: "utilityButton",
