@@ -2,10 +2,10 @@ import { useLinkAsState } from "marked-subbable";
 import React, { useEffect, useRef } from "react";
 import { useContainer, usePrimitive } from "structured-state";
 import { documentCommands } from "../../input/documentCommands";
-import { AnalizedPlayer } from "../../lib/io/AnalizedPlayer";
 import { AudioRecorder } from "../../lib/io/AudioRecorder";
 import { AudioRenderer } from "../../lib/io/AudioRenderer";
 import { AudioProject } from "../../lib/project/AudioProject";
+import { cn } from "../../utils/cn";
 import { exhaustive } from "../../utils/exhaustive";
 import { utility } from "../utility";
 import { CommandButton } from "./CommandButton";
@@ -55,14 +55,14 @@ export function TransportControl({ project, style }: { project: AudioProject; st
 export function PlaybackControl({
   project,
   renderer,
-  player,
   style,
+  className,
   recorder,
 }: {
   project: AudioProject;
-  player: AnalizedPlayer;
   renderer: AudioRenderer;
-  style: React.CSSProperties;
+  style?: React.CSSProperties;
+  className?: string;
   recorder: AudioRecorder;
 }) {
   const tracks = useContainer(project.allTracks);
@@ -75,7 +75,7 @@ export function PlaybackControl({
   const [cursorPos] = usePrimitive(project.cursorPos);
 
   return (
-    <div style={{ display: "flex", flexDirection: "row", ...style }}>
+    <div className={cn("flex flex-row", className)} style={style}>
       <CommandButton
         command={documentCommands.getById("jumpToTimelineStart")}
         project={project}
@@ -92,7 +92,7 @@ export function PlaybackControl({
           style={{ color: isRecording ? "red" : undefined, width: 17.56 }}
           disabled={tracks.length === 0}
           onClick={() => {
-            AudioRenderer.ensurePlaybackGoing(renderer, project, player);
+            AudioRenderer.ensurePlaybackGoing(renderer, project, renderer.analizedPlayer);
           }}
         >
           {"\u23f5" /*play*/}
@@ -106,7 +106,7 @@ export function PlaybackControl({
           style={{ color: isRecording ? "red" : undefined, width: 17.56 }}
           disabled={tracks.length === 0}
           onClick={() => {
-            AudioRenderer.ensurePlaybackStopped(renderer, project, player);
+            AudioRenderer.ensurePlaybackStopped(renderer, project, renderer.analizedPlayer);
             if (isRecording) {
               recorder.stop();
             }
@@ -129,7 +129,7 @@ export function PlaybackControl({
                 return;
               case "idle":
                 recorder.record();
-                AudioRenderer.ensurePlaybackGoing(renderer, project, player);
+                AudioRenderer.ensurePlaybackGoing(renderer, project, renderer.analizedPlayer);
                 return;
               case "recording":
                 recorder.stop();
@@ -155,7 +155,7 @@ export function PlaybackControl({
         height={2 * 18 + "px"}
         ref={(canvas) => {
           const ctx = canvas?.getContext("2d") ?? null;
-          player.setPlaytimeCanvas(ctx);
+          renderer.analizedPlayer.setPlaytimeCanvas(ctx);
         }}
       />
     </div>

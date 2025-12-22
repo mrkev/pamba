@@ -128,7 +128,7 @@ export function ToolHeader({
               </option>
             ))}
           </select> */}
-          <div style={{ display: "flex", flexDirection: "row", alignItems: "center" }}>
+          <div className="flex flex-row items-center">
             <UtilityNumber
               value={tempo}
               onChange={(v) => {
@@ -143,23 +143,15 @@ export function ToolHeader({
           <UtilityToggle
             disabled={isAudioPlaying || isRecording}
             title={loopPlayback ? "deactivate loop brace" : "activate loop brace"}
-            style={{ fontSize: 18 }}
             toggled={loopPlayback}
-            toggleStyle={{ background: "orange" }}
             onToggle={function (toggled: boolean): void {
               project.loopOnPlayback.set(toggled);
             }}
           >
-            &#x21BB;
+            <i className="ri-loop-left-line"></i>
           </UtilityToggle>
 
-          <PlaybackControl
-            project={project}
-            player={renderer.analizedPlayer}
-            renderer={renderer}
-            style={{ alignSelf: "center" }}
-            recorder={recorder}
-          />
+          <PlaybackControl project={project} renderer={renderer} className="self-center" recorder={recorder} />
           <ToolSelector project={project} />
           <div className="grow"></div>
 
@@ -206,7 +198,7 @@ export function ToolHeader({
             snap to grid
           </span> */}
           {/* Space to center project title */}
-          <div style={{ minWidth: "185px", flexShrink: 0 }}></div>
+          <div className="shrink-0" style={{ minWidth: "185px" }}></div>
           {/* <TransportControl project={project} renderer={renderer} recorder={recorder} /> */}
           <div className="grow"></div>
           <span title="current open project">

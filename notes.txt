@@ -1,6 +1,7 @@
 qol
 - double-click track header opens track details
 - react-router hash navigation between projects
+- cmd+J to open sidebar, cmd+D to open details, 
 
 x structured-state todo:
   x expose map, set

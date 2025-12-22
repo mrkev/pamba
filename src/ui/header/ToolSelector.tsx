@@ -8,7 +8,7 @@ export function ToolSelector({ project }: { project: AudioProject }) {
   const [tool] = usePrimitive(project.pointerTool);
 
   return (
-    <div style={{ width: 150, display: "flex", flexDirection: "row" }}>
+    <div className="flex flex-row" style={{ width: 150 }}>
       <CommandButton toggled={tool === "move"} command={documentCommands.getById("moveTool")} project={project}>
         <i className="ri-cursor-fill"></i>
       </CommandButton>
@@ -56,14 +56,11 @@ export function ToolSelector({ project }: { project: AudioProject }) {
         ⇤
       </button>
       <span
+        className="text-white bg-black shrink-0 whitespace-nowrap font-mono"
         style={{
-          color: "white",
           fontSize: 12,
-          background: "black",
-          padding: "2px 4px",
-          width: 50,
-          flexShrink: 0,
-          whiteSpace: "nowrap",
+          padding: "2px 2px",
+          width: 64,
         }}
       >
         {tool}

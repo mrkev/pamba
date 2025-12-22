@@ -107,7 +107,7 @@ export const TrackHeader = React.memo(function TrackHeader({
           <RenamableLabel value={trackName} setValue={setTrackName} />
           <div className="grow"></div>
           <button
-            className={cx("utilityButton", styles.deleteTrackButton, "cursor-pointer text-white")}
+            className={cx(utility.button, styles.deleteTrackButton, "text-white")}
             onClick={async () => await userActions.deleteTrack(track, player, project)}
           >
             <i className="ri-close-line"></i>

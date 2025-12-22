@@ -1,12 +1,12 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
-import "./index.css";
-import "./ui/utility.css";
-import { App } from "./ui/App";
-import { nullthrows } from "./utils/nullthrows";
-import { appEnvironment } from "./lib/AppEnvironment";
-import { liveAudioContext } from "./constants";
 import { BrowserRouter, Route, Routes } from "react-router";
+import { liveAudioContext } from "./constants";
+import "./index.css";
+import { appEnvironment } from "./lib/AppEnvironment";
+import { App } from "./ui/App";
+import "./ui/utility.css";
+import { nullthrows } from "./utils/nullthrows";
 
 // initialize early
 void appEnvironment.initAsync(liveAudioContext());

@@ -7,6 +7,9 @@
 
 @theme {
   --color-effect-back: gray;
+  --color-control-bg-color: #b9b9b9;
+  --color-control-text-color: black;
+  --color-control-subtle-highlight: #959595;
   /* --color-control: #123456;
   --color-secondary: #abcdef;
   --color-vivid-violet-500: #ca58dd;

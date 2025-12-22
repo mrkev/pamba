@@ -1,32 +1,20 @@
-@layer utilities {
-  .utilityButton {
-    font-size: 12px;
-    font-weight: bold;
-    padding: 1px 6px;
-    height: 18px;
-    border: none;
-    background: var(--control-bg-color);
-    cursor: pointer;
-    white-space: nowrap;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-    min-width: 22px;
-  }
+@reference "../index.css";
 
-  .utilityButton:active {
-    background-color: var(--control-subtle-highlight);
-  }
+.utilityButton {
+  @apply flex flex-row items-center justify-center
+    whitespace-nowrap cursor-pointer
+    border-0 font-bold
+    bg-control-bg-color active:bg-control-subtle-highlight
+    text-[12px] px-[6px] py-[1px] h-[18px] min-w-[22px];
+}
 
-  .utilityButton::not(disabled) {
-    color: var(--control-text-color);
-  }
+.utilityButton::not(disabled) {
+  /* color: var(--control-text-color); */
+}
 
-  .utilityButtonActive {
-    background: black;
-    color: var(--control-bg-color);
-  }
+.utilityButtonActive {
+  background: black;
+  color: var(--control-bg-color);
 }
 
 .utilitySlider {

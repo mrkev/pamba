@@ -7,7 +7,7 @@ export function UtilityToggle({
   className,
   style: styleArg,
   toggleStyle = { backgroundColor: "orange" },
-  toggleClassName,
+  toggleClassName, //= "bg-[orange]",
   toggled,
   onToggle,
   ...props
