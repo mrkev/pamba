@@ -156,11 +156,6 @@ export const EffectRack = React.memo(function EffectRack({
             canDelete={!isAudioPlaying}
             canBypass={!isAudioPlaying}
             effect={effect}
-            style={{
-              alignSelf: "stretch",
-              margin: "2px",
-              borderRadius: "2px",
-            }}
             onClickRemove={() => removeEffect(track, effect)}
             onHeaderMouseDown={() => {
               console.log("FOO");
@@ -191,7 +186,7 @@ export const EffectRack = React.memo(function EffectRack({
             }}
           >
             <button
-              className="utilityButton"
+              className={"utilityButton"}
               style={{ margin: "4px 4px" }}
               onClick={() => appEnvironment.openEffects.add(effect)}
             >
@@ -231,14 +226,10 @@ export const EffectRack = React.memo(function EffectRack({
         {track instanceof MidiTrack && <InstrumentEffect track={track} project={project} renderer={renderer} />}
         {chain}
         <div
+          className="self-stretch bg-effect-back"
           style={{
-            alignSelf: "stretch",
-            margin: "2px",
-            borderRadius: "2px",
-            background: "gray",
-            border: "1px solid #333",
-            padding: 4,
-            fontSize: "14px",
+            // border: "1px solid #333",
+            padding: "4px 8px",
           }}
         >
           Output

@@ -1,9 +1,9 @@
 import React from "react";
+import { usePrimitive } from "structured-state";
 import { EffectBox } from "../../ui/EffectBox";
 import { FaustAudioEffect } from "../FaustAudioEffect";
 import { faustGroupStyle } from "./FaustGroup";
 import { FaustItem } from "./FaustItem";
-import { usePrimitive } from "structured-state";
 
 /** Renders a FaustAudioEffect */
 export default function FaustEffectModule({
@@ -17,7 +17,6 @@ export default function FaustEffectModule({
   onDragStart,
 }: {
   effect: FaustAudioEffect;
-  style?: React.CSSProperties;
   onClickRemove: (effect: FaustAudioEffect) => void;
   onClickBypass: (effect: FaustAudioEffect) => void;
   onHeaderMouseDown: (effect: FaustAudioEffect) => void;
@@ -30,6 +29,8 @@ export default function FaustEffectModule({
 
   // Use the top-most group as the overall wrapper, with the close button etc
   if ((effect.ui.length === 1 && effect.ui[0].type === "hgroup") || effect.ui[0].type === "vgroup") {
+    console.log("A", effect.name.get(), effect.ui);
+
     const item = effect.ui[0];
     const { items, label, type } = item;
     const groupStyle = faustGroupStyle(type);
@@ -46,7 +47,13 @@ export default function FaustEffectModule({
         bypass={effect.bypass}
         onDragStart={onDragStart}
       >
-        <div style={groupStyle}>
+        <div
+          className="self-stretch"
+          style={{
+            padding: "0px 4px",
+            ...groupStyle,
+          }}
+        >
           {items.map((item, i) => {
             return <FaustItem key={i} item={item} effect={effect} arrPos={i} />;
           })}

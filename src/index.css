@@ -5,6 +5,14 @@
 /* @import "tailwindcss/preflight.css" layer(base); */
 @import "tailwindcss/utilities.css" layer(utilities);
 
+@theme {
+  --color-effect-back: gray;
+  /* --color-control: #123456;
+  --color-secondary: #abcdef;
+  --color-vivid-violet-500: #ca58dd;
+  --color-vivid-violet-600: #a936b9; */
+}
+
 body {
   margin: 0;
   font-family:

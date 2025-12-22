@@ -25,7 +25,6 @@ export function WindowPanel({
     status: "idle",
   });
 
-  console.log("window panel");
   useEventListener(
     "mousedown",
     titleBarRef,

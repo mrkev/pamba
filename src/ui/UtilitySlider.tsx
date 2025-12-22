@@ -2,6 +2,7 @@ import { useRef, useState, useEffect, useCallback, useId } from "react";
 import { useEventListener } from "./useEventListener";
 import { countDecimals } from "../utils/math";
 import { createUseStyles } from "react-jss";
+import { cn } from "../utils/cn";
 
 // TODO: exponential for better decibel granularity (ableton is from -70db = Inf, to 6db)
 //       maybe just a straight-up decibel "unit" mode
@@ -219,7 +220,7 @@ export function UtilitySlider({
 
   return (
     <div
-      className={styles.container}
+      className={cn(styles.container, "flex h-full items-center relative")}
       onClick={onClick}
       onMouseDownCapture={onMouseDownCapture}
       style={{
@@ -228,15 +229,14 @@ export function UtilitySlider({
         ...style,
       }}
     >
-      <label style={{ whiteSpace: "nowrap" }} htmlFor={id}>
+      <label className="whitespace-nowrap" htmlFor={id}>
         {label}
       </label>
       <span
+        className="whitespace-nowrap pointer-events-none"
         style={{
           fontFamily: "monospace",
           fontSize: 10,
-          whiteSpace: "nowrap",
-          pointerEvents: "none",
           // position: "absolute",
           // writingMode: vertical ? "vertical-lr" : undefined,
           // [vertical ? "top" : "right"]: 8,
@@ -248,7 +248,7 @@ export function UtilitySlider({
       </span>
       <input
         id={id}
-        className="utilitySliderS"
+        className={cn("utilitySliderS", "m-0 p-0")}
         type="range"
         min={min}
         max={max}
@@ -256,8 +256,6 @@ export function UtilitySlider({
         value={value}
         style={{
           flexShrink: 4,
-          margin: 0,
-          padding: 0,
           writingMode: vertical ? "vertical-lr" : undefined,
           direction: vertical ? "rtl" : undefined,
         }}
@@ -284,12 +282,8 @@ export function UtilitySlider({
 
 const useStyles = createUseStyles({
   container: {
-    display: "flex",
     columnGap: 3,
     rowGap: 3,
     fontSize: 10,
-    height: "100%",
-    alignItems: "center",
-    position: "relative",
   },
 });
