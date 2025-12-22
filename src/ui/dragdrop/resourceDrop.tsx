@@ -184,7 +184,7 @@ export async function handleDropOntoTimelineWhitespace(resources: TransferableRe
             console.warn("UNIMPLEMENTED", resource.pluginKind);
             break;
           case "m-a": {
-            const instrument = await MidiInstrument.createFromPlugin(resource as any); //refined in the switch above
+            const instrument = await MidiInstrument.createFromInstrumentPlugin(resource as any); //refined in the switch above
             const newTrack = await MidiTrack.createWithInstrument(instrument, "midi track"); // todo: instrument name
             await AudioProject.addMidiTrack(project, "bottom", newTrack);
             break;

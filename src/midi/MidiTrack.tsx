@@ -11,11 +11,11 @@ import {
   boolean,
   string,
 } from "structured-state";
-import { CLIP_HEIGHT, SECS_IN_MINUTE, SOUND_FONT_URL, TIME_SIGNATURE, liveAudioContext } from "../constants";
+import { CLIP_HEIGHT, SECS_IN_MINUTE, TIME_SIGNATURE, liveAudioContext } from "../constants";
 import { connectSerialNodes } from "../dsp/connectSerialNodes";
 import { DSP } from "../dsp/DSP";
 import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
-import { appEnvironment } from "../lib/AppEnvironment";
+import { appEnvironment, defaultInstrument, liveWamHostGroupId } from "../lib/AppEnvironment";
 import { PBGainNode } from "../lib/offlineNodes";
 import { AudioProject } from "../lib/project/AudioProject";
 import { StandardTrack } from "../lib/ProjectTrack";
@@ -136,8 +136,11 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
   }
 
   static async createDefault(name: string = "midi track", clips: MidiClip[] = []) {
-    const wamHostGroupId = nullthrows(appEnvironment.wamHostGroup.get())[0];
-    const instrument = await MidiInstrument.createFromUrl(SOUND_FONT_URL, wamHostGroupId, liveAudioContext());
+    const instrument = await MidiInstrument.createFromInstrumentPlugin(
+      defaultInstrument(),
+      liveWamHostGroupId(),
+      liveAudioContext(),
+    );
     return this.createWithInstrument(instrument, name, clips);
   }
 

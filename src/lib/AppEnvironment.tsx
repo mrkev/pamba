@@ -1,12 +1,10 @@
-import { WamDescriptor } from "@webaudiomodules/api";
 import { FirebaseApp } from "firebase/app";
 import { Auth, User, getAuth } from "firebase/auth";
 import { MarkedSet, MarkedValue } from "marked-subbable";
 import { DirtyObserver, SPrimitive, array } from "structured-state";
 import { MidiDevices } from "../MidiDevices";
-import { FIREBASE_ENABLED, MAX_NUMBER_OF_TRACKS } from "../constants";
+import { FIREBASE_ENABLED, MAX_NUMBER_OF_TRACKS, SOUND_FONT_URL } from "../constants";
 import { ProjectPackage } from "../data/ProjectPackage";
-import { WAMKind } from "../data/WAMPackage";
 import { LocalFilesystem } from "../data/localFilesystem";
 import { FAUST_EFFECTS } from "../dsp/FAUST_EFFECTS";
 import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
@@ -17,24 +15,18 @@ import { LocalSPrimitive } from "../ui/useLocalStorage";
 import { PambaWamNode } from "../wam/PambaWamNode";
 import { AudioTrackModule } from "../wam/audiotrack/AudioTrackModule";
 import { AudioTrackNode } from "../wam/audiotrack/AudioTrackNode";
-import { WAMImport, fetchWam } from "../wam/fetchWam";
-import { KINDS_SORT, PambaWAMPluginDescriptor, WAMPLUGINS } from "../wam/plugins";
-import { orderedMap } from "./data/SOrderedMap";
+import { fetchWam } from "../wam/fetchWam";
+import { KINDS_SORT, WAMAvailablePlugin, WAMPLUGINS, wamAvailablePlugin } from "../wam/plugins";
+import { MarkedOrderedMap } from "./data/SOrderedMap";
 import { initAudioContext } from "./initAudioContext";
 import { AnalizedPlayer } from "./io/AnalizedPlayer";
 import { AudioRenderer } from "./io/AudioRenderer";
 import { AudioProject } from "./project/AudioProject";
 import { AudioStorage } from "./project/AudioStorage";
+import { nullthrows } from "../utils/nullthrows";
+import { isInstrumentPlugin } from "../midi/isInstrumentPlugin";
 
 const dummyObj = array();
-
-export type WAMAvailablePlugin = {
-  kind: "WAMAvailablePlugin";
-  import: WAMImport;
-  descriptor: WamDescriptor;
-  url: string;
-  pluginKind: WAMKind;
-};
 
 type ProjectState = { status: "idle" } | { status: "loading" } | { status: "loaded"; project: AudioProject };
 
@@ -55,7 +47,7 @@ export class AppEnvironment {
   // Plugins
   readonly wamHostGroup = MarkedValue.create<[id: string, key: string] | null>(null);
   readonly wamStatus = MarkedValue.create<"loading" | "ready">("loading");
-  readonly wamPlugins = orderedMap<string, { plugin: WAMAvailablePlugin; localDesc: PambaWAMPluginDescriptor }>();
+  readonly wamPlugins = MarkedOrderedMap.create<string, WAMAvailablePlugin>();
   readonly faustEffects = Object.keys(FAUST_EFFECTS) as (keyof typeof FAUST_EFFECTS)[];
   // FS
   readonly localFiles: LocalFilesystem = null as any; // TODO: do this in a way that avoids the null?
@@ -161,16 +153,17 @@ export class AppEnvironment {
     // Init wam host
     this.wamHostGroup.set(audioContextInfo.wamHostGroup);
     await Promise.all(
+      // load wam plugins
       WAMPLUGINS.map(async (localDesc) => {
         const plugin = await fetchWam(localDesc.url, localDesc.kind);
         if (plugin == null) {
           return;
         }
-        this.wamPlugins.push(localDesc.url, { plugin, localDesc });
+        this.wamPlugins.push(localDesc.url, wamAvailablePlugin(plugin, localDesc));
       }),
     );
 
-    this.wamPlugins.sort(([, a], [, b]) => KINDS_SORT[a.localDesc.kind] - KINDS_SORT[b.localDesc.kind]);
+    this.wamPlugins.sort(([, a], [, b]) => KINDS_SORT[a.pluginKind] - KINDS_SORT[b.pluginKind]);
     this.wamStatus.set("ready");
 
     // IDEA: Maybe merge player and renderer?
@@ -215,3 +208,20 @@ export class AppEnvironment {
 
 export const appEnvironment = new AppEnvironment();
 (window as any).appEnvironment = appEnvironment;
+
+export function liveWamHostGroupId() {
+  return nullthrows(appEnvironment.wamHostGroup.get())[0];
+}
+
+export function defaultInstrument() {
+  const plugin = nullthrows(
+    appEnvironment.wamPlugins.get(SOUND_FONT_URL),
+    `unexpected default instrument is not an instrument`,
+  );
+
+  if (!isInstrumentPlugin(plugin)) {
+    throw new Error("unexpected instrument plugin is no longer an instrument");
+  }
+
+  return plugin;
+}

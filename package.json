@@ -32,7 +32,6 @@
     "marked-subbable": "file:../substate/packages/marked-subbable",
     "midi-file": "^1.2.4",
     "music-metadata": "^11.10.3",
-    "music-metadata-browser": "^2.5.11",
     "nanoid": "^5.1.6",
     "prettier": "^3.7.1",
     "react": "19.2.0",

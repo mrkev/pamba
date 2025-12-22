@@ -14,6 +14,7 @@ import { time, TimeUnit } from "../lib/project/TimelineT";
 import { SMidiViewport } from "../lib/viewport/MidiViewport";
 import { MidiClip } from "../midi/MidiClip";
 import { MidiInstrument } from "../midi/MidiInstrument";
+import { isInstrumentPlugin } from "../midi/isInstrumentPlugin";
 import { MidiTrack } from "../midi/MidiTrack";
 import { Note } from "../midi/SharedMidiTypes";
 import { exhaustive } from "../utils/exhaustive";
@@ -318,7 +319,17 @@ export async function construct(
 
     case "MidiInstrument": {
       const [wamHostGroupId] = nullthrows(appEnvironment.wamHostGroup.get(), "wam host not initialized yet!");
-      const instrument = await MidiInstrument.createFromUrl(rep.url, wamHostGroupId, liveAudioContext());
+
+      const plugin = nullthrows(
+        appEnvironment.wamPlugins.get(rep.url),
+        `project uses unavailable instrument: ${rep.url}`,
+      );
+
+      if (!isInstrumentPlugin(plugin)) {
+        throw new Error("instrument plugin changed, it's no longer an instrument");
+      }
+
+      const instrument = await MidiInstrument.createFromInstrumentPlugin(plugin);
       await instrument.setState(rep.state);
       return instrument;
     }
@@ -362,8 +373,13 @@ export async function construct(
     case "PambaWamNode": {
       const { pluginURL, state } = rep;
       const [wamHostGroupId] = nullthrows(appEnvironment.wamHostGroup.get(), "wam host not initialized yet!");
+      const plugin = nullthrows(
+        appEnvironment.wamPlugins.get(pluginURL),
+        `project uses unavailable plugin: ${pluginURL}`,
+      );
+
       const pambaWamNode = nullthrows(
-        await PambaWamNode.fromURLAndState(pluginURL, state, wamHostGroupId, liveAudioContext()),
+        await PambaWamNode.fromAvailablePlugin(plugin, wamHostGroupId, liveAudioContext(), state),
         "could not create PambaWamNode",
       );
       return pambaWamNode;

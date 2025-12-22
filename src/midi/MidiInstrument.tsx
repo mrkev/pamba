@@ -3,9 +3,11 @@ import { boolean, SString, string } from "structured-state";
 import { liveAudioContext } from "../constants";
 import { DSPStep } from "../dsp/DSPStep";
 import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
-import { appEnvironment, WAMAvailablePlugin } from "../lib/AppEnvironment";
+import { appEnvironment, liveWamHostGroupId } from "../lib/AppEnvironment";
 import { assert, nullthrows } from "../utils/nullthrows";
 import { PambaWamNode } from "../wam/PambaWamNode";
+import { WAMAvailablePlugin } from "../wam/plugins";
+import { isInstrumentPlugin } from "./isInstrumentPlugin";
 
 // TODO: merge with PambaWamNode??
 export class MidiInstrument implements DSPStep<null> {
@@ -35,17 +37,15 @@ export class MidiInstrument implements DSPStep<null> {
     this.pambaWam.destroy();
   }
 
-  static async createFromUrl(pluginUrl: string, wamHostGroupId: string, audioContext: BaseAudioContext) {
-    const { localDesc } = nullthrows(appEnvironment.wamPlugins.get(pluginUrl));
-    assert(localDesc.kind === "m-a", "plugin is not an instrument");
-    const pambaWamNode = nullthrows(await PambaWamNode.fromURLAndState(pluginUrl, null, wamHostGroupId, audioContext));
+  static async createFromInstrumentPlugin(
+    plugin: WAMAvailablePlugin & { pluginKind: "m-a" },
+    hostGroupId: string = liveWamHostGroupId(),
+    audioCtx: BaseAudioContext = liveAudioContext(),
+    state: unknown | null = null,
+  ) {
+    assert(plugin.pluginKind === "m-a", "plugin is not an instrument");
+    const pambaWamNode = await PambaWamNode.fromAvailablePlugin(plugin, hostGroupId, audioCtx, state);
     return new MidiInstrument(pambaWamNode, pambaWamNode.wamInstance, pambaWamNode.url);
-  }
-
-  static async createFromPlugin(insturment: WAMAvailablePlugin & { pluginKind: "m-a" }) {
-    const wamHostGroupId = nullthrows(appEnvironment.wamHostGroup.get())[0];
-    const instrument = await MidiInstrument.createFromUrl(insturment.url, wamHostGroupId, liveAudioContext());
-    return instrument;
   }
 
   cloneToOfflineContext<MidiInstrument>(
@@ -88,11 +88,21 @@ export class MidiInstrument implements DSPStep<null> {
       wamHostGroup: [wamHostGroupId],
     } = offlineContextInfo;
 
-    const clonedInstrument = await MidiInstrument.createFromUrl(this.url, wamHostGroupId, context);
+    const plugin = nullthrows(
+      appEnvironment.wamPlugins.get(this.url),
+      `unexpected unavailable instrument: ${this.url}`,
+    );
+
+    if (!isInstrumentPlugin(plugin)) {
+      throw new Error("unexpected instrument plugin is no longer an instrument");
+    }
+
+    const clonedInstrument = await MidiInstrument.createFromInstrumentPlugin(plugin, wamHostGroupId, context);
     if (clonedInstrument == null) {
       return null;
     }
 
+    // todo: set state here vs when cloning?
     await clonedInstrument.setState(state);
     return clonedInstrument;
   }

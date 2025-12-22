@@ -1,13 +1,18 @@
-// import * as musicMetadata from "music-metadata-browser";
 import * as musicMetadata from "music-metadata";
 import { IAudioMetadata } from "music-metadata";
+import { GPUWaveformRenderer } from "webgpu-waveform";
 import { FSDir } from "../fs/FSDir";
 import { isRecord } from "../lib/nw/nwschema";
 import { pAll, pTry } from "../utils/ignorePromise";
 import { PackageLibrary } from "./PackageLibrary";
 
 /**
- * Represents an audio file in the virtual filesystem.
+ * Represents an audio file in the virtual OPFS filesystem. In reality,
+ * it's a directory with the following structure:
+ *
+ * <audio_package_name>
+ *    - audio.(mp3/wav/etc)
+ *    - metadata.json
  */
 export class AudioPackage {
   readonly kind = "AudioPackage.local" as const;
@@ -47,6 +52,7 @@ export class AudioPackage {
   }
 
   static async newUpload(file: File, dest: FSDir | PackageLibrary<AudioPackage>) {
+    // console.log("supported", musicMetadata.getSupportedMimeTypes());
     // Verify type
     // note: to support the format "audio/ogg; codecs=opus"
     // see: https://developer.mozilla.org/en-US/docs/Web/Media/Formats/codecs_parameter
@@ -98,8 +104,6 @@ export class AudioPackage {
       newPackage.ensureThrow("file", "metadata"),
     );
 
-    console.log("attempting to save");
-
     await pAll(
       //
       audioBufferFile.write(file),
@@ -114,4 +118,31 @@ export class AudioPackage {
 
     return result;
   }
+}
+
+// todo: experiment fails bc webgpu has a maximum texture size
+async function genWaveform(file: File) {
+  const arrayBuffer = await file.arrayBuffer();
+
+  // Prefer a single shared AudioContext if possible
+  const audioContext = new AudioContext();
+  const channelData = await audioContext.decodeAudioData(arrayBuffer);
+
+  const renderer = await GPUWaveformRenderer.create(channelData.getChannelData(0));
+
+  const canvas = new OffscreenCanvas(channelData.length / 4, 256);
+  renderer.render(canvas, 4, 0);
+  const blob = await canvas.convertToBlob({
+    type: "image/png",
+  });
+
+  downloadBlob(blob, "test.png");
+}
+
+function downloadBlob(blob: Blob, filename: string) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
 }

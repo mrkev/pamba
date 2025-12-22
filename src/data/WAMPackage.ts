@@ -1,18 +1,10 @@
 // TODO
 
 import { WamDescriptor } from "@webaudiomodules/api";
+import { FSDir } from "../fs/FSDir";
 import { isRecord } from "../lib/nw/nwschema";
 import { pAll, pTry } from "../utils/ignorePromise";
-import { FSDir } from "../fs/FSDir";
-
-/**
- * <wam_package>
- * - index.js
- * - metadata (includes kind, my metadata)
- * - descriptor (wam descriptor, their metadata)
- */
-
-export type WAMKind = "-m" | "-a" | "m-a" | "a-a";
+import { WAMKind } from "../wam/plugins";
 
 // TODO: how to update
 class _WAMPackage {

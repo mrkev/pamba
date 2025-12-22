@@ -1,10 +1,10 @@
 import { useLink } from "marked-subbable";
 import React, { useCallback, useMemo, useState } from "react";
-import { useContainer, usePrimitive } from "structured-state";
+import { usePrimitive } from "structured-state";
 import { LIBRARY_SEARCH_INPUT_ID } from "../constants";
 import { AudioPackage } from "../data/AudioPackage";
 import { FAUST_EFFECTS, FaustEffectID } from "../dsp/FAUST_EFFECTS";
-import { WAMAvailablePlugin, appEnvironment } from "../lib/AppEnvironment";
+import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioTrack } from "../lib/AudioTrack";
 import { ProjectPersistance } from "../lib/ProjectPersistance";
@@ -16,6 +16,7 @@ import { AudioProject } from "../lib/project/AudioProject";
 import { exhaustive } from "../utils/exhaustive";
 import { ignorePromise } from "../utils/ignorePromise";
 import { nullthrows } from "../utils/nullthrows";
+import { WAMAvailablePlugin } from "../wam/plugins";
 import { doConfirm } from "./ConfirmDialog";
 import { UploadAudioButton } from "./UploadAudioButton";
 import { ListEntry, UtilityDataList } from "./UtilityList";
@@ -68,7 +69,7 @@ export function Library({
   const [libraryFilter, setLibraryFilter] = useState("");
   const audioLibrary = useAudioLibrary(project, libraryFilter);
   const localProjects = useLink(appEnvironment.localFiles.projectLib.state);
-  const wamPlugins = useContainer(appEnvironment.wamPlugins);
+  const wamPlugins = useLink(appEnvironment.wamPlugins);
 
   const loadClip = useCallback(
     async function loadClip(url: string, name?: string) {
@@ -147,10 +148,10 @@ export function Library({
         }
       }),
       "separator",
-      ...[...wamPlugins.entries()].map(([_key, { plugin, localDesc }]): ListEntry<LibraryItem> => {
+      ...[...wamPlugins().entries()].map(([_key, plugin]): ListEntry<LibraryItem> => {
         return {
-          title: localDesc.name,
-          icon: localDesc.kind === "m-a" ? <i style={{ fontSize: 11 }}>♩</i> : <i className="ri-pulse-fill"></i>,
+          title: plugin.name,
+          icon: plugin.pluginKind === "m-a" ? <i style={{ fontSize: 11 }}>♩</i> : <i className="ri-pulse-fill"></i>,
           data: { kind: "wam", plugin },
         };
       }),

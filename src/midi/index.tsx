@@ -1,10 +1,10 @@
 import { WamNode, WebAudioModule } from "@webaudiomodules/api";
 import { useState } from "react";
 import { liveAudioContext as liveAudioContextFn } from "../constants";
+import { defaultInstrument } from "../lib/AppEnvironment";
 import { nullthrows } from "../utils/nullthrows";
 import { MidiInstrument } from "./MidiInstrument";
 import { MidiTrack } from "./MidiTrack";
-import { appEnvironment } from "../lib/AppEnvironment";
 
 const liveAudioContext = liveAudioContextFn();
 
@@ -81,10 +81,11 @@ export function MidiDemo() {
  * Self-invoking asynchronous function to initialize the host.
  */
 async function startHost() {
-  const obxd = await MidiInstrument.createFromUrl(
-    nullthrows(appEnvironment.wamHostGroup.get())[0],
-    "https://mainline.i3s.unice.fr/wam2/packages/obxd/index.js",
-    liveAudioContext,
+  const obxd = await MidiInstrument.createFromInstrumentPlugin(
+    defaultInstrument(),
+    // nullthrows(appEnvironment.wamHostGroup.get())[0],
+    // "https://mainline.i3s.unice.fr/wam2/packages/obxd/index.js",
+    // liveAudioContext,
   );
   const track = await MidiTrack.createWithInstrument(obxd, "midi track");
 

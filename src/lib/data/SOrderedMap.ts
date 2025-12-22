@@ -1,6 +1,112 @@
 import { SMap, Structured, map } from "structured-state";
 import { nullthrows } from "../../utils/nullthrows";
 import { EmptyObj } from "../../utils/types";
+import { MarkedArray, MarkedMap, MarkedSubbable, mMap, SubbableMark } from "marked-subbable";
+import { nanoid } from "nanoid";
+
+export class MarkedOrderedMap<K, V> implements MarkedSubbable {
+  readonly $$mark: SubbableMark;
+  private readonly order: MarkedArray<K>;
+  private readonly map: MarkedMap<K, V>;
+
+  private constructor(map: MarkedMap<K, V> = mMap()) {
+    this.$$mark = new SubbableMark(nanoid());
+    this.order = MarkedArray.create(map.keys());
+    this.map = map;
+
+    this.$$mark.register(this, [
+      //
+      this.order,
+      this.map,
+    ]);
+  }
+
+  static create<K, V>() {
+    return new MarkedOrderedMap<K, V>();
+  }
+
+  clear(): void {
+    this.map.clear();
+    this.order.splice(0, this.order.length);
+  }
+
+  delete(key: K): boolean {
+    const value = this.map.get(key);
+    if (value == null) {
+      return false;
+    }
+    const orderPos = this.order.indexOf(key);
+    if (orderPos < 0) {
+      throw new Error("deleting key without order");
+    }
+
+    this.map.delete(key);
+    this.order.splice(orderPos, 1);
+    return true;
+  }
+  forEach(callbackfn: (value: V, key: K, map: Map<K, V>) => void, thisArg?: any): void {
+    throw new Error("Method not implemented.");
+  }
+  get(key: K): V | undefined {
+    return this.map.get(key);
+  }
+  has(key: K): boolean {
+    return this.map.has(key);
+  }
+
+  set(key: K, value: V): this {
+    throw new Error("Method not implemented.");
+  }
+  get size(): number {
+    return this.map.size;
+  }
+  entries(): MapIterator<[K, V]> {
+    const self = this;
+    return (function* () {
+      for (const key of self.order) {
+        yield [key, nullthrows(self.map.get(key))];
+      }
+      return undefined;
+    })();
+  }
+  keys(): MapIterator<K> {
+    return this.order[Symbol.iterator]();
+  }
+  values(): MapIterator<V> {
+    const self = this;
+    return (function* () {
+      for (const key of self.order) {
+        yield nullthrows(self.map.get(key));
+      }
+      return undefined;
+    })();
+  }
+  [Symbol.iterator](): MapIterator<[K, V]> {
+    return this.entries();
+  }
+  [Symbol.toStringTag]: string = "[OrderedMap]";
+
+  // Array
+  sort(compareFn?: ((a: [K, V], b: [K, V]) => number) | undefined): this {
+    if (compareFn == null) {
+      this.order.sort(compareFn);
+    } else {
+      this.order.sort((a, b) => {
+        const aval = nullthrows(this.map.get(a));
+        const bval = nullthrows(this.map.get(b));
+        return compareFn([a, aval], [b, bval]);
+      });
+    }
+    return this;
+  }
+
+  push(key: K, value: V): this {
+    this.delete(key);
+    this.map.set(key, value);
+    this.order.push(key);
+    return this;
+  }
+}
 
 export function orderedMap<K, V>() {
   return Structured.create(SOrderedMap<K, V>);

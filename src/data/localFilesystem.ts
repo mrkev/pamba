@@ -12,14 +12,14 @@ import { serializable } from "./serializable";
  *      * metadata          // rn only has the name, so we don't need to open the whole project
  *      * AudioProject
  *      - audio
- *        - <audio_dir_1>
+ *        - <audio_package_1>
  *          - audio.(mp3/wav/etc)
  *          - metadata.json
- *        - <audio_dir_2>
+ *        - <audio_package_2>
  *        - ...
  * - audiolib
- *  - <audio_dir_1>
- *  - <audio_dir_2>
+ *  - <audio_package_1>
+ *  - <audio_package_2>
  *
  */
 export class LocalFilesystem {

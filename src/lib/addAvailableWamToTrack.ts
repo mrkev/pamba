@@ -3,7 +3,8 @@ import { MidiInstrument } from "../midi/MidiInstrument";
 import { MidiTrack } from "../midi/MidiTrack";
 import { assert, nullthrows } from "../utils/nullthrows";
 import { PambaWamNode } from "../wam/PambaWamNode";
-import { WAMAvailablePlugin, appEnvironment } from "./AppEnvironment";
+import { appEnvironment } from "./AppEnvironment";
+import { WAMAvailablePlugin } from "../wam/plugins";
 import { AudioTrack } from "./AudioTrack";
 
 /**
@@ -20,7 +21,7 @@ export async function addAvailableWamToTrack(
     case "-m":
       throw new Error(`Generator of kind ${wam.pluginKind} can't be dynamically added, unsupported`);
     case "a-a": {
-      const module = await PambaWamNode.fromImportAtURL(wam.import, wam.url, hostGroupId, liveAudioContext(), null);
+      const module = await PambaWamNode.fromAvailablePlugin(wam, hostGroupId, liveAudioContext(), null);
       track.dsp.addEffect(module, index);
       break;
     }
@@ -31,7 +32,7 @@ export async function addAvailableWamToTrack(
       }
 
       assert(wam.pluginKind === "m-a", "plugin is not an instrument");
-      const instrument = await MidiInstrument.createFromPlugin(wam as any);
+      const instrument = await MidiInstrument.createFromInstrumentPlugin(wam as any);
 
       const open = appEnvironment.openEffects.has(track.instrument.get());
       await track.changeInstrument(instrument);

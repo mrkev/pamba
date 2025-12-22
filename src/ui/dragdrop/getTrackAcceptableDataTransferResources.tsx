@@ -1,7 +1,8 @@
 import { AudioPackage } from "../../data/AudioPackage";
 import { localAudioPackage } from "../../data/urlProtocol";
 import { validateFaustEffectId } from "../../dsp/FAUST_EFFECTS";
-import { WAMAvailablePlugin, appEnvironment } from "../../lib/AppEnvironment";
+import { appEnvironment } from "../../lib/AppEnvironment";
+import { WAMAvailablePlugin } from "../../wam/plugins";
 import { AudioStorage } from "../../lib/project/AudioStorage";
 import { Note } from "../../midi/SharedMidiTypes";
 import { LibraryItem } from "../Library";
@@ -122,7 +123,7 @@ export async function getTrackAcceptableDataTransferResources(
     if (availablePlugin == null) {
       throw new Error("unavailable wam plugin " + url);
     }
-    resultingResources.push(availablePlugin.plugin);
+    resultingResources.push(availablePlugin);
     handledInternalFormat = true;
   }
 

@@ -8,9 +8,9 @@ import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioContextInfo } from "../lib/initAudioContext";
 import { Position } from "../ui/WindowPanel";
 import { WAMImport } from "./fetchWam";
+import { WAMAvailablePlugin } from "./plugins";
 
 export class PambaWamNode implements DSPStep {
-  readonly name: SString;
   readonly effectId: string;
   readonly bypass = boolean(false);
 
@@ -44,6 +44,7 @@ export class PambaWamNode implements DSPStep {
 
   private constructor(
     // WAM
+    readonly name: SString,
     readonly wamInstance: WebAudioModule<IWamNode>,
     readonly dom: Element,
     readonly url: string,
@@ -52,41 +53,30 @@ export class PambaWamNode implements DSPStep {
   ) {
     this.node = TrackedAudioNode.of(wamInstance.audioNode);
     this.effectId = this.wamInstance.moduleId;
-    this.name = string(this.wamInstance.descriptor.name);
+    console.log("foo", this.wamInstance.descriptor);
   }
 
-  static async fromImportAtURL(
-    wamImport: WAMImport,
-    wamURL: string,
+  static async fromAvailablePlugin(
+    availablePlugin: WAMAvailablePlugin,
     hostGroupId: string,
     audioCtx: BaseAudioContext,
     state: unknown | null,
   ) {
-    const wamInstance = await wamImport.createInstance(hostGroupId, audioCtx);
+    const wamInstance = await availablePlugin.import.createInstance(hostGroupId, audioCtx);
     if (state != null) {
       await wamInstance.audioNode.setState(state);
     }
     const wamDom = await wamInstance.createGui();
     const paramInfo = await wamInstance.audioNode.getParameterInfo();
     const paramValues = await wamInstance.audioNode.getParameterValues();
-    return new PambaWamNode(wamInstance, wamDom, wamURL, paramInfo, paramValues);
-  }
-
-  // TODO: simplify now that we pre-fetch wam plugins?
-  static async fromURLAndState(
-    pluginUrl: string,
-    state: unknown | null,
-    hostGroupId: string,
-    audioCtx: BaseAudioContext,
-  ) {
-    console.log("WAM: LOADING fromURL", pluginUrl);
-    const rawModule = await import(/* @vite-ignore */ pluginUrl);
-    if (rawModule == null) {
-      console.error("could not import", rawModule);
-      return null;
-    }
-    const wamImport: WAMImport = rawModule.default;
-    return PambaWamNode.fromImportAtURL(wamImport, pluginUrl, hostGroupId, audioCtx, state);
+    return new PambaWamNode(
+      string(availablePlugin.name),
+      wamInstance,
+      wamDom,
+      availablePlugin.url,
+      paramInfo,
+      paramValues,
+    );
   }
 
   public async cloneToOfflineContext(
@@ -98,11 +88,23 @@ export class PambaWamNode implements DSPStep {
     } = offlineContextInfo;
 
     const state = await this.getState();
-    const pambaWamNode = await PambaWamNode.fromURLAndState(this.url, state, wamHostGroupId, context);
-    if (pambaWamNode == null) {
+
+    const rawModule = await import(/* @vite-ignore */ this.url);
+    if (rawModule == null) {
+      console.error("could not import", rawModule);
       return null;
     }
 
-    return pambaWamNode;
+    const wamImport: WAMImport = rawModule.default;
+
+    const wamInstance = await wamImport.createInstance(wamHostGroupId, context);
+    if (state != null) {
+      await wamInstance.audioNode.setState(state);
+    }
+
+    const wamDom = await wamInstance.createGui();
+    const paramInfo = await wamInstance.audioNode.getParameterInfo();
+    const paramValues = await wamInstance.audioNode.getParameterValues();
+    return new PambaWamNode(string(this.name.get()), wamInstance, wamDom, this.url, paramInfo, paramValues);
   }
 }

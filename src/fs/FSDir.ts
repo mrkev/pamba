@@ -1,6 +1,7 @@
 import { exhaustive } from "../utils/exhaustive";
 import { pTry } from "../utils/ignorePromise";
 
+/** represents a directory in an OPFS directory structure */
 export class FSDir {
   constructor(
     public readonly handle: FileSystemDirectoryHandle,
@@ -8,11 +9,12 @@ export class FSDir {
   ) {}
 
   get name() {
+    const pathEnd = this.path[this.path.length - 1];
     // TODO: remove this assertion, but here just so I don't forget this is what this is suppossed to be
-    if (this.path[this.path.length - 1] !== this.handle.name) {
+    if (pathEnd !== this.handle.name) {
       throw new Error("mismatching names");
     }
-    return this.path[this.path.length - 1];
+    return pathEnd;
   }
 
   public async list() {
@@ -173,6 +175,7 @@ export class FSDir {
   }
 }
 
+/** represents a file in an OPFS directory structure */
 export class FSFile {
   constructor(
     public readonly handle: FileSystemFileHandle,
@@ -180,11 +183,12 @@ export class FSFile {
   ) {}
 
   get name() {
+    const pathEnd = this.path[this.path.length - 1];
     // TODO: remove this assertion, but here just so I don't forget this is what this is suppossed to be
-    if (this.path[this.path.length - 1] !== this.handle.name) {
+    if (pathEnd !== this.handle.name) {
       throw new Error("mismatching names");
     }
-    return this.path[this.path.length - 1];
+    return pathEnd;
   }
 
   public async write(file: FileSystemWriteChunkType) {

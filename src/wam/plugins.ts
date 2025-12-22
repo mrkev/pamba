@@ -1,17 +1,40 @@
 // taken from the Online WAM Gallery (https://mainline.i3s.unice.fr/wamGallery/public/), at https://www.webaudiomodules.com/community/plugins.json
+import { WAMImport } from "./fetchWam";
 import plugins from "./plugins.json";
 
-export type PambaWAMPluginDescriptor = {
-  // in json
+export function wamAvailablePlugin(plugin: WAMImport, desc: PambaWAMPluginDescriptor): WAMAvailablePlugin {
+  return {
+    kind: "WAMAvailablePlugin",
+    url: desc.url,
+    pluginKind: desc.kind,
+    //
+    import: plugin,
+    //
+    identifier: desc.identifier,
+    name: desc.name,
+    vendor: desc.vendor,
+    website: desc.website,
+    description: desc.description,
+  };
+}
+
+/** A plugin that's been confirmed to be available in the environment/session */
+export type WAMAvailablePlugin = {
+  kind: "WAMAvailablePlugin";
+  url: string;
+  pluginKind: WAMKind;
+  //
+  import: WAMImport;
+  //
   identifier: string;
   name: string;
   vendor: string;
   website: string;
   description: string;
-  // custom
-  url: string;
-  kind: "-m" | "-a" | "m-a" | "a-a"; // midi out, audio out, midi to audio, audio to audio
 };
+
+// midi out, audio out, midi to audio, audio to audio
+export type WAMKind = "-m" | "-a" | "m-a" | "a-a";
 
 export const KINDS_SORT = { "-m": 0, "-a": 1, "m-a": 2, "a-a": 3 };
 
@@ -82,6 +105,19 @@ const INCLUDE = new Set([
   "dev.cmajor.TX81Z",
 ]);
 
+/** A descriptor for a plugin we'll eventually try to load */
+type PambaWAMPluginDescriptor = {
+  // in json
+  identifier: string;
+  name: string;
+  vendor: string;
+  website: string;
+  description: string;
+  // custom
+  url: string;
+  kind: WAMKind;
+};
+
 export const WAMPLUGINS: PambaWAMPluginDescriptor[] = plugins
   .filter((plugin) => INCLUDE.has(plugin.identifier))
   .map((plugin): PambaWAMPluginDescriptor => {
@@ -115,4 +151,9 @@ export const WAMPLUGINS: PambaWAMPluginDescriptor[] = plugins
       kind: "m-a",
       url: "https://wam-4tt.pages.dev/TX81Z/index.js",
     },
-  ]);
+  ]); /**
+ * <wam_package>
+ * - index.js
+ * - metadata (includes kind, my metadata)
+ * - descriptor (wam descriptor, their metadata)
+ */

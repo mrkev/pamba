@@ -1,3 +1,7 @@
+qol
+- double-click track header opens track details
+- react-router hash navigation between projects
+
 x structured-state todo:
   x expose map, set
   x state is not a tree, it's a graph: container should be a set, and updates should be done with tokens to avoid cycles
