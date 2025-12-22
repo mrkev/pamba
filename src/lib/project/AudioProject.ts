@@ -1,3 +1,4 @@
+import { MarkedValue } from "marked-subbable";
 import {
   SBoolean,
   SNumber,
@@ -14,6 +15,7 @@ import {
 } from "structured-state";
 import { ulid } from "ulid";
 import { DEFAULT_TEMPO } from "../../constants";
+import { DSP } from "../../dsp/DSP";
 import { MidiClip } from "../../midi/MidiClip";
 import { MidiTrack } from "../../midi/MidiTrack";
 import { PPQN } from "../../wam/miditrackwam/MIDIConfiguration";
@@ -22,11 +24,9 @@ import { AudioClip } from "../AudioClip";
 import { AudioTrack } from "../AudioTrack";
 import { AnalizedPlayer } from "../io/AnalizedPlayer";
 import { ProjectTrack, StandardTrack } from "../ProjectTrack";
-import { LinkedState } from "../state/LinkedState";
 import { ProjectViewport } from "../viewport/ProjectViewport";
 import { PanelSelectionState, PrimarySelectionState } from "./SelectionState";
 import { TimelineT, time } from "./TimelineT";
-import { DSP } from "../../dsp/DSP";
 
 export type PointerTool = "move" | "trimStart" | "trimEnd" | "slice";
 export type SecondaryTool = "move" | "draw";
@@ -45,9 +45,9 @@ export class AudioProject {
   // Selection //
 
   // the selected clip(s), track(s), etc
-  readonly selected = LinkedState.of<PrimarySelectionState | null>(null);
-  readonly secondarySelection = LinkedState.of<PanelSelectionState | null>(null);
-  readonly activePanel = LinkedState.of<Panel>("primary");
+  readonly selected = MarkedValue.create<PrimarySelectionState | null>(null);
+  readonly secondarySelection = MarkedValue.create<PanelSelectionState | null>(null);
+  readonly activePanel = MarkedValue.create<Panel>("primary");
 
   constructor(
     readonly projectId: string,

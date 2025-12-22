@@ -1,7 +1,7 @@
+import { useLinkAsState } from "marked-subbable";
 import { useContainer, usePrimitive } from "structured-state";
 import { AudioTrack } from "../lib/AudioTrack";
 import { AudioProject } from "../lib/project/AudioProject";
-import { useLinkedState } from "../lib/state/LinkedState";
 import { MidiTrack } from "../midi/MidiTrack";
 import { pressedState } from "./pressedState";
 
@@ -17,7 +17,7 @@ export function CursorSelection({
   const [cursorPos] = usePrimitive(project.cursorPos);
   const [selectionWidth] = usePrimitive(project.selectionWidth);
   const cursorTracks = useContainer(project.cursorTracks);
-  const [selected] = useLinkedState(project.selected);
+  const [selected] = useLinkAsState(project.selected);
   const [pressed] = usePrimitive(pressedState);
 
   const show =

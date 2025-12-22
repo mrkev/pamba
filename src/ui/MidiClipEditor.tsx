@@ -1,3 +1,4 @@
+import { useLinkAsState } from "marked-subbable";
 import { useCallback, useEffect, useRef } from "react";
 import { createUseStyles } from "react-jss";
 import { history, useContainer, usePrimitive } from "structured-state";
@@ -5,7 +6,6 @@ import { TOTAL_VERTICAL_NOTES } from "../constants";
 import { AnalizedPlayer } from "../lib/io/AnalizedPlayer";
 import { AudioProject } from "../lib/project/AudioProject";
 import { secsToPulses } from "../lib/project/TimelineT";
-import { useLinkedState } from "../lib/state/LinkedState";
 import { MidiClip } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
 import { exhaustive } from "../utils/exhaustive";
@@ -61,7 +61,7 @@ export function MidiClipEditor({
   const notes = useContainer(clip.buffer.notes);
   const [noteHeight, setNoteHeight] = usePrimitive(clip.detailedViewport.pxNoteHeight);
   const [pxPerPulse, setPxPerPulse] = usePrimitive(clip.detailedViewport.pxPerPulse);
-  const [secondarySel] = useLinkedState(project.secondarySelection);
+  const [secondarySel] = useLinkAsState(project.secondarySelection);
   const [panelTool] = usePrimitive(project.panelTool);
   const [bpm] = usePrimitive(project.tempo);
   const timelineLen = useContainer(clip.timelineLength);

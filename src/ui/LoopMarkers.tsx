@@ -1,12 +1,12 @@
 import classNames from "classnames";
+import { useLinkAsState } from "marked-subbable";
 import { createUseStyles } from "react-jss";
 import { useContainer, usePrimitive } from "structured-state";
 import { AudioProject } from "../lib/project/AudioProject";
 import { time } from "../lib/project/TimelineT";
-import { useLinkedState } from "../lib/state/LinkedState";
-import { pressedState } from "./pressedState";
 import { set } from "../utils/set";
 import { PPQN } from "../wam/miditrackwam/MIDIConfiguration";
+import { pressedState } from "./pressedState";
 
 export function LoopMarkers({ project }: { project: AudioProject }) {
   const styles = useStyles();
@@ -14,7 +14,7 @@ export function LoopMarkers({ project }: { project: AudioProject }) {
   usePrimitive(project.viewport.viewportStartPx);
   const loopStart = useContainer(project.loopStart);
   const loopEnd = useContainer(project.loopEnd);
-  const [selected] = useLinkedState(project.selected);
+  const [selected] = useLinkAsState(project.selected);
   const [loopPlayback] = usePrimitive(project.loopOnPlayback);
 
   // just to listen to it

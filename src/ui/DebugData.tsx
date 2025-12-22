@@ -1,8 +1,8 @@
+import { useLinkAsState } from "marked-subbable";
 import { DebugOut, useContainer, usePrimitive } from "structured-state";
 import { ProjectTrack } from "../lib/ProjectTrack";
 import { AudioProject } from "../lib/project/AudioProject";
 import { PrimarySelectionState } from "../lib/project/SelectionState";
-import { useLinkedState } from "../lib/state/LinkedState";
 import { exhaustive } from "../utils/exhaustive";
 import { pressedState } from "./pressedState";
 
@@ -47,7 +47,7 @@ export function stringOfSelected(sel: PrimarySelectionState | null): string {
 }
 
 export function DebugContent({ project }: { project: AudioProject }) {
-  const [selected] = useLinkedState(project.selected);
+  const [selected] = useLinkAsState(project.selected);
   const [cursorPos] = usePrimitive(project.cursorPos);
   const [selectionWidth] = usePrimitive(project.selectionWidth);
   const tracks = useContainer(project.allTracks);

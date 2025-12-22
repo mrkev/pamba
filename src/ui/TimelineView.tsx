@@ -1,4 +1,5 @@
 import classNames from "classnames";
+import { useLinkAsState } from "marked-subbable";
 import { useRef } from "react";
 import { createUseStyles } from "react-jss";
 import { usePrimitive } from "structured-state";
@@ -6,7 +7,6 @@ import { useAxisContainerMouseEvents } from "../input/useProjectMouseEvents";
 import { AnalizedPlayer } from "../lib/io/AnalizedPlayer";
 import { AudioRenderer } from "../lib/io/AudioRenderer";
 import { AudioProject } from "../lib/project/AudioProject";
-import { useLinkedState } from "../lib/state/LinkedState";
 import { Axis } from "./Axis";
 import { CursorSelection } from "./CursorSelection";
 import { LoopMarkers } from "./LoopMarkers";
@@ -25,7 +25,7 @@ export function TimelineView({
   const classes = useStyles();
   const axisContainerRef = useRef<HTMLDivElement | null>(null);
   const [viewportStartPx] = usePrimitive(project.viewport.viewportStartPx);
-  const [activePanel] = useLinkedState(project.activePanel);
+  const [activePanel] = useLinkAsState(project.activePanel);
 
   useAxisContainerMouseEvents(project, axisContainerRef);
 

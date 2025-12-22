@@ -1,3 +1,4 @@
+import { useLinkAsState } from "marked-subbable";
 import React, { useCallback, useRef, useState } from "react";
 import { createUseStyles } from "react-jss";
 import { useContainer, usePrimitive } from "structured-state";
@@ -10,7 +11,6 @@ import { bypassEffect, removeEffect } from "../lib/effect";
 import { AudioRenderer } from "../lib/io/AudioRenderer";
 import { AudioProject } from "../lib/project/AudioProject";
 import { ProjectSelection } from "../lib/project/ProjectSelection";
-import { useLinkedState } from "../lib/state/LinkedState";
 import { MidiTrack } from "../midi/MidiTrack";
 import { exhaustive } from "../utils/exhaustive";
 import { nullthrows } from "../utils/nullthrows";
@@ -54,7 +54,7 @@ export const EffectRack = React.memo(function EffectRack({
 }) {
   const styles = useStyles();
   const effects = useContainer(track.dsp.effects);
-  const [selected] = useLinkedState(project.selected);
+  const [selected] = useLinkAsState(project.selected);
   const rackRef = useRef<HTMLDivElement | null>(null);
   const [isAudioPlaying] = usePrimitive(renderer.isAudioPlaying);
   const dropzonesRef = useRef<(HTMLDivElement | null)[]>([]);

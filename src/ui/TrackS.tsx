@@ -1,4 +1,5 @@
 import classNames from "classnames";
+import { useLinkAsState } from "marked-subbable";
 import React, { useCallback, useRef, useState } from "react";
 import { createUseStyles } from "react-jss";
 import { useContainer, usePrimitive } from "structured-state";
@@ -9,10 +10,8 @@ import { AudioClip } from "../lib/AudioClip";
 import { AudioTrack } from "../lib/AudioTrack";
 import { AudioRenderer } from "../lib/io/AudioRenderer";
 import { AudioProject } from "../lib/project/AudioProject";
-import { useLinkedState } from "../lib/state/LinkedState";
 import { MidiClip } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
-import { pressedState } from "./pressedState";
 import { nullthrows } from "../utils/nullthrows";
 import { ClipA } from "./ClipA";
 import { ClipInvalid } from "./ClipInvalid";
@@ -23,6 +22,7 @@ import { trackCanHandleTransfer } from "./dragdrop/canHandleTransfer";
 import { getTrackAcceptableDataTransferResources } from "./dragdrop/getTrackAcceptableDataTransferResources";
 import { handleDropOntoAudioTrack, handleDropOntoMidiTrack } from "./dragdrop/resourceDrop";
 import { useDropzoneBehaviour } from "./dragdrop/useDropzoneBehaviour";
+import { pressedState } from "./pressedState";
 
 function clientXToTrackX(trackElem: HTMLDivElement | null, clientX: number) {
   if (trackElem == null) {
@@ -47,7 +47,7 @@ export function TrackS({
 }): React.ReactElement {
   const styles = useStyles();
   const [pressed] = usePrimitive(pressedState);
-  const [selected] = useLinkedState(project.selected);
+  const [selected] = useLinkAsState(project.selected);
   const clips = useContainer(track.clips);
   const [height] = usePrimitive(track.height);
   const [activeTrack] = usePrimitive(project.activeTrack);

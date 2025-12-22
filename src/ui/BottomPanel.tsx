@@ -1,3 +1,4 @@
+import { useLinkAsState } from "marked-subbable";
 import { usePrimitive } from "structured-state";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioTrack } from "../lib/AudioTrack";
@@ -5,7 +6,6 @@ import { AnalizedPlayer } from "../lib/io/AnalizedPlayer";
 import { AudioRenderer } from "../lib/io/AudioRenderer";
 import { AudioProject } from "../lib/project/AudioProject";
 import { PrimarySelectionState } from "../lib/project/SelectionState";
-import { useLinkedState } from "../lib/state/LinkedState";
 import { MidiClip } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
 import { exhaustive } from "../utils/exhaustive";
@@ -29,7 +29,7 @@ export function BottomPanel({
   renderer: AudioRenderer;
 }) {
   const [activeTrack] = usePrimitive(project.activeTrack);
-  const [selected] = useLinkedState(project.selected);
+  const [selected] = useLinkAsState(project.selected);
   const primarySelection = getValidEditorSelection(selected);
 
   // useMousePressMove(

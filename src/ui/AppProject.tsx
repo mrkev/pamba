@@ -1,4 +1,5 @@
 import classNames from "classnames";
+import { useLinkAsState } from "marked-subbable";
 import { useEffect, useState } from "react";
 import { createUseStyles } from "react-jss";
 import { usePrimitive } from "structured-state";
@@ -7,7 +8,6 @@ import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioRecorder } from "../lib/io/AudioRecorder";
 import { AudioRenderer } from "../lib/io/AudioRenderer";
 import { AudioProject } from "../lib/project/AudioProject";
-import { useLinkedState } from "../lib/state/LinkedState";
 import { AboutPanel } from "./AboutPanel";
 import { BottomPanel } from "./BottomPanel";
 import { DebugContent } from "./DebugData";
@@ -15,8 +15,8 @@ import { ToolHeader } from "./header/ToolHeader";
 import { TransportControl } from "./header/TransportControl";
 import { HelpPanel } from "./HelpPanel";
 import { HistoryPanel } from "./HistoryPanel";
-import { MIDIPanel } from "./MIDIPanel";
 import { Library } from "./Library";
+import { MIDIPanel } from "./MIDIPanel";
 import { modifierState, useSingletonKeyboardModifierState } from "./ModifierState";
 import { ProjectEditor } from "./ProjectEditor";
 import { TimelineView } from "./TimelineView";
@@ -42,7 +42,7 @@ export function AppProject({ project }: { project: AudioProject }) {
   useStopPlaybackOnUnmount(renderer);
   const [activeSidePanel, setActiveSidePanel] = usePrimitive(appEnvironment.activeSidePanel);
   const [activeBottomPanel, setActiveBottomPanel] = usePrimitive(appEnvironment.activeBottomPanel);
-  const [activePanel] = useLinkedState(project.activePanel);
+  const [activePanel] = useLinkAsState(project.activePanel);
 
   return (
     <>

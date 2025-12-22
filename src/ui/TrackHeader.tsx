@@ -1,4 +1,5 @@
 import classNames from "classnames";
+import { useLinkAsState } from "marked-subbable";
 import React, { useEffect, useRef, useState } from "react";
 import { createUseStyles } from "react-jss";
 import { useContainer, usePrimitive } from "structured-state";
@@ -7,7 +8,6 @@ import { AudioTrack } from "../lib/AudioTrack";
 import { AnalizedPlayer } from "../lib/io/AnalizedPlayer";
 import { AudioProject } from "../lib/project/AudioProject";
 import { ProjectSelection } from "../lib/project/ProjectSelection";
-import { useLinkedState } from "../lib/state/LinkedState";
 import { userActions } from "../lib/userActions";
 import { MidiTrack } from "../midi/MidiTrack";
 import { nullthrows } from "../utils/nullthrows";
@@ -41,7 +41,7 @@ export const TrackHeader = React.memo(function TrackHeader({
   const trackEffects = useContainer(track.dsp.effects);
   const [trackName, setTrackName] = usePrimitive(track.name);
   const [height] = usePrimitive(track.height);
-  const [selected] = useLinkedState(project.selected);
+  const [selected] = useLinkAsState(project.selected);
   const [activeTrack] = usePrimitive(project.activeTrack);
   const [armedTrack] = usePrimitive(project.armedTrack);
 

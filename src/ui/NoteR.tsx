@@ -1,15 +1,15 @@
 import classNames from "classnames";
+import { useLinkAsState } from "marked-subbable";
 import { useCallback, useRef } from "react";
 import { createUseStyles } from "react-jss";
 import { history, usePrimitive } from "structured-state";
-import { modifierState } from "./ModifierState";
 import { AudioProject } from "../lib/project/AudioProject";
-import { useLinkedState } from "../lib/state/LinkedState";
 import { MidiViewport } from "../lib/viewport/MidiViewport";
 import { MidiClip } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
 import { Note } from "../midi/SharedMidiTypes";
 import { exhaustive } from "../utils/exhaustive";
+import { modifierState } from "./ModifierState";
 import { useMousePressMove } from "./useEventListener";
 
 export function NoteR({
@@ -26,7 +26,7 @@ export function NoteR({
   project: AudioProject;
 }) {
   const styles = useStyles();
-  const [secondarySel] = useLinkedState(project.secondarySelection);
+  const [secondarySel] = useLinkAsState(project.secondarySelection);
   const [noteHeight] = usePrimitive(viewport.pxNoteHeight);
   const divRef = useRef<HTMLDivElement>(null);
   const [panelTool] = usePrimitive(project.panelTool);
