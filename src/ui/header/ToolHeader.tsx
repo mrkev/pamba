@@ -1,15 +1,14 @@
+import classNames from "classnames";
 import { useLinkAsState } from "marked-subbable";
-import { useCallback, useEffect, useRef } from "react";
 import { createUseStyles } from "react-jss";
 import { getGlobalState, useContainer, usePrimitive, useSubscribeToSubbableMutationHashable } from "structured-state";
 import { CANVAS_HEIGHT, CANVAS_WIDTH, MAX_TIMELINE_SCALE, MIN_TIMELINE_SCALE } from "../../constants";
 import { documentCommands } from "../../input/documentCommands";
 import { appEnvironment } from "../../lib/AppEnvironment";
-import { AnalizedPlayer } from "../../lib/io/AnalizedPlayer";
 import { AudioRecorder } from "../../lib/io/AudioRecorder";
 import { AudioRenderer } from "../../lib/io/AudioRenderer";
 import { AudioProject } from "../../lib/project/AudioProject";
-import { doConfirm } from "../ConfirmDialog";
+import { cn } from "../../utils/cn";
 import { RenamableLabel } from "../RenamableLabel";
 import { UtilityMenu } from "../UtilityMenu";
 import { UtilityNumber } from "../UtilityNumber";
@@ -17,72 +16,9 @@ import { UtilityToggle } from "../UtilityToggle";
 import { utility } from "../utility";
 import { BounceButton } from "./BounceButton";
 import { CommandButton } from "./CommandButton";
+import { PlaybeatTime } from "./PlaybeatTime";
 import { ToolSelector } from "./ToolSelector";
 import { PlaybackControl } from "./TransportControl";
-
-export async function closeProject(project: AudioProject) {
-  const selection = await doConfirm(`Save changes to "${project.projectName.get()}"?`, "yes", "no", "cancel");
-
-  if (selection === "cancel") {
-    return false;
-  }
-
-  if (selection === "yes") {
-    const savePromise = documentCommands.execById("save", project);
-    if (!(savePromise instanceof Promise)) {
-      throw new Error("didn't get a save promise");
-    }
-    await savePromise;
-  }
-  return true;
-}
-
-export function PlaybeatTime({ project, player }: { project: AudioProject; player: AnalizedPlayer }) {
-  const playbeatCanvasRef = useRef<HTMLCanvasElement | null>(null);
-
-  const drawPlaybeatTime = useCallback(
-    (time: number) => {
-      const ctx = playbeatCanvasRef.current?.getContext("2d") ?? null;
-      if (ctx === null || playbeatCanvasRef.current == null) {
-        return;
-      }
-      const [num] = project.timeSignature.get();
-      const tempo = project.tempo.get();
-
-      const oneBeatLenSec = 60 / tempo;
-      // note: 0 -> 1 index
-      const bar = String(Math.floor(time / oneBeatLenSec / num) + 1).padStart(3, " ");
-      const beat = String((Math.floor(time / oneBeatLenSec) % num) + 1).padStart(2, " ");
-      // TODO: what is sub acutally
-      const high = beat === " 1" ? " *" : beat === " 3" ? " _" : "  ";
-
-      ctx.font = "24px monospace";
-      ctx.textAlign = "start";
-      ctx.fillStyle = "#ffffff";
-      ctx.clearRect(0, 0, playbeatCanvasRef.current.width, 100);
-      ctx.fillText(String(`${bar}.${beat}.${high}`), 6, 26);
-    },
-    [project.tempo, project.timeSignature],
-  );
-
-  useEffect(() => {
-    return player.addEventListener("frame", drawPlaybeatTime);
-  }, [drawPlaybeatTime, player]);
-
-  return (
-    <canvas
-      style={{
-        background: "black",
-        width: 72,
-        height: 18,
-        alignSelf: "center",
-      }}
-      width={2 * 72 + "px"}
-      height={2 * 18 + "px"}
-      ref={playbeatCanvasRef}
-    />
-  );
-}
 
 function ScaleFactorSlider({ project }: { project: AudioProject }) {
   const [scaleFactor] = usePrimitive(project.viewport.scaleFactor);
@@ -118,12 +54,10 @@ function ScaleFactorSlider({ project }: { project: AudioProject }) {
 
 export function ToolHeader({
   project,
-  player,
   renderer,
   recorder,
 }: {
   project: AudioProject;
-  player: AnalizedPlayer;
   renderer: AudioRenderer;
   recorder: AudioRecorder;
 }) {
@@ -145,21 +79,26 @@ export function ToolHeader({
   const redoStack = useContainer(getGlobalState().redoStack);
 
   return (
-    <div className={classes.headerContainer}>
-      <div className={classes.tools}>
-        <div className={classes.topRow}>
+    <div className={cn("name-headerContainer", "flex flex-row w-full items-center")}>
+      <img src="/logo.svg" alt="mini daw" height="24" width="auto" style={{ margin: "0px 8px" }} />
+      <div className={classNames(classes.tools, "flex flex-col")}>
+        <div className={classNames(classes.row, "flex flex-row self-stretch items-center")}>
           <CommandButton command={documentCommands.getById("newProject")} project={project}>
             new project
           </CommandButton>
 
-          <CommandButton command={documentCommands.getById("save")} project={project}>
+          <CommandButton
+            command={documentCommands.getById("save")}
+            project={project}
+            onFlash={() => console.log("onflash")}
+          >
             save
           </CommandButton>
 
           <div style={{ width: 12 }}></div>
 
           <UtilityMenu
-            label={"add"}
+            label={"create"}
             items={{
               "audio track": () => documentCommands.execById("createAudioTrack", project),
               "midi track": () => documentCommands.execById("createMidiTrack", project),
@@ -197,10 +136,10 @@ export function ToolHeader({
               }}
             ></UtilityNumber>
             <button className="utilityButton">4 / 4</button>
-            <PlaybeatTime project={project} player={player} />
+            <PlaybeatTime project={project} player={renderer.analizedPlayer} />
           </div>
 
-          <div style={{ flexGrow: 1 }}></div>
+          <div className="grow"></div>
           <UtilityToggle
             disabled={isAudioPlaying || isRecording}
             title={loopPlayback ? "deactivate loop brace" : "activate loop brace"}
@@ -216,13 +155,13 @@ export function ToolHeader({
 
           <PlaybackControl
             project={project}
-            player={player}
+            player={renderer.analizedPlayer}
             renderer={renderer}
             style={{ alignSelf: "center" }}
             recorder={recorder}
           />
           <ToolSelector project={project} />
-          <div style={{ flexGrow: 1 }}></div>
+          <div className="grow"></div>
 
           <BounceButton project={project} renderer={renderer} />
 
@@ -236,11 +175,10 @@ export function ToolHeader({
             <i className="ri-bug-fill"></i>
           </button>
         </div>
-        <div className={classes.bottomRow}>
+        <div className={classNames(classes.row, "flex flex-row self-stretch items-center")}>
           <UtilityToggle
             title="snap to grid"
             toggled={snapToGrid}
-            toggleStyle={{ background: "orange" }}
             onToggle={function (toggled: boolean): void {
               project.snapToGrid.set(toggled);
             }}
@@ -270,7 +208,7 @@ export function ToolHeader({
           {/* Space to center project title */}
           <div style={{ minWidth: "185px", flexShrink: 0 }}></div>
           {/* <TransportControl project={project} renderer={renderer} recorder={recorder} /> */}
-          <div style={{ flexGrow: 1 }}></div>
+          <div className="grow"></div>
           <span title="current open project">
             {dirty ? "*" : ""}
             <i className="ri-file-music-line" />
@@ -282,14 +220,14 @@ export function ToolHeader({
               showEditButton
             />
           </span>
-          <div style={{ flexGrow: 1 }}></div>
+          <div className="grow"></div>
 
           <ScaleFactorSlider project={project} />
         </div>
       </div>
       <canvas
+        className="bg-black"
         style={{
-          background: "black",
           width: CANVAS_WIDTH,
           height: CANVAS_HEIGHT,
         }}
@@ -297,7 +235,7 @@ export function ToolHeader({
         height={2 * CANVAS_HEIGHT + "px"}
         ref={(canvas) => {
           const ctx = canvas?.getContext("2d") ?? null;
-          player.setCanvas(ctx);
+          renderer.analizedPlayer.setCanvas(ctx);
         }}
       ></canvas>
     </div>
@@ -309,34 +247,14 @@ const useStyles = createUseStyles({
     display: "flex",
     flexDirection: "row",
   },
-  headerContainer: {
-    display: "flex",
-    flexDirection: "row",
-    width: "100%",
-  },
   tools: {
     flexGrow: 1,
-    display: "flex",
-    flexDirection: "column",
-    // justifyContent: "space-around",
     marginRight: 12,
     marginLeft: 4,
     marginBottom: 6,
-    // marginTop: 4,
     gap: 2,
   },
-  topRow: {
-    display: "flex",
-    flexDirection: "row",
+  row: {
     gap: "6px",
-    alignSelf: "stretch",
-    alignItems: "center",
-  },
-  bottomRow: {
-    display: "flex",
-    flexDirection: "row",
-    gap: "6px",
-    alignSelf: "stretch",
-    alignItems: "center",
   },
 });

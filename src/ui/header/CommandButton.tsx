@@ -14,12 +14,14 @@ export function CommandButton({
   toggled,
   toggleStyle = { backgroundColor: "var(--control-subtle-highlight)" },
   style: styleArg,
+  onFlash,
   ...props
 }: React.DetailedHTMLProps<React.ButtonHTMLAttributes<HTMLButtonElement>, HTMLButtonElement> & {
   command: Command;
   project: AudioProject;
   toggled?: boolean;
   toggleStyle?: React.CSSProperties;
+  onFlash?: () => void;
 }) {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const timeout = useRef<number | null>(null);
@@ -38,15 +40,15 @@ export function CommandButton({
       }
 
       const prev = div.style.background;
-
       div.style.background = "orange";
+      onFlash?.();
       // div.style.transition = "background .2s";
       timeout.current = window.setTimeout(() => {
         div.style.background = prev;
         timeout.current = null;
       }, 280);
     });
-  }, [command, toggled]);
+  }, [command, onFlash, toggled]);
 
   return (
     <button

@@ -12,6 +12,7 @@ import { CursorSelection } from "./CursorSelection";
 import { LoopMarkers } from "./LoopMarkers";
 import { ProjectView } from "./ProjectView";
 import { TrackHeaderContainer } from "./TrackHeaderContainer";
+import { TRACK_HEADER_WIDTH } from "../constants";
 
 export function TimelineView({
   project,
@@ -119,6 +120,10 @@ const useStyles = createUseStyles({
     justifyContent: "space-evenly",
     // borderBottom: "1px solid var(--axis-spacer-headers-separator)",
     position: "sticky",
+    // we add 10 to cover some empty space to the right. there
+    // seems to be some padding to display the scrollbar, but it lets
+    // the loop marker show underneath
+    width: TRACK_HEADER_WIDTH + 10,
     top: 0,
     zIndex: 2,
   },

@@ -1,11 +1,11 @@
 import React, { useCallback, useRef, useState } from "react";
-import { createUseStyles } from "react-jss";
 import { useContainer } from "structured-state";
 import { MIN_TRACK_HEIGHT, TRACK_HEADER_WIDTH } from "../constants";
 import { documentCommands } from "../input/documentCommands";
 import { useAxisContainerMouseEvents } from "../input/useProjectMouseEvents";
 import { AnalizedPlayer } from "../lib/io/AnalizedPlayer";
 import { AudioProject } from "../lib/project/AudioProject";
+import { cn } from "../utils/cn";
 import { nullthrows } from "../utils/nullthrows";
 import { TrackHeader, TrackHeaderSeparator } from "./TrackHeader";
 import { trackHeaderContainerCanHandleTransfer } from "./dragdrop/canHandleTransfer";
@@ -22,7 +22,6 @@ export const TrackHeaderContainer = React.memo(function TrackHeaderContainerImpl
   project: AudioProject;
   player: AnalizedPlayer;
 }) {
-  const classes = useStyles();
   const axisContainerRef = useRef<HTMLDivElement | null>(null);
   const tracks = useContainer(project.allTracks);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -116,16 +115,20 @@ export const TrackHeaderContainer = React.memo(function TrackHeaderContainerImpl
   }
 
   return (
-    <div className={classes.trackHeaders} ref={containerRef}>
+    <div
+      style={{
+        width: TRACK_HEADER_WIDTH,
+      }}
+      className={cn("sticky flex flex-col shrink-0")}
+      ref={containerRef}
+    >
       {trackHeaders}
-      {/* extra space */}
       <div
+        // extra space
+        className="flex flex-col"
         style={{
           height: MIN_TRACK_HEIGHT * 2,
-          position: "relative",
-          padding: "8px 8px",
-          display: "flex",
-          flexDirection: "column",
+          padding: "4px 0px 0px 4px",
         }}
       >
         <button
@@ -139,16 +142,4 @@ export const TrackHeaderContainer = React.memo(function TrackHeaderContainerImpl
       </div>
     </div>
   );
-});
-
-const useStyles = createUseStyles({
-  trackHeaders: {
-    position: "sticky",
-    right: 0,
-    zIndex: 1,
-    display: "flex",
-    flexDirection: "column",
-    width: TRACK_HEADER_WIDTH,
-    flexShrink: 0,
-  },
 });

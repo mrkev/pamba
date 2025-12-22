@@ -19,8 +19,7 @@ export function TimelineLine({ project, pos, color }: { project: AudioProject; p
         position: "absolute",
         userSelect: "none",
         pointerEvents: "none",
-        // huh?
-        left: linePos.px(project) + viewportStartPx,
+        left: linePos.px(project) + viewportStartPx - 1, // looks better with the -1 I think, especially loop markers
         top: 0,
       }}
     />

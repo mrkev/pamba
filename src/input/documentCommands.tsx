@@ -8,7 +8,7 @@ import { ProjectSelection } from "../lib/project/ProjectSelection";
 import { clipsLimits } from "../lib/project/timeline";
 import { userActions } from "../lib/userActions";
 import { pressedState } from "../ui/pressedState";
-import { closeProject } from "../ui/header/ToolHeader";
+import { closeProject } from "../ui/header/closeProject";
 import { exhaustive } from "../utils/exhaustive";
 import { nullthrows } from "../utils/nullthrows";
 import { CommandBlock } from "./Command";

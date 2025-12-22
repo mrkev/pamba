@@ -40,7 +40,7 @@ export const TOTAL_VERTICAL_NOTES = 128; // number of midi notes in piano roll
 
 export const LIBRARY_SEARCH_INPUT_ID = "library-search";
 
-export const MAX_TIMELINE_SCALE = 1_000;
+export const MAX_TIMELINE_SCALE = 800;
 export const MIN_TIMELINE_SCALE = 0.64;
 
 // TODO: assuming constant 4/4
