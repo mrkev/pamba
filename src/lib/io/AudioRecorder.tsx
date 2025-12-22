@@ -1,4 +1,4 @@
-import { MarkedMap } from "marked-subbable";
+import { MarkedMap, MarkedValue } from "marked-subbable";
 import { useEffect, useState } from "react";
 import { AudioPackage } from "../../data/AudioPackage";
 import { ProjectPackage } from "../../data/ProjectPackage";
@@ -8,7 +8,6 @@ import { AudioClip } from "../AudioClip";
 import { AudioTrack } from "../AudioTrack";
 import { AudioProject } from "../project/AudioProject";
 import { ProjectTrack } from "../ProjectTrack";
-import { LinkedState } from "../state/LinkedState";
 import { AudioRenderer } from "./AudioRenderer";
 
 function useMediaRecorder(loadClip: (url: string, name?: string) => void) {
@@ -44,14 +43,11 @@ function useMediaRecorder(loadClip: (url: string, name?: string) => void) {
 }
 
 export class AudioRecorder {
-  readonly status = LinkedState.of<"idle" | "recording" | "error">("idle");
-  private mediaRecorder: MediaRecorder | null;
-  private chunks: Array<BlobPart>;
+  readonly status = MarkedValue.create<"idle" | "recording" | "error">("idle");
+  private mediaRecorder: MediaRecorder | null = null;
+  private chunks: Array<BlobPart> = [];
   readonly audioInputDevices = MarkedMap.create<string, MediaDeviceInfo>();
-  readonly currentInput = LinkedState.of<string | null>(null);
-
-  readonly renderer: AudioRenderer;
-  readonly project: AudioProject;
+  readonly currentInput = MarkedValue.create<string | null>(null);
 
   // TODO: project audio lib
   private async loadClip(audioPackage: AudioPackage) {
@@ -74,11 +70,10 @@ export class AudioRecorder {
     }
   }
 
-  constructor(project: AudioProject, renderer: AudioRenderer) {
-    this.mediaRecorder = null;
-    this.chunks = [];
-    this.project = project;
-    this.renderer = renderer;
+  constructor(
+    public readonly project: AudioProject,
+    public readonly renderer: AudioRenderer,
+  ) {
     this.init().catch(() => this.status.set("error"));
   }
 

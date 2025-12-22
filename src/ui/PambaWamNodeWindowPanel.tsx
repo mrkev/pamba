@@ -1,12 +1,12 @@
+import { useLinkAsState } from "marked-subbable";
 import { useState } from "react";
 import ReactDOM from "react-dom";
 import { usePrimitive } from "structured-state";
-import { useLinkedState } from "../lib/state/LinkedState";
 import { nullthrows } from "../utils/nullthrows";
 import { PambaWamNode } from "../wam/PambaWamNode";
 import { WamPluginContent } from "../wam/WamPluginContent";
-import { WindowPanel } from "./WindowPanel";
 import { UtilityToggle } from "./UtilityToggle";
+import { WindowPanel } from "./WindowPanel";
 
 function printInfo(descriptor: any) {
   let result = JSON.stringify(
@@ -38,7 +38,7 @@ function printInfo(descriptor: any) {
 }
 
 export function PambaWamNodeWindowPanel({ effect, onClose }: { effect: PambaWamNode; onClose: () => void }) {
-  const [position, setPosition] = useLinkedState(effect.windowPanelPosition);
+  const [position, setPosition] = useLinkAsState(effect.windowPanelPosition);
   const [showInfo, setShowInfo] = useState(false);
   const [name] = usePrimitive(effect.name);
 

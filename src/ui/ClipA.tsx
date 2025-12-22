@@ -7,12 +7,12 @@ import type { AudioClip } from "../lib/AudioClip";
 import type { AudioTrack } from "../lib/AudioTrack";
 import { ProjectTrack } from "../lib/ProjectTrack";
 import type { AudioProject } from "../lib/project/AudioProject";
+import { XScale } from "../lib/viewport/ProjectViewport";
 import { exhaustive } from "../utils/exhaustive";
 import { relu } from "../utils/math";
 import { nullthrows } from "../utils/nullthrows";
 import { StandardClip } from "./StandardClip";
 import { clipMouseDownToMove, clipMouseDownToResize } from "./clipMouse";
-import { XScale } from "../lib/viewport/ProjectViewport";
 
 export const ClipA = React.memo(function ClipAImpl({
   clip,

@@ -4,19 +4,14 @@ import { liveAudioContext } from "../constants";
 import { DSPStep } from "../dsp/DSPStep";
 import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
 import { appEnvironment, WAMAvailablePlugin } from "../lib/AppEnvironment";
-import { LinkedState } from "../lib/state/LinkedState";
 import { assert, nullthrows } from "../utils/nullthrows";
 import { PambaWamNode } from "../wam/PambaWamNode";
-import { Position } from "../ui/WindowPanel";
 
 // TODO: merge with PambaWamNode??
 export class MidiInstrument implements DSPStep<null> {
   readonly effectId: string;
   readonly name: SString;
   readonly bypass = boolean(false);
-
-  // Window Panel
-  readonly windowPanelPosition: LinkedState<Position>;
 
   public inputNode(): null {
     return null;
@@ -33,7 +28,6 @@ export class MidiInstrument implements DSPStep<null> {
     this.effectId = this.wamInstance.moduleId;
     this.name = string(this.wamInstance.descriptor.name);
     this.url = url;
-    this.windowPanelPosition = pambaWam.windowPanelPosition;
   }
 
   public destroy() {

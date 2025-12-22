@@ -1,3 +1,4 @@
+import { useLinkAsState } from "marked-subbable";
 import React, { useEffect, useRef } from "react";
 import { useContainer, usePrimitive } from "structured-state";
 import { documentCommands } from "../../input/documentCommands";
@@ -5,7 +6,6 @@ import { AnalizedPlayer } from "../../lib/io/AnalizedPlayer";
 import { AudioRecorder } from "../../lib/io/AudioRecorder";
 import { AudioRenderer } from "../../lib/io/AudioRenderer";
 import { AudioProject } from "../../lib/project/AudioProject";
-import { useLinkedState } from "../../lib/state/LinkedState";
 import { exhaustive } from "../../utils/exhaustive";
 import { utility } from "../utility";
 import { CommandButton } from "./CommandButton";
@@ -68,7 +68,7 @@ export function PlaybackControl({
   const tracks = useContainer(project.allTracks);
   const [armedTrack] = usePrimitive(project.armedTrack);
   const [isAudioPlaying] = usePrimitive(renderer.isAudioPlaying);
-  const [recorderStatus] = useLinkedState(recorder.status);
+  const [recorderStatus] = useLinkAsState(recorder.status);
   const isRecording = recorderStatus === "recording";
   const isTrackArmed = armedTrack != null;
   const [selectionWidth] = usePrimitive(project.selectionWidth);

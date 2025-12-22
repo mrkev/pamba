@@ -1,3 +1,4 @@
+import { useLinkAsState } from "marked-subbable";
 import { useCallback, useEffect, useRef } from "react";
 import { createUseStyles } from "react-jss";
 import { getGlobalState, useContainer, usePrimitive, useSubscribeToSubbableMutationHashable } from "structured-state";
@@ -8,7 +9,6 @@ import { AnalizedPlayer } from "../../lib/io/AnalizedPlayer";
 import { AudioRecorder } from "../../lib/io/AudioRecorder";
 import { AudioRenderer } from "../../lib/io/AudioRenderer";
 import { AudioProject } from "../../lib/project/AudioProject";
-import { useLinkedState } from "../../lib/state/LinkedState";
 import { doConfirm } from "../ConfirmDialog";
 import { RenamableLabel } from "../RenamableLabel";
 import { UtilityMenu } from "../UtilityMenu";
@@ -135,7 +135,7 @@ export function ToolHeader({
   // const [selectedDevice] = useLinkedState(recorder.currentInput);
   const [projectName] = usePrimitive(project.projectName);
   const [isAudioPlaying] = usePrimitive(renderer.isAudioPlaying);
-  const [recorderStatus] = useLinkedState(recorder.status);
+  const [recorderStatus] = useLinkAsState(recorder.status);
   const isRecording = recorderStatus === "recording";
 
   const dirty = appEnvironment.projectDirtyObserver.dirtyState() !== "clean";

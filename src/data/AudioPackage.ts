@@ -1,4 +1,6 @@
-import * as musicMetadata from "music-metadata-browser";
+// import * as musicMetadata from "music-metadata-browser";
+import * as musicMetadata from "music-metadata";
+import { IAudioMetadata } from "music-metadata";
 import { FSDir } from "../fs/FSDir";
 import { isRecord } from "../lib/nw/nwschema";
 import { pAll, pTry } from "../utils/ignorePromise";
@@ -15,7 +17,7 @@ export class AudioPackage {
   private constructor(
     public readonly name: string,
     public readonly file: File,
-    public readonly metadata: musicMetadata.IAudioMetadata,
+    public readonly metadata: IAudioMetadata,
     public readonly pkgRoot: FSDir,
   ) {}
 

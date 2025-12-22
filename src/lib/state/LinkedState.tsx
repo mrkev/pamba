@@ -64,6 +64,9 @@ export function useLinkedState<S>(linkedState: LinkedState<S>): [S, StateDispath
   const [state, setState] = useState<S>(() => linkedState.get());
 
   useEffect(() => {
+    if (!(linkedState instanceof LinkedState)) {
+      console.log("linked state?", linkedState);
+    }
     return subscribe(linkedState, () => {
       setState(() => linkedState.get());
     });
@@ -83,7 +86,7 @@ export function useLinkedState<S>(linkedState: LinkedState<S>): [S, StateDispath
         linkedState.set(newVal);
       }
     },
-    [linkedState]
+    [linkedState],
   );
 
   return [state, setter];
@@ -106,17 +109,17 @@ type LSIn<T> =
   T extends number | string | boolean
     ? LinkedState<T>
     : // Records
-    T extends Record<string, infer U>
-    ? { [Key in keyof T]: SOut<U> }
-    : never;
+      T extends Record<string, infer U>
+      ? { [Key in keyof T]: SOut<U> }
+      : never;
 
 type SOut<T> = // primitives
   T extends LinkedState<infer P>
     ? P
     : // Records
-    T extends SRecord<infer E>
-    ? { [Key in keyof E]: SOut<E[Key]> }
-    : never;
+      T extends SRecord<infer E>
+      ? { [Key in keyof E]: SOut<E[Key]> }
+      : never;
 
 class SRecord<TSchema extends Record<string, LS<any>>>
   implements LS<{ [Key in keyof TSchema]: SOut<TSchema[Key]> }>, MutationHashable
@@ -201,9 +204,9 @@ type BrowserTarget<T extends LS<any>> =
   T extends SRecord<infer E>
     ? { [Key in keyof E]: BrowserTarget<E[Key]> }
     : // Primitives
-    T extends LinkedState<any>
-    ? void
-    : never;
+      T extends LinkedState<any>
+      ? void
+      : never;
 
 a.browse((a) => a.park.animals.lions);
 (window as any).a = a;

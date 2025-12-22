@@ -1,11 +1,11 @@
 import { WamNode as IWamNode, WamParameterDataMap, WamParameterInfoMap } from "@webaudiomodules/api";
+import { MarkedValue } from "marked-subbable";
 import { boolean, SString, string } from "structured-state";
 import type { WebAudioModule } from "../../packages/sdk/dist";
 import { DSPStep } from "../dsp/DSPStep";
 import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioContextInfo } from "../lib/initAudioContext";
-import { LinkedState } from "../lib/state/LinkedState";
 import { Position } from "../ui/WindowPanel";
 import { WAMImport } from "./fetchWam";
 
@@ -26,7 +26,7 @@ export class PambaWamNode implements DSPStep {
   readonly node: TrackedAudioNode<IWamNode>;
 
   // Window Panel
-  readonly windowPanelPosition = LinkedState.of<Position>([10, 10]);
+  readonly windowPanelPosition = MarkedValue.create<Position>([10, 10]);
 
   public destroy() {
     this.wamInstance.destroyGui(this.dom);
