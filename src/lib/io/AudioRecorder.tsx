@@ -1,15 +1,15 @@
+import { MarkedMap } from "marked-subbable";
 import { useEffect, useState } from "react";
 import { AudioPackage } from "../../data/AudioPackage";
 import { ProjectPackage } from "../../data/ProjectPackage";
 import { nullthrows } from "../../utils/nullthrows";
 import { appEnvironment } from "../AppEnvironment";
 import { AudioClip } from "../AudioClip";
-import { AudioRenderer } from "./AudioRenderer";
 import { AudioTrack } from "../AudioTrack";
 import { AudioProject } from "../project/AudioProject";
 import { ProjectTrack } from "../ProjectTrack";
-import { LinkedMap } from "../state/LinkedMap";
 import { LinkedState } from "../state/LinkedState";
+import { AudioRenderer } from "./AudioRenderer";
 
 function useMediaRecorder(loadClip: (url: string, name?: string) => void) {
   const [mediaRecorder, setMediaRecorder] = useState<null | MediaRecorder>(null);
@@ -47,7 +47,7 @@ export class AudioRecorder {
   readonly status = LinkedState.of<"idle" | "recording" | "error">("idle");
   private mediaRecorder: MediaRecorder | null;
   private chunks: Array<BlobPart>;
-  readonly audioInputDevices: LinkedMap<string, MediaDeviceInfo>;
+  readonly audioInputDevices = MarkedMap.create<string, MediaDeviceInfo>();
   readonly currentInput = LinkedState.of<string | null>(null);
 
   readonly renderer: AudioRenderer;
@@ -77,7 +77,6 @@ export class AudioRecorder {
   constructor(project: AudioProject, renderer: AudioRenderer) {
     this.mediaRecorder = null;
     this.chunks = [];
-    this.audioInputDevices = LinkedMap.create();
     this.project = project;
     this.renderer = renderer;
     this.init().catch(() => this.status.set("error"));
@@ -94,7 +93,7 @@ export class AudioRecorder {
       .map((device) => [device.deviceId, device] as const);
 
     this.currentInput.set(mediaStream.getTracks()[0].getSettings().deviceId ?? null);
-    this.audioInputDevices.replace(deviceEntries);
+    this.audioInputDevices.replace(new Map(deviceEntries));
 
     navigator.mediaDevices.addEventListener("devicechange", async () => {
       // const deviceEntries = (await navigator.mediaDevices.enumerateDevices())

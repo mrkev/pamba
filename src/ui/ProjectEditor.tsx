@@ -6,7 +6,7 @@ import { niceBytes } from "../data/niceBytes";
 import { ProjectPackage } from "../data/ProjectPackage";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioProject } from "../lib/project/AudioProject";
-import { useLinkedMapMaybe } from "../lib/state/LinkedMap";
+import { nullthrows } from "../utils/nullthrows";
 import { UtilityDataList } from "./UtilityList";
 
 const STATUS_PENDING = { status: "pending" } as const;
@@ -46,12 +46,12 @@ async function getProjectSizeOrThrow(projectPackage: Readonly<ProjectPackage | n
 export function ProjectEditor({ project }: { project: AudioProject }) {
   const [name] = usePrimitive(project.projectName);
   const projectPackage = useLink(appEnvironment.projectPacakge)().get();
-  const projectAudioFiles = useLinkedMapMaybe(projectPackage?.audioLibRef.state);
+  const projectAudioFiles = useLink(nullthrows(projectPackage, "unexpected null project").audioLibRef.state);
 
   // TODO: doesn't seem to update when we add a new audio file to projectPackage?.audioLibRef.state?
   // (ie, when recording new audio)
   const items =
-    projectAudioFiles?.map((ap) => {
+    projectAudioFiles().map((ap) => {
       return {
         title: ap.name,
         data: ap,

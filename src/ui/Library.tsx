@@ -1,3 +1,4 @@
+import { useLink } from "marked-subbable";
 import React, { useCallback, useMemo, useState } from "react";
 import { useContainer, usePrimitive } from "structured-state";
 import { LIBRARY_SEARCH_INPUT_ID } from "../constants";
@@ -12,25 +13,24 @@ import { addAvailableWamToTrack } from "../lib/addAvailableWamToTrack";
 import { AnalizedPlayer } from "../lib/io/AnalizedPlayer";
 import { AudioRenderer } from "../lib/io/AudioRenderer";
 import { AudioProject } from "../lib/project/AudioProject";
-import { useLinkedMap } from "../lib/state/LinkedMap";
 import { exhaustive } from "../utils/exhaustive";
 import { ignorePromise } from "../utils/ignorePromise";
 import { nullthrows } from "../utils/nullthrows";
 import { doConfirm } from "./ConfirmDialog";
 import { UploadAudioButton } from "./UploadAudioButton";
 import { ListEntry, UtilityDataList } from "./UtilityList";
+import { UtilityMenu } from "./UtilityMenu";
 import { transferObject } from "./dragdrop/setTransferData";
 import { closeProject } from "./header/ToolHeader";
 import { pressedState } from "./pressedState";
-import { UtilityMenu } from "./UtilityMenu";
 
 const STATIC_AUDIO_FILES = ["drums.mp3", "clav.mp3", "bassguitar.mp3", "horns.mp3", "leadguitar.mp3"];
 
 function useAudioLibrary(project: AudioProject, filter: string): (string | AudioPackage)[] {
   // const [audioStorage] = usePrimitive(appEnvironment.audioStorage);
   // const remoteAudio = useLinkedArrayMaybe(audioStorage?.remoteFiles ?? null);
-  const [localAudio] = useLinkedMap(appEnvironment.localFiles.audioLib.state);
-  const audioLibrary = [...STATIC_AUDIO_FILES, ...localAudio.values()];
+  const localAudio = useLink(appEnvironment.localFiles.audioLib.state);
+  const audioLibrary = [...STATIC_AUDIO_FILES, ...localAudio().values()];
 
   return audioLibrary.filter((audio) => {
     if (typeof audio === "string") {
@@ -67,7 +67,7 @@ export function Library({
   const [isAudioPlaying] = usePrimitive(renderer.isAudioPlaying);
   const [libraryFilter, setLibraryFilter] = useState("");
   const audioLibrary = useAudioLibrary(project, libraryFilter);
-  const [localProjects] = useLinkedMap(appEnvironment.localFiles.projectLib.state);
+  const localProjects = useLink(appEnvironment.localFiles.projectLib.state);
   const wamPlugins = useContainer(appEnvironment.wamPlugins);
 
   const loadClip = useCallback(
@@ -95,7 +95,7 @@ export function Library({
 
   const items: ListEntry<LibraryItem>[] = useMemo(() => {
     return [
-      ...localProjects.map((p) => {
+      ...localProjects().map((p) => {
         return {
           title: p.name,
           icon: <i className="ri-file-music-line" />,

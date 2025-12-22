@@ -1,12 +1,12 @@
+import { MarkedMap } from "marked-subbable";
 import { FSDir, FSFile } from "../fs/FSDir";
-import { LinkedMap } from "../lib/state/LinkedMap";
 
 /**
  * A location in the filesystem for storing a specific package kind.
  * It's also observable via LinkedState.
  */
 export class PackageLibrary<P> {
-  public readonly state = LinkedMap.create<string, P>();
+  public readonly state = MarkedMap.create<string, P>();
   private constructor(
     private readonly dir: FSDir,
     private readonly existingPackage: (dir: FSDir) => Promise<P | "invalid" | "not_found">,
@@ -36,7 +36,7 @@ export class PackageLibrary<P> {
       }
     }
 
-    this.state._setRaw(result);
+    this.state.replace(result);
   }
 
   public async getDir(): Promise<FSDir> {
