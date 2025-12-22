@@ -1,3 +1,4 @@
+import { useLink } from "marked-subbable";
 import { useEffect, useMemo, useState } from "react";
 import { usePrimitive } from "structured-state";
 import { AudioPackage } from "../data/AudioPackage";
@@ -6,7 +7,6 @@ import { ProjectPackage } from "../data/ProjectPackage";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioProject } from "../lib/project/AudioProject";
 import { useLinkedMapMaybe } from "../lib/state/LinkedMap";
-import { useLinkedState } from "../lib/state/LinkedState";
 import { UtilityDataList } from "./UtilityList";
 
 const STATUS_PENDING = { status: "pending" } as const;
@@ -30,7 +30,7 @@ function useAsync<T>(promise: Promise<T>): AsyncResult<T> {
   return result;
 }
 
-async function getProjectSizeOrThrow(projectPackage: ProjectPackage | null) {
+async function getProjectSizeOrThrow(projectPackage: Readonly<ProjectPackage | null>) {
   if (projectPackage == null) {
     return null;
   }
@@ -45,7 +45,7 @@ async function getProjectSizeOrThrow(projectPackage: ProjectPackage | null) {
 
 export function ProjectEditor({ project }: { project: AudioProject }) {
   const [name] = usePrimitive(project.projectName);
-  const [projectPackage] = useLinkedState(appEnvironment.projectPacakge);
+  const projectPackage = useLink(appEnvironment.projectPacakge)().get();
   const projectAudioFiles = useLinkedMapMaybe(projectPackage?.audioLibRef.state);
 
   // TODO: doesn't seem to update when we add a new audio file to projectPackage?.audioLibRef.state?

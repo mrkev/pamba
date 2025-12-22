@@ -1,10 +1,10 @@
 import React, { useCallback, useState } from "react";
 // import { TrackThread } from "../lib/TrackThread";
+import { useLink } from "marked-subbable";
 import "remixicon/fonts/remixicon.css";
 import { usePrimitive } from "structured-state";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { ProjectPersistance } from "../lib/ProjectPersistance";
-import { useLinkedSet } from "../lib/state/LinkedSet";
 import { MidiInstrument } from "../midi/MidiInstrument";
 import { PambaWamNode } from "../wam/PambaWamNode";
 import { AppProject } from "./AppProject";
@@ -24,7 +24,7 @@ const NON_PASSIVE = { passive: false };
 
 export function App(): React.ReactElement {
   const [projectStatus] = usePrimitive(appEnvironment.projectStatus);
-  const [openEffects] = useLinkedSet(appEnvironment.openEffects);
+  const openEffects = useLink(appEnvironment.openEffects);
 
   useDocumentEventListener(
     "wheel",
@@ -112,13 +112,13 @@ export function App(): React.ReactElement {
     return (
       <>
         {/* RENDER WAM WINDOWS OUT HERE */}
-        {[...openEffects.values()].map((effect, i) => {
+        {[...openEffects().values()].map((effect, i) => {
           if (effect instanceof PambaWamNode) {
-            return <PambaWamNodeWindowPanel key={i} effect={effect} onClose={() => openEffects.delete(effect)} />;
+            return <PambaWamNodeWindowPanel key={i} effect={effect} onClose={() => openEffects().delete(effect)} />;
           }
           if (effect instanceof MidiInstrument) {
             return (
-              <PambaWamNodeWindowPanel key={i} effect={effect.pambaWam} onClose={() => openEffects.delete(effect)} />
+              <PambaWamNodeWindowPanel key={i} effect={effect.pambaWam} onClose={() => openEffects().delete(effect)} />
             );
           }
 

@@ -1,10 +1,10 @@
 import { JSONOfAuto, Structured } from "structured-state";
 import { liveAudioContext, PULSES_PER_BAR, SECS_IN_MIN } from "../../constants";
+import { STimelineT } from "../../data/serializable";
 import { PPQN } from "../../wam/miditrackwam/MIDIConfiguration";
 import { Pulses, Seconds } from "../AbstractClip";
 import { exhaustive } from "../state/Subbable";
 import { AudioProject } from "./AudioProject";
-import { STimelineT } from "../../data/serializable";
 
 export type TimeUnit = "pulses" | "seconds" | "bars";
 

@@ -1,6 +1,7 @@
 import { WamDescriptor } from "@webaudiomodules/api";
 import { FirebaseApp } from "firebase/app";
 import { Auth, User, getAuth } from "firebase/auth";
+import { MarkedSet, MarkedValue } from "marked-subbable";
 import { DirtyObserver, SPrimitive, array } from "structured-state";
 import { MidiDevices } from "../MidiDevices";
 import { FIREBASE_ENABLED, MAX_NUMBER_OF_TRACKS } from "../constants";
@@ -14,18 +15,16 @@ import { initFirebaseApp } from "../firebase/firebaseConfig";
 import type { MidiInstrument } from "../midi/MidiInstrument";
 import { LocalSPrimitive } from "../ui/useLocalStorage";
 import { PambaWamNode } from "../wam/PambaWamNode";
-import { KINDS_SORT, PambaWAMPluginDescriptor, WAMPLUGINS } from "../wam/plugins";
+import { AudioTrackModule } from "../wam/audiotrack/AudioTrackModule";
+import { AudioTrackNode } from "../wam/audiotrack/AudioTrackNode";
 import { WAMImport, fetchWam } from "../wam/fetchWam";
+import { KINDS_SORT, PambaWAMPluginDescriptor, WAMPLUGINS } from "../wam/plugins";
 import { orderedMap } from "./data/SOrderedMap";
 import { initAudioContext } from "./initAudioContext";
 import { AnalizedPlayer } from "./io/AnalizedPlayer";
 import { AudioRenderer } from "./io/AudioRenderer";
 import { AudioProject } from "./project/AudioProject";
 import { AudioStorage } from "./project/AudioStorage";
-import { LinkedSet } from "./state/LinkedSet";
-import { LinkedState } from "./state/LinkedState";
-import { AudioTrackNode } from "../wam/audiotrack/AudioTrackNode";
-import { AudioTrackModule } from "../wam/audiotrack/AudioTrackModule";
 
 const dummyObj = array();
 
@@ -54,8 +53,8 @@ export class AppEnvironment {
   readonly firebaseAuth: Auth | null;
   readonly firebaseUser = SPrimitive.of<User | null>(null);
   // Plugins
-  readonly wamHostGroup = LinkedState.of<[id: string, key: string] | null>(null);
-  readonly wamStatus = LinkedState.of<"loading" | "ready">("loading");
+  readonly wamHostGroup = MarkedValue.create<[id: string, key: string] | null>(null);
+  readonly wamStatus = MarkedValue.create<"loading" | "ready">("loading");
   readonly wamPlugins = orderedMap<string, { plugin: WAMAvailablePlugin; localDesc: PambaWAMPluginDescriptor }>();
   readonly faustEffects = Object.keys(FAUST_EFFECTS) as (keyof typeof FAUST_EFFECTS)[];
   // FS
@@ -65,9 +64,9 @@ export class AppEnvironment {
   // Project
   readonly projectStatus: SPrimitive<ProjectState>;
   public projectDirtyObserver: DirtyObserver;
-  readonly projectPacakge: LinkedState<ProjectPackage | null>; // null if never saved
+  readonly projectPacakge: MarkedValue<ProjectPackage | null>; // null if never saved
   // UI
-  readonly openEffects: LinkedSet<PambaWamNode | MidiInstrument>;
+  readonly openEffects: MarkedSet<PambaWamNode | MidiInstrument>;
   readonly activeSidePanel = LocalSPrimitive.create<"library" | "project" | "history" | "midi" | "help" | null>(
     "side-panel-active",
     "library",
@@ -98,10 +97,10 @@ export class AppEnvironment {
       this.firebaseAuth = null;
     }
 
-    this.openEffects = LinkedSet.create();
+    this.openEffects = MarkedSet.create();
     this.status = SPrimitive.of({ is: "initing" });
     this.projectStatus = SPrimitive.of<ProjectState>({ status: "idle" });
-    this.projectPacakge = LinkedState.of<ProjectPackage | null>(null); // null if never saved
+    this.projectPacakge = MarkedValue.create<ProjectPackage | null>(null); // null if never saved
     this.projectDirtyObserver = new DirtyObserver(dummyObj, "clean");
 
     this.readyPromise = new Promise((res) => {
