@@ -10,12 +10,12 @@ import { AudioRenderer } from "../../lib/io/AudioRenderer";
 import { AudioProject } from "../../lib/project/AudioProject";
 import { cn } from "../../utils/cn";
 import { RenamableLabel } from "../RenamableLabel";
-import { UtilityMenu } from "../UtilityMenu";
 import { UtilityNumber } from "../UtilityNumber";
 import { UtilityToggle } from "../UtilityToggle";
 import { utility } from "../utility";
 import { BounceButton } from "./BounceButton";
 import { CommandButton } from "./CommandButton";
+import { CommandMenu } from "./CommandMenu";
 import { PlaybeatTime } from "./PlaybeatTime";
 import { ToolSelector } from "./ToolSelector";
 import { PlaybackControl } from "./TransportControl";
@@ -83,42 +83,41 @@ export function ToolHeader({
       <img src="/logo.svg" alt="mini daw" height="24" width="auto" style={{ margin: "0px 8px" }} />
       <div className={classNames(classes.tools, "flex flex-col")}>
         <div className={classNames(classes.row, "flex flex-row self-stretch items-center")}>
-          <CommandButton command={documentCommands.getById("newProject")} project={project}>
-            new project
-          </CommandButton>
+          <div className="flex flex-row">
+            <CommandMenu
+              label="file"
+              style={{ borderRight: "1px solid var(--control-subtle-highlight)" }}
+              items={[
+                ["new project", documentCommands.getById("newProject")],
+                ["save", documentCommands.getById("save")],
+                // ["bounce selection", documentCommands.getById("newProject")],
+                // ["bounce all", documentCommands.getById("save")],
+              ]}
+              project={project}
+            />
 
-          <CommandButton
-            command={documentCommands.getById("save")}
-            project={project}
-            onFlash={() => console.log("onflash")}
-          >
-            save
-          </CommandButton>
+            <CommandMenu
+              label={"edit"}
+              style={{ borderRight: "1px solid var(--control-subtle-highlight)" }}
+              items={[
+                ["copy", documentCommands.getById("copySelection")],
+                ["paste", documentCommands.getById("pasteClipboard")],
+              ]}
+              project={project}
+            />
 
-          <div style={{ width: 12 }}></div>
-
-          <UtilityMenu
-            label={"create"}
-            items={{
-              "audio track": () => documentCommands.execById("createAudioTrack", project),
-              "midi track": () => documentCommands.execById("createMidiTrack", project),
-            }}
-          />
-
-          <span className={classes.buttonGroup}>
-            <CommandButton disabled={history.length < 1} command={documentCommands.getById("undo")} project={project}>
-              <i className="ri-arrow-go-back-line"></i>
-            </CommandButton>
-
-            <CommandButton disabled={redoStack.length < 1} command={documentCommands.getById("redo")} project={project}>
-              <i className="ri-arrow-go-forward-line"></i>
-            </CommandButton>
-          </span>
-
-          <div style={{ width: 12 }}></div>
+            <CommandMenu
+              label={"track"}
+              items={[
+                ["audio track", documentCommands.getById("createAudioTrack")],
+                ["midi track", documentCommands.getById("createMidiTrack")],
+              ]}
+              project={project}
+            />
+          </div>
 
           {/* <select
-            style={{ width: 100, fontSize: 12 }}
+            style={{ width: 100 }}
             value={selectedDevice ?? undefined}
             onChange={(e) => recorder.selectInputDevice(e.target.value)}
           >
@@ -140,6 +139,28 @@ export function ToolHeader({
           </div>
 
           <div className="grow"></div>
+          <span className={classes.buttonGroup}>
+            <CommandButton disabled={history.length < 1} command={documentCommands.getById("undo")} project={project}>
+              <i className="ri-arrow-go-back-line"></i>
+            </CommandButton>
+
+            <CommandButton disabled={redoStack.length < 1} command={documentCommands.getById("redo")} project={project}>
+              <i className="ri-arrow-go-forward-line"></i>
+            </CommandButton>
+          </span>
+
+          <div style={{ width: 12 }}></div>
+
+          <UtilityToggle
+            title="snap to grid"
+            toggled={snapToGrid}
+            onToggle={function (toggled: boolean): void {
+              project.snapToGrid.set(toggled);
+            }}
+          >
+            <i className="ri-focus-3-line"></i>
+          </UtilityToggle>
+
           <UtilityToggle
             disabled={isAudioPlaying || isRecording}
             title={loopPlayback ? "deactivate loop brace" : "activate loop brace"}
@@ -168,19 +189,8 @@ export function ToolHeader({
           </button>
         </div>
         <div className={classNames(classes.row, "flex flex-row self-stretch items-center")}>
-          <UtilityToggle
-            title="snap to grid"
-            toggled={snapToGrid}
-            onToggle={function (toggled: boolean): void {
-              project.snapToGrid.set(toggled);
-            }}
-          >
-            <i className="ri-focus-3-line"></i>
-            {/* snap to grid */}
-          </UtilityToggle>
           {/* <span
             style={{
-              fontSize: 12,
               display: "flex",
               flexDirection: "row",
               alignItems: "center",
@@ -198,9 +208,9 @@ export function ToolHeader({
             snap to grid
           </span> */}
           {/* Space to center project title */}
-          <div className="shrink-0" style={{ minWidth: "185px" }}></div>
+          {/* <div className="shrink-0" style={{ minWidth: "185px" }}></div> */}
           {/* <TransportControl project={project} renderer={renderer} recorder={recorder} /> */}
-          <div className="grow"></div>
+          {/* <div className="grow"></div> */}
           <span title="current open project">
             {dirty ? "*" : ""}
             <i className="ri-file-music-line" />
@@ -243,8 +253,8 @@ const useStyles = createUseStyles({
     flexGrow: 1,
     marginRight: 12,
     marginLeft: 4,
-    marginBottom: 6,
-    gap: 2,
+    marginBottom: 4,
+    gap: 4,
   },
   row: {
     gap: "6px",

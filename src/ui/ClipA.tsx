@@ -48,8 +48,10 @@ export const ClipA = React.memo(function ClipAImpl({
 
   const onMouseDownToMove = useCallback(
     function (e: MouseEvent) {
+      console.log("MOUSE DOWN TO MOVE");
       const tool = project.pointerTool.get();
       if (tool !== "move" || !editable || track == null) {
+        console.log("move", tool !== "move", !editable, track == null);
         return;
       }
       clipMouseDownToMove(e, { kind: "audio", clip, track }, project);
@@ -115,6 +117,8 @@ export const ClipA = React.memo(function ClipAImpl({
     // totalBufferWidth,
     2_000,
     CLIP_HEIGHT,
+    // idt I can use css variables here
+    "#103310",
   );
 
   const [projectDivWidth] = usePrimitive(project.viewport.projectDivWidth);
@@ -135,8 +139,8 @@ export const ClipA = React.memo(function ClipAImpl({
       onMouseDownToResize={onMouseDownToResize}
       onMouseDownToMove={onMouseDownToMove}
       onClipClick={onClipClick}
-      style={{
-        backgroundSize: `${totalBufferWidth}px ${height - 10}px`,
+      contentStyle={{
+        backgroundSize: `${totalBufferWidth}px 100%`,
         backgroundImage: "url('" + backgroundImageData + "')",
         backgroundPosition: `${bufferOffsetPx * -1}px center`,
         backgroundRepeat: "no-repeat",

@@ -1,8 +1,15 @@
 // from https://stackoverflow.com/questions/25836447/generating-a-static-waveform-with-webaudio
-export function drawBuffer(width: number, height: number, context: CanvasRenderingContext2D, buffer: AudioBuffer) {
+export function drawBuffer(
+  width: number,
+  height: number,
+  color: string,
+  context: CanvasRenderingContext2D,
+  buffer: AudioBuffer,
+) {
   const data = buffer.getChannelData(0);
   const step = Math.ceil(data.length / width);
   const amp = height / 2;
+  context.fillStyle = color;
   for (let i = 0; i < width; i++) {
     let min = 1.0;
     let max = -1.0;
@@ -18,11 +25,11 @@ export function drawBuffer(width: number, height: number, context: CanvasRenderi
 export function getImageForBuffer(width: number, height: number, buffer: AudioBuffer): HTMLImageElement {
   const image = new Image();
   image.id = "pic";
-  image.src = dataURLForWaveform(width, height, buffer);
+  image.src = dataURLForWaveform(width, height, "black", buffer);
   return image;
 }
 
-export function dataURLForWaveform(width: number, height: number, buffer: AudioBuffer | null): string {
+export function dataURLForWaveform(width: number, height: number, color: string, buffer: AudioBuffer | null): string {
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
@@ -32,6 +39,6 @@ export function dataURLForWaveform(width: number, height: number, buffer: AudioB
   if (!ctx) {
     throw new Error("Couldn't get context for canvas");
   }
-  buffer && drawBuffer(width, height, ctx, buffer);
+  buffer && drawBuffer(width, height, color, ctx, buffer);
   return canvas.toDataURL();
 }

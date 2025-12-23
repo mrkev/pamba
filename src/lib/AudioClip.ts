@@ -227,14 +227,14 @@ export class AudioClip extends Structured<AutoAudioClip, typeof AudioClip> imple
     return newClip;
   }
 
-  getWaveformDataURL(width: number, height: number) {
+  getWaveformDataURL(width: number, height: number, color: string) {
     const key = `${width}x${height}`;
     const val = this.memodWaveformDataURL.get(key);
     if (val != null) {
       return val.data;
     }
 
-    const waveform = dataURLForWaveform(width, height, this.buffer);
+    const waveform = dataURLForWaveform(width, height, color, this.buffer);
     this.memodWaveformDataURL.set(key, { width, height, data: waveform });
     return waveform;
   }

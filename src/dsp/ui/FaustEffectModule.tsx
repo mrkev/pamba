@@ -29,8 +29,6 @@ export default function FaustEffectModule({
 
   // Use the top-most group as the overall wrapper, with the close button etc
   if ((effect.ui.length === 1 && effect.ui[0].type === "hgroup") || effect.ui[0].type === "vgroup") {
-    console.log("A", effect.name.get(), effect.ui);
-
     const item = effect.ui[0];
     const { items, label, type } = item;
     const groupStyle = faustGroupStyle(type);

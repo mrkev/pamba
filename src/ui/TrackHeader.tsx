@@ -247,7 +247,13 @@ export const TrackHeader = React.memo(function TrackHeader({
         {/* TODO: allow rezising track by dragging either line below dsp, or line between dsp and clips */}
 
         <UtilityToggle
-          style={{ margin: "2px 0px 2px 0px", fontWeight: 200, fontSize: 10, height: 14 }}
+          style={{
+            margin: "2px 0px 2px 0px",
+            fontSize: 10,
+            fontWeight: "bold",
+            height: 14,
+            justifyContent: "start",
+          }}
           toggled={isDspExpanded}
           onToggle={function (): void {
             if (dspExpandedTracks.has(track)) {
@@ -256,10 +262,12 @@ export const TrackHeader = React.memo(function TrackHeader({
               dspExpandedTracks.add(track);
             }
           }}
+          // className={styles.deleteTrackButton}
           toggleClassName="bg-black text-white"
           toggleStyle={{ background: "black", color: "white" }}
           title={isDspExpanded ? "hide DSP rack" : "show DSP rack"}
         >
+          {isDspExpanded ? <i className="ri-arrow-down-s-fill"></i> : <i className="ri-arrow-right-s-fill"></i>}
           DSP ({trackEffects.length})
         </UtilityToggle>
       </div>
@@ -277,10 +285,10 @@ export const TrackHeader = React.memo(function TrackHeader({
           }}
         >
           {/* 
-          <input style={{ width: "100%", border: "none", fontSize: 12 }} type="search" placeholder="Search..." />
+          <input style={{ width: "100%", border: "none" }} type="search" placeholder="Search..." />
           <select
             multiple
-            style={{ flexGrow: 1, border: "none", fontSize: 12 }}
+            style={{ flexGrow: 1, border: "none" }}
             onKeyPress={(e) => {
               const event = new MouseEvent("dblclick");
               e.target.dispatchEvent(event);

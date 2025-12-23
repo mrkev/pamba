@@ -84,7 +84,6 @@ export function UtilityMenu({
             right: anchorLeft ? undefined : 0,
             background: "var(--control-bg-color)",
             minWidth: 70,
-            fontSize: 12,
             borderBottom: "1px solid var(--control-subtle-highlight)",
             // borderRight: "1px solid var(--control-subtle-highlight)",
             // borderLeft: "1px solid var(--control-subtle-highlight)",

@@ -62,7 +62,7 @@ export function ProjectEditor({ project }: { project: AudioProject }) {
 
   return (
     <>
-      <label style={{ fontSize: "12px", fontWeight: "bold" }}>Project Name:</label>
+      <label className="font-bold">Project Name:</label>
       <input
         style={{
           border: "2px solid var(--control-bg-color)",
@@ -79,7 +79,7 @@ export function ProjectEditor({ project }: { project: AudioProject }) {
           <b>Size on Disk:</b> {niceBytes(results.value.size)} + audio
         </span>
       )}
-      <b style={{ fontSize: "12px" }}>Project contents:</b>
+      <b>Project contents:</b>
       <UtilityDataList<AudioPackage>
         disabled={results.status !== "resolved" || results.value == null}
         draggable={false}

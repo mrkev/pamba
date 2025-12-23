@@ -235,7 +235,6 @@ export async function serializable(
   }
 
   if (obj instanceof PambaWamNode) {
-    console.log("Sfoo", obj);
     return {
       kind: "PambaWamNode",
       pluginURL: obj.url,

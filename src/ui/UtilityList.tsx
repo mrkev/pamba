@@ -148,7 +148,6 @@ const useStyles = createUseStyles({
     flexGrow: 1,
     flexShrink: 1,
     overflowY: "scroll",
-    fontSize: 12,
     padding: "2px 0px",
     background: "var(--utility-list-bg)",
     color: "var(--control-text-color)",

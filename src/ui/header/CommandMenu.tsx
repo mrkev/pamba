@@ -1,23 +1,51 @@
-import { Activity, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { createUseStyles } from "react-jss";
 import { Command } from "../../input/Command";
 import { AudioProject } from "../../lib/project/AudioProject";
 import { cn } from "../../utils/cn";
 import { utility } from "../utility";
 import { CommandButton } from "./CommandButton";
+import { KeyboardKey, keyStr } from "../KeyboardKey";
 
 export function CommandMenu({
   label,
   items,
   project,
+  className,
+  style,
 }: {
   label: string;
   items: [string, Command][];
   project: AudioProject;
+  className?: string;
+  style?: React.CSSProperties;
 }) {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
   const styles = useStyles();
+
+  const timeout = useRef<number | null>(null);
+  const onMenuCommandTriggered = useCallback(() => {
+    const div = buttonRef?.current;
+    if (
+      !div ||
+      timeout.current != null
+      // don't flash command click if toggleable
+      // || toggled != null
+    ) {
+      return;
+    }
+
+    const prev = div.style.background;
+    div.style.background = "orange";
+
+    // div.style.transition = "background .2s";
+    timeout.current = window.setTimeout(() => {
+      div.style.background = prev;
+      timeout.current = null;
+      (document.activeElement as HTMLElement | null)?.blur();
+    }, 280);
+  }, []);
 
   useEffect(() => {
     const elem = buttonRef.current;
@@ -25,35 +53,25 @@ export function CommandMenu({
       return;
     }
 
-    const onDocumentMouseDown = () => {
+    const open = (e: FocusEvent) => {
+      setOpen(true);
+    };
+
+    const close = (e: FocusEvent) => {
       setOpen(false);
-      document.removeEventListener("mousedown", onDocumentMouseDown);
     };
 
-    const onMouseDown = (e: MouseEvent) => {
-      console.log("CLICK");
-      setOpen((prev) => !prev);
-      setTimeout(() => document.addEventListener("mousedown", onDocumentMouseDown), 0);
-      e.stopPropagation();
-    };
-
-    const onMouseUp = (e: MouseEvent) => e.stopPropagation();
-
-    elem.addEventListener("mousedown", onMouseDown, { capture: true });
-    elem.addEventListener("mouseup", onMouseUp, { capture: true });
-    elem.addEventListener("dblclick", onMouseUp, { capture: true });
+    elem.addEventListener("focus", open);
+    elem.addEventListener("blur", close);
 
     return () => {
-      elem.removeEventListener("mousedown", onMouseDown, { capture: true });
-      elem.removeEventListener("mouseup", onMouseUp, { capture: true });
-      elem.removeEventListener("dblclick", onMouseUp, { capture: true });
-
-      document.removeEventListener("mousedown", onDocumentMouseDown);
+      elem.removeEventListener("focus", open);
+      elem.removeEventListener("blur", close);
     };
   }, []);
 
   return (
-    <div className="relative">
+    <div className={cn("relative group", className)} style={style}>
       <button
         ref={buttonRef}
         className={utility.button}
@@ -63,35 +81,37 @@ export function CommandMenu({
       >
         {label}
       </button>
-      <Activity mode={open ? "visible" : "hidden"}>
-        <div
-          className="absolute top-full z-10"
-          style={{
-            background: "var(--control-bg-color)",
-            minWidth: 70,
-            fontSize: 12,
-            borderBottom: "1px solid var(--control-subtle-highlight)",
-            // borderRight: "1px solid var(--control-subtle-highlight)",
-            // borderLeft: "1px solid var(--control-subtle-highlight)",
-          }}
-        >
-          {items.map(([label, command]) => {
-            console.log("HERE");
-            return (
-              <CommandButton
-                key={label}
-                className={cn(styles.menuItem, "cursor-pointer whitespace-nowrap font-bold")}
-                onMouseDown={() => {}}
-                command={command}
-                project={project}
-                onFlash={() => console.log("fooooooooooo")}
-              >
-                {label}
-              </CommandButton>
-            );
-          })}
-        </div>
-      </Activity>
+
+      {/* menu */}
+      <div
+        className={cn("name-menu", "absolute top-full z-10 hidden bg-control-bg-color", "group-focus-within:block")}
+        style={{
+          minWidth: 70,
+          borderBottom: "1px solid var(--control-subtle-highlight)",
+        }}
+      >
+        {items.map(([label, command]) => {
+          return (
+            <CommandButton
+              key={label}
+              style={{ justifyContent: "start" }}
+              className={cn(styles.menuItem, "cursor-pointer whitespace-nowrap font-bold w-full flex flex-row gap-1")}
+              command={command}
+              project={project}
+              onFlash={onMenuCommandTriggered}
+            >
+              {label}
+              <span className="grow min-w-1"></span>
+              <span className="text-control-subtle-highlight">
+                {[...command.shortcut]
+                  .reverse()
+                  .map((x, i) => keyStr(x))
+                  .join("")}
+              </span>
+            </CommandButton>
+          );
+        })}
+      </div>
     </div>
   );
 }

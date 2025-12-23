@@ -83,7 +83,7 @@ export function ClipM({
       onMouseDownToResize={onMouseDownToResize}
       onMouseDownToMove={onMouseDownToMove}
       onClipClick={onClipClick}
-      style={{
+      contentStyle={{
         backgroundSize: `${totalBufferWidth}px min(100%, ${imgHeight * 5}px)`,
         backgroundImage: "url('" + backgroundImageData + "')",
         backgroundPosition: `${bufferOffsetPx * -1}px center`,

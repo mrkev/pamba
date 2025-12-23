@@ -83,7 +83,6 @@ export function DebugContent({ project }: { project: AudioProject }) {
           margin: "0px 4px 0px 0px",
           padding: "4px",
           width: 400,
-          fontSize: 12,
           userSelect: "text",
         }}
       />
@@ -94,7 +93,6 @@ export function DebugContent({ project }: { project: AudioProject }) {
           margin: "0px 4px 0px 0px",
           textAlign: "left",
           width: 400,
-          fontSize: 12,
           userSelect: "text",
         }}
         dangerouslySetInnerHTML={{ __html: value }}
@@ -135,7 +133,6 @@ export function DebugContent({ project }: { project: AudioProject }) {
             margin: "0px 4px",
             textAlign: "left",
             width: 400,
-            fontSize: 12,
             userSelect: "text",
           }}
         >

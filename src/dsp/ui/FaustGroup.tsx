@@ -38,7 +38,6 @@ export function FaustGroup({
         borderLeft: isFirstItem ? undefined : "1px solid black",
         padding: "2px 4px",
         columnGap: 6,
-        fontSize: 12,
         gap: 4,
       }}
     >

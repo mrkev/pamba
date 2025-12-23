@@ -58,9 +58,8 @@ export function ToolSelector({ project }: { project: AudioProject }) {
       <span
         className="text-white bg-black shrink-0 whitespace-nowrap font-mono"
         style={{
-          fontSize: 12,
           padding: "2px 2px",
-          width: 64,
+          width: "9ch",
         }}
       >
         {tool}

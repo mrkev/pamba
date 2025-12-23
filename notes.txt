@@ -1,7 +1,8 @@
 qol
 - double-click track header opens track details
 - react-router hash navigation between projects
-- cmd+J to open sidebar, cmd+D to open details, 
+- cmd+J to open sidebar, cmd+D to open details
+- display two waveforms for stereo audio
 
 x structured-state todo:
   x expose map, set

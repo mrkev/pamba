@@ -1,4 +1,4 @@
-declare name "dattorro";
+declare name "dattorro reverb";
 declare version "0.1";
 declare author "Jakob Zerbian";
 declare description "Dattorro demo application.";

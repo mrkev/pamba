@@ -10,6 +10,12 @@
   --color-control-bg-color: #b9b9b9;
   --color-control-text-color: black;
   --color-control-subtle-highlight: #959595;
+  /* clip */
+  --color-clip-color: #69c33a;
+  --color-clip-header: #5cab32;
+  --color-clip-header-selected: #4d8f2a;
+  --color-clip-border: #69c33a;
+  --color-clip-border-selected: #103310;
   /* --color-control: #123456;
   --color-secondary: #abcdef;
   --color-vivid-violet-500: #ca58dd;
@@ -23,7 +29,6 @@ body {
     "Helvetica Neue", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  font-size: 12px;
   /* image-rendering: pixelated; */
 }
 
@@ -91,6 +96,7 @@ body {
   overscroll-behavior-x: none;
   background-color: var(--background);
   color: var(--text-on-background);
+  font-size: 12px;
 }
 
 html,
@@ -119,7 +125,7 @@ kbd {
     0 2px 0 0 rgba(255, 255, 255, 0.7) inset;
   color: #333;
   display: inline-block;
-  font-size: 0.85em;
+  font-size: 11px;
   font-weight: 700;
   line-height: 1;
   padding: 2px 4px;

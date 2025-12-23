@@ -2,11 +2,12 @@ import React, { useEffect, useRef } from "react";
 import { Command } from "../input/Command";
 import { documentCommands } from "../input/documentCommands";
 import { AudioProject } from "../lib/project/AudioProject";
+import { KeyboardKey } from "./KeyboardKey";
 
 export function HelpPanel(_: { project: AudioProject }) {
   return (
     <>
-      <b style={{ fontSize: "12px" }}>Help:</b>
+      <b>Help:</b>
       <div>
         For help, feedback, etc. get in touch:
         <br />-{" "}
@@ -19,7 +20,7 @@ export function HelpPanel(_: { project: AudioProject }) {
         </a>
       </div>
       <br />
-      <b style={{ fontSize: "12px" }}>Keyboard Shortcuts:</b>
+      <b>Keyboard Shortcuts:</b>
       {/* <hr style={{ width: "100%" }} /> */}
       <div
         className="scrollbar-track"
@@ -35,7 +36,7 @@ export function HelpPanel(_: { project: AudioProject }) {
           );
         })}
         <span>
-          Hold <Key str={"meta"} /> when selecting, cutting or clicking to toggle "snap to grid"
+          Hold <KeyboardKey str={"meta"} /> when selecting, cutting or clicking to toggle "snap to grid"
         </span>
       </div>
     </>
@@ -76,30 +77,12 @@ function KeyboardCommandHelp({ command }: { command: Command }) {
         </b>
         <span>
           {keys.map((x, i) => (
-            <Key str={x} key={i}></Key>
+            <KeyboardKey str={x} key={i}></KeyboardKey>
           ))}
         </span>
       </span>
       {command.description && <span style={{ fontSize: 11 }}>{command.description}</span>}
     </div>
-  );
-}
-
-function Key({ str }: { str: string }) {
-  return (
-    <kbd title={str}>
-      {str === "meta"
-        ? "\u2318"
-        : str === "alt"
-          ? "\u2325"
-          : str === "ctrl"
-            ? "\u2303"
-            : str === "shift"
-              ? "\u21EA"
-              : str === "Period"
-                ? "."
-                : str.replace(/^Key/, "")}
-    </kbd>
   );
 }
 

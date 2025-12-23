@@ -320,6 +320,7 @@ export function useTimelineMouseEvents(
 
             if (previewClip instanceof AudioClip) {
               const deltaXSecs = project.viewport.pxToSecs(deltaX);
+              console.log("HERE MOVING", deltaX);
               const newOffset = Math.max(0, pressed.originalClipStart.secs(project) + deltaXSecs);
               clipMoveSec(previewClip, newOffset, pressed.originalClipStart, project, snap);
             } else if (previewClip instanceof MidiClip) {

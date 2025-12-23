@@ -46,17 +46,8 @@ export function AppProject({ project }: { project: AudioProject }) {
 
   return (
     <>
-      <ToolHeader project={project} player={renderer.analizedPlayer} renderer={renderer} recorder={recorder} />
-      <div
-        style={{
-          flex: "100 1 0px",
-          overflow: "hidden",
-          display: "flex",
-          flexDirection: "row",
-          alignItems: "stretch",
-          flexShrink: 1,
-        }}
-      >
+      <ToolHeader project={project} renderer={renderer} recorder={recorder} />
+      <div className="overflow-hidden flex flex-row items-stretch shrink" style={{ flex: "100 1 0px" }}>
         <UtilityTabbedPanel
           activeTab={activeSidePanel}
           onSelectTab={setActiveSidePanel}

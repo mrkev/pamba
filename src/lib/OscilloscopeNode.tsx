@@ -33,10 +33,10 @@ export class OscilloscopeNode implements DSPStep<TrackedAudioNode> {
     this.amplitudeArray = new Uint8Array(this.analyserNode.get().frequencyBinCount);
     // Setup the event handler that is triggered every time enough samples have been collected
     // trigger the audio analysis and draw the results
-    this.javascriptNode.get().onaudioprocess = this.onAduioProcess;
+    this.javascriptNode.get().onaudioprocess = this.onAudioProcess;
   }
 
-  private onAduioProcess = () => {
+  private onAudioProcess = () => {
     this.analyserNode.get().getByteTimeDomainData(this.amplitudeArray as any); // todo: as any?
     this.drawTimeDomain(this.amplitudeArray);
   };

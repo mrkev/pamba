@@ -29,13 +29,7 @@ export function EffectBox({
   onDragStart?: (e: React.DragEvent<HTMLDivElement>) => void;
 }) {
   return (
-    <div
-      className="flex flex-col select-none bg-effect-back"
-      style={{
-        fontSize: "12px",
-        // border: "1px solid #333",
-      }}
-    >
+    <div className="flex flex-col select-none bg-effect-back">
       <EffectHeader
         title={title}
         isSelected={isSelected}
