@@ -1,10 +1,7 @@
-import { useCallback, useEffect, useState } from "react";
-import { SetState } from "../utils/types";
-
 import { nanoid } from "nanoid";
 import { SPrimitive } from "structured-state";
 
-export class LocalSPrimitive<S> extends SPrimitive<S> {
+export class LocalMValue<S> extends SPrimitive<S> {
   readonly storageKey: string;
 
   constructor(initialValue: S, id: string, storageKey: string) {
@@ -42,27 +39,4 @@ export function loadOrSetDefault<T>(id: string, initialValue: T): T {
       return initialValue;
     }
   }
-}
-
-export function useLocalStorage<T>(id: string, initialValue: T): [T, SetState<T>] {
-  const [state, setState] = useState(() => loadOrSetDefault(id, initialValue));
-
-  // load local storage on mount
-  useEffect(() => {
-    const value = loadOrSetDefault(id, initialValue);
-    setState(value);
-  }, [id, initialValue]);
-
-  const setter = useCallback<SetState<T>>(
-    (arg: T | ((prevState: T) => T)) => {
-      setState((prev) => {
-        const val = typeof arg === "function" ? (arg as any)(prev) : arg;
-        localStorage.setItem(id, JSON.stringify(arg));
-        return val;
-      });
-    },
-    [id],
-  );
-
-  return [state, setter];
 }

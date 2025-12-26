@@ -79,7 +79,7 @@ export function UtilityNumber({
         onChange?.(initialValue + change);
       },
       // TODO
-      [decimals],
+      [decimals, onChange],
     ),
     useCallback(() => value, [value]),
   );

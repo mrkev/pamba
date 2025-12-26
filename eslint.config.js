@@ -18,6 +18,7 @@ export default defineConfig([
       "build",
       "src/wam/pianorollme",
       "src/zexp",
+      "src/wam/miditrackwam/NoteCanvasRenderer.tsx",
     ],
   },
 

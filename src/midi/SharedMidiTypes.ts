@@ -1,8 +1,8 @@
 // Shared with audio worker
+// import { MIDI } from "../wam/miditrackwam/MIDIConfiguration";
 
-import { MIDI } from "../wam/miditrackwam/MIDIConfiguration";
+export type Note = [tick: number, number: number, duration: number, velocity: number];
 
-export type Note = readonly [tick: number, number: number, duration: number, velocity: number];
 export function note(tick: number, number: number, duration: number, velocity: number): Note {
   return [tick, number, duration, velocity];
 }

@@ -66,12 +66,6 @@ export type CursorState =
       points: Set<{ original: STimelineT; point: TimelineT }>;
       clientX: number;
       limit: [lower: null | TimelineT, upper: null | TimelineT] | null;
-    }>
-  | Readonly<{
-      status: "moving_notes";
-      notes: Set<Note>;
-      clientX: number;
-      clientY: number;
     }>;
 
 export const pressedState = SPrimitive.of<CursorState | null>(null);

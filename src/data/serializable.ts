@@ -11,7 +11,7 @@ import { ProjectTrackDSP } from "../lib/ProjectTrackDSP";
 import { PBGainNode } from "../lib/offlineNodes";
 import { AudioProject, PointerTool, SecondaryTool } from "../lib/project/AudioProject";
 import { time, TimeUnit } from "../lib/project/TimelineT";
-import { SMidiViewport } from "../lib/viewport/MidiViewport";
+import { MidiViewport, SMidiViewport } from "../lib/viewport/MidiViewport";
 import { MidiClip } from "../midi/MidiClip";
 import { MidiInstrument } from "../midi/MidiInstrument";
 import { isInstrumentPlugin } from "../midi/isInstrumentPlugin";
@@ -280,10 +280,17 @@ export async function construct(
       const { bufferURL, name, bufferOffset, clipLengthSec, timelineStartSec } = rep;
       return AudioClip.fromURL(bufferURL, name, { bufferOffset, clipLengthSec, timelineStartSec });
     }
+
     case "MidiClip": {
-      const { name, startOffsetPulses, lengthPulses, notes } = rep;
+      const { name, startOffsetPulses, lengthPulses, notes, viewport } = rep;
       // TODO: `create` creates a new ID for this clip. think about implications
-      return MidiClip.of(name, startOffsetPulses, lengthPulses, mutable(notes));
+      return MidiClip.of(
+        name,
+        startOffsetPulses,
+        lengthPulses,
+        mutable(notes),
+        MidiViewport.of(viewport.pxPerPulse, viewport.pxNoteHeight, viewport.scrollLeft, viewport.scrollTop),
+      );
     }
     case "AudioTrack": {
       const { name, clips: sClips, height } = rep;

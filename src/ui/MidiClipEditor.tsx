@@ -1,6 +1,5 @@
 import { useLinkAsState } from "marked-subbable";
 import { useCallback, useEffect, useRef } from "react";
-import { createUseStyles } from "react-jss";
 import { history, useContainer, usePrimitive } from "structured-state";
 import { TOTAL_VERTICAL_NOTES } from "../constants";
 import { AnalizedPlayer } from "../lib/io/AnalizedPlayer";
@@ -8,6 +7,7 @@ import { AudioProject } from "../lib/project/AudioProject";
 import { secsToPulses } from "../lib/project/TimelineT";
 import { MidiClip } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
+import { cn } from "../utils/cn";
 import { exhaustive } from "../utils/exhaustive";
 import { clamp } from "../utils/math";
 import { nullthrows } from "../utils/nullthrows";
@@ -51,7 +51,6 @@ export function MidiClipEditor({
   player: AnalizedPlayer;
   project: AudioProject;
 }) {
-  const styles = useStyles();
   const containerRef = useRef<HTMLDivElement>(null);
   const pianoRollRef = useRef<HTMLDivElement>(null);
   const editorContainerRef = useRef<HTMLDivElement>(null);
@@ -339,10 +338,8 @@ export function MidiClipEditor({
     <>
       <ClipPropsEditor clip={clip} project={project} track={track} />
 
-      <div
-        style={{ display: "grid", gridTemplateRows: "1fr auto", gridTemplateColumns: "auto 1fr", flexGrow: 1, gap: 4 }}
-      >
-        <div style={{ display: "flex", flexDirection: "column" }}>
+      <div className="grid grow" style={{ gridTemplateRows: "1fr auto", gridTemplateColumns: "auto 1fr", gap: 4 }}>
+        <div className="flex flex-col">
           <UtilityToggle
             title={"selection tool"}
             toggled={panelTool === "move"}
@@ -375,8 +372,8 @@ export function MidiClipEditor({
             step={1}
             value={noteHeight}
             title="Vertical Zoom Level"
+            className="grow"
             style={{
-              flexGrow: 1,
               marginTop: 4,
               writingMode: "vertical-lr",
               direction: "rtl",
@@ -392,52 +389,39 @@ export function MidiClipEditor({
 
         <div
           ref={pianoRollRef}
-          style={{
-            display: "grid",
-            gridTemplateColumns: `${PIANO_ROLL_WIDTH}px auto`,
-            flexGrow: 1,
-            overflow: "scroll",
-          }}
+          className="grid grow overflow-scroll"
+          style={{ gridTemplateColumns: `${PIANO_ROLL_WIDTH}px auto` }}
         >
           <canvas
             ref={pianoRollCanvasRef}
             height={CANVAS_SCALE * noteHeight * TOTAL_VERTICAL_NOTES}
             width={CANVAS_SCALE * PIANO_ROLL_WIDTH}
+            className="sticky left-0 bg-timeline-bg"
             style={{
               // pointerEvents: "none",
-              position: "sticky",
-              left: 0,
               height: noteHeight * TOTAL_VERTICAL_NOTES,
-              background: "var(--timeline-bg)",
               width: PIANO_ROLL_WIDTH,
               zIndex: 1,
             }}
           />
-          <div ref={editorContainerRef} className={styles.editorContainer}>
+          <div ref={editorContainerRef} className={cn("relative grow")}>
             <canvas
               ref={backgroundRef}
               height={CANVAS_SCALE * noteHeight * TOTAL_VERTICAL_NOTES}
               width={CANVAS_SCALE * clip.detailedViewport.pulsesToPx(timelineLen.pulses(project))}
+              className="pointer-events-none absolute top-0 left-0"
               style={{
-                pointerEvents: "none",
-                position: "absolute",
-                top: 0,
-                left: 0,
                 height: noteHeight * TOTAL_VERTICAL_NOTES,
                 background: "var(--timeline-bg)",
                 width: clip.detailedViewport.pulsesToPx(timelineLen.pulses(project)),
                 // imageRendering: "pixelated",
               }}
             />
-            <div
-              className={styles.noteEditor}
-              style={{
-                height: noteHeight * TOTAL_VERTICAL_NOTES,
-              }}
-              ref={containerRef}
-            >
-              <div className={styles.cursor} ref={cursorDiv} />
-
+            <div className={"relative"} style={{ height: noteHeight * TOTAL_VERTICAL_NOTES }} ref={containerRef}>
+              <div
+                className={cn("name-cursor", "absolute h-full pointer-events-none top-0 bg-[red] w-px")}
+                ref={cursorDiv}
+              />
               {notes.map((note, i) => {
                 return (
                   <NoteR
@@ -456,8 +440,8 @@ export function MidiClipEditor({
 
         <div />
 
-        <div style={{ display: "flex", flexDirection: "row" }}>
-          <div style={{ flexGrow: 1 }}></div>
+        <div className="flex flex-row">
+          <div className="grow"></div>
           <input
             type="range"
             min={1}
@@ -475,33 +459,3 @@ export function MidiClipEditor({
     </>
   );
 }
-
-const useStyles = createUseStyles({
-  editorContainer: {
-    borderRadius: 3,
-    position: "relative",
-    flexGrow: 1,
-    // overflow: "scroll",
-  },
-  noteEditor: {
-    position: "relative",
-  },
-  note: {
-    position: "absolute",
-    background: "red",
-    border: "1px solid #bb0000",
-    boxSizing: "border-box",
-  },
-  noteSelected: {
-    background: "green",
-  },
-  cursor: {
-    position: "absolute",
-    pointerEvents: "none",
-    height: "100%",
-    top: 0,
-    width: "1px",
-    background: "red",
-    left: 10,
-  },
-});

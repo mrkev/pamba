@@ -19,6 +19,7 @@ import { CommandMenu } from "./CommandMenu";
 import { PlaybeatTime } from "./PlaybeatTime";
 import { ToolSelector } from "./ToolSelector";
 import { PlaybackControl } from "./TransportControl";
+import { useCallback } from "react";
 
 function ScaleFactorSlider({ project }: { project: AudioProject }) {
   const [scaleFactor] = usePrimitive(project.viewport.scaleFactor);
@@ -78,6 +79,13 @@ export function ToolHeader({
   const history = useContainer(getGlobalState().history);
   const redoStack = useContainer(getGlobalState().redoStack);
 
+  const setTempo = useCallback(
+    (v: number) => {
+      project.tempo.set(v);
+    },
+    [project.tempo],
+  );
+
   return (
     <div className={cn("name-headerContainer", "flex flex-row w-full items-center")}>
       <img src="/logo.svg" alt="mini daw" height="24" width="auto" style={{ margin: "0px 8px" }} />
@@ -128,12 +136,7 @@ export function ToolHeader({
             ))}
           </select> */}
           <div className="flex flex-row items-center">
-            <UtilityNumber
-              value={tempo}
-              onChange={(v) => {
-                project.tempo.set(v);
-              }}
-            ></UtilityNumber>
+            <UtilityNumber value={tempo} onChange={setTempo}></UtilityNumber>
             <button className="utilityButton">4 / 4</button>
             <PlaybeatTime project={project} player={renderer.analizedPlayer} />
           </div>

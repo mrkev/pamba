@@ -54,7 +54,7 @@ export class PianoRollClip {
   }
 
   getState(removeId?: boolean): ClipState {
-    let state: ClipState = {
+    const state: ClipState = {
       length: this.state.length,
       notes: this.state.notes.map((n) => {
         return { ...n };
@@ -93,6 +93,7 @@ export class PianoRollClip {
       return;
     }
     for (
+      // eslint-disable-next-line no-var
       var insertIndex = 0;
       insertIndex < this.state.notes.length && this.state.notes[insertIndex].tick < tick;
       insertIndex++
@@ -216,11 +217,11 @@ export class MIDINoteRecorder {
   }
 
   getTick(timestamp: number) {
-    var timeElapsed = timestamp - this.transportData!.currentBarStarted;
-    var beatPosition =
+    const timeElapsed = timestamp - this.transportData!.currentBarStarted;
+    const beatPosition =
       this.transportData!.currentBar * this.transportData!.timeSigNumerator +
       (this.transportData!.tempo / 60) * timeElapsed;
-    var tickPosition = Math.floor(beatPosition * PPQN);
+    const tickPosition = Math.floor(beatPosition * PPQN);
 
     return tickPosition % this.getClip().state.length;
   }

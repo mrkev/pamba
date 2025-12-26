@@ -1,8 +1,7 @@
 import classNames from "classnames";
 import { useLinkAsState } from "marked-subbable";
 import { useCallback, useRef } from "react";
-import { createUseStyles } from "react-jss";
-import { history, usePrimitive } from "structured-state";
+import { history, usePrimitive, useSubscribeToSubbableMutationHashable } from "structured-state";
 import { AudioProject } from "../lib/project/AudioProject";
 import { MidiViewport } from "../lib/viewport/MidiViewport";
 import { MidiClip } from "../midi/MidiClip";
@@ -10,7 +9,7 @@ import { MidiTrack } from "../midi/MidiTrack";
 import { Note } from "../midi/SharedMidiTypes";
 import { exhaustive } from "../utils/exhaustive";
 import { modifierState } from "./ModifierState";
-import { useMousePressMove } from "./useEventListener";
+import { usePointerPressMove } from "./usePointerPressMove";
 
 export function NoteR({
   track,
@@ -25,182 +24,118 @@ export function NoteR({
   viewport: MidiViewport;
   project: AudioProject;
 }) {
-  const styles = useStyles();
   const [secondarySel] = useLinkAsState(project.secondarySelection);
   const [noteHeight] = usePrimitive(viewport.pxNoteHeight);
   const divRef = useRef<HTMLDivElement>(null);
+  const dataRef = useRef<{ notes: Map<Note, [number, number]> }>({ notes: new Map() });
   const [panelTool] = usePrimitive(project.panelTool);
 
   const [tick, num, duration, velocity] = note;
   const selected = secondarySel?.status === "notes" && secondarySel.notes.has(note);
 
-  useMousePressMove(
-    divRef,
-    useCallback(
-      (e) => {
+  useSubscribeToSubbableMutationHashable(clip);
+
+  const mouseDownForDraw = useCallback(() => {
+    history.record("delete note", () => {
+      MidiClip.removeNote(clip, note);
+      track.flushClipStateToProcessor();
+    });
+  }, [clip, note, track]);
+
+  usePointerPressMove(divRef, {
+    down: useCallback(
+      (e: PointerEvent) => {
         console.log("mousedown: noter");
         if (e.button !== 0) {
-          return "done";
+          return;
         }
 
-        // if (editable === true)
         switch (panelTool) {
           case "draw": {
-            history.record("delete note", () => {
-              MidiClip.removeNote(clip, note);
-              track.flushClipStateToProcessor();
-            });
-            return "done";
+            return mouseDownForDraw();
           }
 
           case "move": {
-            project.secondarySelection.setDyn((prev) => {
-              const selectAdd = modifierState.meta || modifierState.shift;
-              if (selectAdd && prev !== null && prev.status === "notes") {
-                prev.notes.add(note);
-                return { ...prev };
-              } else {
-                return {
-                  status: "notes",
-                  notes: new Set([note]),
-                };
-              }
-            });
+            const prev = project.secondarySelection.get();
+            const selectAdd = modifierState.meta || modifierState.shift;
+            if (selectAdd && prev !== null && prev.status === "notes") {
+              prev.notes.add(note);
+              project.secondarySelection.set({ ...prev });
+            } else {
+              dataRef.current.notes.set(note, [note[0], note[1]]);
+              project.secondarySelection.set({
+                status: "notes",
+                notes: new Set([note]),
+              });
+              return;
+            }
 
-            // info to keep for the other events
-            return {
-              clientX: e.clientX,
-              clientY: e.clientY,
-              notes: new Set([note]),
-            };
+            break;
           }
           default:
             exhaustive(panelTool);
         }
       },
-      [clip, note, panelTool, project.secondarySelection, track],
+      [mouseDownForDraw, note, panelTool, project.secondarySelection],
     ),
-    useCallback(
-      (meta, e) => {
+
+    up: useCallback(() => {
+      dataRef.current.notes.clear();
+    }, []),
+
+    move: useCallback(
+      (e: PointerEvent, meta: { downX: number; downY: number }) => {
         console.log("mouse: noter", meta, e);
 
-        switch (meta.event) {
-          case "mouseenter":
-          case "mouseleave":
-          case "mousemove":
-          case "mouseup":
-            break;
-          default:
-            exhaustive(meta.event);
+        const selection = project.secondarySelection.get();
+        if (selection?.status !== "notes") {
+          return;
         }
 
-        // pressedState.set(null);
-
-        // const pressed = pressedState.get();
-        // if (!pressed || pressed.status != "moving_notes") {
-        //   return;
-        // }
-        const deltaX = e.clientX - meta.mousedown.clientX;
-        // const deltaY = e.clientY - meta.mousedown.clientY;
+        const deltaX = e.clientX - meta.downX;
+        const deltaY = e.clientY - meta.downY;
 
         const deltaXPulses = Math.floor(clip.detailedViewport.pxToPulses(deltaX));
-        // const deltaYNotes = Math.floor(clip.detailedViewport.pxToVerticalNotes(deltaY));
+        const deltaYNotes = Math.floor(clip.detailedViewport.pxToVerticalNotes(deltaY));
 
-        console.log("moving", deltaXPulses);
+        for (const note of selection.notes) {
+          const orig = dataRef.current.notes.get(note);
+          if (orig == null) {
+            console.warn("no original note when moving");
+            break;
+          }
+          note[0] = orig[0] + deltaXPulses;
+          note[1] = orig[1] - deltaYNotes;
+          clip.buffer.clearCache();
+          clip.notifyChange();
+
+          console.log("note now at", note);
+
+          // MidiClip.removeNote(clip, note);
+          // const [tick, num, duration, velocity] = note;
+          // MidiClip.addNote(clip, tick + deltaXPulses, num - deltaYNotes, duration, velocity);
+        }
+
+        return { notes: null };
       },
-      [clip.detailedViewport],
+      [clip, project.secondarySelection],
     ),
-  );
-
-  // useEventListener(
-  //   "mousedown",
-  //   divRef,
-  //   useCallback(
-  //     (e: MouseEvent) => {
-  //       if (e.button !== 0) {
-  //         return;
-  //       }
-
-  //       // if (editable === true)
-  //       switch (panelTool) {
-  //         case "draw": {
-  //           MidiClip.removeNote(clip, note);
-  //           break;
-  //         }
-  //         case "move": {
-  //           project.secondarySelection.set({ status: "notes", notes: new Set([note]) });
-  //           pressedState.set({
-  //             status: "moving_notes",
-  //             clientX: e.clientX,
-  //             clientY: e.clientY,
-  //             notes: new Set([note]),
-  //           });
-  //           project.secondarySelection.setDyn((prev) => {
-  //             const selectAdd = modifierState.meta || modifierState.shift;
-  //             if (selectAdd && prev !== null && prev.status === "notes") {
-  //               prev.notes.add(note);
-  //               return { ...prev };
-  //             } else {
-  //               return {
-  //                 status: "notes",
-  //                 notes: new Set([note]),
-  //               };
-  //             }
-  //           });
-  //           document.addEventListener("mousemove", onNoteMoveMouseMove);
-  //           document.addEventListener("mouseup", function onMouseUp() {
-  //             pressedState.set(null);
-  //             document.removeEventListener("mouseup", onMouseUp);
-  //             document.removeEventListener("mousemove", onNoteMoveMouseMove);
-  //           });
-  //           break;
-  //         }
-  //       }
-
-  //       function onNoteMoveMouseMove(e: MouseEvent) {
-  //         // pressedState.set(null);
-
-  //         const pressed = pressedState.get();
-  //         if (!pressed || pressed.status != "moving_notes") {
-  //           return;
-  //         }
-  //         const deltaX = e.clientX - pressed.clientX;
-  //         const deltaY = e.clientY - pressed.clientY;
-
-  //         const deltaXPulses = Math.floor(clip.detailedViewport.pxToPulses(deltaX));
-  //         const deltaYNotes = Math.floor(clip.detailedViewport.pxToVerticalNotes(deltaY));
-
-  //         console.log("moving", deltaXPulses);
-  //       }
-  //     },
-  //     [clip, note, panelTool, project.secondarySelection],
-  //   ),
-  // );
+  });
 
   return (
     <div
       ref={divRef}
-      className={classNames(styles.note, selected && styles.noteSelected)}
+      className={classNames(
+        "absolute bg-midi-note border border-midi-note-border box-border overflow-hidden",
+        selected && "bg-midi-note-selected",
+      )}
       style={{
         bottom: num * noteHeight - 1,
-        height: noteHeight + 1,
         left: viewport.pulsesToPx(tick),
+        height: noteHeight + 1,
         width: viewport.pulsesToPx(duration) + 1,
-        overflow: "hidden",
         opacity: velocity / 100,
       }}
     ></div>
   );
 }
-
-export const useStyles = createUseStyles({
-  note: {
-    position: "absolute",
-    background: "red",
-    border: "1px solid #bb0000",
-    boxSizing: "border-box",
-  },
-  noteSelected: {
-    background: "green",
-  },
-});

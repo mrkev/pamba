@@ -12,7 +12,7 @@ import { ensureError } from "../ensureError";
 import { initFirebaseApp } from "../firebase/firebaseConfig";
 import type { MidiInstrument } from "../midi/MidiInstrument";
 import { isInstrumentPlugin } from "../midi/isInstrumentPlugin";
-import { LocalSPrimitive } from "../ui/useLocalStorage";
+import { LocalMValue } from "../ui/useLocalStorage";
 import { nullthrows } from "../utils/nullthrows";
 import { PambaWamNode } from "../wam/PambaWamNode";
 import { AudioTrackModule } from "../wam/audiotrack/AudioTrackModule";
@@ -59,12 +59,12 @@ export class AppEnvironment {
   readonly projectPacakge: MarkedValue<ProjectPackage | null>; // null if never saved
   // UI
   readonly openEffects: MarkedSet<PambaWamNode | MidiInstrument>;
-  readonly activeSidePanel = LocalSPrimitive.create<"library" | "project" | "history" | "midi" | "help" | null>(
+  readonly activeSidePanel = LocalMValue.create<"library" | "project" | "history" | "midi" | "help" | null>(
     "side-panel-active",
     "library",
   );
 
-  readonly activeBottomPanel = LocalSPrimitive.create<"editor" | "debug" | "about" | null>("bottom-panel-active", null);
+  readonly activeBottomPanel = LocalMValue.create<"editor" | "debug" | "about" | null>("bottom-panel-active", null);
 
   // MIDI
   readonly midiLearning: SPrimitive<MidiLearningStatus> = SPrimitive.of({ status: "off" });

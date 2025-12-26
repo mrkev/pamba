@@ -25,7 +25,12 @@
   --color-axis-spacer-headers-separator: #373535;
   /* list */
   --color-utility-list-bg: #fff;
+  --color-utility-list-bg-disabled: #ebebe4;
   --color-list-item-disabled: gray;
+  /* midi editor */
+  --color-midi-note: red;
+  --color-midi-note-border: #bb0000;
+  --color-midi-note-selected: green;
 }
 
 body {

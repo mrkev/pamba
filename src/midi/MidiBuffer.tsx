@@ -1,8 +1,8 @@
 import { array, InitFunctions, JSONOfAuto, ReplaceFunctions, SArray, Structured } from "structured-state";
 import { time, TimelineT } from "../lib/project/TimelineT";
 import { dataURLForMidiBuffer } from "../utils/midiimg";
-import type { Note } from "./SharedMidiTypes";
 import { nullthrows } from "../utils/nullthrows";
+import type { Note } from "./SharedMidiTypes";
 
 type SimpleMidiBuffer = {
   notes: SArray<Note>;
@@ -72,3 +72,25 @@ export class MidiBuffer extends Structured<SimpleMidiBuffer, typeof MidiBuffer> 
     return Structured.create(MidiBuffer, array(this.notes._getRaw()), this.timelineLength.clone());
   }
 }
+
+export const midiBuffer = {
+  noteAt(buffer: MidiBuffer, tick: number, num: number) {
+    for (const note of buffer.notes) {
+      const [ntick, nnum] = note;
+      // sorted by start tick, so we know the note we want doesn't exist
+      if (ntick > tick) {
+        return null;
+      }
+
+      if (ntick === tick && nnum === num) {
+        return note;
+      }
+    }
+  },
+};
+
+export const note = {
+  clone(note: Note): Note {
+    return [...note];
+  },
+};

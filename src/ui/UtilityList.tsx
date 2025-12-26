@@ -56,7 +56,7 @@ export function UtilityDataList<T>({
       className={classNames(
         "flex flex-col grow shrink overflow-y-scroll text-control-text-color bg-utility-list-bg",
         classes.list,
-        listDisabled && classes.listDisabled,
+        listDisabled && "pointer-events-none bg-utility-list-bg-disabled",
       )}
       aria-disabled={listDisabled}
     >
@@ -153,11 +153,6 @@ const useStyles = createUseStyles({
     border: "1px solid #999",
     borderRadius: "3px",
     padding: "2px 0px",
-  },
-  listDisabled: {
-    background: "#EBEBE4",
-    color: "#666",
-    pointerEvents: "none",
   },
   listItem: {
     padding: "0px 2px",

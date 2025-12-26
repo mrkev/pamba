@@ -93,9 +93,10 @@ export class MidiClip extends Structured<AutoMidiClip, typeof MidiClip> implemen
   }
 
   static removeNote(clip: MidiClip, note: Note) {
-    clip.buffer.notes.remove(note);
+    const result = clip.buffer.notes.remove(note);
     clip.buffer.clearCache();
     clip.notifyChange();
+    return result;
   }
 
   // Good for now, works long term?

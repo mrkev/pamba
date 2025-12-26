@@ -281,7 +281,6 @@ export const documentCommands = CommandBlock.create(["Project", "Edit", "Tools",
         case "selecting_global_time":
         case "selecting_track_time":
         case "moving_timeline_points":
-        case "moving_notes":
           break;
         case null:
           break;
