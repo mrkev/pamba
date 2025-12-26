@@ -4,7 +4,7 @@ import { usePrimitive, useSubscribeToSubbableMutationHashable } from "structured
 import { MidiViewport } from "../lib/viewport/MidiViewport";
 import { MidiClip } from "../midi/MidiClip";
 import { Note } from "../midi/SharedMidiTypes";
-import { PointerPressMoveMeta, usePointerPressMove } from "./usePointerPressMove";
+import { PointerPressMeta, usePointerPressMove } from "./usePointerPressMove";
 
 export function NoteR({
   clip,
@@ -20,8 +20,8 @@ export function NoteR({
   viewport: MidiViewport;
   selected: boolean;
   onPointerDown: (e: PointerEvent, note: Note) => void;
-  onPointerMove: (e: PointerEvent, note: Note, meta: PointerPressMoveMeta) => void;
-  onPointerUp: (e: PointerEvent, note: Note, meta: PointerPressMoveMeta) => void;
+  onPointerMove: (e: PointerEvent, note: Note, meta: PointerPressMeta) => void;
+  onPointerUp: (e: PointerEvent, note: Note, meta: PointerPressMeta) => void;
 }) {
   const [noteHeight] = usePrimitive(viewport.pxNoteHeight);
   const divRef = useRef<HTMLDivElement>(null);
@@ -31,7 +31,7 @@ export function NoteR({
 
   usePointerPressMove(divRef, {
     down: useCallback((e: PointerEvent) => onPointerDown(e, note), [note, onPointerDown]),
-    up: useCallback((e: PointerEvent, meta: PointerPressMoveMeta) => onPointerUp(e, note, meta), [note, onPointerUp]),
+    up: useCallback((e: PointerEvent, meta: PointerPressMeta) => onPointerUp(e, note, meta), [note, onPointerUp]),
     move: useCallback(
       (e: PointerEvent, meta: { downX: number; downY: number }) => onPointerMove(e, note, meta),
       [note, onPointerMove],

@@ -1,4 +1,5 @@
 import { InitFunctions, JSONOfAuto, ReplaceFunctions, SArray, SString, Structured } from "structured-state";
+import { TOTAL_VERTICAL_NOTES } from "../constants";
 import { AbstractClip, Pulses } from "../lib/AbstractClip";
 import { ProjectTrack } from "../lib/ProjectTrack";
 import { AudioProject } from "../lib/project/AudioProject";
@@ -193,3 +194,27 @@ export function setClipLength(project: AudioProject, track: MidiTrack, clip: Mid
 
   clip.timelineLength.set(t, u);
 }
+
+export const midiClip = {
+  // TODO: will be different if clip and buffer start don't align
+  getNotesInRange(
+    clip: MidiClip,
+    minPulse: number = 0,
+    maxPulse: number = Infinity,
+    minNote: number = 0,
+    maxNote: number = TOTAL_VERTICAL_NOTES - 1,
+  ) {
+    const result = [];
+    for (const note of clip.buffer.notes) {
+      const [tick, num] = note;
+      if (tick >= minPulse && tick <= maxPulse && num >= minNote && num <= maxNote) {
+        result.push(note);
+      }
+      // since notes are ordered by tick, we know no note after this will be in range
+      if (tick > maxPulse) {
+        break;
+      }
+    }
+    return result;
+  },
+};

@@ -208,10 +208,20 @@ export const userActions = {
     if (secondarySelection == null) {
       return;
     }
+
+    switch (secondarySelection.status) {
+      case "notes":
+      case "audioTime":
+        break;
+      default:
+        exhaustive(secondarySelection);
+    }
+
     throw new Error("Not implemented");
   },
 
   deleteSidebarSelection(project: AudioProject) {
+    throw new Error("Not implemented");
     // TODO
   },
 };

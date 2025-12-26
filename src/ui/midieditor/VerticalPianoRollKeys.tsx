@@ -5,7 +5,17 @@ import { MidiClip } from "../../midi/MidiClip";
 import { MidiTrack } from "../../midi/MidiTrack";
 import { useDrawOnCanvas } from "../useDrawOnCanvas";
 import { useMousePressMove } from "../useEventListener";
-import { CANVAS_SCALE, keyboardColorOfNote, NOTES, PIANO_ROLL_WIDTH } from "./MidiClipEditor";
+import { CANVAS_SCALE, PIANO_ROLL_WIDTH } from "./MidiClipEditor";
+
+type NoteStr = "C" | "C#" | "D" | "D#" | "E" | "F" | "F#" | "G" | "G#" | "A" | "A#" | "B";
+export const NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"] as const;
+
+export function keyboardColorOfNote(noteStr: NoteStr, playing: boolean): "black" | "white" | "orange" {
+  if (playing) {
+    return "orange";
+  }
+  return noteStr.length === 2 ? "black" : "white";
+}
 
 export function VerticalPianoRollKeys({ clip, track }: { clip: MidiClip; track: MidiTrack }) {
   const keysCanvasRef = useRef<HTMLCanvasElement>(null);

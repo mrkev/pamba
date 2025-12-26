@@ -1,11 +1,11 @@
 import { useLinkAsState } from "marked-subbable";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { history, useContainer, usePrimitive } from "structured-state";
 import { TOTAL_VERTICAL_NOTES } from "../../constants";
 import { AnalizedPlayer } from "../../lib/io/AnalizedPlayer";
 import { AudioProject } from "../../lib/project/AudioProject";
 import { secsToPulses } from "../../lib/project/TimelineT";
-import { MidiClip } from "../../midi/MidiClip";
+import { midiClip, MidiClip } from "../../midi/MidiClip";
 import { MidiTrack } from "../../midi/MidiTrack";
 import { cn } from "../../utils/cn";
 import { exhaustive } from "../../utils/exhaustive";
@@ -14,12 +14,13 @@ import { nullthrows } from "../../utils/nullthrows";
 import { PPQN } from "../../wam/miditrackwam/MIDIConfiguration";
 import { ClipPropsEditor } from "../ClipPropsEditor";
 import { NoteR } from "../NoteR";
-import { UtilityToggle } from "../UtilityToggle";
 import { useDrawOnCanvas } from "../useDrawOnCanvas";
 import { useEventListener } from "../useEventListener";
+import { PointerPressMeta, usePointerPressMove } from "../usePointerPressMove";
+import { UtilityToggle } from "../UtilityToggle";
 import { useNotePointerCallbacks } from "./useNotePointerCallbacks";
 import { VerticalPianoRollKeys } from "./VerticalPianoRollKeys";
-import { usePointerPressMove } from "../usePointerPressMove";
+import { MidiEditorGridBackground } from "./MidiEditorGridBackground";
 
 const DEFAULT_NOTE_DURATION = 6;
 const CLIP_TOTAL_BARS = 4;
@@ -27,20 +28,30 @@ export const CANVAS_SCALE = Math.floor(window.devicePixelRatio);
 export const PIANO_ROLL_WIDTH = 24;
 const MAX_H_SCALE = 20;
 
-type NoteStr = "C" | "C#" | "D" | "D#" | "E" | "F" | "F#" | "G" | "G#" | "A" | "A#" | "B";
-export const NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"] as const;
-
-export function keyboardColorOfNote(noteStr: NoteStr, playing: boolean): "black" | "white" | "orange" {
-  if (playing) {
-    return "orange";
-  }
-  return noteStr.length === 2 ? "black" : "white";
-}
-
 function secsToTicks(secs: number, tempo: number) {
   const oneBeatLen = 60 / tempo;
   const oneTickLen = oneBeatLen / PPQN;
   return (secs / oneTickLen) % (CLIP_TOTAL_BARS * PPQN);
+}
+
+function divSelectionBox(
+  meta: PointerPressMeta,
+  ev: PointerEvent,
+  container: DOMRect,
+): [x: number, y: number, w: number, h: number] {
+  const pointerX = ev.clientX - container.left;
+  const startX = meta.downX - container.left;
+
+  const pointerY = ev.clientY - container.top;
+  const startY = meta.downY - container.top;
+
+  return [
+    //
+    Math.min(pointerX, startX),
+    Math.min(pointerY, startY),
+    Math.abs(ev.clientX - meta.downX),
+    Math.abs(ev.clientY - meta.downY),
+  ];
 }
 
 export function MidiClipEditor({
@@ -54,11 +65,10 @@ export function MidiClipEditor({
   player: AnalizedPlayer;
   project: AudioProject;
 }) {
-  const containerRef = useRef<HTMLDivElement>(null);
+  // const containerRef = useRef<HTMLDivElement>(null);
   const pianoRollRef = useRef<HTMLDivElement>(null);
   const editorContainerRef = useRef<HTMLDivElement>(null);
   const cursorDiv = useRef<HTMLDivElement>(null);
-  const backgroundRef = useRef<HTMLCanvasElement>(null);
   const notes = useContainer(clip.buffer.notes);
   const [noteHeight, setNoteHeight] = usePrimitive(clip.detailedViewport.pxNoteHeight);
   const [pxPerPulse, setPxPerPulse] = usePrimitive(clip.detailedViewport.pxPerPulse);
@@ -66,6 +76,7 @@ export function MidiClipEditor({
   const [panelTool] = usePrimitive(project.panelTool);
   const [bpm] = usePrimitive(project.tempo);
   const timelineLen = useContainer(clip.timelineLength);
+  const [selectionBox, setSelectionBox] = useState<null | [number, number, number, number]>(null);
 
   const secsToPixels = useCallback(
     (secs: number, tempo: number) => {
@@ -76,54 +87,46 @@ export function MidiClipEditor({
     [clip.detailedViewport],
   );
 
-  // usePointerPressMove(editorContainerRef, {
-  //   down: () => console.log("down"),
-  //   move: () => {
-  //     console.log("MOVe");
-  //   },
-  //   up: () => console.log("up"),
-  // });
-
-  useDrawOnCanvas(
-    backgroundRef,
-    useCallback(
-      (ctx, canvas) => {
-        ctx.scale(CANVAS_SCALE, CANVAS_SCALE);
-        ctx.strokeStyle = "#bbb";
-
-        for (let n = 0; n < TOTAL_VERTICAL_NOTES; n++) {
-          // const noteStr = NOTES[n % NOTES.length];
-          // ctx.fillStyle = keyboardColorOfNote(noteStr);
-
-          // ctx.fillRect(0, n * noteHeight, noteWidth, noteHeight);
-
-          // https://stackoverflow.com/questions/13879322/drawing-a-1px-thick-line-in-canvas-creates-a-2px-thick-line
-          ctx.beginPath();
-          ctx.moveTo(0, n * noteHeight + 0.5);
-          ctx.lineTo(canvas.width, n * noteHeight + 0.5);
-          ctx.stroke();
+  usePointerPressMove(editorContainerRef, {
+    move: useCallback((ev: PointerEvent, meta: PointerPressMeta) => {
+      const containerRect = editorContainerRef.current?.getBoundingClientRect();
+      if (containerRect == null) {
+        return;
+      }
+      const box = divSelectionBox(meta, ev, containerRect);
+      setSelectionBox(box);
+    }, []),
+    up: useCallback(
+      (ev: PointerEvent, meta: PointerPressMeta) => {
+        const containerRect = editorContainerRef.current?.getBoundingClientRect();
+        if (containerRect == null) {
+          return;
         }
 
-        for (let i = 0; i < timelineLen.pulses(project); i += PPQN / 4) {
-          if (i === 0) {
-            continue;
-          } else if (i % 8 === 0) {
-            ctx.strokeStyle = "#bbb";
-          } else {
-            ctx.strokeStyle = "#888";
-          }
-          const x = pxPerPulse * i + 0.5;
-          ctx.beginPath();
-          ctx.moveTo(x, 0);
-          ctx.lineTo(x, canvas.height);
-          ctx.stroke();
-        }
+        const [boxX, boxY, boxW, boxH] = divSelectionBox(meta, ev, containerRect);
 
-        ctx.scale(1, 1);
+        const minPulse = Math.floor(clip.detailedViewport.pxToPulses(boxX));
+        const maxPulse = Math.floor(clip.detailedViewport.pxToPulses(boxW)) + minPulse;
+        const minNote = Math.floor(clip.detailedViewport.pxToVerticalNotes(boxY));
+        const maxNote = Math.floor(clip.detailedViewport.pxToVerticalNotes(boxH)) + minNote;
+
+        const notes = midiClip.getNotesInRange(
+          clip,
+          minPulse,
+          maxPulse,
+          TOTAL_VERTICAL_NOTES - maxNote,
+          TOTAL_VERTICAL_NOTES - minNote,
+        );
+
+        project.secondarySelection.set({
+          status: "notes",
+          notes: new Set(notes),
+        });
+        setSelectionBox(null);
       },
-      [timelineLen, noteHeight, project, pxPerPulse],
+      [clip, project.secondarySelection],
     ),
-  );
+  });
 
   useEventListener(
     "wheel",
@@ -206,10 +209,10 @@ export function MidiClipEditor({
 
   useEventListener(
     "mousedown",
-    containerRef,
+    editorContainerRef,
     useCallback(
       (e: MouseEvent) => {
-        const clickedEditor = e.target === containerRef.current;
+        const clickedEditor = e.target === editorContainerRef.current;
         if (!clickedEditor) {
           return;
         }
@@ -314,42 +317,57 @@ export function MidiClipEditor({
           className="grid grow overflow-scroll"
           style={{ gridTemplateColumns: `${PIANO_ROLL_WIDTH}px auto` }}
         >
+          <div className="sticky top-0 left-0 z-20 bg-timeline-tick border-b border-b-axis-timeline-separator"></div>
+
+          <MidiEditorTimeAxis
+            className="sticky top-0 bg-timeline-tick z-10 border-b border-b-axis-timeline-separator"
+            style={{ left: PIANO_ROLL_WIDTH }}
+            clip={clip}
+            project={project}
+          />
+
           <VerticalPianoRollKeys clip={clip} track={track} />
           <div ref={editorContainerRef} className={cn("relative grow")}>
-            <canvas
-              ref={backgroundRef}
-              height={CANVAS_SCALE * noteHeight * TOTAL_VERTICAL_NOTES}
-              width={CANVAS_SCALE * clip.detailedViewport.pulsesToPx(timelineLen.pulses(project))}
-              className="pointer-events-none absolute top-0 left-0"
-              style={{
-                height: noteHeight * TOTAL_VERTICAL_NOTES,
-                background: "var(--timeline-bg)",
-                width: clip.detailedViewport.pulsesToPx(timelineLen.pulses(project)),
-                // imageRendering: "pixelated",
-              }}
+            {/* background with lines */}
+            <MidiEditorGridBackground clip={clip} project={project} />
+
+            {/* notes */}
+            {notes.map((note, i) => {
+              const selected = secondarySel?.status === "notes" && secondarySel.notes.has(note);
+              return (
+                <NoteR
+                  clip={clip}
+                  key={i}
+                  note={note}
+                  viewport={clip.detailedViewport}
+                  selected={selected}
+                  onPointerDown={noteEvents.onNotePointerDown}
+                  onPointerMove={noteEvents.onNotePointerMove}
+                  onPointerUp={noteEvents.onNotePointerUp}
+                />
+              );
+            })}
+
+            {/* cursor */}
+            <div
+              className={cn("name-cursor", "absolute h-full pointer-events-none top-0 bg-[red] w-px")}
+              ref={cursorDiv}
             />
-            <div className={"relative"} style={{ height: noteHeight * TOTAL_VERTICAL_NOTES }} ref={containerRef}>
+
+            {/* selection box */}
+            {selectionBox && (
               <div
-                className={cn("name-cursor", "absolute h-full pointer-events-none top-0 bg-[red] w-px")}
-                ref={cursorDiv}
+                className={cn("name-selection-box", "absolute border border-blue-600/60 bg-blue-400/30 box-border")}
+                style={{
+                  left: selectionBox[0],
+                  top: selectionBox[1],
+                  width: selectionBox[2],
+                  height: selectionBox[3],
+                }}
               />
-              {notes.map((note, i) => {
-                const selected = secondarySel?.status === "notes" && secondarySel.notes.has(note);
-                return (
-                  <NoteR
-                    clip={clip}
-                    key={i}
-                    note={note}
-                    viewport={clip.detailedViewport}
-                    selected={selected}
-                    onPointerDown={noteEvents.onNotePointerDown}
-                    onPointerMove={noteEvents.onNotePointerMove}
-                    onPointerUp={noteEvents.onNotePointerUp}
-                  />
-                );
-              })}
-            </div>
+            )}
           </div>
+          {/* </div> */}
         </div>
 
         <div />
@@ -371,5 +389,70 @@ export function MidiClipEditor({
         </div>
       </div>
     </>
+  );
+}
+
+function MidiEditorTimeAxis({
+  className,
+  style,
+  clip,
+  project,
+}: {
+  className?: string;
+  style?: React.CSSProperties;
+  clip: MidiClip;
+  project: AudioProject;
+}) {
+  const backgroundRef = useRef<HTMLCanvasElement>(null);
+  const [noteHeight] = usePrimitive(clip.detailedViewport.pxNoteHeight);
+  const timelineLen = useContainer(clip.timelineLength);
+  const [pxPerPulse] = usePrimitive(clip.detailedViewport.pxPerPulse);
+
+  useDrawOnCanvas(
+    backgroundRef,
+    useCallback(
+      (ctx, canvas) => {
+        ctx.scale(CANVAS_SCALE, CANVAS_SCALE);
+        ctx.strokeStyle = "#bbb";
+
+        for (let i = 0; i < timelineLen.pulses(project); i += PPQN / 4) {
+          if (i % 8 === 0) {
+            ctx.strokeStyle = "#bbb";
+            ctx.fillStyle = "#bbb";
+          } else {
+            ctx.strokeStyle = "#888";
+            ctx.fillStyle = "#888";
+          }
+          const x = pxPerPulse * i + 0.5;
+
+          ctx.fillText(`${i / PPQN}`, x + 2, 9);
+          if (i === 0) {
+            continue;
+          }
+          ctx.beginPath();
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, canvas.height);
+          ctx.stroke();
+        }
+
+        ctx.scale(1, 1);
+      },
+      [timelineLen, project, pxPerPulse],
+    ),
+  );
+
+  return (
+    <canvas
+      ref={backgroundRef}
+      height={CANVAS_SCALE * noteHeight}
+      width={CANVAS_SCALE * clip.detailedViewport.pulsesToPx(timelineLen.pulses(project))}
+      className={className}
+      style={{
+        height: noteHeight,
+        width: clip.detailedViewport.pulsesToPx(timelineLen.pulses(project)),
+        imageRendering: "pixelated",
+        ...style,
+      }}
+    />
   );
 }

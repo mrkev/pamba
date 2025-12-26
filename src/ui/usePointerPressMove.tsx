@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-export type PointerPressMoveMeta = {
+export type PointerPressMeta = {
   downX: number;
   downY: number;
 };
@@ -9,8 +9,8 @@ export function usePointerPressMove(
   elemRef: React.RefObject<HTMLElement | null | undefined>,
   callbacks: {
     down?: (ev: PointerEvent) => void;
-    move?: (ev: PointerEvent, metadata: PointerPressMoveMeta) => void;
-    up?: (ev: PointerEvent, metadata: PointerPressMoveMeta) => void;
+    move?: (ev: PointerEvent, metadata: PointerPressMeta) => void;
+    up?: (ev: PointerEvent, metadata: PointerPressMeta) => void;
   },
 ): void {
   useEffect(() => {

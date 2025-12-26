@@ -31,9 +31,11 @@ export function useNotePointerCallbacks(
   const mouseDownForMove = useCallback(
     (note: Note) => {
       const prev = project.secondarySelection.get();
+      console.log("HERE");
       const selectAdd = modifierState.meta || modifierState.shift;
       if (selectAdd && prev !== null && prev.status === "notes") {
         prev.notes.add(note);
+        interactionDataRef.current.notes.set(note, [note[0], note[1]]);
         project.secondarySelection.set({ ...prev });
       } else {
         interactionDataRef.current.notes.set(note, [note[0], note[1]]);
@@ -55,9 +57,15 @@ export function useNotePointerCallbacks(
 
       switch (panelTool) {
         case "draw":
-          return mouseDownForDraw(note);
+          mouseDownForDraw(note);
+          // we dont want the cointainer to get the pointerDown event and capture the pointer
+          e.stopPropagation();
+          return;
         case "move":
-          return mouseDownForMove(note);
+          mouseDownForMove(note);
+          // we dont want the cointainer to get the pointerDown event and capture the pointer
+          e.stopPropagation();
+          return;
         default:
           exhaustive(panelTool);
       }
