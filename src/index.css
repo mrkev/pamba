@@ -6,6 +6,7 @@
 @import "tailwindcss/utilities.css" layer(utilities);
 
 @theme {
+  /* controls */
   --color-effect-back: gray;
   --color-control-bg-color: #b9b9b9;
   --color-control-text-color: black;
@@ -16,10 +17,15 @@
   --color-clip-header-selected: #4d8f2a;
   --color-clip-border: #69c33a;
   --color-clip-border-selected: #103310;
-  /* --color-control: #123456;
-  --color-secondary: #abcdef;
-  --color-vivid-violet-500: #ca58dd;
-  --color-vivid-violet-600: #a936b9; */
+  /* timeline */
+  --color-timeline-bg: #696969;
+  --color-timeline-text: #141414;
+  --color-timeline-tick: #595959;
+  --color-axis-timeline-separator: #444343;
+  --color-axis-spacer-headers-separator: #373535;
+  /* list */
+  --color-utility-list-bg: #fff;
+  --color-list-item-disabled: gray;
 }
 
 body {

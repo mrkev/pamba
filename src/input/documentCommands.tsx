@@ -3,12 +3,12 @@ import { history } from "structured-state";
 import { LIBRARY_SEARCH_INPUT_ID } from "../constants";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioRenderer } from "../lib/io/AudioRenderer";
-import { ProjectPersistance } from "../lib/ProjectPersistance";
 import { ProjectSelection } from "../lib/project/ProjectSelection";
 import { clipsLimits } from "../lib/project/timeline";
+import { projectPersistance } from "../lib/ProjectPersistance";
 import { userActions } from "../lib/userActions";
-import { pressedState } from "../ui/pressedState";
 import { closeProject } from "../ui/header/closeProject";
+import { pressedState } from "../ui/pressedState";
 import { exhaustive } from "../utils/exhaustive";
 import { nullthrows } from "../utils/nullthrows";
 import { CommandBlock } from "./Command";
@@ -25,7 +25,7 @@ export const documentCommands = CommandBlock.create(["Project", "Edit", "Tools",
       if (!didClose) {
         return;
       }
-      await ProjectPersistance.openEmptyProject();
+      await projectPersistance.openEmptyProject();
     })
       .helptext("New Project")
       .section("Project"),
@@ -33,7 +33,7 @@ export const documentCommands = CommandBlock.create(["Project", "Edit", "Tools",
     save: command(["KeyS", "meta"], async (e, project) => {
       e?.preventDefault();
       e?.stopPropagation();
-      return ProjectPersistance.doSave(project);
+      return projectPersistance.doSave(project);
     })
       .helptext("Save")
       .section("Project"),
@@ -67,7 +67,19 @@ export const documentCommands = CommandBlock.create(["Project", "Edit", "Tools",
     }).section("Project"),
 
     deleteSelection: command(["Backspace"], (e, project) => {
-      userActions.deleteSelection(project);
+      const activePanel = project.activePanel.get();
+      console.log("active", activePanel);
+      switch (activePanel) {
+        case "primary":
+          userActions.deletePrimarySelection(project);
+          break;
+        case "secondary":
+          userActions.deleteSecondarySelection(project);
+          break;
+        case "sidebar":
+          userActions.deleteSidebarSelection(project);
+          break;
+      }
       e?.preventDefault();
     }).section("Edit"),
 
@@ -246,7 +258,7 @@ export const documentCommands = CommandBlock.create(["Project", "Edit", "Tools",
 
     // Debugging
     createSampleProject: command(["KeyS", "meta", "shift"], async () => {
-      const project = await ProjectPersistance.sampleProject();
+      const project = await projectPersistance.sampleProject();
       appEnvironment.loadProject(project);
     }),
 

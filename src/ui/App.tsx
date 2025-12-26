@@ -3,8 +3,9 @@ import React, { useCallback, useState } from "react";
 import { useLink } from "marked-subbable";
 import "remixicon/fonts/remixicon.css";
 import { usePrimitive } from "structured-state";
+import { ProjectPackage } from "../data/ProjectPackage";
 import { appEnvironment } from "../lib/AppEnvironment";
-import { ProjectPersistance } from "../lib/ProjectPersistance";
+import { projectPersistance } from "../lib/ProjectPersistance";
 import { MidiInstrument } from "../midi/MidiInstrument";
 import { PambaWamNode } from "../wam/PambaWamNode";
 import { AppProject } from "./AppProject";
@@ -155,7 +156,12 @@ function InitButtion() {
             appEnvironment.projectStatus.set({ status: "loading" });
             // ignorePromise(init());
             (window as any).project = "loading";
-            await ProjectPersistance.openLastProject(appEnvironment.localFiles);
+            const result = await projectPersistance.getLastProject(appEnvironment.localFiles);
+            if (result instanceof ProjectPackage) {
+              await projectPersistance.openProject(result.id, false);
+            } else {
+              await projectPersistance.openEmptyProject();
+            }
           }}
         >
           Continue

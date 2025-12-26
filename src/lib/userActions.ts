@@ -133,7 +133,8 @@ export const userActions = {
   /**
    * Deletes whatever is selected.    // TODO: history
    */
-  deleteSelection(project: AudioProject) {
+  deletePrimarySelection(project: AudioProject) {
+    console.log("FOOOOOOOOOOOOOOOOOOO");
     const primarySelection = project.selected.get();
     if (primarySelection == null) {
       return;
@@ -200,5 +201,17 @@ export const userActions = {
       default:
         exhaustive(primarySelection);
     }
+  },
+
+  deleteSecondarySelection(project: AudioProject) {
+    const secondarySelection = project.secondarySelection.get();
+    if (secondarySelection == null) {
+      return;
+    }
+    throw new Error("Not implemented");
+  },
+
+  deleteSidebarSelection(project: AudioProject) {
+    // TODO
   },
 };

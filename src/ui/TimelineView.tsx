@@ -3,16 +3,17 @@ import { useLinkAsState } from "marked-subbable";
 import { useRef } from "react";
 import { createUseStyles } from "react-jss";
 import { usePrimitive } from "structured-state";
+import { TRACK_HEADER_WIDTH } from "../constants";
 import { useAxisContainerMouseEvents } from "../input/useProjectMouseEvents";
 import { AnalizedPlayer } from "../lib/io/AnalizedPlayer";
 import { AudioRenderer } from "../lib/io/AudioRenderer";
 import { AudioProject } from "../lib/project/AudioProject";
+import { cn } from "../utils/cn";
 import { Axis } from "./Axis";
 import { CursorSelection } from "./CursorSelection";
 import { LoopMarkers } from "./LoopMarkers";
 import { ProjectView } from "./ProjectView";
 import { TrackHeaderContainer } from "./TrackHeaderContainer";
-import { TRACK_HEADER_WIDTH } from "../constants";
 
 export function TimelineView({
   project,
@@ -34,7 +35,11 @@ export function TimelineView({
     <div
       id="container"
       onMouseDownCapture={() => project.activePanel.set("primary")}
-      className={classNames(classes.container, "scrollbar-track")}
+      className={classNames(
+        classes.container,
+        "scrollbar-track",
+        "overflow-y-scroll overflow-x-hidden h-full w-full grow",
+      )}
     >
       {/* <div
         className={classes.axisSpacer}
@@ -48,9 +53,17 @@ export function TimelineView({
         {"↓"}
       </div> */}
 
+      {/* axisContainer: {
+    position: "sticky",
+    top: 0,
+    left: 0,
+    zIndex: 2,
+    background: "var(--timeline-bg)",
+    borderBottom: "1px solid var(--axis-timeline-separator)",
+  }, */}
       <div
         ref={axisContainerRef}
-        className={classes.axisContainer}
+        className={cn(classes.axisContainer, "sticky bg-timeline-bg")}
         style={{
           borderTop: activePanel === "primary" ? "4px solid var(--timeline-text)" : "4px solid var(--timeline-tick)",
         }}
@@ -98,11 +111,6 @@ const useStyles = createUseStyles({
     // gridTemplateColumns: "16px 1fr 150px",
     gridColumnGap: 0,
     gridRowGap: 0,
-    overflowY: "scroll",
-    overflowX: "hidden",
-    height: "100%",
-    width: "100%",
-    flexGrow: 1,
     borderTopLeftRadius: "3px",
     borderBottomLeftRadius: "3px",
     // paddingRight: "4px",
@@ -128,11 +136,9 @@ const useStyles = createUseStyles({
     zIndex: 2,
   },
   axisContainer: {
-    position: "sticky",
     top: 0,
     left: 0,
     zIndex: 2,
-    background: "var(--timeline-bg)",
     borderBottom: "1px solid var(--axis-timeline-separator)",
   },
   trackHeaders: {

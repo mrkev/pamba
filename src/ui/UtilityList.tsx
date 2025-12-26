@@ -52,7 +52,14 @@ export function UtilityDataList<T>({
   }, [filter, items]);
 
   return (
-    <div className={classNames(classes.list, listDisabled && classes.listDisabled)} aria-disabled={listDisabled}>
+    <div
+      className={classNames(
+        "flex flex-col grow shrink overflow-y-scroll text-control-text-color bg-utility-list-bg",
+        classes.list,
+        listDisabled && classes.listDisabled,
+      )}
+      aria-disabled={listDisabled}
+    >
       {filtered.map(function (item, i) {
         if (item === "separator") {
           return <hr key={i} style={{ margin: "2px 4px 0px 4px" }} />;
@@ -66,8 +73,10 @@ export function UtilityDataList<T>({
             title={item.title}
             tabIndex={0}
             className={classNames(
+              "text-ellipsis whitespace-nowrap shrink-0",
               classes.listItem,
-              disabled && classes.listItemDisabled,
+              disabled && "text-list-item-disabled",
+              item.icon && "flex flex-row items-center",
               item.icon && classes.listItemWithIcon,
             )}
             key={i}
@@ -141,16 +150,9 @@ export function UtilityDataList<T>({
 
 const useStyles = createUseStyles({
   list: {
-    display: "flex",
-    flexDirection: "column",
     border: "1px solid #999",
     borderRadius: "3px",
-    flexGrow: 1,
-    flexShrink: 1,
-    overflowY: "scroll",
     padding: "2px 0px",
-    background: "var(--utility-list-bg)",
-    color: "var(--control-text-color)",
   },
   listDisabled: {
     background: "#EBEBE4",
@@ -158,23 +160,14 @@ const useStyles = createUseStyles({
     pointerEvents: "none",
   },
   listItem: {
-    textOverflow: "ellipsis",
-    whiteSpace: "nowrap",
     padding: "0px 2px",
-    flexShrink: 0,
     "&:focus": {
       outline: "5px auto -webkit-focus-ring-color",
       background: "white",
     },
   },
   listItemWithIcon: {
-    display: "flex",
-    flexDirection: "row",
     gap: 2,
-    alignItems: "center",
-  },
-  listItemDisabled: {
-    color: "gray",
   },
 });
 

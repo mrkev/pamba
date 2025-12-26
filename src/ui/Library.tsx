@@ -7,7 +7,7 @@ import { FAUST_EFFECTS, FaustEffectID } from "../dsp/FAUST_EFFECTS";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioTrack } from "../lib/AudioTrack";
-import { ProjectPersistance } from "../lib/ProjectPersistance";
+import { projectPersistance } from "../lib/ProjectPersistance";
 import { ProjectTrack } from "../lib/ProjectTrack";
 import { addAvailableWamToTrack } from "../lib/addAvailableWamToTrack";
 import { AnalizedPlayer } from "../lib/io/AnalizedPlayer";
@@ -18,6 +18,7 @@ import { ignorePromise } from "../utils/ignorePromise";
 import { nullthrows } from "../utils/nullthrows";
 import { WAMAvailablePlugin } from "../wam/plugins";
 import { doConfirm } from "./ConfirmDialog";
+import { doPrompt } from "./PromptDialog";
 import { UploadAudioButton } from "./UploadAudioButton";
 import { ListEntry, UtilityDataList } from "./UtilityList";
 import { UtilityMenu } from "./UtilityMenu";
@@ -111,11 +112,16 @@ export function Library({
                 anchor="tr"
                 label={"..."}
                 items={{
-                  delete: () => {
-                    alert("TODO: not implemented");
+                  delete: async () => {
+                    if (await doConfirm(`Are you sure you want to delete project '${p.name}'? This can't be undone!`)) {
+                      await projectPersistance.deleteProject(p);
+                    }
                   },
-                  rename: () => {
-                    alert("TODO: not implemented");
+                  rename: async () => {
+                    const newName = await doPrompt(`new name for project '${p.name}'?`);
+                    if (newName != null) {
+                      await projectPersistance.renameProject(p, newName);
+                    }
                   },
                 }}
               />
@@ -227,7 +233,7 @@ export function Library({
                 return;
               }
 
-              await ProjectPersistance.openProject(item.data.id);
+              await projectPersistance.openProject(item.data.id);
               break;
             }
             case "fausteffect": {
