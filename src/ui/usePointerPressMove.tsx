@@ -1,22 +1,16 @@
 import { useEffect } from "react";
 
-export type PointerPressMoveMeta<T extends Record<string, unknown> | void> =
-  | { event: "down" }
-  | {
-      event: "move" | "up";
-      downX: number;
-      downY: number;
-    };
-/**
- * NOTE: unlike above, uses pointer capture and automatically stores clientX, clientY
- */
+export type PointerPressMoveMeta = {
+  downX: number;
+  downY: number;
+};
 
-export function usePointerPressMove<T extends Record<string, unknown> | void>(
+export function usePointerPressMove(
   elemRef: React.RefObject<HTMLElement | null | undefined>,
   callbacks: {
     down?: (ev: PointerEvent) => void;
-    move?: (ev: PointerEvent, metadata: { downX: number; downY: number }) => void;
-    up?: (ev: PointerEvent, metadata: { downX: number; downY: number }) => void;
+    move?: (ev: PointerEvent, metadata: PointerPressMoveMeta) => void;
+    up?: (ev: PointerEvent, metadata: PointerPressMoveMeta) => void;
   },
 ): void {
   useEffect(() => {

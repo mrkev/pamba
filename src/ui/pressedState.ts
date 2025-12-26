@@ -1,12 +1,11 @@
 import { SPrimitive } from "structured-state";
+import { STimelineT } from "../data/serializable";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioTrack } from "../lib/AudioTrack";
 import { TimelineT } from "../lib/project/TimelineT";
 import { MidiClip } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
-import { Note } from "../midi/SharedMidiTypes";
 import { PambaDataTransferResourceKind } from "./dragdrop/getTrackAcceptableDataTransferResources";
-import { STimelineT } from "../data/serializable";
 
 export type CursorState =
   | Readonly<{

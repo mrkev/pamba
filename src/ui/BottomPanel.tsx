@@ -10,7 +10,7 @@ import { MidiClip } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
 import { exhaustive } from "../utils/exhaustive";
 import { AudioClipEditor } from "./AudioClipEditor";
-import { MidiClipEditor } from "./MidiClipEditor";
+import { MidiClipEditor } from "./midieditor/MidiClipEditor";
 import { TrackEditor } from "./TrackEditor";
 
 type BottomPanelDisplay =

@@ -86,7 +86,7 @@ class PianoRollProcessor extends WamProcessor {
     // Flush immediate events, immediately
     let ev;
     while ((ev = this.immediateMessages.pop())) {
-      console.log("ev", ev);
+      // console.log("ev", ev);
       this.emitEvents(ev);
     }
 
