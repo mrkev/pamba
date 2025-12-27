@@ -2,6 +2,8 @@ import { boolean, string } from "structured-state";
 import { CANVAS_HEIGHT, CANVAS_WIDTH, liveAudioContext, sampleSize } from "../constants";
 import { DSPStep } from "../dsp/DSPStep";
 import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
+import { WebAudioPeakMeter } from "web-audio-peak-meter";
+import { RollingAvg } from "../ui/TrackPeakMeter";
 
 /**
  * Given a canvas, draws an oscilloscope waveform on it
@@ -17,6 +19,7 @@ export class OscilloscopeNode implements DSPStep<TrackedAudioNode> {
 
   private readonly amplitudeArray: Uint8Array = new Uint8Array();
   private readonly analyserNode = TrackedAudioNode.of(liveAudioContext().createAnalyser());
+  private readonly meterInstance: WebAudioPeakMeter;
   private readonly javascriptNode = TrackedAudioNode.of(liveAudioContext().createScriptProcessor(sampleSize, 1, 1));
   public canvasCtx: CanvasRenderingContext2D | null = null;
 
@@ -34,11 +37,13 @@ export class OscilloscopeNode implements DSPStep<TrackedAudioNode> {
     // Setup the event handler that is triggered every time enough samples have been collected
     // trigger the audio analysis and draw the results
     this.javascriptNode.get().onaudioprocess = this.onAudioProcess;
+    this.meterInstance = new WebAudioPeakMeter(this.inputNode().get(), undefined as any);
   }
 
   private onAudioProcess = () => {
     this.analyserNode.get().getByteTimeDomainData(this.amplitudeArray as any); // todo: as any?
     this.drawTimeDomain(this.amplitudeArray);
+    this.drawMeterBars();
   };
 
   // y-axis: 128 is 0, 0 is -1, 255 is 1
@@ -72,5 +77,15 @@ export class OscilloscopeNode implements DSPStep<TrackedAudioNode> {
       }
     }
     ctx.stroke();
+  }
+
+  private drawMeterBars() {
+    const ctx = this.canvasCtx;
+    if (ctx == null) return;
+    ctx.fillStyle = "#454648";
+    ctx.fillRect(2 * CANVAS_WIDTH - 22, 0, 2 * CANVAS_WIDTH, 2 * CANVAS_HEIGHT);
+
+    // TODO
+    // const rollingAvgs = this.meterInstance.getPeaks().currentDB.map(() => new RollingAvg(4));
   }
 }

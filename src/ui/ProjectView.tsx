@@ -18,6 +18,7 @@ import { pressedState } from "./pressedState";
 import { TimelineCursor, TimelineLine } from "./TimelineCursor";
 import { TrackS } from "./TrackS";
 import { useEventListener } from "./useEventListener";
+import { cn } from "../utils/cn";
 
 export async function getDroppedAudioURL(audioStorage: AudioStorage | null, dataTransfer: DataTransfer) {
   if (audioStorage == null) {
@@ -181,7 +182,7 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
   return (
     <div
       id="projectDiv"
-      className={classes.projectDiv}
+      className={cn("relative bg-timeline-bg overflow-x-scroll overflow-y-hidden")}
       ref={projectDivRef}
       onDrop={onDrop}
       // For some reason, need to .preventDefault() so onDrop gets called
@@ -244,13 +245,6 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
 }
 
 export const useStyles = createUseStyles({
-  projectDiv: {
-    position: "relative",
-    background: "var(--timeline-bg)",
-    overflowX: "scroll",
-    overflowY: "hidden",
-    // borderTop: "1px solid var(--axis-timeline-separator)",
-  },
   playbackPosDiv: {
     background: "var(--cursor-playback)",
     width: "1px",

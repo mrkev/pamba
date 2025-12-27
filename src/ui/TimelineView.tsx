@@ -38,7 +38,7 @@ export function TimelineView({
       className={classNames(
         classes.container,
         "scrollbar-track",
-        "overflow-y-scroll overflow-x-hidden h-full w-full grow",
+        "grid overflow-y-scroll overflow-x-hidden h-full w-full grow",
       )}
     >
       {/* <div
@@ -63,7 +63,10 @@ export function TimelineView({
   }, */}
       <div
         ref={axisContainerRef}
-        className={cn(classes.axisContainer, "sticky bg-timeline-bg")}
+        className={cn(
+          classes.axisContainer,
+          "sticky bg-timeline-bg top-0 left-0 border-b border-b-axis-timeline-separator justify-evenly",
+        )}
         style={{
           borderTop: activePanel === "primary" ? "4px solid var(--timeline-text)" : "4px solid var(--timeline-tick)",
         }}
@@ -73,7 +76,16 @@ export function TimelineView({
         <CursorSelection track={null} project={project} leftOffset={-viewportStartPx} />
       </div>
       {/* 1. Track header overhang */}
-      <div className={classes.axisSpacer}>{"↑"}</div>
+      <div
+        className={cn(
+          classes.axisSpacer,
+          "sticky top-0 flex items-center flex-row justify-evenly",
+          activePanel === "primary" && "bg-panel-active-background",
+          activePanel !== "primary" && "bg-background",
+        )}
+      >
+        {"↑"}
+      </div>
 
       {/* <div
         className={classes.trackHeaders}
@@ -95,7 +107,11 @@ export function TimelineView({
       <ProjectView project={project} renderer={renderer} />
 
       {/* 3. Track headers */}
-      <TrackHeaderContainer project={project} player={player} />
+      <TrackHeaderContainer
+        className={cn(activePanel === "primary" && "bg-panel-active-background")}
+        project={project}
+        player={player}
+      />
     </div>
   );
 }
@@ -104,7 +120,6 @@ export function TimelineView({
 // https://codepen.io/neoky/pen/mGpaKN
 const useStyles = createUseStyles({
   container: {
-    display: "grid",
     gridTemplateRows: "30px 1fr",
     // 150 is TRACK_HEADER_WIDTH
     gridTemplateColumns: "1fr 150px",
@@ -116,30 +131,20 @@ const useStyles = createUseStyles({
     // paddingRight: "4px",
     marginRight: 1,
     paddingRight: 4,
-    msOverflowY: "scroll",
     // border: "3px solid black",
   },
   axisSpacer: {
-    backgroundColor: "var(--background)",
     height: "29px",
-    display: "flex",
-    alignItems: "center",
-    flexDirection: "row",
-    justifyContent: "space-evenly",
     // borderBottom: "1px solid var(--axis-spacer-headers-separator)",
-    position: "sticky",
+    width: TRACK_HEADER_WIDTH,
     // we add 10 to cover some empty space to the right. there
     // seems to be some padding to display the scrollbar, but it lets
     // the loop marker show underneath
-    width: TRACK_HEADER_WIDTH + 10,
-    top: 0,
+    borderRight: "10px solid var(--background)",
     zIndex: 2,
   },
   axisContainer: {
-    top: 0,
-    left: 0,
     zIndex: 2,
-    borderBottom: "1px solid var(--axis-timeline-separator)",
   },
   trackHeaders: {
     position: "sticky",

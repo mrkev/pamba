@@ -31,6 +31,10 @@
   --color-midi-note: red;
   --color-midi-note-border: #bb0000;
   --color-midi-note-selected: green;
+  /* main */
+  --color-background: #454648;
+  --color-panel-active-background: #343434;
+  --color-selected-track-background: #222324;
 }
 
 body {

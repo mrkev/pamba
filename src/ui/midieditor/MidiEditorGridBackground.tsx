@@ -1,5 +1,5 @@
-import { useRef, useCallback } from "react";
-import { usePrimitive, useContainer } from "structured-state";
+import { useCallback, useRef } from "react";
+import { useContainer, usePrimitive } from "structured-state";
 import { TOTAL_VERTICAL_NOTES } from "../../constants";
 import { AudioProject } from "../../lib/project/AudioProject";
 import { MidiClip } from "../../midi/MidiClip";

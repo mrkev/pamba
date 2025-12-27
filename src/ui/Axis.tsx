@@ -1,8 +1,7 @@
-import React from "react";
-import { createUseStyles } from "react-jss";
 import { usePrimitive } from "structured-state";
 import { SECS_IN_MIN } from "../constants";
 import { AudioProject, AxisMeasure } from "../lib/project/AudioProject";
+import { cn } from "../utils/cn";
 
 const formatter = new Intl.NumberFormat("en-US", {
   useGrouping: false,
@@ -31,24 +30,6 @@ function getTimeStepForRes(dist: number): number {
       return 60;
   }
 }
-
-const useStyles = createUseStyles({
-  svgContainer: {
-    position: "absolute",
-    width: "100%",
-    height: "100%",
-    pointerEvents: "none",
-  },
-  markerContainer: {
-    height: 29,
-    // borderBottom: "1px solid #BBB",
-    userSelect: "none",
-    position: "absolute",
-    top: 0,
-    width: "100%",
-    cursor: "pointer",
-  },
-});
 
 function getBeatScaleFactorForOneBeatSize(dist: number): number {
   switch (true) {
@@ -126,7 +107,6 @@ function getBeatTickData(
 }
 
 export function Axis({ project, isHeader = false }: { project: AudioProject; isHeader?: boolean }) {
-  const styles = useStyles();
   const [viewportStartPx] = usePrimitive(project.viewport.viewportStartPx);
   const [projectDivWidth] = usePrimitive(project.viewport.projectDivWidth);
   const [tempo] = usePrimitive(project.tempo);
@@ -144,12 +124,8 @@ export function Axis({ project, isHeader = false }: { project: AudioProject; isH
     <>
       {/* Background grid */}
       <svg
-        className={styles.svgContainer}
-        style={{
-          left: !isHeader ? viewportStartPx : 0,
-          pointerEvents: "none",
-          overflow: "visible",
-        }}
+        className={cn("absolute w-full h-full pointer-events-none overflow-visible")}
+        style={{ left: !isHeader ? viewportStartPx : 0 }}
       >
         {(isHeader || primaryAxis === "tempo") &&
           tempoTicks.map(([beatNum, secs]) => {

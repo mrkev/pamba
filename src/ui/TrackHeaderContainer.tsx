@@ -18,9 +18,11 @@ import { utility } from "./utility";
 export const TrackHeaderContainer = React.memo(function TrackHeaderContainerImpl({
   project,
   player,
+  className,
 }: {
   project: AudioProject;
   player: AnalizedPlayer;
+  className?: string;
 }) {
   const axisContainerRef = useRef<HTMLDivElement | null>(null);
   const tracks = useContainer(project.allTracks);
@@ -116,11 +118,9 @@ export const TrackHeaderContainer = React.memo(function TrackHeaderContainerImpl
 
   return (
     <div
-      style={{
-        width: TRACK_HEADER_WIDTH,
-      }}
-      className={cn("sticky flex flex-col shrink-0")}
       ref={containerRef}
+      className={cn("sticky flex flex-col shrink-0", className)}
+      style={{ width: TRACK_HEADER_WIDTH }}
     >
       {trackHeaders}
       <div

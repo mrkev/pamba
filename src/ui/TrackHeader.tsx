@@ -10,6 +10,7 @@ import { AudioProject } from "../lib/project/AudioProject";
 import { ProjectSelection } from "../lib/project/ProjectSelection";
 import { userActions } from "../lib/userActions";
 import { MidiTrack } from "../midi/MidiTrack";
+import { cn } from "../utils/cn";
 import { cx } from "./cx";
 import { pressedState } from "./pressedState";
 import { RenamableLabel } from "./RenamableLabel";
@@ -68,12 +69,8 @@ export const TrackHeader = React.memo(function TrackHeader({
 
   return (
     <div
-      className="relative cursor-pointer"
+      className={cn("relative cursor-pointer", isSelected && "bg-selected-track-background")}
       draggable
-      style={{
-        background: isSelected ? "#222324" : "var(--background)",
-        // borderBottom: `${TRACK_SEPARATOR_HEIGHT}px solid var(--track-separator)`,
-      }}
       onClick={() => ProjectSelection.selectTrack(project, track)}
       onDragStart={onDragStart}
     >
