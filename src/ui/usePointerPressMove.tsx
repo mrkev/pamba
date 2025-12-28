@@ -28,7 +28,6 @@ export function usePointerPressMove(
       const pointerMoveMeta = { downX, downY };
       function onPointerMove(e: PointerEvent) {
         callbacks.move?.(e, pointerMoveMeta);
-        pointerMoveMeta;
       }
 
       elem.addEventListener("pointermove", onPointerMove);

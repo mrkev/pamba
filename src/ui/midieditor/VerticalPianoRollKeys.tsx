@@ -37,10 +37,9 @@ export function VerticalPianoRollKeys({ clip, track }: { clip: MidiClip; track: 
       function mousedown(e) {
         const note = noteAtY(e.offsetY);
         track.noteOn(note);
-        playingNotes.add(note);
         return { note };
       },
-      [noteAtY, playingNotes, track],
+      [noteAtY, track],
     ),
     useCallback(
       function mouse(meta, e) {
@@ -54,10 +53,8 @@ export function VerticalPianoRollKeys({ clip, track }: { clip: MidiClip; track: 
               const newNote = noteAtY(e.offsetY);
               if (newNote != meta.mousedown.note) {
                 track.noteOff(meta.mousedown.note);
-                playingNotes.delete(meta.mousedown.note);
                 meta.mousedown.note = newNote;
                 track.noteOn(meta.mousedown.note);
-                playingNotes.add(meta.mousedown.note);
               }
               break;
             }
@@ -66,19 +63,17 @@ export function VerticalPianoRollKeys({ clip, track }: { clip: MidiClip; track: 
             const note = noteAtY(e.offsetY);
             meta.mousedown.note = note;
             track.noteOn(meta.mousedown.note);
-            playingNotes.add(meta.mousedown.note);
             break;
           }
 
           case "mouseup":
           case "mouseleave": {
             console.log("leave");
-            playingNotes.clear();
             track.allNotesOff();
           }
         }
       },
-      [noteAtY, playingNotes, track],
+      [noteAtY, track],
     ),
   );
 

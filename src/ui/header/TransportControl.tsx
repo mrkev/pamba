@@ -66,7 +66,7 @@ export function PlaybackControl({
   recorder: AudioRecorder;
 }) {
   const tracks = useContainer(project.allTracks);
-  const [armedTrack] = usePrimitive(project.armedTrack);
+  const [armedTrack] = usePrimitive(project.armedAudioTrack);
   const [isAudioPlaying] = usePrimitive(renderer.isAudioPlaying);
   const [recorderStatus] = useLinkAsState(recorder.status);
   const isRecording = recorderStatus === "recording";

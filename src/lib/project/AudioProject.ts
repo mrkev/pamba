@@ -27,6 +27,7 @@ import { ProjectTrack, StandardTrack } from "../ProjectTrack";
 import { ProjectViewport } from "../viewport/ProjectViewport";
 import { PanelSelectionState, PrimarySelectionState } from "./SelectionState";
 import { TimelineT, time } from "./TimelineT";
+import { ProjectMidi } from "./ProjectMidi";
 
 export type PointerTool = "move" | "trimStart" | "trimEnd" | "slice";
 export type SecondaryTool = "move" | "draw";
@@ -41,6 +42,7 @@ export class AudioProject {
 
   // systems //
   readonly viewport: ProjectViewport;
+  readonly midi: ProjectMidi;
 
   // Selection //
 
@@ -63,7 +65,8 @@ export class AudioProject {
     // I'm guessing it's becuase history looks at every change, and tries to undo everything that happened when doing
     // history.record(...). But why is activeTrack.name not set properly though?
     readonly activeTrack: SPrimitive<AudioTrack | MidiTrack | null>,
-    readonly armedTrack: SPrimitive<AudioTrack | MidiTrack | null>,
+    readonly armedAudioTrack: SPrimitive<AudioTrack | null>,
+    readonly armedMidiTrack: SPrimitive<MidiTrack | null>,
     // settings //
     readonly tempo: SNumber,
     readonly snapToGrid: SBoolean,
@@ -91,6 +94,7 @@ export class AudioProject {
     });
 
     this.viewport = Structured.create(ProjectViewport, this, number(0), number(scaleFactor), number(viewportStartPx));
+    this.midi = new ProjectMidi(this);
   }
 
   static playbackWillLoop(project: AudioProject, cursorPos: number) {
@@ -109,7 +113,8 @@ export class AudioProject {
       set<AudioTrack | MidiTrack>(),
       set<AudioTrack | MidiTrack | StandardTrack<any>>(),
       SPrimitive.of<AudioTrack | MidiTrack | null>(null),
-      SPrimitive.of<AudioTrack | MidiTrack | null>(null),
+      SPrimitive.of<AudioTrack | null>(null),
+      SPrimitive.of<MidiTrack | null>(null),
       number(DEFAULT_TEMPO),
       boolean(false),
       time(0, "pulses"),
@@ -201,8 +206,8 @@ export class AudioProject {
       project.activeTrack.set(null);
     }
 
-    if (project.armedTrack.get() === track) {
-      project.armedTrack.set(null);
+    if (project.armedAudioTrack.get() === track) {
+      project.armedAudioTrack.set(null);
     }
 
     // Update from track state

@@ -225,6 +225,8 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
     });
   }
 
+  // PLAY MIDI ON THIS TRACK
+
   noteOn(note: number) {
     this.pianoRoll.playingNotes.add(note);
     this.messageSequencer({

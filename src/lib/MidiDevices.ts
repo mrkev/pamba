@@ -1,35 +1,30 @@
-import { SMap } from "structured-state";
-import { result, Result } from "./result";
+import { MarkedMap } from "marked-subbable";
+import { result, Result } from "../result";
 
+/**
+ * Handles midi devices at the app environment level.
+ * For project-specific midi, see ProjectMidi
+ */
 export class MidiDevices {
-  readonly inputs = SMap.create<string, MIDIInput>();
-  readonly outputs = SMap.create<string, MIDIOutput>();
+  readonly inputs = MarkedMap.create<string, MIDIInput>();
+  readonly outputs = MarkedMap.create<string, MIDIOutput>();
 
-  private constructor(private midiAccess: MIDIAccess) {
+  private constructor(
+    //
+    private readonly midiAccess: MIDIAccess,
+  ) {
+    this.updateInputsOutputs();
+    // TODO: destruct?
+    this.midiAccess.addEventListener("statechange", this.updateInputsOutputs.bind(this));
+  }
+
+  private updateInputsOutputs() {
     for (const [id, input] of this.midiAccess.inputs) {
       this.inputs.set(id, input);
     }
-
     for (const [id, output] of this.midiAccess.outputs) {
       this.outputs.set(id, output);
     }
-
-    this.midiAccess.onstatechange = (event) => {
-      // todo, some connection changed
-      console.log("onstatechange", event.port?.name, event.port?.manufacturer, event.port?.state);
-    };
-
-    function onMIDIMessage(this: MIDIInput, ev: MIDIMessageEvent) {
-      let str = `MIDI message received at timestamp ${ev.timeStamp}[${ev.data?.length} bytes]: `;
-      for (const character of ev.data ?? []) {
-        str += `0x${character.toString(16)} `;
-      }
-      console.log(str);
-    }
-
-    midiAccess.inputs.forEach((entry) => {
-      entry.onmidimessage = onMIDIMessage;
-    });
   }
 
   static async initialize(): Promise<Result<MidiDevices>> {
@@ -39,6 +34,17 @@ export class MidiDevices {
     } catch (e) {
       return result.error(e);
     }
+  }
+
+  public listenToMidi(callback: (this: MIDIInput, ev: MIDIMessageEvent) => void) {
+    this.midiAccess.inputs.forEach((entry) => {
+      entry.addEventListener("midimessage", callback);
+    });
+    return () => {
+      this.midiAccess.inputs.forEach((entry) => {
+        entry.removeEventListener("midimessage", callback);
+      });
+    };
   }
 
   async listInputsAndOutputs() {

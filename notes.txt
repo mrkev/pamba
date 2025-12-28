@@ -1,8 +1,13 @@
+bugs
+- mute is not working on midi tracks
+
+
 qol
 - double-click track header opens track details
 - react-router hash navigation between projects
 - cmd+J to open sidebar, cmd+D to open details
 - display two waveforms for stereo audio
+
 
 x structured-state todo:
   x expose map, set
@@ -107,7 +112,7 @@ https://www.npmjs.com/package/bpm-detective
 https://wac2022.i3s.univ-cotedazur.fr/node/27.html
 https://www.npmjs.com/package/soundstretch-web
 https://www.npmjs.com/package/rubberband-web
-
+https://www.npmjs.com/package/@tonaljs/midi
 
 
 
@@ -127,3 +132,12 @@ StandardClip
     .start, length
   - MidiClipContent
     .start, length
+
+
+--------------------
+TrackThread thing that was on App.tsx, it was an experiment
+// import { TrackThread } from "../lib/TrackThread";
+// var w = new TrackThread();
+// var sab = new SharedArrayBuffer(1024);
+// var arr = new Int32Array(sab);
+// w.postMessage({ kind: "set", sab });

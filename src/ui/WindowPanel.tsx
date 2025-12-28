@@ -1,7 +1,7 @@
 import React, { useCallback, useRef, useState } from "react";
 import { createUseStyles } from "react-jss";
-import { useDocumentEventListener, useEventListener } from "./useEventListener";
 import { exhaustive } from "../utils/exhaustive";
+import { useDocumentEventListener, useEventListener } from "./useEventListener";
 
 export type Position = [x: number, y: number];
 export type SetState<S> = React.Dispatch<React.SetStateAction<S>>;
@@ -26,7 +26,7 @@ export function WindowPanel({
   });
 
   useEventListener(
-    "mousedown",
+    "pointerdown",
     titleBarRef,
     useCallback(
       (e: MouseEvent) => {
@@ -41,14 +41,14 @@ export function WindowPanel({
   );
 
   useDocumentEventListener(
-    "mouseup",
+    "pointerup",
     useCallback((_e: MouseEvent) => {
       setCursor({ status: "idle" });
     }, []),
   );
 
   useDocumentEventListener(
-    "mousemove",
+    "pointermove",
     useCallback(
       (e: MouseEvent) => {
         switch (cursor.status) {

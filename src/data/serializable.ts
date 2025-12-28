@@ -354,7 +354,8 @@ export async function construct(
         set<AudioTrack | MidiTrack>(dspExpandedTracks),
         set<AudioTrack | MidiTrack | StandardTrack<any>>(lockedTracks),
         SPrimitive.of<AudioTrack | MidiTrack | null>(null), // todo
-        SPrimitive.of<AudioTrack | MidiTrack | null>(null), // todo
+        SPrimitive.of<AudioTrack | null>(null), // todo
+        SPrimitive.of<MidiTrack | null>(null), // todo
         number(tempo),
         boolean(rep.snapToGrid ?? false),
         time(loopStart.t, loopStart.u),

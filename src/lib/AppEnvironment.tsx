@@ -2,7 +2,7 @@ import { FirebaseApp } from "firebase/app";
 import { Auth, User, getAuth } from "firebase/auth";
 import { MarkedSet, MarkedValue } from "marked-subbable";
 import { DirtyObserver, SPrimitive, array } from "structured-state";
-import { MidiDevices } from "../MidiDevices";
+import { MidiDevices } from "./MidiDevices";
 import { FIREBASE_ENABLED, MAX_NUMBER_OF_TRACKS, SOUND_FONT_URL } from "../constants";
 import { ProjectPackage } from "../data/ProjectPackage";
 import { LocalFilesystem } from "../data/localFilesystem";
@@ -57,6 +57,7 @@ export class AppEnvironment {
   readonly projectStatus: SPrimitive<ProjectState>;
   public projectDirtyObserver: DirtyObserver;
   readonly projectPacakge: MarkedValue<ProjectPackage | null>; // null if never saved
+  readonly projectCloseCallbacks: (() => void)[] = [];
   // UI
   readonly openEffects: MarkedSet<PambaWamNode | MidiInstrument>;
   readonly activeSidePanel = LocalMValue.create<"library" | "project" | "history" | "midi" | "help" | null>(
@@ -67,7 +68,7 @@ export class AppEnvironment {
   readonly activeBottomPanel = LocalMValue.create<"editor" | "debug" | "about" | null>("bottom-panel-active", null);
 
   // MIDI
-  readonly midiLearning: SPrimitive<MidiLearningStatus> = SPrimitive.of({ status: "off" });
+  readonly midiLearning = MarkedValue.create<MidiLearningStatus>({ status: "off" });
   public midiDevices: MidiDevices = null as any; // TODO: do this in a way that avoids the null?
 
   // System
@@ -105,12 +106,25 @@ export class AppEnvironment {
   }
 
   public loadProject(project: AudioProject) {
-    appEnvironment.projectStatus.set({
+    if (this.projectStatus.get().status === "loaded") {
+      this.closeProject();
+    }
+
+    this.projectStatus.set({
       status: "loaded",
       project,
     });
     (window as any).project = project;
     this.projectDirtyObserver = new DirtyObserver(project.allTracks, "clean");
+  }
+
+  routeMidi(event: MIDIMessageEvent) {
+    const projectStatus = this.projectStatus.get();
+    if (projectStatus.status !== "loaded") {
+      return;
+    }
+
+    projectStatus.project.midi.onMidi(event);
   }
 
   async initAsync(liveAudioContext: AudioContext) {
@@ -129,6 +143,8 @@ export class AppEnvironment {
         console.warn("no midi", midiResult.error);
       } else {
         this.midiDevices = midiResult.value;
+        const unsubscribe = this.midiDevices.listenToMidi(this.routeMidi.bind(this));
+        this.projectCloseCallbacks.push(unsubscribe);
       }
 
       // WebGPU
@@ -202,6 +218,13 @@ export class AppEnvironment {
         throw new Error("project not available");
       case "loaded":
         return projectStatus.project;
+    }
+  }
+
+  public closeProject() {
+    let cb;
+    while ((cb = this.projectCloseCallbacks.pop())) {
+      cb();
     }
   }
 }

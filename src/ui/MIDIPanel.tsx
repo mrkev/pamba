@@ -1,13 +1,13 @@
-import { useContainer, usePrimitive } from "structured-state";
+import { useLink, useLinkAsState } from "marked-subbable";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioProject } from "../lib/project/AudioProject";
-import { UtilityDataList } from "./UtilityList";
+import { cn } from "../utils/cn";
 import { UtilityToggle } from "./UtilityToggle";
 
 export function MIDIPanel(_: { project: AudioProject }) {
-  const [midiLearning, setMidiLearning] = usePrimitive(appEnvironment.midiLearning);
-  const midiInputMap = useContainer(appEnvironment.midiDevices.inputs);
-  const midiInputs = [...midiInputMap.values()];
+  const [midiLearning, setMidiLearning] = useLinkAsState(appEnvironment.midiLearning);
+  const inputs = useLink(appEnvironment.midiDevices.inputs);
+  const midiInputs = [...inputs().values()];
 
   return (
     <>
@@ -26,10 +26,17 @@ export function MIDIPanel(_: { project: AudioProject }) {
           midi learn
         </UtilityToggle>
       </div>
-      {midiInputs.map((x) => (
-        <div key={x.id}>{x.name ?? "Input " + x.id}</div>
-      ))}
-      <UtilityDataList items={midiInputs.map((x) => ({ title: x.name ?? x.id, data: x }))} />
+      {midiInputs.map((x) => {
+        const disconnected = x.state === "disconnected";
+        return (
+          <div className="flex flex-row items-center" key={x.id}>
+            <input type="checkbox" disabled={disconnected} />
+            <span className={cn(disconnected && "text-list-item-disabled")} key={x.id}>
+              {x.name ?? "Input " + x.id}
+            </span>
+          </div>
+        );
+      })}
     </>
   );
 }

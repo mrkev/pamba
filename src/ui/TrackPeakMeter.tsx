@@ -2,7 +2,6 @@ import React, { useRef, useEffect } from "react";
 import { AudioTrack } from "../lib/AudioTrack";
 import { MidiTrack } from "../midi/MidiTrack";
 import { nullthrows } from "../utils/nullthrows";
-import { audioClipPath } from "./TrackHeader";
 
 const SPACE_BETWEEN_CHANNEL_PEAK_METERS = 2 * devicePixelRatio;
 export const TrackPeakMeter = React.memo(function PeakMeter({ track }: { track: AudioTrack | MidiTrack }) {
@@ -90,4 +89,16 @@ export class RollingAvg {
   has(cb: (value: number, index: number, obj: number[]) => boolean) {
     return this.buffer.find(cb) != null;
   }
+}
+
+export function audioClipPath(db: number, dbRangeMin: number, dbRangeMax: number): number {
+  let clipPercent = (dbRangeMax - db) / (dbRangeMax - dbRangeMin);
+  if (clipPercent > 100) {
+    clipPercent = 100;
+  }
+  if (clipPercent < 0) {
+    clipPercent = 0;
+  }
+
+  return 1 - clipPercent;
 }

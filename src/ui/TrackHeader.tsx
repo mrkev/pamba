@@ -27,8 +27,7 @@ export const TrackHeader = React.memo(function TrackHeader({
   onDragStart,
 }: {
   track: AudioTrack | MidiTrack;
-  // TODO: make a property of the track?
-  trackNumber: number;
+  trackNumber: number; // TODO: make a property of the track?
   project: AudioProject;
   player: AnalizedPlayer;
   onDragStart?: (e: React.DragEvent<HTMLDivElement>) => void;
@@ -44,12 +43,13 @@ export const TrackHeader = React.memo(function TrackHeader({
   const [height] = usePrimitive(track.height);
   const [selected] = useLinkAsState(project.selected);
   const [activeTrack] = usePrimitive(project.activeTrack);
-  const [armedTrack] = usePrimitive(project.armedTrack);
+  const [armedTrack] = usePrimitive(project.armedAudioTrack);
+  const [armedMidiTrack] = usePrimitive(project.armedMidiTrack);
 
   const isSelected = selected !== null && selected.status === "tracks" && selected.test.has(track);
   const isSolod = solodTracks.has(track);
   const isActive = activeTrack === track;
-  const isArmed = armedTrack === track;
+  const isArmed = armedTrack === track || armedMidiTrack === track;
 
   const isDspExpanded = dspExpandedTracks.has(track);
   const isLocked = lockedTracks.has(track);
@@ -84,20 +84,18 @@ export const TrackHeader = React.memo(function TrackHeader({
       >
         <div
           // header, title
-          className={"flex flex-row justify-between items-stretch select-none"}
-          style={{
-            background: isSelected ? "none" : "green",
-            color: isSelected ? "white" : "var(--text-on-background)",
-            fontSize: "10px",
-          }}
+          className={cn(
+            "flex flex-row justify-between items-stretch select-none text-white",
+            isSelected && "bg-[green]",
+          )}
+          style={{ fontSize: "10px" }}
         >
           <span
             className={classNames(
-              styles.trackNumber,
               "text-white flex justify-center items-center border-r border-[green]",
               isActive && "border-r border-[green]",
             )}
-            style={{ marginRight: 4 }}
+            style={{ marginRight: 4, width: 17.5 }}
           >
             {trackNumber}
           </span>
@@ -110,6 +108,8 @@ export const TrackHeader = React.memo(function TrackHeader({
             <i className="ri-close-line"></i>
           </button>
         </div>
+
+        {/* solo, mute, gain */}
         <div className={styles.buttonRow}>
           <button
             className={classNames(utility.button, styles.headerButton)}
@@ -183,23 +183,45 @@ export const TrackHeader = React.memo(function TrackHeader({
             }}
           /> */}
         </div>
+
+        {/* arm, lock, peak meters */}
         <div className={styles.buttonRow}>
-          <button
-            disabled={isLocked}
-            className={classNames(utility.button)}
-            style={isArmed ? { background: "red" } : undefined}
-            title="arm track (record to this track)"
-            onClick={function (e) {
-              if (isArmed) {
-                project.armedTrack.set(null);
-              } else {
-                project.armedTrack.set(track);
-              }
-              e.stopPropagation();
-            }}
-          >
-            {"\u23fa" /* record */}
-          </button>
+          {track instanceof AudioTrack && (
+            <button
+              disabled={isLocked}
+              className={classNames(utility.button, isArmed)}
+              style={isArmed ? { background: "red" } : undefined}
+              title="arm track (record to this track)"
+              onClick={function (e) {
+                if (isArmed) {
+                  project.armedAudioTrack.set(null);
+                } else {
+                  project.armedAudioTrack.set(track);
+                }
+                e.stopPropagation();
+              }}
+            >
+              {"\u23fa" /* record */}
+            </button>
+          )}
+          {track instanceof MidiTrack && (
+            <button
+              disabled={isLocked}
+              className={classNames(utility.button, isArmed)}
+              style={isArmed ? { background: "red" } : undefined}
+              title="arm track (record to this track)"
+              onClick={function (e) {
+                if (isArmed) {
+                  project.armedMidiTrack.set(null);
+                } else {
+                  project.armedMidiTrack.set(track);
+                }
+                e.stopPropagation();
+              }}
+            >
+              <i className="ri-disc-fill"></i>
+            </button>
+          )}
           <button
             className={classNames(utility.button, styles.lockButton)}
             style={isLocked ? { background: "purple", color: "white" } : undefined}
@@ -210,7 +232,7 @@ export const TrackHeader = React.memo(function TrackHeader({
               } else {
                 lockedTracks.add(track);
                 if (isArmed) {
-                  project.armedTrack.set(null);
+                  project.armedAudioTrack.set(null);
                 }
               }
               e.stopPropagation();
@@ -240,7 +262,7 @@ export const TrackHeader = React.memo(function TrackHeader({
           <TrackPeakMeter track={track} />
         </div>
 
-        <div style={{ flexGrow: 1 }}></div>
+        <div className="grow"></div>
         {/* TODO: allow rezising track by dragging either line below dsp, or line between dsp and clips */}
 
         <UtilityToggle
@@ -270,52 +292,15 @@ export const TrackHeader = React.memo(function TrackHeader({
       </div>
       {isDspExpanded ? (
         <div
+          className="select-none"
           style={{
-            // background: "#444444",
             height: EFFECT_HEIGHT + 17 - 2,
-            position: "relative",
-            userSelect: "none",
-            display: "flex",
-            flexDirection: "column",
-            gap: 2,
-            padding: "0px 2px 2px 2px",
           }}
-        >
-          {/* 
-          <input style={{ width: "100%", border: "none" }} type="search" placeholder="Search..." />
-          <select
-            multiple
-            style={{ flexGrow: 1, border: "none" }}
-            onKeyPress={(e) => {
-              const event = new MouseEvent("dblclick");
-              e.target.dispatchEvent(event);
-              e.stopPropagation();
-            }}
-          >
-            {appEnvironment.faustEffects.map((effect) => {
-              return (
-                <option key={effect} onDoubleClick={async () => track.dsp.addEffect(effect)}>
-                  {effect.toLocaleLowerCase()}
-                </option>
-              );
-            })}
-
-            {appEnvironment.wamPlugins.map((value, key) => {
-              return value.pluginKind !== "a-a" ? null : (
-                <option
-                  key={key}
-                  disabled={value.pluginKind !== "a-a"}
-                  onDoubleClick={async () => track.dsp.addWAM(key)}
-                >
-                  {value.descriptor.name.replace(/^WebAudioModule\_/, "").replace(/Plugin$/, "")}
-                </option>
-              );
-            })}
-          </select> */}
-        </div>
+        ></div>
       ) : null}
 
       <div
+        className="absolute left-0 w-full cursor-ns-resize"
         style={{
           // background: "red",
           background: "rgba(0,0,0,0)",
@@ -323,10 +308,6 @@ export const TrackHeader = React.memo(function TrackHeader({
           zIndex: 5,
           height: TRACK_SEPARATOR_HEIGHT * 2,
           bottom: -TRACK_SEPARATOR_HEIGHT * 1.5,
-          position: "absolute",
-          left: 0,
-          width: "100%",
-          cursor: "ns-resize",
         }}
         onMouseDownCapture={onMouseDownToResize}
       ></div>
@@ -342,11 +323,6 @@ const useStyles = createUseStyles({
     "&:not(:active)": {
       background: "none",
     },
-  },
-  trackNumber: {
-    width: 17.5,
-    alignItems: "center",
-    background: "none",
   },
   buttonRow: {
     display: "flex",
@@ -364,12 +340,18 @@ const useStyles = createUseStyles({
   },
 });
 
-export const TrackHeaderSeparator = React.forwardRef<
-  HTMLDivElement,
-  { showActiveDropzone?: boolean; firstDropzone?: boolean }
->(function TrackHeaderSeparator({ showActiveDropzone, firstDropzone }, ref) {
+export function TrackHeaderSeparator({
+  showActiveDropzone,
+  firstDropzone,
+  ref,
+}: {
+  showActiveDropzone?: boolean;
+  firstDropzone?: boolean;
+  ref?: React.Ref<HTMLDivElement>;
+}) {
   return (
     <div
+      className={cn("relative")}
       ref={ref}
       style={{
         height: firstDropzone ? (showActiveDropzone ? 1 : 0) : TRACK_SEPARATOR_HEIGHT,
@@ -378,22 +360,8 @@ export const TrackHeaderSeparator = React.forwardRef<
           : firstDropzone
             ? "var(--axis-spacer-headers-separator)"
             : "var(--track-separator)",
-
-        position: "relative",
         top: firstDropzone ? -1 : undefined,
       }}
     />
   );
-});
-
-export function audioClipPath(db: number, dbRangeMin: number, dbRangeMax: number): number {
-  let clipPercent = (dbRangeMax - db) / (dbRangeMax - dbRangeMin);
-  if (clipPercent > 100) {
-    clipPercent = 100;
-  }
-  if (clipPercent < 0) {
-    clipPercent = 0;
-  }
-
-  return 1 - clipPercent;
 }

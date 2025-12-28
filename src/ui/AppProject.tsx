@@ -21,6 +21,7 @@ import { modifierState, useSingletonKeyboardModifierState } from "./ModifierStat
 import { ProjectEditor } from "./ProjectEditor";
 import { TimelineView } from "./TimelineView";
 import { UtilityTabbedPanel } from "./UtilityTabbedPanel";
+import { EffectWindows } from "./EffectWindows";
 
 function useStopPlaybackOnUnmount(renderer: AudioRenderer) {
   useEffect(() => {
@@ -46,6 +47,7 @@ export function AppProject({ project }: { project: AudioProject }) {
 
   return (
     <>
+      <EffectWindows />
       <ToolHeader project={project} renderer={renderer} recorder={recorder} />
       <div className="overflow-hidden flex flex-row items-stretch shrink" style={{ flex: "100 1 0px" }}>
         <UtilityTabbedPanel

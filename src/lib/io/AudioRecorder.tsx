@@ -57,7 +57,7 @@ export class AudioRecorder {
       const clip = await AudioClip.fromAudioPackage(audioPackage);
       clip.timelineStart.set(this.project.cursorPos.get(), "seconds");
 
-      const armedTrack = this.project.armedTrack.get();
+      const armedTrack = this.project.armedAudioTrack.get();
       if (armedTrack == null) {
         const newTrack = AudioTrack.fromClip(this.project, clip);
         AudioProject.addAudioTrack(this.project, "top", newTrack, this.renderer.analizedPlayer);
