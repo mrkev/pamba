@@ -1,14 +1,13 @@
+import useResizeObserver from "@react-hook/resize-observer";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
-import { createUseStyles } from "react-jss";
 import { useContainer, usePrimitive } from "structured-state";
-import useResizeObserver from "@react-hook/resize-observer";
 import { MAX_TIMELINE_SCALE, MIN_TIMELINE_SCALE } from "../constants";
 import { useTimelineMouseEvents } from "../input/useProjectMouseEvents";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioRenderer } from "../lib/io/AudioRenderer";
 import { AudioProject } from "../lib/project/AudioProject";
-import { AudioStorage } from "../lib/project/AudioStorage";
+import { cn } from "../utils/cn";
 import { clamp } from "../utils/math";
 import { nullthrows } from "../utils/nullthrows";
 import { Axis } from "./Axis";
@@ -18,49 +17,17 @@ import { pressedState } from "./pressedState";
 import { TimelineCursor, TimelineLine } from "./TimelineCursor";
 import { TrackS } from "./TrackS";
 import { useEventListener } from "./useEventListener";
-import { cn } from "../utils/cn";
-
-export async function getDroppedAudioURL(audioStorage: AudioStorage | null, dataTransfer: DataTransfer) {
-  if (audioStorage == null) {
-    return null;
-  }
-
-  console.log(dataTransfer.types);
-
-  // We can drop audio files from outside the app
-  let url: string | null = null;
-
-  for (let i = 0; i < dataTransfer.files.length; i++) {
-    console.log(dataTransfer.types, dataTransfer.items[0]);
-    const file = dataTransfer.files[i];
-    console.log("TODO: VERIFY FILE TYPE. Parallel uploads", file);
-
-    const result = await audioStorage.uploadToLibrary(file);
-    if (result instanceof Error) {
-      throw result;
-    }
-    url = result.url().toString();
-  }
-
-  // We can drop urls to audio from other parts of the UI
-  if (url == null) {
-    url = dataTransfer.getData("text");
-  }
-
-  return url;
-}
 
 export function ProjectView({ project, renderer }: { project: AudioProject; renderer: AudioRenderer }) {
-  const classes = useStyles();
   const projectDivRef = useRef<HTMLDivElement | null>(null);
   const dspExpandedTracks = useContainer(project.dspExpandedTracks);
   const [draggingOver, setDraggingOver] = useState<boolean>(false);
   const [audioStorage] = usePrimitive(appEnvironment.audioStorage);
-  const [viewportStartPx] = usePrimitive(project.viewport.viewportStartPx);
+  const [viewportStartPx] = usePrimitive(project.viewport.scrollLeftPx);
   const tracks = useContainer(project.allTracks);
   const playbackPosDiv = useRef<null | HTMLDivElement>(null);
   const player = renderer.analizedPlayer;
-  const [scale] = usePrimitive(project.viewport.scaleFactor);
+  const [scale] = usePrimitive(project.viewport.pxPerSecond);
   const [loopPlayback] = usePrimitive(project.loopOnPlayback);
 
   useLayoutEffect(() => {
@@ -81,7 +48,6 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
     if (!projectDivRef) {
       return;
     }
-
     projectDivRef.current?.scrollTo({ left: viewportStartPx, behavior: "instant" });
   }, [viewportStartPx]);
 
@@ -119,7 +85,7 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
           // max scale is 1000
           const expectedNewScale = clamp(
             MIN_TIMELINE_SCALE,
-            project.viewport.scaleFactor.get() * sDelta,
+            project.viewport.pxPerSecond.get() * sDelta,
             MAX_TIMELINE_SCALE,
           );
           project.viewport.setScale(expectedNewScale, mouseX);
@@ -129,9 +95,9 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
 
         // pan
         else {
-          const start = Math.max(project.viewport.viewportStartPx.get() + e.deltaX, 0);
+          const start = Math.max(project.viewport.scrollLeftPx.get() + e.deltaX, 0);
           flushSync(() => {
-            project.viewport.viewportStartPx.set(start);
+            project.viewport.scrollLeftPx.set(start);
           });
         }
       },
@@ -230,29 +196,22 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
         );
       })}
       {draggingOver && (
-        <div style={{ padding: "16px", pointerEvents: "none", position: "relative" }}>
+        <div className="relative pointer-events-none" style={{ padding: "16px" }}>
           Create a new track from audio
         </div>
       )}
       {/*  */}
       <TimelineCursor project={project} />
-      <div ref={playbackPosDiv} className={classes.playbackPosDiv}></div>
+      <div
+        ref={playbackPosDiv}
+        className={cn(
+          "name-playback-pos-div",
+          "bg-cursor-playback w-px h-full absolute left-0 top-0 select-none pointer-events-none",
+        )}
+      ></div>
 
       {loopPlayback && <TimelineLine project={project} pos={project.loopStart} color={"rgb(255,165,0)"} />}
-      {loopPlayback && <TimelineLine project={project} pos={project.loopEnd} color={"rgb(255,165,0)"} />}
+      {loopPlayback && <TimelineLine project={project} pos={project.loopEnd} color={"rgb(255,165,0)"} adjust={-1} />}
     </div>
   );
 }
-
-export const useStyles = createUseStyles({
-  playbackPosDiv: {
-    background: "var(--cursor-playback)",
-    width: "1px",
-    height: "100%",
-    position: "absolute",
-    left: 0,
-    top: 0,
-    userSelect: "none",
-    pointerEvents: "none",
-  },
-});

@@ -30,7 +30,6 @@ export const ClipA = React.memo(function ClipAImpl({
 }) {
   const totalBufferWidth = project.viewport.secsToPx(clip.bufferLength);
   const bufferOffsetPx = project.viewport.secsToPx(clip.bufferOffset.secs(project));
-  const height = CLIP_HEIGHT - 3; // to clear the bottom track separator gridlines
   const bufferOffset = useContainer(clip.bufferOffset);
 
   const timelineStart = useContainer(clip.timelineStart);
@@ -122,8 +121,8 @@ export const ClipA = React.memo(function ClipAImpl({
   );
 
   const [projectDivWidth] = usePrimitive(project.viewport.projectDivWidth);
-  const [viewportStartPx] = usePrimitive(project.viewport.viewportStartPx);
-  const [scale] = usePrimitive(project.viewport.scaleFactor);
+  const [viewportStartPx] = usePrimitive(project.viewport.scrollLeftPx);
+  const [scale] = usePrimitive(project.viewport.pxPerSecond);
 
   const canvasOffset = relu(viewportStartPx - project.viewport.pxOfTime(timelineStart));
   const cWidth = width - relu(left + width - projectDivWidth) + viewportStartPx - canvasOffset;

@@ -11,7 +11,7 @@ import { pressedState } from "./pressedState";
 export function LoopMarkers({ project }: { project: AudioProject }) {
   const styles = useStyles();
   // for observing
-  usePrimitive(project.viewport.viewportStartPx);
+  usePrimitive(project.viewport.scrollLeftPx);
   const loopStart = useContainer(project.loopStart);
   const loopEnd = useContainer(project.loopEnd);
   const [selected] = useLinkAsState(project.selected);
@@ -19,7 +19,7 @@ export function LoopMarkers({ project }: { project: AudioProject }) {
 
   // just to listen to it
   // todo: a way to subscribe to any viewport change?
-  usePrimitive(project.viewport.scaleFactor);
+  usePrimitive(project.viewport.pxPerSecond);
   const startX = loopStart.px(project);
   const endX = loopEnd.px(project);
 

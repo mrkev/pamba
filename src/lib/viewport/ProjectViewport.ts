@@ -17,8 +17,6 @@ type AutoProjectViewport = {
 export type XScale = ScaleLinear<number, number>;
 
 export class ProjectViewport extends Structured<AutoProjectViewport, typeof ProjectViewport> {
-  readonly project: AudioProject;
-
   // 1 sec corresponds to 10 px
   readonly secsToPxDS: DerivedState<(factor: number) => XScale>;
   // factor 2: 1sec => 2px
@@ -26,19 +24,18 @@ export class ProjectViewport extends Structured<AutoProjectViewport, typeof Proj
   // etc
 
   constructor(
-    project: AudioProject,
+    readonly project: AudioProject,
     readonly projectDivWidth: SNumber,
 
     // the zoom level. min scale is 0.64, max is 1000.
     // Px per second. Therefore, small = zoom out. big = zoom in.
-    readonly scaleFactor: SNumber,
+    readonly pxPerSecond: SNumber,
     // the "left" CSS position for the first second visible in the project div
-    readonly viewportStartPx: SNumber,
+    readonly scrollLeftPx: SNumber,
   ) {
     super();
-    this.project = project;
     this.secsToPxDS = DerivedState.from(
-      [this.scaleFactor],
+      [this.pxPerSecond],
       (factor: number) =>
         scaleLinear()
           .domain([0, 1])
@@ -49,13 +46,13 @@ export class ProjectViewport extends Structured<AutoProjectViewport, typeof Proj
   }
 
   override replace(autoJson: JSONOfAuto<AutoProjectViewport>, replace: ReplaceFunctions): void {
-    replace.number(autoJson.scaleFactor, this.scaleFactor);
-    replace.number(autoJson.viewportStartPx, this.viewportStartPx);
+    replace.number(autoJson.scaleFactor, this.pxPerSecond);
+    replace.number(autoJson.viewportStartPx, this.scrollLeftPx);
   }
   override autoSimplify(): AutoProjectViewport {
     return {
-      viewportStartPx: this.viewportStartPx,
-      scaleFactor: this.scaleFactor,
+      viewportStartPx: this.scrollLeftPx,
+      scaleFactor: this.pxPerSecond,
     };
   }
 
@@ -76,15 +73,15 @@ export class ProjectViewport extends Structured<AutoProjectViewport, typeof Proj
   setScale(expectedNewScale: number, mouseX: number = 0) {
     // min scale is 0.64, max is 1000
     const newScale = clamp(0.64, expectedNewScale, 1000);
-    const currentScaleFactor = this.scaleFactor.get();
+    const currentScaleFactor = this.pxPerSecond.get();
     const scaleFactorFactor = expectedNewScale / currentScaleFactor;
 
-    this.scaleFactor.set(newScale);
-    const newStartPx = (this.viewportStartPx.get() + mouseX) * scaleFactorFactor - mouseX;
+    this.pxPerSecond.set(newScale);
+    const newStartPx = (this.scrollLeftPx.get() + mouseX) * scaleFactorFactor - mouseX;
     if (newStartPx < 0) {
-      this.viewportStartPx.set(0);
+      this.scrollLeftPx.set(0);
     } else {
-      this.viewportStartPx.set(newStartPx);
+      this.scrollLeftPx.set(newStartPx);
     }
 
     // this.viewportStartPx.setDyn((prev) => {
@@ -111,7 +108,7 @@ export class ProjectViewport extends Structured<AutoProjectViewport, typeof Proj
 
   secsToPx(s: number, factorOverride?: number) {
     // console.log("using factor", factorOverride, "instead of ", this.project.scaleFactor.get());
-    const factor = factorOverride ?? this.scaleFactor.get();
+    const factor = factorOverride ?? this.pxPerSecond.get();
     return s * factor;
   }
 
@@ -121,7 +118,7 @@ export class ProjectViewport extends Structured<AutoProjectViewport, typeof Proj
   }
 
   pxToSecs(px: number, factorOverride?: number) {
-    const factor = factorOverride ?? this.scaleFactor.get();
+    const factor = factorOverride ?? this.pxPerSecond.get();
     return px / factor;
   }
 
@@ -132,7 +129,7 @@ export class ProjectViewport extends Structured<AutoProjectViewport, typeof Proj
   }
 
   secsToViewportPx(s: number): number {
-    const viewportStartPx = this.viewportStartPx.get();
+    const viewportStartPx = this.scrollLeftPx.get();
     return this.secsToPx(s) - viewportStartPx;
   }
 
@@ -143,7 +140,7 @@ export class ProjectViewport extends Structured<AutoProjectViewport, typeof Proj
   }
 
   timeForPx(px: number): number {
-    const viewportStartPx = this.viewportStartPx.get();
+    const viewportStartPx = this.scrollLeftPx.get();
     return this.pxToSecs(px + viewportStartPx);
   }
 

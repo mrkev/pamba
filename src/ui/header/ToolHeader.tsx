@@ -22,7 +22,7 @@ import { PlaybackControl } from "./TransportControl";
 import { useCallback } from "react";
 
 function ScaleFactorSlider({ project }: { project: AudioProject }) {
-  const [scaleFactor] = usePrimitive(project.viewport.scaleFactor);
+  const [scaleFactor] = usePrimitive(project.viewport.pxPerSecond);
 
   return (
     <input
@@ -34,7 +34,7 @@ function ScaleFactorSlider({ project }: { project: AudioProject }) {
       title="Zoom level"
       onChange={(e) => {
         const cursorPosSecs = project.cursorPos.get();
-        const cursorPosPx = project.viewport.secsToPx(cursorPosSecs) - project.viewport.viewportStartPx.get();
+        const cursorPosPx = project.viewport.secsToPx(cursorPosSecs) - project.viewport.scrollLeftPx.get();
         const projectDivWidth = project.viewport.projectDivWidth.get();
         const expectedNewScale = Math.exp(parseFloat(e.target.value));
 
@@ -115,7 +115,7 @@ export function ToolHeader({
             />
 
             <CommandMenu
-              label={"track"}
+              label={"create"}
               items={[
                 ["audio track", documentCommands.getById("createAudioTrack")],
                 ["midi track", documentCommands.getById("createMidiTrack")],

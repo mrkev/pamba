@@ -2,7 +2,6 @@ import React, { useCallback, useRef, useState } from "react";
 import { useContainer } from "structured-state";
 import { MIN_TRACK_HEIGHT, TRACK_HEADER_WIDTH } from "../constants";
 import { documentCommands } from "../input/documentCommands";
-import { useAxisContainerMouseEvents } from "../input/useProjectMouseEvents";
 import { AnalizedPlayer } from "../lib/io/AnalizedPlayer";
 import { AudioProject } from "../lib/project/AudioProject";
 import { cn } from "../utils/cn";
@@ -24,13 +23,10 @@ export const TrackHeaderContainer = React.memo(function TrackHeaderContainerImpl
   player: AnalizedPlayer;
   className?: string;
 }) {
-  const axisContainerRef = useRef<HTMLDivElement | null>(null);
   const tracks = useContainer(project.allTracks);
   const containerRef = useRef<HTMLDivElement>(null);
   const dropzonesRef = useRef<(HTMLDivElement | null)[]>([]);
   const [highlightedDropzone, setHighlightedDropzone] = useState<number | null>(null);
-
-  useAxisContainerMouseEvents(project, axisContainerRef);
 
   useDropzoneBehaviour(
     containerRef,

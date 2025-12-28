@@ -1,26 +1,36 @@
 import { useContainer, usePrimitive } from "structured-state";
 import { AudioProject } from "../lib/project/AudioProject";
-import { useDerivedState } from "../lib/state/DerivedState";
 import { TimelineT } from "../lib/project/TimelineT";
+import { useDerivedState } from "../lib/state/DerivedState";
+import { cn } from "../utils/cn";
 
-export function TimelineLine({ project, pos, color }: { project: AudioProject; pos: TimelineT; color: string }) {
+export function TimelineLine({
+  project,
+  pos,
+  color,
+  adjust = 0,
+}: {
+  project: AudioProject;
+  pos: TimelineT;
+  color: string;
+  adjust?: number;
+}) {
   const linePos = useContainer(pos);
 
   // just to listen to it
   // todo: a way to subscribe to any viewport change?
-  usePrimitive(project.viewport.scaleFactor);
-  const [viewportStartPx] = usePrimitive(project.viewport.viewportStartPx);
+  usePrimitive(project.viewport.pxPerSecond);
+  const [viewportStartPx] = usePrimitive(project.viewport.scrollLeftPx);
+
+  // some lines look better with a little adjustmet of -1 pixel, especially the end loop marker
+  const left = linePos.px(project) + viewportStartPx + adjust;
 
   return (
     <div
+      className="absolute top-0 h-full select-none pointer-events-none"
       style={{
         borderLeft: `1px solid ${color}`,
-        height: "100%",
-        position: "absolute",
-        userSelect: "none",
-        pointerEvents: "none",
-        left: linePos.px(project) + viewportStartPx - 1, // looks better with the -1 I think, especially loop markers
-        top: 0,
+        left,
       }}
     />
   );
@@ -66,16 +76,13 @@ export function TimelineCursor({ project, isHeader }: { project: AudioProject; i
 
   return (
     <div
+      className={cn(
+        "absolute top-0 h-full select-none pointer-events-none border-l border-l-cursor",
+        selectionWidth !== 0 && "border-r border-r-cursor",
+      )}
       style={{
-        borderLeft: "1px solid var(--cursor)",
-        borderRight: selectionWidth === 0 ? undefined : "1px solid white",
-        height: "100%",
-        position: "absolute",
-        userSelect: "none",
-        pointerEvents: "none",
         left: selectionWidth >= 0 ? secsToPx(cursorPos) : secsToPx(cursorPos + selectionWidth),
         width: selectionWidth === 0 ? 0 : Math.floor(secsToPx(Math.abs(selectionWidth)) - 1),
-        top: 0,
       }}
     />
   );

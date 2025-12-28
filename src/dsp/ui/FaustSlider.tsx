@@ -15,6 +15,7 @@ export function FaustSlider({
   effect: FaustAudioEffect;
   direction: "vertical" | "horizontal";
 }) {
+  console.log(item);
   const [midiLearning, setMidiLearning] = usePrimitive(appEnvironment.midiLearning);
   const isHorizontal = direction === "horizontal";
   const { label, min, max, step, address } = item;

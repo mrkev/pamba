@@ -107,13 +107,13 @@ function getBeatTickData(
 }
 
 export function Axis({ project, isHeader = false }: { project: AudioProject; isHeader?: boolean }) {
-  const [viewportStartPx] = usePrimitive(project.viewport.viewportStartPx);
+  const [viewportStartPx] = usePrimitive(project.viewport.scrollLeftPx);
   const [projectDivWidth] = usePrimitive(project.viewport.projectDivWidth);
   const [tempo] = usePrimitive(project.tempo);
   const [timeSignature] = usePrimitive(project.timeSignature);
   const [primaryAxis] = usePrimitive(project.primaryAxis);
   // for updating when changing scale
-  usePrimitive(project.viewport.scaleFactor);
+  usePrimitive(project.viewport.pxPerSecond);
 
   const timeTicksS = getTimeTickData(project, viewportStartPx, projectDivWidth);
   const tempoTicks = getBeatTickData(project, viewportStartPx, projectDivWidth, tempo);

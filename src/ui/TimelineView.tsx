@@ -5,7 +5,6 @@ import { createUseStyles } from "react-jss";
 import { usePrimitive } from "structured-state";
 import { TRACK_HEADER_WIDTH } from "../constants";
 import { useAxisContainerMouseEvents } from "../input/useProjectMouseEvents";
-import { AnalizedPlayer } from "../lib/io/AnalizedPlayer";
 import { AudioRenderer } from "../lib/io/AudioRenderer";
 import { AudioProject } from "../lib/project/AudioProject";
 import { cn } from "../utils/cn";
@@ -15,18 +14,10 @@ import { LoopMarkers } from "./LoopMarkers";
 import { ProjectView } from "./ProjectView";
 import { TrackHeaderContainer } from "./TrackHeaderContainer";
 
-export function TimelineView({
-  project,
-  player,
-  renderer,
-}: {
-  project: AudioProject;
-  player: AnalizedPlayer;
-  renderer: AudioRenderer;
-}) {
+export function TimelineView({ project, renderer }: { project: AudioProject; renderer: AudioRenderer }) {
   const classes = useStyles();
   const axisContainerRef = useRef<HTMLDivElement | null>(null);
-  const [viewportStartPx] = usePrimitive(project.viewport.viewportStartPx);
+  const [viewportStartPx] = usePrimitive(project.viewport.scrollLeftPx);
   const [activePanel] = useLinkAsState(project.activePanel);
 
   useAxisContainerMouseEvents(project, axisContainerRef);
@@ -41,33 +32,14 @@ export function TimelineView({
         "grid overflow-y-scroll overflow-x-hidden h-full w-full grow",
       )}
     >
-      {/* <div
-        className={classes.axisSpacer}
-        style={{
-          borderTop: activePanel === "primary" ? "4px solid var(--timeline-text)" : "4px solid var(--timeline-tick)",
-          background: "var(--timeline-bg)",
-          height: "unset",
-          borderBottom: "1px solid var(--axis-timeline-separator)",
-        }}
-      >
-        {"↓"}
-      </div> */}
-
-      {/* axisContainer: {
-    position: "sticky",
-    top: 0,
-    left: 0,
-    zIndex: 2,
-    background: "var(--timeline-bg)",
-    borderBottom: "1px solid var(--axis-timeline-separator)",
-  }, */}
       <div
         ref={axisContainerRef}
         className={cn(
-          classes.axisContainer,
+          "name-axis-container",
           "sticky bg-timeline-bg top-0 left-0 border-b border-b-axis-timeline-separator justify-evenly",
         )}
         style={{
+          zIndex: 2,
           borderTop: activePanel === "primary" ? "4px solid var(--timeline-text)" : "4px solid var(--timeline-tick)",
         }}
       >
@@ -87,22 +59,6 @@ export function TimelineView({
         {"↑"}
       </div>
 
-      {/* <div
-        className={classes.trackHeaders}
-        style={{
-          background: "var(--background)",
-        }}
-      >
-        <button
-          style={{
-            border: "none",
-            background: "var(--control-bg-color)",
-          }}
-        >
-          .
-        </button>
-      </div> */}
-
       {/* 2. Project */}
       <ProjectView project={project} renderer={renderer} />
 
@@ -110,7 +66,7 @@ export function TimelineView({
       <TrackHeaderContainer
         className={cn(activePanel === "primary" && "bg-panel-active-background")}
         project={project}
-        player={player}
+        player={renderer.analizedPlayer}
       />
     </div>
   );
@@ -142,16 +98,5 @@ const useStyles = createUseStyles({
     // the loop marker show underneath
     borderRight: "10px solid var(--background)",
     zIndex: 2,
-  },
-  axisContainer: {
-    zIndex: 2,
-  },
-  trackHeaders: {
-    position: "sticky",
-    right: 0,
-    zIndex: 1,
-    display: "flex",
-    flexDirection: "column",
-    flexShrink: 0,
   },
 });

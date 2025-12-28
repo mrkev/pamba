@@ -85,7 +85,7 @@ export function AppProject({ project }: { project: AudioProject }) {
             },
           }}
         />
-        <TimelineView project={project} player={renderer.analizedPlayer} renderer={renderer} />
+        <TimelineView project={project} renderer={renderer} />
       </div>
       <UtilityTabbedPanel
         activeTab={activeBottomPanel}

@@ -54,7 +54,7 @@ export function DebugContent({ project }: { project: AudioProject }) {
   const [pressed] = usePrimitive(pressedState);
   const [activeTrack] = usePrimitive(project.activeTrack);
   const cursorTracks = useContainer(project.cursorTracks);
-  const [viewportStartPx] = usePrimitive(project.viewport.viewportStartPx);
+  const [viewportStartPx] = usePrimitive(project.viewport.scrollLeftPx);
   const [projectDivWidth] = usePrimitive(project.viewport.projectDivWidth);
 
   if (window.location.host.indexOf("localhost") === -1) {

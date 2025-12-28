@@ -35,15 +35,14 @@ export function CursorSelection({
 
   return (
     <div
+      className="absolute h-full"
       style={{
-        backdropFilter: " invert(100%) brightness(0.9) saturate(0.8)",
+        backdropFilter: "invert(100%) brightness(0.9) saturate(0.8)",
         left:
           (selectionWidth == null || selectionWidth >= 0
             ? project.viewport.secsToPx(cursorPos)
             : project.viewport.secsToPx(cursorPos + selectionWidth)) + leftOffset,
         width: selectionWidth == null || selectionWidth === 0 ? 1 : project.viewport.secsToPx(Math.abs(selectionWidth)),
-        position: "absolute",
-        height: "100%",
       }}
     ></div>
   );

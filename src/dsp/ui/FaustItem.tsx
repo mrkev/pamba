@@ -47,7 +47,7 @@ export function FaustItem({ item, effect, arrPos }: { item: TFaustUIItem; effect
       return <button>button</button>;
 
     case "checkbox":
-      return <input type="checkbox">checkbox</input>;
+      return <input type="checkbox" />;
 
     case "nentry":
       return <div>nentry</div>;

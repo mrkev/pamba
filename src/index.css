@@ -23,6 +23,8 @@
   --color-timeline-tick: #595959;
   --color-axis-timeline-separator: #444343;
   --color-axis-spacer-headers-separator: #373535;
+  --color-cursor: white;
+  --color-cursor-playback: red;
   /* list */
   --color-utility-list-bg: #fff;
   --color-utility-list-bg-disabled: #ebebe4;

@@ -14,17 +14,18 @@ import {
   pointMoveSec,
 } from "../lib/clipMoveSec";
 import { AudioProject } from "../lib/project/AudioProject";
-import { snapped } from "../lib/viewport/ProjectViewport";
 import { ProjectTrack } from "../lib/ProjectTrack";
+import { snapped } from "../lib/viewport/ProjectViewport";
 import { MidiClip } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
 import { pressedState } from "../ui/pressedState";
 import { useDocumentEventListener, useEventListener } from "../ui/useEventListener";
+import { usePointerPressMove } from "../ui/usePointerPressMove";
 import { exhaustive } from "../utils/exhaustive";
 import { clamp } from "../utils/math";
 
 export function timelineSecs(e: MouseEvent, projectDiv: HTMLDivElement, project: AudioProject) {
-  const viewportStartPx = project.viewport.viewportStartPx.get();
+  const viewportStartPx = project.viewport.scrollLeftPx.get();
   const position = {
     x: e.clientX + projectDiv.scrollLeft - projectDiv.getBoundingClientRect().x,
     y: e.clientY + projectDiv.scrollTop - projectDiv.getBoundingClientRect().y,
@@ -44,15 +45,11 @@ export function useAxisContainerMouseEvents(
         return;
       }
 
-      if (project.pointerTool.get() != "move") {
-        return;
-      }
-
       if (e.button !== 0) {
         return;
       }
 
-      const viewportStartPx = project.viewport.viewportStartPx.get();
+      const viewportStartPx = project.viewport.scrollLeftPx.get();
       const position = {
         x: e.clientX + div.scrollLeft - div.getBoundingClientRect().x,
         y: e.clientY + div.scrollTop - div.getBoundingClientRect().y,
@@ -73,7 +70,9 @@ export function useAxisContainerMouseEvents(
     [axisContainer, project],
   );
 
-  useEventListener("pointerdown", axisContainer, pointerDownCallback);
+  usePointerPressMove(axisContainer, {
+    down: pointerDownCallback,
+  });
 }
 
 export function useTimelineMouseEvents(
