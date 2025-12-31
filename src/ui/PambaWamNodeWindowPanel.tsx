@@ -65,17 +65,8 @@ export function PambaWamNodeWindowPanel({ effect, onClose }: { effect: PambaWamN
       <WamPluginContent wam={effect} />
       {showInfo && (
         <div
-          style={{
-            position: "absolute",
-            background: "rgba(0,0,0,0.9)",
-            top: 0,
-            left: 0,
-            zIndex: 10,
-            width: "100%",
-            height: "100%",
-            fontFamily: "monospace",
-            overflow: "scroll",
-          }}
+          className="absolute top-0 left-0 z-10 w-full h-full overflow-scroll bg-black/90"
+          style={{ fontFamily: "monospace" }}
         >
           {printInfo((effect.wamInstance as any)["_descriptor"])}
         </div>

@@ -5,6 +5,7 @@ next
 - fix persisting effects
 - looping line markers
 - new sliders in faust effects
+- play midi via external device on armed midi tracks
 
 v0.2.6
 - add pro54 and TX81Z synths

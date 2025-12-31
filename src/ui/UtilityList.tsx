@@ -27,6 +27,7 @@ export function UtilityDataList<T>({
   onDragEnd: dragEnd,
   onKeydown,
   disabled: listDisabled,
+  className,
 }: {
   items: ListEntry<T>[];
   onItemFocus?: (item: ListItem<T>) => void;
@@ -37,6 +38,7 @@ export function UtilityDataList<T>({
   draggable?: boolean;
   disabled?: boolean;
   filter?: string;
+  className?: string;
 }) {
   const classes = useStyles();
 
@@ -54,9 +56,10 @@ export function UtilityDataList<T>({
   return (
     <div
       className={classNames(
-        "flex flex-col grow shrink overflow-y-scroll text-control-text-color bg-utility-list-bg",
+        "flex flex-col grow shrink overflow-y-scroll text-control-text-color bg-utility-list-bg text-left",
         classes.list,
         listDisabled && "pointer-events-none bg-utility-list-bg-disabled",
+        className,
       )}
       aria-disabled={listDisabled}
     >

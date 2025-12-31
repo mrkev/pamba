@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef } from "react";
+import { cn } from "../utils/cn";
 import { nullthrows } from "../utils/nullthrows";
 import { RenamableLabel } from "./RenamableLabel";
 
@@ -57,11 +58,18 @@ export function UtilityNumber({
   onChange,
   decimals = 0,
   style,
+  // TODO
+  min,
+  max,
+  step,
 }: {
   value: number;
   onChange?: (v: number) => void;
   decimals?: number;
   style?: React.CSSProperties;
+  min?: number;
+  max?: number;
+  step?: number;
 }) {
   const divRef = useRef<HTMLDivElement>(null);
   useMouseDrag(
@@ -86,16 +94,9 @@ export function UtilityNumber({
 
   return (
     <>
-      <div
-        style={{
-          textAlign: "center",
-          // width: 17,
-          padding: "0px",
-          ...style,
-        }}
-        className="utilityButton"
-      >
+      <div className={cn("utilityButton", "text-center p-0")} style={style}>
         <RenamableLabel
+          className={cn("utilityButton", "justify-center py-0 text-control-text-color")}
           value={String(value)}
           setValue={function (newVal: string): void {
             const val = parseFloat(newVal);
@@ -104,14 +105,7 @@ export function UtilityNumber({
             }
             onChange?.(val);
           }}
-          style={{
-            justifyContent: "center",
-            width: 20,
-            paddingTop: 0,
-            paddingBottom: 0,
-            color: "var(--control-text-color)",
-          }}
-          className="utilityButton"
+          style={{ width: 20 }}
         ></RenamableLabel>
       </div>
     </>

@@ -1,8 +1,6 @@
-import { useRef, useState, useEffect, useCallback, useId } from "react";
-import { useEventListener } from "./useEventListener";
-import { countDecimals } from "../utils/math";
-import { createUseStyles } from "react-jss";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { cn } from "../utils/cn";
+import { useEventListener } from "./useEventListener";
 
 // TODO: exponential for better decibel granularity (ableton is from -70db = Inf, to 6db)
 //       maybe just a straight-up decibel "unit" mode
@@ -16,6 +14,7 @@ export function UtilityNumberSlider({
   onChange,
   formatValue,
   vertical,
+  className,
 }: {
   value: number;
   min: number;
@@ -23,6 +22,7 @@ export function UtilityNumberSlider({
   onChange: (val: number) => void;
   formatValue?: (val: number) => string;
   vertical?: boolean;
+  className?: string;
 }): React.ReactElement {
   const ref = useRef<HTMLInputElement | null>(null);
   const [_typingValue, setTypingValue] = useState<string | null>(null);
@@ -138,26 +138,20 @@ export function UtilityNumberSlider({
 
   return (
     <div
+      className={cn("relative text-center", className)}
       style={{
-        position: "relative",
-        textAlign: "center",
         height: 18,
-        flexGrow: 1,
       }}
     >
       <input
+        className={cn("utilitySlider", "w-full m-0 p-0 h-full")}
         ref={ref}
         style={{
-          width: "100%",
-          margin: 0,
-          padding: 0,
           // position: "absolute",
           // left: 0,
-          height: "100%",
           writingMode: vertical ? "vertical-lr" : undefined,
           direction: vertical ? "rtl" : undefined,
         }}
-        className={"utilitySlider"}
         type="range"
         max={max}
         min={min}
@@ -169,19 +163,13 @@ export function UtilityNumberSlider({
         }}
       />
       <span
+        className="absolute text-control-text-color left-0 top-px pointer-events-none w-full inline-block"
         style={{
-          position: "absolute",
           // textAlign: "center",
           // verticalAlign: "middle",
           // position: "absolute",
-          color: "var(--control-text-color)",
-          left: 0,
-          top: 1,
-          pointerEvents: "none",
-          width: "100%",
           paddingTop: 2,
           fontSize: "10px",
-          display: "inline-block",
           lineHeight: "normal",
         }}
       >
@@ -198,10 +186,6 @@ export function UtilitySlider({
   value,
   vertical,
   onChange,
-  label,
-  style,
-  onClick,
-  onMouseDownCapture,
   ...rest
 }: Omit<React.InputHTMLAttributes<HTMLInputElement>, "value" | "step" | "min" | "max"> & {
   vertical?: boolean;
@@ -212,78 +196,37 @@ export function UtilitySlider({
   max?: number;
 }) {
   const id = useId();
-  const styles = useStyles();
-
-  const stepDecimals = countDecimals(step ?? 0);
-  const minSize = Math.max((min ?? 0).toFixed(stepDecimals).length, (max ?? 0).toFixed(stepDecimals).length);
-  const renderValue = value.toFixed(countDecimals(step ?? 0)).padStart(minSize, "\xa0"); // Non-breakable space is char 0xa0 (160 dec)
 
   return (
-    <div
-      className={cn(styles.container, "flex h-full items-center relative")}
-      onClick={onClick}
-      onMouseDownCapture={onMouseDownCapture}
+    <input
+      id={id}
+      className={cn("utilitySliderS", "m-0 p-0")}
+      type="range"
+      min={min}
+      max={max}
+      step={step}
+      value={value}
       style={{
-        flexDirection: vertical ? "column-reverse" : "row",
-        // border: document.activeElement?.id === id ? "1px solid red" : undefined,
-        ...style,
+        flexShrink: 4,
+        writingMode: vertical ? "vertical-lr" : undefined,
+        direction: vertical ? "rtl" : undefined,
       }}
-    >
-      <label className="whitespace-nowrap" htmlFor={id}>
-        {label}
-      </label>
-      <span
-        className="whitespace-nowrap pointer-events-none"
-        style={{
-          fontFamily: "monospace",
-          fontSize: 10,
-          // position: "absolute",
-          // writingMode: vertical ? "vertical-lr" : undefined,
-          // [vertical ? "top" : "right"]: 8,
-          // mixBlendMode: "overlay",
-          // color: "var(--background)",
-        }}
-      >
-        {renderValue}
-      </span>
-      <input
-        id={id}
-        className={cn("utilitySliderS", "m-0 p-0")}
-        type="range"
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        style={{
-          flexShrink: 4,
-          writingMode: vertical ? "vertical-lr" : undefined,
-          direction: vertical ? "rtl" : undefined,
-        }}
-        onKeyDown={(e) => {
-          switch (e.key) {
-            case "ArrowUp":
-            case "ArrowDown":
-            case "ArrowLeft":
-            case "ArrowRight":
-            case "Tab":
-              // allow these keys to act as they should
-              return;
-          }
+      onKeyDown={(e) => {
+        switch (e.key) {
+          case "ArrowUp":
+          case "ArrowDown":
+          case "ArrowLeft":
+          case "ArrowRight":
+          case "Tab":
+            // allow these keys to act as they should
+            return;
+        }
 
-          console.log(e, e.key);
-          e.preventDefault();
-        }}
-        onChange={onChange}
-        {...rest}
-      />
-    </div>
+        console.log(e, e.key);
+        e.preventDefault();
+      }}
+      onChange={onChange}
+      {...rest}
+    />
   );
 }
-
-const useStyles = createUseStyles({
-  container: {
-    columnGap: 3,
-    rowGap: 3,
-    fontSize: 10,
-  },
-});

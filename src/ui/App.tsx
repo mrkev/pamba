@@ -16,12 +16,11 @@ const NON_PASSIVE = { passive: false };
 export function App(): React.ReactElement {
   const [projectStatus] = usePrimitive(appEnvironment.projectStatus);
 
+  // Prevent trackpad from zooming in
   useDocumentEventListener(
     "wheel",
     useCallback((e) => {
-      if (e.ctrlKey) {
-        e.preventDefault();
-      }
+      if (e.ctrlKey) e.preventDefault();
     }, []),
     NON_PASSIVE,
   );

@@ -149,6 +149,7 @@ export const TrackHeader = React.memo(function TrackHeader({
             M
           </button>
           <UtilityNumberSlider
+            className="grow"
             value={gain}
             min={0}
             max={2}
