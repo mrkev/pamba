@@ -252,7 +252,7 @@ export class LinkedArray<S> implements ArrayWithoutIndexer<S>, Subbable<Readonly
   }
   flatMap<U, This = undefined>(
     callback: (this: This, value: S, index: number, array: S[]) => U | readonly U[],
-    thisArg?: This
+    thisArg?: This,
   ): U[] {
     throw new Error("Method not implemented.");
   }
@@ -296,7 +296,7 @@ export function useLinkedArray<S>(linkedSet: LinkedArray<S>): [LinkedArray<S>, S
         linkedSet._setRaw(newVal);
       }
     },
-    [linkedSet]
+    [linkedSet],
   );
 
   return [linkedSet, setter];
@@ -312,20 +312,4 @@ export function useObserveLinkedArray<S>(linkedSet: LinkedArray<S>): LinkedArray
   }, [linkedSet]);
 
   return linkedSet;
-}
-
-export function useLinkedArrayMaybe<S>(linkedArray: LinkedArray<S> | null): readonly S[] | null {
-  const [state, setState] = useState(() => linkedArray?._getRaw() ?? null);
-
-  useEffect(() => {
-    if (linkedArray == null) {
-      return;
-    }
-    setState(linkedArray._getRaw());
-    return subscribe(linkedArray, (newVal) => {
-      setState(() => newVal);
-    });
-  }, [linkedArray]);
-
-  return state;
 }

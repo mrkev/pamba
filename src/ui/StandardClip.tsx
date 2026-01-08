@@ -18,6 +18,7 @@ export function StandardClip({
   onClipClick,
   children,
   ref,
+  className,
 }: {
   clip: AudioClip | MidiClip;
   isSelected: boolean;
@@ -28,6 +29,7 @@ export function StandardClip({
   onClipClick: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
   children?: React.ReactNode;
   ref?: React.Ref<HTMLDivElement>;
+  className?: string;
 }) {
   const project = appEnvironment.ensureProject();
 
@@ -35,8 +37,9 @@ export function StandardClip({
   const timelineLength = useContainer(clip.timelineLength);
   const [tool] = usePrimitive(project.pointerTool);
 
-  const width = project.viewport.pulsesToPx(timelineLength.pulses(project));
-  const left = Math.floor(project.viewport.pulsesToPx(timelienStart.pulses(project)));
+  // looks better adding this 0.5px margin to left and right
+  const width = project.viewport.pulsesToPx(timelineLength.pulses(project)) - 0.5;
+  const left = Math.floor(project.viewport.pulsesToPx(timelienStart.pulses(project))) + 0.5;
   const resizerStartRef = useRef<HTMLDivElement>(null);
   const resizerEndRef = useRef<HTMLDivElement>(null);
 
@@ -54,13 +57,6 @@ export function StandardClip({
     }, []),
   );
 
-  // usePointerPressMove(resizerStartRef, {});
-  // usePointerPressMove(resizerEndRef, {
-  //   down: (e) => onMouseDownToResize(e, "end"),
-  //   move: () => console.log("move"),
-  //   up: () => console.log("up"),
-  // });
-
   const resizable = editable && tool == "move";
 
   return (
@@ -70,6 +66,7 @@ export function StandardClip({
         "bg-clip-color absolute",
         "rounded-sm",
         isSelected ? "border border-clip-border-selected" : "border border-clip-color",
+        className,
       )}
       ref={ref}
       onClick={onClipClick}
@@ -82,7 +79,7 @@ export function StandardClip({
       <div
         className={cn(
           "name-clip-header",
-          "whitespace-nowrap overflow-hidden shrink-0",
+          "whitespace-nowrap overflow-hidden shrink-0 cursor-move",
           "text-clip-border-selected",
           isSelected && "bg-clip-border-selected text-white",
         )}
@@ -100,14 +97,14 @@ export function StandardClip({
       {resizable && (
         <div
           ref={resizerStartRef}
-          className={styles.resizerStart}
+          className={cn("absolute top-0 h-full cursor-ew-resize", styles.resizerStart)}
           onMouseDownCapture={(e) => onMouseDownToResize(e, "start")}
         />
       )}
       {resizable && (
         <div
           ref={resizerEndRef}
-          className={styles.resizerEnd}
+          className={cn("absolute top-0 h-full cursor-ew-resize", styles.resizerEnd)}
           onMouseDownCapture={(e) => onMouseDownToResize(e, "end")}
         />
       )}
@@ -131,19 +128,11 @@ const useStyles = createUseStyles({
   resizerEnd: {
     width: 10,
     background: "rgba(0,0,0,0)",
-    height: "100%",
-    position: "absolute",
     right: -5,
-    top: 0,
-    cursor: "ew-resize",
   },
   resizerStart: {
     width: 10,
     background: "rgba(0,0,0,0)",
-    height: "100%",
-    position: "absolute",
     left: -5,
-    top: 0,
-    cursor: "ew-resize",
   },
 });

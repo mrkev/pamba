@@ -1,5 +1,5 @@
 import { useLink } from "marked-subbable";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { usePrimitive } from "structured-state";
 import { AudioPackage } from "../data/AudioPackage";
 import { niceBytes } from "../data/niceBytes";
@@ -15,18 +15,30 @@ type AsyncResult<T> =
   | Readonly<{ status: "rejected"; error: any }>
   | Readonly<{ status: "resolved"; value: T }>
   | Readonly<{ status: "pending" }>;
+
 function useAsync<T>(promise: Promise<T>): AsyncResult<T> {
   const [result, setResult] = useState<AsyncResult<T>>(STATUS_PENDING);
+  const promiseRef = useRef(promise);
 
   useEffect(() => {
+    promiseRef.current = promise;
     setResult(STATUS_PENDING);
   }, [promise]);
 
   useEffect(() => {
     promise
-      .then((v) => setResult({ status: "resolved", value: v }))
-      .catch((e) => setResult({ status: "rejected", error: e }));
+      .then((v) => {
+        // promise could've changed
+        if (promise === promiseRef.current) return;
+        setResult({ status: "resolved", value: v });
+      })
+      .catch((e) => {
+        // promise could've changed
+        if (promise !== promiseRef.current) return;
+        setResult({ status: "rejected", error: e });
+      });
   }, [promise]);
+
   return result;
 }
 

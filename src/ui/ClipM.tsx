@@ -29,6 +29,7 @@ export function ClipM({
       if (tool !== "move" || !editable || track == null) {
         return;
       }
+      console.log("MOUSE DOWN TO RESIZE");
       clipMouseDownToResize(e, { kind: "midi", clip, track }, from);
     },
     [clip, editable, project.pointerTool, track],

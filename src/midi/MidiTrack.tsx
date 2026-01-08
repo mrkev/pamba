@@ -18,6 +18,7 @@ import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
 import { appEnvironment, defaultInstrument, liveWamHostGroupId } from "../lib/AppEnvironment";
 import { PBGainNode } from "../lib/offlineNodes";
 import { AudioProject } from "../lib/project/AudioProject";
+import { timelineT } from "../lib/project/TimelineT";
 import { StandardTrack } from "../lib/ProjectTrack";
 import { ProjectTrackDSP } from "../lib/ProjectTrackDSP";
 import { nullthrows } from "../utils/nullthrows";
@@ -132,7 +133,7 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
     // connect instrument to rest of track dsp
     this.dsp.connectToDSPForPlayback(this.instrument.get().pambaWam.node);
 
-    if (clips.length === 0) this.createSampleMidiClip();
+    if (clips.length === 0) midiTrack.createSampleMidiClip(this);
   }
 
   static async createDefault(name: string = "midi track", clips: MidiClip[] = []) {
@@ -177,14 +178,6 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
 
     console.log("chagned instrument to", instrument.url);
     await liveAudioContext().resume();
-  }
-
-  public createSampleMidiClip() {
-    const newClip = MidiClip.of("new midi clip", 0, 96, []);
-    for (const note of SAMPLE_STATE.clips.default.notes) {
-      MidiClip.addNote(newClip, note.tick, note.number, note.duration, note.velocity);
-    }
-    this.clips.push(newClip);
   }
 
   prepareForPlayback(project: AudioProject, context: AudioContext, startingAt: number): void {
@@ -341,6 +334,37 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
     });
   }
 }
+
+/** MidiTrack methods */
+export const midiTrack = {
+  /** Clip Management */
+
+  pushOrdered(project: AudioProject, track: MidiTrack, clip: MidiClip) {
+    if (track.clips.indexOf(clip) > -1) {
+      return false;
+    }
+
+    for (let i = 0; i < track.clips.length; i++) {
+      const n = nullthrows(track.clips.at(i), "impossible");
+      if (timelineT.compare(project, n.timelineStart, ">", clip.timelineStart)) {
+        track.clips.splice(i, 0, clip);
+        return true;
+      }
+    }
+
+    track.clips.push(clip);
+    return true;
+  },
+
+  createSampleMidiClip(track: MidiTrack) {
+    const newClip = MidiClip.of("new midi clip", 0, 96, []);
+    for (const note of SAMPLE_STATE.clips.default.notes) {
+      MidiClip.addNote(newClip, note.tick, note.number, note.duration, note.velocity);
+    }
+    // TODO: push in order?
+    track.clips.push(newClip);
+  },
+};
 
 const SAMPLE_STATE = {
   clips: {

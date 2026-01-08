@@ -4,7 +4,7 @@ import { AudioProject } from "../lib/project/AudioProject";
 import { MidiTrack } from "../midi/MidiTrack";
 import { EffectRack } from "./EffectRack";
 
-export function TrackEditor({
+export function MidiTrackEditor({
   track,
   project,
   renderer,
@@ -16,6 +16,9 @@ export function TrackEditor({
   return (
     <>
       <EffectRack track={track} project={project} renderer={renderer} />
+      {/* <ClipPropsEditor clip={clip} project={project} track={track} /> */}
     </>
   );
 }
+
+function AllMidiClipsEditor() {}

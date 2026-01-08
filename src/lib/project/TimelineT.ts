@@ -5,6 +5,7 @@ import { PPQN } from "../../wam/miditrackwam/MIDIConfiguration";
 import { Pulses, Seconds } from "../AbstractClip";
 import { exhaustive } from "../state/Subbable";
 import { AudioProject } from "./AudioProject";
+import { TimelineOperation } from "./TimelineOperation";
 
 export type TimeUnit = "pulses" | "seconds" | "bars";
 
@@ -198,7 +199,7 @@ export class TimelineT extends Structured<AutoTimelineT, typeof TimelineT> {
     return TimelineT.compare(project, this, "=", b);
   }
 
-  static compare(project: AudioProject, a: TimelineT, op: "<" | ">" | "=", b: TimelineT): boolean {
+  static compare(project: AudioProject, a: TimelineT, op: "<" | ">" | "=" | "<=" | ">=" | "!=", b: TimelineT): boolean {
     const aSecs = a.secs(project);
     const bSecs = b.secs(project);
 
@@ -209,6 +210,14 @@ export class TimelineT extends Structured<AutoTimelineT, typeof TimelineT> {
         return aSecs === bSecs;
       case ">":
         return aSecs > bSecs;
+      case "!=":
+        return aSecs != bSecs;
+      case "<=":
+        return aSecs <= bSecs;
+      case ">=":
+        return aSecs >= bSecs;
+      default:
+        throw exhaustive(op);
     }
   }
 
@@ -253,21 +262,8 @@ export function time(t: number, u: TimeUnit): TimelineT {
   return Structured.create(TimelineT, t, u);
 }
 
-class TimelineOperation {
-  constructor(
-    readonly op: "+",
-    readonly a: TimelineT,
-    readonly b: TimelineT,
-  ) {}
-
-  solve(u: TimeUnit, project: AudioProject): number {
-    switch (this.op) {
-      case "+":
-        return this.a.asUnit(u, project) + this.b.asUnit(u, project);
-    }
-  }
-}
-
-export function timeop(a: TimelineT, op: "+", b: TimelineT) {
-  return new TimelineOperation(op, a, b);
-}
+export const timelineT = {
+  compare(project: AudioProject, a: TimelineT, op: "<" | ">" | "=" | "<=" | ">=" | "!=", b: TimelineT): boolean {
+    return TimelineT.compare(project, a, op, b);
+  },
+};

@@ -18,10 +18,13 @@ export function UtilityTextInput({
   onChange?: (value: string) => void;
 }) {
   const [edit, setEdit] = useState(value);
-  const [editable] = useState(!disabled && onChange != null);
   const [skipBlurChange, setSkipBlurChange] = useState(false);
   const ref = useRef<HTMLInputElement>(null);
-  useEffect(() => setEdit(value), [value]);
+  useEffect(() => {
+    setEdit(value);
+  }, [value]);
+
+  const editable = !disabled && onChange != null;
 
   return (
     <input

@@ -116,7 +116,7 @@ export class AudioProject {
       SPrimitive.of<AudioTrack | null>(null),
       SPrimitive.of<MidiTrack | null>(null),
       number(DEFAULT_TEMPO),
-      boolean(false),
+      boolean(true),
       time(0, "pulses"),
       time(PPQN * 4, "pulses"),
       boolean(false),

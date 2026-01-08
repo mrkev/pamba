@@ -30,8 +30,5 @@
 }
 
 .utilityInput {
-  border: none;
-  background-color: var(--control-bg-color);
-  font-size: 11px;
-  padding: 2px 4px;
+  @apply border-0 bg-control-bg-color text-[11px] px-1 py-[2px];
 }

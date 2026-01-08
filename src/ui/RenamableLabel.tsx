@@ -1,25 +1,8 @@
 import classNames from "classnames";
-import { MouseEvent, useCallback, useEffect, useRef, useState } from "react";
+import { MouseEvent, useCallback, useRef, useState } from "react";
 import { createUseStyles } from "react-jss";
-
-function usePotentialInternalState<T>(
-  mode: "internal" | "external",
-  value: T,
-  setValue: (val: T) => void,
-): [T, (val: T) => void] {
-  const [internal, setInternal] = useState<T>(value);
-  useEffect(() => {
-    if (mode === "internal") {
-      setInternal(value);
-    }
-  }, [mode, value]);
-
-  if (mode === "internal") {
-    return [internal, setInternal];
-  } else {
-    return [value, setValue];
-  }
-}
+import { usePotentialInternalState } from "./usePotentialInternalState";
+import { cn } from "../utils/cn";
 
 export function RenamableLabel({
   value: eValue,
@@ -83,7 +66,8 @@ export function RenamableLabel({
         <input
           autoFocus
           ref={renameInputRef}
-          style={{ width: "100%", fontSize: "smaller" }}
+          className="w-full"
+          style={{ fontSize: "smaller" }}
           type="text"
           value={value}
           onChange={(e) => setValue(e.target.value)}
@@ -111,12 +95,12 @@ export function RenamableLabel({
           onBlur={() => setIsRenaming(false)}
         />
       ) : (
-        <span style={{ display: "flex", flexDirection: "row", alignItems: "baseline", gap: "0.25ch" }}>
+        <span className="flex flex-row items-baseline" style={{ gap: "0.25ch" }}>
           {value}{" "}
           {showEdit && (
             <i
-              style={{ cursor: "pointer", marginLeft: "1ch" }}
-              className="ri-edit-line"
+              style={{ marginLeft: "1ch" }}
+              className={cn("ri-edit-line", "cursor-pointer")}
               onClick={() => {
                 if (disabled) {
                   return;

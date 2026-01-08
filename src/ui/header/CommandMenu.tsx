@@ -3,9 +3,9 @@ import { createUseStyles } from "react-jss";
 import { Command } from "../../input/Command";
 import { AudioProject } from "../../lib/project/AudioProject";
 import { cn } from "../../utils/cn";
+import { keyStr } from "../KeyboardKey";
 import { utility } from "../utility";
 import { CommandButton } from "./CommandButton";
-import { KeyboardKey, keyStr } from "../KeyboardKey";
 
 export function CommandMenu({
   label,
@@ -15,7 +15,7 @@ export function CommandMenu({
   style,
 }: {
   label: string;
-  items: [string, Command][];
+  items: ([string, Command] | "separator")[];
   project: AudioProject;
   className?: string;
   style?: React.CSSProperties;
@@ -90,7 +90,13 @@ export function CommandMenu({
           borderBottom: "1px solid var(--control-subtle-highlight)",
         }}
       >
-        {items.map(([label, command]) => {
+        {items.map((item, i) => {
+          if (item === "separator") {
+            return <hr key={i} />;
+          }
+
+          const [label, command] = item;
+
           return (
             <CommandButton
               key={label}

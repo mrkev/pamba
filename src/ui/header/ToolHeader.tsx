@@ -119,6 +119,8 @@ export function ToolHeader({
               items={[
                 ["audio track", documentCommands.getById("createAudioTrack")],
                 ["midi track", documentCommands.getById("createMidiTrack")],
+                "separator",
+                ["midi clip", documentCommands.getById("createMidiClipAtSelection")],
               ]}
               project={project}
             />

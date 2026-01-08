@@ -34,6 +34,6 @@ const router = createHashRouter([
 const root = createRoot(nullthrows(document.getElementById("root")));
 root.render(
   <React.StrictMode>
-    <RouterProvider router={router} />;
+    <RouterProvider router={router} />
   </React.StrictMode>,
 );

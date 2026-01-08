@@ -5,15 +5,7 @@ import { AudioProject } from "../lib/project/AudioProject";
 import { MidiTrack } from "../midi/MidiTrack";
 import { pressedState } from "./pressedState";
 
-export function CursorSelection({
-  project,
-  track,
-  leftOffset = 0,
-}: {
-  project: AudioProject;
-  track: AudioTrack | MidiTrack | null;
-  leftOffset?: number;
-}) {
+export function CursorSelection({ project, track }: { project: AudioProject; track: AudioTrack | MidiTrack | null }) {
   const [cursorPos] = usePrimitive(project.cursorPos);
   const [selectionWidth] = usePrimitive(project.selectionWidth);
   const cursorTracks = useContainer(project.cursorTracks);
@@ -39,9 +31,9 @@ export function CursorSelection({
       style={{
         backdropFilter: "invert(100%) brightness(0.9) saturate(0.8)",
         left:
-          (selectionWidth == null || selectionWidth >= 0
+          selectionWidth == null || selectionWidth >= 0
             ? project.viewport.secsToPx(cursorPos)
-            : project.viewport.secsToPx(cursorPos + selectionWidth)) + leftOffset,
+            : project.viewport.secsToPx(cursorPos + selectionWidth), //+ viewportStartPx,
         width: selectionWidth == null || selectionWidth === 0 ? 1 : project.viewport.secsToPx(Math.abs(selectionWidth)),
       }}
     ></div>

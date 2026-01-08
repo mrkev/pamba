@@ -66,6 +66,16 @@ export const documentCommands = CommandBlock.create(["Project", "Edit", "Tools",
       await userActions.addMidiTrack(project);
     }).section("Project"),
 
+    createMidiClipAtSelection: command(["KeyM", "ctrl", "shift"], async (e, project) => {
+      e?.preventDefault();
+      await userActions.addMidiClipAtSelection(project);
+    }).section("Project"),
+
+    createSampleMidiClip: command(["KeyM", "ctrl", "shift", "alt"], async (e, project) => {
+      e?.preventDefault();
+      await userActions.addSampleMidiClip(project);
+    }).section("Project"),
+
     deleteSelection: command(["Backspace"], (e, project) => {
       const activePanel = project.activePanel.get();
       console.log("active", activePanel);

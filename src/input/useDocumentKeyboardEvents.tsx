@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import { AudioProject } from "../lib/project/AudioProject";
-import { MidiTrack } from "../midi/MidiTrack";
 import { documentCommands } from "./documentCommands";
 
 export function useDocumentKeyboardEvents(project: AudioProject): void {
@@ -17,16 +16,6 @@ export function useDocumentKeyboardEvents(project: AudioProject): void {
       if (executed) {
         // console.log("Executed comand!");
         return;
-      }
-
-      switch (e.code) {
-        case "KeyM": {
-          const activeTrack = project.activeTrack.get();
-          if (e.ctrlKey && e.shiftKey && activeTrack instanceof MidiTrack) {
-            activeTrack.createSampleMidiClip();
-          }
-          break;
-        }
       }
     }
 

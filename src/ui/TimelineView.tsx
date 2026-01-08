@@ -17,7 +17,6 @@ import { TrackHeaderContainer } from "./TrackHeaderContainer";
 export function TimelineView({ project, renderer }: { project: AudioProject; renderer: AudioRenderer }) {
   const classes = useStyles();
   const axisContainerRef = useRef<HTMLDivElement | null>(null);
-  const [viewportStartPx] = usePrimitive(project.viewport.scrollLeftPx);
   const [activePanel] = useLinkAsState(project.activePanel);
 
   useAxisContainerMouseEvents(project, axisContainerRef);
@@ -45,7 +44,7 @@ export function TimelineView({ project, renderer }: { project: AudioProject; ren
       >
         <Axis project={project} isHeader />
         <LoopMarkers project={project} />
-        <CursorSelection track={null} project={project} leftOffset={-viewportStartPx} />
+        <CursorSelection track={null} project={project} />
       </div>
       {/* 1. Track header overhang */}
       <div

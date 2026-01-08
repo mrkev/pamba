@@ -1,6 +1,6 @@
 import { history } from "structured-state";
 import { MidiClip } from "../midi/MidiClip";
-import { MidiTrack } from "../midi/MidiTrack";
+import { midiTrack, MidiTrack } from "../midi/MidiTrack";
 import { doConfirm } from "../ui/ConfirmDialog";
 import { nullthrows } from "../utils/nullthrows";
 import { appEnvironment } from "./AppEnvironment";
@@ -12,7 +12,7 @@ import { doPaste } from "./project/ClipboardState";
 import { cliptrack } from "./project/ClipTrack";
 import { ProjectSelection } from "./project/ProjectSelection";
 import { PrimarySelectionState } from "./project/SelectionState";
-import { timeop } from "./project/TimelineT";
+import { timeop } from "./project/TimelineOperation";
 import { ProjectTrack } from "./ProjectTrack";
 import { exhaustive } from "./state/Subbable";
 
@@ -223,5 +223,33 @@ export const userActions = {
   deleteSidebarSelection(project: AudioProject) {
     throw new Error("Not implemented");
     // TODO
+  },
+
+  async addMidiClipAtSelection(project: AudioProject) {
+    const selected = project.selected.get();
+    if (selected?.status !== "track_time") {
+      return false;
+    }
+
+    const track = selected.tracks.at(0);
+    if (!(track instanceof MidiTrack)) {
+      return false;
+    }
+
+    const startPulses = project.viewport.secsToPulses(selected.startS);
+    const endPulses = project.viewport.secsToPulses(selected.endS);
+
+    const clip = MidiClip.of(track.name.get(), startPulses, endPulses - startPulses, []);
+
+    return midiTrack.pushOrdered(project, track, clip);
+  },
+
+  async addSampleMidiClip(project: AudioProject) {
+    const activeTrack = project.activeTrack.get();
+    if (!(activeTrack instanceof MidiTrack)) {
+      return false;
+    }
+
+    midiTrack.createSampleMidiClip(activeTrack);
   },
 };

@@ -11,7 +11,8 @@ import { MidiTrack } from "../midi/MidiTrack";
 import { exhaustive } from "../utils/exhaustive";
 import { AudioClipEditor } from "./AudioClipEditor";
 import { MidiClipEditor } from "./midieditor/MidiClipEditor";
-import { TrackEditor } from "./TrackEditor";
+import { AudioTrackEditor } from "./AudioTrackEditor";
+import { MidiTrackEditor } from "./MidiTrackEditor";
 
 type BottomPanelDisplay =
   | { kind: "AudioClip"; clip: AudioClip; track: AudioTrack }
@@ -63,10 +64,9 @@ export function BottomPanel({
         <MidiClipEditor clip={primarySelection.clip} track={primarySelection.track} player={player} project={project} />
       );
     case "AudioTrack":
+      return <AudioTrackEditor track={primarySelection.track} project={project} renderer={renderer} />;
     case "MidiTrack":
-      return <TrackEditor track={primarySelection.track} project={project} renderer={renderer} />;
-
-      break;
+      return <MidiTrackEditor track={primarySelection.track} project={project} renderer={renderer} />;
     default:
     // exhaustive(primarySelection?.[0]);
   }

@@ -24,6 +24,7 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
   const [draggingOver, setDraggingOver] = useState<boolean>(false);
   const [audioStorage] = usePrimitive(appEnvironment.audioStorage);
   const [viewportStartPx] = usePrimitive(project.viewport.scrollLeftPx);
+  const [projectDivWidth] = usePrimitive(project.viewport.projectDivWidth);
   const tracks = useContainer(project.allTracks);
   const playbackPosDiv = useRef<null | HTMLDivElement>(null);
   const player = renderer.analizedPlayer;
@@ -191,7 +192,7 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
             project={project}
             isDspExpanded={isDspExpanded}
             renderer={renderer}
-            style={{ width: viewportStartPx + (projectDivRef.current?.clientWidth ?? 0) }}
+            style={{ width: viewportStartPx + projectDivWidth }}
           />
         );
       })}
@@ -200,16 +201,20 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
           Create a new track from audio
         </div>
       )}
-      {/*  */}
+
+      {/* Selection Cursor  */}
       <TimelineCursor project={project} />
+
+      {/* Playback Cursor */}
       <div
         ref={playbackPosDiv}
         className={cn(
           "name-playback-pos-div",
           "bg-cursor-playback w-px h-full absolute left-0 top-0 select-none pointer-events-none",
         )}
-      ></div>
+      />
 
+      {/* Loop Markers */}
       {loopPlayback && <TimelineLine project={project} pos={project.loopStart} color={"rgb(255,165,0)"} />}
       {loopPlayback && <TimelineLine project={project} pos={project.loopEnd} color={"rgb(255,165,0)"} adjust={-1} />}
     </div>
