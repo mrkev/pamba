@@ -196,29 +196,7 @@ export class TimelineT extends Structured<AutoTimelineT, typeof TimelineT> {
     if (this.u === b.u) {
       return this.t === b.t;
     }
-    return TimelineT.compare(project, this, "=", b);
-  }
-
-  static compare(project: AudioProject, a: TimelineT, op: "<" | ">" | "=" | "<=" | ">=" | "!=", b: TimelineT): boolean {
-    const aSecs = a.secs(project);
-    const bSecs = b.secs(project);
-
-    switch (op) {
-      case "<":
-        return aSecs < bSecs;
-      case "=":
-        return aSecs === bSecs;
-      case ">":
-        return aSecs > bSecs;
-      case "!=":
-        return aSecs != bSecs;
-      case "<=":
-        return aSecs <= bSecs;
-      case ">=":
-        return aSecs >= bSecs;
-      default:
-        throw exhaustive(op);
-    }
+    return timelineT.compare(project, this, "=", b);
   }
 
   operate(op: (x: number) => number) {
@@ -264,6 +242,23 @@ export function time(t: number, u: TimeUnit): TimelineT {
 
 export const timelineT = {
   compare(project: AudioProject, a: TimelineT, op: "<" | ">" | "=" | "<=" | ">=" | "!=", b: TimelineT): boolean {
-    return TimelineT.compare(project, a, op, b);
+    const aSecs = a.secs(project);
+    const bSecs = b.secs(project);
+    switch (op) {
+      case "<":
+        return aSecs < bSecs;
+      case "=":
+        return aSecs === bSecs;
+      case ">":
+        return aSecs > bSecs;
+      case "!=":
+        return aSecs != bSecs;
+      case "<=":
+        return aSecs <= bSecs;
+      case ">=":
+        return aSecs >= bSecs;
+      default:
+        throw exhaustive(op);
+    }
   },
 };

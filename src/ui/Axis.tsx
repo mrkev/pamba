@@ -109,9 +109,11 @@ function getBeatTickData(
 export function Axis({ project, isHeader = false }: { project: AudioProject; isHeader?: boolean }) {
   const [viewportStartPx] = usePrimitive(project.viewport.scrollLeftPx);
   const [projectDivWidth] = usePrimitive(project.viewport.projectDivWidth);
+  const [primaryAxis] = usePrimitive(project.primaryAxis);
+
   const [tempo] = usePrimitive(project.tempo);
   const [timeSignature] = usePrimitive(project.timeSignature);
-  const [primaryAxis] = usePrimitive(project.primaryAxis);
+
   // for updating when changing scale
   usePrimitive(project.viewport.pxPerSecond);
 
@@ -208,8 +210,8 @@ export function Axis({ project, isHeader = false }: { project: AudioProject; isH
 
 /**
  * TODO:
- * - Scale is currently anchored on 0:00. Anchor it on the cursor position
- * - Scale with trackpad, anchored on cursor position
+ * DONE Scale is currently anchored on 0:00. Anchor it on the cursor position
+ * DONE Scale with trackpad, anchored on cursor position
  * - Click and drag on axis moves, zooms, like ableton
  * - If a control is focused, need to click twice to set cursor. Fix that.
  * - Clip properties panel.

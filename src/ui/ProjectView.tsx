@@ -18,62 +18,21 @@ import { TimelineCursor, TimelineLine } from "./TimelineCursor";
 import { TrackS } from "./TrackS";
 import { useEventListener } from "./useEventListener";
 
-export function ProjectView({ project, renderer }: { project: AudioProject; renderer: AudioRenderer }) {
-  const projectDivRef = useRef<HTMLDivElement | null>(null);
-  const dspExpandedTracks = useContainer(project.dspExpandedTracks);
-  const [draggingOver, setDraggingOver] = useState<boolean>(false);
-  const [audioStorage] = usePrimitive(appEnvironment.audioStorage);
-  const [viewportStartPx] = usePrimitive(project.viewport.scrollLeftPx);
-  const [projectDivWidth] = usePrimitive(project.viewport.projectDivWidth);
-  const tracks = useContainer(project.allTracks);
-  const playbackPosDiv = useRef<null | HTMLDivElement>(null);
-  const player = renderer.analizedPlayer;
-  const [scale] = usePrimitive(project.viewport.pxPerSecond);
-  const [loopPlayback] = usePrimitive(project.loopOnPlayback);
-
-  useLayoutEffect(() => {
-    const pbdiv = playbackPosDiv.current;
-    if (pbdiv) {
-      pbdiv.style.left = String(project.viewport.secsToPx(player.playbackTime)) + "px";
-    }
-  }, [player, project.viewport, scale]);
-
-  useLayoutEffect(() => {
-    const width = projectDivRef.current?.getBoundingClientRect().width;
-    if (width) {
-      project.viewport.projectDivWidth.set(width);
-    }
-  }, [project.viewport.projectDivWidth]);
-
-  useLayoutEffect(() => {
-    if (!projectDivRef) {
-      return;
-    }
-    projectDivRef.current?.scrollTo({ left: viewportStartPx, behavior: "instant" });
-  }, [viewportStartPx]);
-
-  useEffect(() => {
-    return player.addEventListener("frame", function updateProjectViewCursor(playbackTime) {
-      const pbdiv = playbackPosDiv.current;
-      if (pbdiv) {
-        pbdiv.style.left = String(project.viewport.secsToPx(playbackTime)) + "px";
-      }
-    });
-  }, [player, project.viewport]);
-
-  // useEventListener(
-  //   "scroll",
-  //   projectDivRef,
-  //   useCallback((e) => console.log(e), [
-  // TODO: scrolling with scrollbar
-  //   ]),
-  // );
+function useViewportScrollEvents(project: AudioProject, projectDivRef: React.RefObject<HTMLDivElement | null>) {
+  const context = useRef({ wheelCalled: false });
 
   useEventListener(
     "wheel",
     projectDivRef,
     useCallback(
       (e: WheelEvent) => {
+        // see comment on "scroll" event below
+        context.current.wheelCalled = true;
+        requestAnimationFrame(function hello() {
+          context.current.wheelCalled = false;
+          performance.mark("hello");
+        });
+
         const projectDiv = nullthrows(projectDivRef.current);
         const mouseX = e.clientX - projectDiv.getBoundingClientRect().left;
 
@@ -102,10 +61,84 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
           });
         }
       },
-      [project.viewport],
+      [project.viewport, projectDivRef],
     ),
     { capture: false },
   );
+
+  useEventListener(
+    "scroll",
+    projectDivRef,
+    useCallback(
+      /**
+       * the "scroll" event:
+       * - gets called for any scroll, including, for example, dragging the scrollbar
+       * - gets called with a simple Event, which doesn't have much info, we don't use it
+       * - gets called after the "wheel" event (tested on Chrome) when the wheel is used to scroll
+       * we need to make sure our viewport knows our scroll position even if the user scrolled not using the wheel
+       *
+       * TODO: can I just use scroll for pan always, wheel for scale, and avoid having to check if wheel was called?
+       */
+      () => {
+        if (context.current.wheelCalled === true) {
+          return;
+        }
+
+        const projectDiv = nullthrows(projectDivRef.current);
+        const scroll = projectDiv.scrollLeft;
+        flushSync(() => {
+          project.viewport.scrollLeftPx.set(scroll);
+        });
+      },
+      [project.viewport.scrollLeftPx, projectDivRef],
+    ),
+  );
+}
+
+export function ProjectView({ project, renderer }: { project: AudioProject; renderer: AudioRenderer }) {
+  const projectDivRef = useRef<HTMLDivElement | null>(null);
+  const dspExpandedTracks = useContainer(project.dspExpandedTracks);
+  const [draggingOver, setDraggingOver] = useState<boolean>(false);
+  const [audioStorage] = usePrimitive(appEnvironment.audioStorage);
+  const [viewportStartPx] = usePrimitive(project.viewport.scrollLeftPx);
+  const [projectDivWidth] = usePrimitive(project.viewport.projectDivWidth);
+  const tracks = useContainer(project.allTracks);
+  const playbackPosDiv = useRef<null | HTMLDivElement>(null);
+  const player = renderer.analizedPlayer;
+  const [scale] = usePrimitive(project.viewport.pxPerSecond);
+  const [loopPlayback] = usePrimitive(project.loopOnPlayback);
+
+  useViewportScrollEvents(project, projectDivRef);
+
+  useLayoutEffect(() => {
+    const pbdiv = playbackPosDiv.current;
+    if (pbdiv) {
+      pbdiv.style.left = String(project.viewport.secsToPx(player.playbackTime)) + "px";
+    }
+  }, [player, project.viewport, scale]);
+
+  useEffect(() => {
+    return player.addEventListener("frame", function updateProjectViewCursor(playbackTime) {
+      const pbdiv = playbackPosDiv.current;
+      if (pbdiv) {
+        pbdiv.style.left = String(project.viewport.secsToPx(playbackTime)) + "px";
+      }
+    });
+  }, [player, project.viewport]);
+
+  useLayoutEffect(() => {
+    const width = projectDivRef.current?.getBoundingClientRect().width;
+    if (width) {
+      project.viewport.projectDivWidth.set(width);
+    }
+  }, [project.viewport.projectDivWidth]);
+
+  useLayoutEffect(() => {
+    if (!projectDivRef) {
+      return;
+    }
+    projectDivRef.current?.scrollTo({ left: viewportStartPx, behavior: "instant" });
+  }, [viewportStartPx]);
 
   useTimelineMouseEvents(project, projectDivRef);
 

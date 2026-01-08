@@ -2,7 +2,6 @@ import classNames from "classnames";
 import { useLinkAsState } from "marked-subbable";
 import { useRef } from "react";
 import { createUseStyles } from "react-jss";
-import { usePrimitive } from "structured-state";
 import { TRACK_HEADER_WIDTH } from "../constants";
 import { useAxisContainerMouseEvents } from "../input/useProjectMouseEvents";
 import { AudioRenderer } from "../lib/io/AudioRenderer";

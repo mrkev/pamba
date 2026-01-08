@@ -122,13 +122,13 @@ export const ClipA = React.memo(function ClipAImpl({
 
   const [projectDivWidth] = usePrimitive(project.viewport.projectDivWidth);
   const [viewportStartPx] = usePrimitive(project.viewport.scrollLeftPx);
-  const [scale] = usePrimitive(project.viewport.pxPerSecond);
+  const [scale] = usePrimitive(project.viewport.pxPerSecond); // need to subscribe to this
 
-  const canvasOffset = relu(viewportStartPx - project.viewport.pxOfTime(timelineStart));
-  const cWidth = width - relu(left + width - projectDivWidth) + viewportStartPx - canvasOffset;
-  const canvasWidth = Math.ceil(Math.min(cWidth, width - canvasOffset));
-  const offset =
-    project.viewport.pxToSecs(canvasOffset) * clip.sampleRate + bufferOffset.ensureSecs() * clip.sampleRate;
+  // const canvasOffset = relu(viewportStartPx - project.viewport.pxOfTime(timelineStart));
+  // const cWidth = width - relu(left + width - projectDivWidth) + viewportStartPx - canvasOffset;
+  // const canvasWidth = Math.ceil(Math.min(cWidth, width - canvasOffset));
+  // const offset =
+  //   project.viewport.pxToSecs(canvasOffset) * clip.sampleRate + bufferOffset.ensureSecs() * clip.sampleRate;
 
   return (
     <StandardClip

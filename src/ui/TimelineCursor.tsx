@@ -1,7 +1,6 @@
 import { useContainer, usePrimitive } from "structured-state";
 import { AudioProject } from "../lib/project/AudioProject";
 import { TimelineT } from "../lib/project/TimelineT";
-import { useDerivedState } from "../lib/state/DerivedState";
 import { cn } from "../utils/cn";
 
 export function TimelineLine({
@@ -37,12 +36,14 @@ export function TimelineLine({
 }
 
 export function TimelineCursor({ project, isHeader }: { project: AudioProject; isHeader?: boolean }) {
-  const secsToPx = useDerivedState(project.viewport.secsToPxDS);
   const [cursorPos] = usePrimitive(project.cursorPos);
   const [selectionWidthRaw] = usePrimitive(project.selectionWidth);
   const selectionWidth = selectionWidthRaw == null ? 0 : selectionWidthRaw;
   if (isHeader) {
-    const left = selectionWidth >= 0 ? secsToPx(cursorPos) : secsToPx(cursorPos + selectionWidth);
+    const left =
+      selectionWidth >= 0
+        ? project.viewport.secsToPx(cursorPos)
+        : project.viewport.secsToPx(cursorPos + selectionWidth);
     return (
       <>
         <MarkerTriangle
@@ -60,7 +61,7 @@ export function TimelineCursor({ project, isHeader }: { project: AudioProject; i
         {selectionWidth > 0 && (
           <MarkerTriangle
             size={3}
-            left={left + Math.floor(secsToPx(Math.abs(selectionWidth)))}
+            left={left + Math.floor(project.viewport.secsToPx(Math.abs(selectionWidth)))}
             color={"white"}
             style={{
               position: "absolute",
@@ -81,8 +82,11 @@ export function TimelineCursor({ project, isHeader }: { project: AudioProject; i
         selectionWidth !== 0 && "border-r border-r-cursor",
       )}
       style={{
-        left: selectionWidth >= 0 ? secsToPx(cursorPos) : secsToPx(cursorPos + selectionWidth),
-        width: selectionWidth === 0 ? 0 : Math.floor(secsToPx(Math.abs(selectionWidth)) - 1),
+        left:
+          selectionWidth >= 0
+            ? project.viewport.secsToPx(cursorPos)
+            : project.viewport.secsToPx(cursorPos + selectionWidth),
+        width: selectionWidth === 0 ? 0 : Math.floor(project.viewport.secsToPx(Math.abs(selectionWidth)) - 1),
       }}
     />
   );

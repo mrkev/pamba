@@ -16,9 +16,11 @@ type AutoProjectViewport = {
 
 export type XScale = ScaleLinear<number, number>;
 
+const START_PADDING_PX = 10;
+
 export class ProjectViewport extends Structured<AutoProjectViewport, typeof ProjectViewport> {
   // 1 sec corresponds to 10 px
-  readonly secsToPxDS: DerivedState<(factor: number) => XScale>;
+  // readonly secsToPxDS: DerivedState<(factor: number) => XScale>;
   // factor 2: 1sec => 2px
   // factor 3: 1sec => 3px
   // etc
@@ -34,13 +36,13 @@ export class ProjectViewport extends Structured<AutoProjectViewport, typeof Proj
     readonly scrollLeftPx: SNumber,
   ) {
     super();
-    this.secsToPxDS = DerivedState.from(
-      [this.pxPerSecond],
-      (factor: number) =>
-        scaleLinear()
-          .domain([0, 1])
-          .range([0, 1 * factor]) as XScale,
-    );
+    // this.secsToPxDS = DerivedState.from(
+    //   [this.pxPerSecond],
+    //   (factor: number) =>
+    //     scaleLinear()
+    //       .domain([0, 1])
+    //       .range([0, 1 * factor]) as XScale,
+    // );
 
     (window as any).vp = this;
   }
@@ -49,6 +51,7 @@ export class ProjectViewport extends Structured<AutoProjectViewport, typeof Proj
     replace.number(autoJson.scaleFactor, this.pxPerSecond);
     replace.number(autoJson.viewportStartPx, this.scrollLeftPx);
   }
+
   override autoSimplify(): AutoProjectViewport {
     return {
       viewportStartPx: this.scrollLeftPx,

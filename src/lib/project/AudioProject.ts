@@ -25,9 +25,9 @@ import { AudioTrack } from "../AudioTrack";
 import { AnalizedPlayer } from "../io/AnalizedPlayer";
 import { ProjectTrack, StandardTrack } from "../ProjectTrack";
 import { ProjectViewport } from "../viewport/ProjectViewport";
-import { PanelSelectionState, PrimarySelectionState } from "./SelectionState";
-import { TimelineT, time } from "./TimelineT";
 import { ProjectMidi } from "./ProjectMidi";
+import { PanelSelectionState, PrimarySelectionState } from "./SelectionState";
+import { TimelineT, time, timelineT } from "./TimelineT";
 
 export type PointerTool = "move" | "trimStart" | "trimEnd" | "slice";
 export type SecondaryTool = "move" | "draw";
@@ -132,10 +132,6 @@ export class AudioProject {
 
   public canEditTrack(project: AudioProject, track: MidiTrack | AudioTrack | StandardTrack<any>) {
     return !project.lockedTracks.has(track) && !appEnvironment.renderer.analizedPlayer.isAudioPlaying;
-  }
-
-  public compareTime(a: TimelineT, op: "<" | ">" | "=", b: TimelineT): boolean {
-    return TimelineT.compare(this, a, op, b);
   }
 
   //////// Methods on Projects ////////
