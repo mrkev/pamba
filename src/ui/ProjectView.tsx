@@ -26,6 +26,7 @@ function useViewportScrollEvents(project: AudioProject, projectDivRef: React.Ref
     projectDivRef,
     useCallback(
       (e: WheelEvent) => {
+        e.preventDefault();
         // see comment on "scroll" event below
         context.current.wheelCalled = true;
         requestAnimationFrame(function hello() {
@@ -79,7 +80,8 @@ function useViewportScrollEvents(project: AudioProject, projectDivRef: React.Ref
        *
        * TODO: can I just use scroll for pan always, wheel for scale, and avoid having to check if wheel was called?
        */
-      () => {
+      (e) => {
+        e.preventDefault();
         if (context.current.wheelCalled === true) {
           return;
         }
@@ -89,6 +91,7 @@ function useViewportScrollEvents(project: AudioProject, projectDivRef: React.Ref
         flushSync(() => {
           project.viewport.scrollLeftPx.set(scroll);
         });
+        // e?.preventDefault();
       },
       [project.viewport.scrollLeftPx, projectDivRef],
     ),
@@ -108,20 +111,18 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
   const [scale] = usePrimitive(project.viewport.pxPerSecond);
   const [loopPlayback] = usePrimitive(project.loopOnPlayback);
 
-  useViewportScrollEvents(project, projectDivRef);
-
   useLayoutEffect(() => {
-    const pbdiv = playbackPosDiv.current;
-    if (pbdiv) {
-      pbdiv.style.left = String(project.viewport.secsToPx(player.playbackTime)) + "px";
+    const pbcursor = playbackPosDiv.current;
+    if (pbcursor) {
+      pbcursor.style.left = String(project.viewport.secsToPx(player.playbackTime)) + "px";
     }
   }, [player, project.viewport, scale]);
 
   useEffect(() => {
     return player.addEventListener("frame", function updateProjectViewCursor(playbackTime) {
-      const pbdiv = playbackPosDiv.current;
-      if (pbdiv) {
-        pbdiv.style.left = String(project.viewport.secsToPx(playbackTime)) + "px";
+      const pbcursor = playbackPosDiv.current;
+      if (pbcursor) {
+        pbcursor.style.left = String(project.viewport.secsToPx(playbackTime)) + "px";
       }
     });
   }, [player, project.viewport]);
@@ -133,6 +134,7 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
     }
   }, [project.viewport.projectDivWidth]);
 
+  useViewportScrollEvents(project, projectDivRef);
   useLayoutEffect(() => {
     if (!projectDivRef) {
       return;
@@ -146,7 +148,7 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
     projectDivRef,
     useCallback(
       (entry) => {
-        project.viewport.projectDivWidth.set(entry.contentRect.width ?? 0);
+        project.viewport.projectDivWidth.set(entry.contentRect.width);
       },
       [project.viewport.projectDivWidth],
     ),
@@ -199,7 +201,13 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
         setDraggingOver(false);
       }}
     >
-      <Axis project={project}></Axis>
+      {/* move the axis along with the scroll */}
+      <Axis
+        viewportStartPx={viewportStartPx}
+        className="absolute w-full h-full"
+        project={project}
+        style={{ left: viewportStartPx }}
+      ></Axis>
       {/* <div id="bgs" style={{ position: "absolute", width: "100%", left: viewportStartPx, background: "green" }}>
           {tracks.map(function (track, i) {
             return (

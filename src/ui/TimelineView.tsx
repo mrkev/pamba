@@ -2,6 +2,7 @@ import classNames from "classnames";
 import { useLinkAsState } from "marked-subbable";
 import { useRef } from "react";
 import { createUseStyles } from "react-jss";
+import { usePrimitive } from "structured-state";
 import { TRACK_HEADER_WIDTH } from "../constants";
 import { useAxisContainerMouseEvents } from "../input/useProjectMouseEvents";
 import { AudioRenderer } from "../lib/io/AudioRenderer";
@@ -15,10 +16,7 @@ import { TrackHeaderContainer } from "./TrackHeaderContainer";
 
 export function TimelineView({ project, renderer }: { project: AudioProject; renderer: AudioRenderer }) {
   const classes = useStyles();
-  const axisContainerRef = useRef<HTMLDivElement | null>(null);
   const [activePanel] = useLinkAsState(project.activePanel);
-
-  useAxisContainerMouseEvents(project, axisContainerRef);
 
   return (
     <div
@@ -30,21 +28,7 @@ export function TimelineView({ project, renderer }: { project: AudioProject; ren
         "grid overflow-y-scroll overflow-x-hidden h-full w-full grow",
       )}
     >
-      <div
-        ref={axisContainerRef}
-        className={cn(
-          "name-axis-container",
-          "sticky bg-timeline-bg top-0 left-0 border-b border-b-axis-timeline-separator justify-evenly",
-        )}
-        style={{
-          zIndex: 2,
-          borderTop: activePanel === "primary" ? "4px solid var(--timeline-text)" : "4px solid var(--timeline-tick)",
-        }}
-      >
-        <Axis project={project} isHeader />
-        <LoopMarkers project={project} />
-        <CursorSelection track={null} project={project} />
-      </div>
+      <HeaderAxisView project={project} />
       {/* 1. Track header overhang */}
       <div
         className={cn(
@@ -66,6 +50,39 @@ export function TimelineView({ project, renderer }: { project: AudioProject; ren
         project={project}
         player={renderer.analizedPlayer}
       />
+    </div>
+  );
+}
+
+function HeaderAxisView({ project }: { project: AudioProject }) {
+  const axisContainerRef = useRef<HTMLDivElement | null>(null);
+  const [activePanel] = useLinkAsState(project.activePanel);
+  const [viewportStartPx] = usePrimitive(project.viewport.scrollLeftPx);
+
+  useAxisContainerMouseEvents(project, axisContainerRef);
+
+  return (
+    <div
+      ref={axisContainerRef}
+      className={cn(
+        "name-axis-container",
+        "sticky bg-timeline-bg top-0 left-0 border-b border-b-axis-timeline-separator justify-evenly",
+      )}
+      style={{
+        zIndex: 2,
+        borderTop: activePanel === "primary" ? "4px solid var(--timeline-text)" : "4px solid var(--timeline-tick)",
+      }}
+    >
+      {/* Header axis doesn't move, we move the svg inside */}
+      <Axis
+        //
+        viewportStartPx={viewportStartPx}
+        project={project}
+        className="w-full h-full"
+        isHeader
+      />
+      <LoopMarkers project={project} />
+      <CursorSelection track={null} project={project} />
     </div>
   );
 }

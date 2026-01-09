@@ -34,7 +34,7 @@ function ScaleFactorSlider({ project }: { project: AudioProject }) {
       title="Zoom level"
       onChange={(e) => {
         const cursorPosSecs = project.cursorPos.get();
-        const cursorPosPx = project.viewport.secsToPx(cursorPosSecs) - project.viewport.scrollLeftPx.get();
+        const cursorPosPx = project.viewport.secsToViewportPx(cursorPosSecs);
         const projectDivWidth = project.viewport.projectDivWidth.get();
         const expectedNewScale = Math.exp(parseFloat(e.target.value));
 

@@ -54,11 +54,13 @@ export function getOneTickLen(project: AudioProject, tempo: number) {
   return tickBeatLength;
 }
 
-// returns an array of seconds at which to show a tick
-// = for a viewport that starts at viewportStartPx px, and is projectDivWidth px wide
-function getTimeTickData(project: AudioProject, viewportStartPx: number, projectDivWidth: number) {
-  const viewportStartSecs = project.viewport.pxToSecs(viewportStartPx);
-  const viewportEndSecs = project.viewport.timeForPx(projectDivWidth);
+/**
+ * returns an array of seconds at which to show a tick
+ * for a viewport that starts at startS px and ends at endS
+ */
+function getTimeTickData(project: AudioProject, startS: number, endS: number) {
+  const viewportStartSecs = startS;
+  const viewportEndSecs = endS;
 
   const MIN_DIST_BEETWEEN_TICKS_SEC = project.viewport.pxToSecs(MIN_TICK_DISTANCE);
   const STEP_SECS = getTimeStepForRes(MIN_DIST_BEETWEEN_TICKS_SEC);
@@ -76,14 +78,18 @@ function getTimeTickData(project: AudioProject, viewportStartPx: number, project
   return ticksToShow;
 }
 
+/**
+ * returns an array of ticks (beat number, time of beat in seconds)
+ * for a viewport that starts at startS px and ends at endS
+ */
 function getBeatTickData(
   project: AudioProject,
-  viewportStartPx: number,
-  projectDivWidth: number,
+  startS: number,
+  endS: number,
   tempo: number,
 ): (readonly [beatNum: number, time: number])[] {
-  const viewportStartSecs = project.viewport.pxToSecs(viewportStartPx);
-  const viewportEndSecs = project.viewport.timeForPx(projectDivWidth);
+  const viewportStartSecs = startS;
+  const viewportEndSecs = endS;
 
   const oneBeatLen = SECS_IN_MIN / tempo;
   const oneBeatSizePx = project.viewport.secsToPx(oneBeatLen);
@@ -106,8 +112,22 @@ function getBeatTickData(
   return ticksToShow;
 }
 
-export function Axis({ project, isHeader = false }: { project: AudioProject; isHeader?: boolean }) {
-  const [viewportStartPx] = usePrimitive(project.viewport.scrollLeftPx);
+/**
+ * Renders a sliding window of ticks
+ */
+export function Axis({
+  project,
+  isHeader = false,
+  viewportStartPx,
+  style,
+  className,
+}: {
+  project: AudioProject;
+  viewportStartPx: number;
+  isHeader?: boolean;
+  className?: string;
+  style?: React.CSSProperties;
+}) {
   const [projectDivWidth] = usePrimitive(project.viewport.projectDivWidth);
   const [primaryAxis] = usePrimitive(project.primaryAxis);
 
@@ -117,18 +137,18 @@ export function Axis({ project, isHeader = false }: { project: AudioProject; isH
   // for updating when changing scale
   usePrimitive(project.viewport.pxPerSecond);
 
-  const timeTicksS = getTimeTickData(project, viewportStartPx, projectDivWidth);
-  const tempoTicks = getBeatTickData(project, viewportStartPx, projectDivWidth, tempo);
+  const viewportStartSecs = project.viewport.pxToSecs(viewportStartPx);
+  const viewportEndSecs = project.viewport.pxToSecs(projectDivWidth + viewportStartPx);
+
+  const timeSTicks = getTimeTickData(project, viewportStartSecs, viewportEndSecs);
+  const tempoTicks = getBeatTickData(project, viewportStartSecs, viewportEndSecs, tempo);
 
   const textDims = (axis: AxisMeasure) => (primaryAxis === axis ? ["11px", "2"] : ["8px", "70%"]);
 
   return (
     <>
       {/* Background grid */}
-      <svg
-        className={cn("absolute w-full h-full pointer-events-none overflow-visible")}
-        style={{ left: !isHeader ? viewportStartPx : 0 }}
-      >
+      <svg className={cn("pointer-events-none", className)} style={style}>
         {(isHeader || primaryAxis === "tempo") &&
           tempoTicks.map(([beatNum, secs]) => {
             const px = project.viewport.secsToViewportPx(secs);
@@ -162,7 +182,7 @@ export function Axis({ project, isHeader = false }: { project: AudioProject; isH
             );
           })}
         {(isHeader || primaryAxis === "time") &&
-          timeTicksS.map((secs) => {
+          timeSTicks.map((secs) => {
             const px = project.viewport.secsToViewportPx(secs);
             const [fontSize, textY] = textDims("time");
             return (

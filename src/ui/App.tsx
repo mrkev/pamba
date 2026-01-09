@@ -58,7 +58,6 @@ function InitButtion() {
             setClicked(true);
             await appEnvironment.readyPromise; // resolves when done initializing
             appEnvironment.projectStatus.set({ status: "loading" });
-            (window as any).project = "loading";
             const result = await projectPersistance.getLastProject(appEnvironment.localFiles);
             if (result instanceof ProjectPackage) {
               await projectPersistance.openProject(result.id, false);

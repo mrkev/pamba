@@ -1,4 +1,4 @@
-import { ScaleLinear, scaleLinear } from "d3-scale";
+import { ScaleLinear } from "d3-scale";
 import { InitFunctions, JSONOfAuto, number, ReplaceFunctions, SNumber, Structured } from "structured-state";
 import { SECS_IN_MIN } from "../../constants";
 import { clamp, stepNumber } from "../../utils/math";
@@ -7,7 +7,6 @@ import { PPQN } from "../../wam/miditrackwam/MIDIConfiguration";
 import { appEnvironment } from "../AppEnvironment";
 import { AudioProject } from "../project/AudioProject";
 import { pulsesToSec, TimelineT } from "../project/TimelineT";
-import { DerivedState } from "../state/DerivedState";
 
 type AutoProjectViewport = {
   viewportStartPx: SNumber;
@@ -28,9 +27,8 @@ export class ProjectViewport extends Structured<AutoProjectViewport, typeof Proj
   constructor(
     readonly project: AudioProject,
     readonly projectDivWidth: SNumber,
-
     // the zoom level. min scale is 0.64, max is 1000.
-    // Px per second. Therefore, small = zoom out. big = zoom in.
+    // how many pixels are in a second. Therefore, small = zoom out. big = zoom in.
     readonly pxPerSecond: SNumber,
     // the "left" CSS position for the first second visible in the project div
     readonly scrollLeftPx: SNumber,
@@ -43,8 +41,6 @@ export class ProjectViewport extends Structured<AutoProjectViewport, typeof Proj
     //       .domain([0, 1])
     //       .range([0, 1 * factor]) as XScale,
     // );
-
-    (window as any).vp = this;
   }
 
   override replace(autoJson: JSONOfAuto<AutoProjectViewport>, replace: ReplaceFunctions): void {
@@ -71,8 +67,6 @@ export class ProjectViewport extends Structured<AutoProjectViewport, typeof Proj
 
   // Scale
 
-  // scaleFactor: how many pixels are in one second
-
   setScale(expectedNewScale: number, mouseX: number = 0) {
     // min scale is 0.64, max is 1000
     const newScale = clamp(0.64, expectedNewScale, 1000);
@@ -86,19 +80,11 @@ export class ProjectViewport extends Structured<AutoProjectViewport, typeof Proj
     } else {
       this.scrollLeftPx.set(newStartPx);
     }
-
-    // this.viewportStartPx.setDyn((prev) => {
-    //   const newStartPx = (prev + mouseX) * scaleFactorFactor - mouseX;
-    //   if (newStartPx < 0) {
-    //     return 0;
-    //   }
-    //   return newStartPx;
-    // });
   }
 
   // Conversions
 
-  pxOfTime(p: TimelineT) {
+  timeToPx(p: TimelineT) {
     switch (p.u) {
       case "bars":
         throw new Error("UNSUPPORTED");
@@ -109,10 +95,17 @@ export class ProjectViewport extends Structured<AutoProjectViewport, typeof Proj
     }
   }
 
-  secsToPx(s: number, factorOverride?: number) {
-    // console.log("using factor", factorOverride, "instead of ", this.project.scaleFactor.get());
-    const factor = factorOverride ?? this.pxPerSecond.get();
-    return s * factor;
+  secsToPx(s: number) {
+    const factor = this.pxPerSecond.get();
+
+    return ymxb(factor, s, 0);
+  }
+
+  secsToViewportPx(s: number): number {
+    const factor = this.pxPerSecond.get();
+    const viewportStartPx = this.scrollLeftPx.get();
+
+    return ymxb(factor, s, -viewportStartPx);
   }
 
   pulsesToPx(p: number) {
@@ -120,8 +113,15 @@ export class ProjectViewport extends Structured<AutoProjectViewport, typeof Proj
     return this.secsToPx(pulsesToSec(p, bpm));
   }
 
-  pxToSecs(px: number, factorOverride?: number) {
-    const factor = factorOverride ?? this.pxPerSecond.get();
+  // TODO: more direct method?
+  pulsesToViewportPx(p: number) {
+    const bpm = this.project.tempo.get();
+    const viewportStartPx = this.scrollLeftPx.get();
+    return this.secsToPx(pulsesToSec(p, bpm)) - viewportStartPx;
+  }
+
+  pxToSecs(px: number) {
+    const factor = this.pxPerSecond.get();
     return px / factor;
   }
 
@@ -130,26 +130,6 @@ export class ProjectViewport extends Structured<AutoProjectViewport, typeof Proj
     const secs = this.pxToSecs(px);
     return Math.floor((secs * PPQN * bpm) / SECS_IN_MIN);
   }
-
-  secsToViewportPx(s: number): number {
-    const viewportStartPx = this.scrollLeftPx.get();
-    return this.secsToPx(s) - viewportStartPx;
-  }
-
-  // TODO: more direct method?
-  pxForPulse(p: number) {
-    const bpm = this.project.tempo.get();
-    return this.secsToViewportPx(pulsesToSec(p, bpm));
-  }
-
-  timeForPx(px: number): number {
-    const viewportStartPx = this.scrollLeftPx.get();
-    return this.pxToSecs(px + viewportStartPx);
-  }
-
-  // pxForBeat(b: number) {
-  //   return this.pxForPulse(b * PPQN);
-  // }
 
   secsToPulses(secs: number) {
     const bpm = this.project.tempo.get();
@@ -180,4 +160,9 @@ export function snapped(project: AudioProject, e: MouseEvent, s: number) {
     snap = !snap;
   }
   return snap ? project.viewport.snapToTempo(s) : s;
+}
+
+/** y = mx + b */
+function ymxb(m: number, x: number, b: number) {
+  return m * x + b;
 }

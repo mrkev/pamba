@@ -9,7 +9,6 @@ import { ProjectTrack } from "../lib/ProjectTrack";
 import type { AudioProject } from "../lib/project/AudioProject";
 import { XScale } from "../lib/viewport/ProjectViewport";
 import { exhaustive } from "../utils/exhaustive";
-import { relu } from "../utils/math";
 import { nullthrows } from "../utils/nullthrows";
 import { StandardClip } from "./StandardClip";
 import { clipMouseDownToMove, clipMouseDownToResize } from "./clipMouse";
@@ -34,8 +33,6 @@ export const ClipA = React.memo(function ClipAImpl({
 
   const timelineStart = useContainer(clip.timelineStart);
   const timelineLength = useContainer(clip.timelineLength);
-  const width = project.viewport.secsToPx(timelineLength.secs(project));
-  const left = project.viewport.secsToPx(timelineStart.secs(project));
 
   function onMouseDownToResize(e: React.MouseEvent<HTMLDivElement>, from: "start" | "end") {
     const tool = project.pointerTool.get();

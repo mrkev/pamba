@@ -133,7 +133,7 @@ export class TimelineT extends Structured<AutoTimelineT, typeof TimelineT> {
       case "seconds":
         return project.viewport.secsToViewportPx(this.t);
       case "pulses":
-        return project.viewport.pxForPulse(this.t);
+        return project.viewport.pulsesToViewportPx(this.t);
       case "bars":
         throw new Error("TODO: Cant convert bars to px");
       default:

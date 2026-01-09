@@ -8,11 +8,11 @@ export function getClipSizePx(clip: MidiClip | AudioClip, project: AudioProject)
   const width =
     clip instanceof AudioClip
       ? project.viewport.secsToPx(clip.timelineLength.ensureSecs())
-      : project.viewport.pxForPulse(clip.timelineLength.ensurePulses());
+      : project.viewport.pulsesToPx(clip.timelineLength.ensurePulses());
   const left =
     clip instanceof AudioClip
       ? project.viewport.secsToPx(clip.timelineStart.ensureSecs())
-      : project.viewport.pxForPulse(clip.timelineStart.ensurePulses());
+      : project.viewport.pulsesToPx(clip.timelineStart.ensurePulses());
   return { left, width };
 }
 

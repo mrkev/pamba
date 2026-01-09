@@ -33,7 +33,7 @@ export function CursorSelection({ project, track }: { project: AudioProject; tra
         left:
           selectionWidth == null || selectionWidth >= 0
             ? project.viewport.secsToPx(cursorPos)
-            : project.viewport.secsToPx(cursorPos + selectionWidth), //+ viewportStartPx,
+            : project.viewport.secsToPx(cursorPos + selectionWidth),
         width: selectionWidth == null || selectionWidth === 0 ? 1 : project.viewport.secsToPx(Math.abs(selectionWidth)),
       }}
     ></div>

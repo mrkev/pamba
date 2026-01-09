@@ -27,7 +27,7 @@ import { ProjectTrack, StandardTrack } from "../ProjectTrack";
 import { ProjectViewport } from "../viewport/ProjectViewport";
 import { ProjectMidi } from "./ProjectMidi";
 import { PanelSelectionState, PrimarySelectionState } from "./SelectionState";
-import { TimelineT, time, timelineT } from "./TimelineT";
+import { TimelineT, time } from "./TimelineT";
 
 export type PointerTool = "move" | "trimStart" | "trimEnd" | "slice";
 export type SecondaryTool = "move" | "draw";
