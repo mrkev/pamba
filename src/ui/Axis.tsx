@@ -2,6 +2,7 @@ import { usePrimitive } from "structured-state";
 import { SECS_IN_MIN } from "../constants";
 import { AudioProject, AxisMeasure } from "../lib/project/AudioProject";
 import { cn } from "../utils/cn";
+import { useLinkAsState } from "marked-subbable";
 
 const formatter = new Intl.NumberFormat("en-US", {
   useGrouping: false,
@@ -130,6 +131,7 @@ export function Axis({
 }) {
   const [projectDivWidth] = usePrimitive(project.viewport.projectDivWidth);
   const [primaryAxis] = usePrimitive(project.primaryAxis);
+  const [activePanel] = useLinkAsState(project.activePanel);
 
   const [tempo] = usePrimitive(project.tempo);
   const [timeSignature] = usePrimitive(project.timeSignature);
@@ -146,72 +148,70 @@ export function Axis({
   const textDims = (axis: AxisMeasure) => (primaryAxis === axis ? ["11px", "2"] : ["8px", "70%"]);
 
   return (
-    <>
-      {/* Background grid */}
-      <svg className={cn("pointer-events-none", className)} style={style}>
-        {(isHeader || primaryAxis === "tempo") &&
-          tempoTicks.map(([beatNum, secs]) => {
-            const px = project.viewport.secsToViewportPx(secs);
-            const denom = beatNum % timeSignature[0];
-            const label = `${Math.floor(beatNum / 4) + 1}` + (denom === 0 ? "" : `.${denom}`);
-            const [fontSize, textY] = textDims("tempo");
+    // Background grid
+    <svg className={cn("pointer-events-none", className)} style={style}>
+      {(isHeader || primaryAxis === "tempo") &&
+        tempoTicks.map(([beatNum, secs]) => {
+          const px = project.viewport.secsToViewportPx(secs);
+          const denom = beatNum % timeSignature[0];
+          const label = `${Math.floor(beatNum / 4) + 1}` + (denom === 0 ? "" : `.${denom}`);
+          const [fontSize, textY] = textDims("tempo");
 
-            return (
-              <g className="tick" key={secs}>
-                <line
-                  x1={px}
-                  x2={px}
-                  y1={primaryAxis === "time" ? "70%" : "0"}
-                  y2="100%"
-                  stroke="var(--timeline-tick)"
-                ></line>
-                {isHeader && (
-                  <text
-                    x={px}
-                    y={textY}
-                    dx="2px"
-                    fontSize={fontSize}
-                    fill="var(--timeline-text)"
-                    textAnchor="start"
-                    alignmentBaseline="hanging"
-                  >
-                    {label}
-                  </text>
-                )}
-              </g>
-            );
-          })}
-        {(isHeader || primaryAxis === "time") &&
-          timeSTicks.map((secs) => {
-            const px = project.viewport.secsToViewportPx(secs);
-            const [fontSize, textY] = textDims("time");
-            return (
-              <g className="tick" key={secs}>
-                <line
-                  x1={px}
-                  x2={px}
-                  y1={primaryAxis === "time" ? "0" : "70%"}
-                  y2="100%"
-                  stroke="var(--timeline-tick)"
-                ></line>
-                {isHeader && (
-                  <text
-                    x={px}
-                    y={textY}
-                    dx="2px"
-                    fontSize={fontSize}
-                    fill="var(--timeline-text)"
-                    textAnchor="start"
-                    alignmentBaseline="hanging"
-                  >
-                    {formatSecs(secs)}
-                  </text>
-                )}
-              </g>
-            );
-          })}
-      </svg>
-    </>
+          return (
+            <g className="tick" key={secs}>
+              <line
+                x1={px}
+                x2={px}
+                y1={primaryAxis === "time" ? "70%" : "0"}
+                y2="100%"
+                stroke="var(--timeline-tick)"
+              ></line>
+              {isHeader && (
+                <text
+                  x={px}
+                  y={textY}
+                  dx="2px"
+                  fontSize={fontSize}
+                  fill={activePanel === "primary" ? "var(--timeline-text)" : "var(--timeline-text-inactive)"}
+                  textAnchor="start"
+                  alignmentBaseline="hanging"
+                >
+                  {label}
+                </text>
+              )}
+            </g>
+          );
+        })}
+      {(isHeader || primaryAxis === "time") &&
+        timeSTicks.map((secs) => {
+          const px = project.viewport.secsToViewportPx(secs);
+          const [fontSize, textY] = textDims("time");
+          return (
+            <g className="tick" key={secs}>
+              <line
+                x1={px}
+                x2={px}
+                y1={primaryAxis === "time" ? "0" : "70%"}
+                y2="100%"
+                stroke="var(--timeline-tick)"
+              ></line>
+              {isHeader && (
+                <text
+                  x={px}
+                  y={textY}
+                  dx="2px"
+                  fontSize={fontSize}
+                  fill={activePanel === "primary" ? "var(--timeline-text)" : "var(--timeline-text-inactive)"}
+                  textAnchor="start"
+                  alignmentBaseline="hanging"
+                >
+                  {formatSecs(secs)}
+                </text>
+              )}
+            </g>
+          );
+        })}
+    </svg>
   );
 }
 

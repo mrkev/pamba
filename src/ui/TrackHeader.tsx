@@ -77,8 +77,14 @@ export const TrackHeader = React.memo(function TrackHeader({
       <div
         className="flex flex-col select-none relative"
         style={{
-          height: height - TRACK_SEPARATOR_HEIGHT,
-          paddingLeft: 4,
+          height:
+            height -
+            TRACK_SEPARATOR_HEIGHT -
+            // from padding
+            2,
+          paddingLeft: 2,
+          paddingTop: 2,
+          paddingRight: 2,
           // borderBottom: isDspExpanded ? `${TRACK_SEPARATOR_HEIGHT}px solid #444444` : undefined,
         }}
       >

@@ -11,6 +11,7 @@ import { AudioProject } from "../lib/project/AudioProject";
 import { AboutPanel } from "./AboutPanel";
 import { BottomPanel } from "./BottomPanel";
 import { DebugContent } from "./DebugData";
+import { EffectWindows } from "./EffectWindows";
 import { ToolHeader } from "./header/ToolHeader";
 import { TransportControl } from "./header/TransportControl";
 import { HelpPanel } from "./HelpPanel";
@@ -21,7 +22,6 @@ import { modifierState, useSingletonKeyboardModifierState } from "./ModifierStat
 import { ProjectEditor } from "./ProjectEditor";
 import { TimelineView } from "./TimelineView";
 import { UtilityTabbedPanel } from "./UtilityTabbedPanel";
-import { EffectWindows } from "./EffectWindows";
 
 function useStopPlaybackOnUnmount(renderer: AudioRenderer) {
   useEffect(() => {
@@ -55,10 +55,7 @@ export function AppProject({ project }: { project: AudioProject }) {
           onSelectTab={setActiveSidePanel}
           dividerPosition={"right"}
           onMouseDownCapture={() => project.activePanel.set("sidebar")}
-          className={classNames(
-            styles.sidebarPanel,
-            activePanel === "sidebar" ? styles.sidebarPanelActive : styles.sidebarPanelInactive,
-          )}
+          className={classNames(styles.sidebarPanel, activePanel === "sidebar" && "bg-panel-active-background")}
           panels={{
             library: {
               icon: <i className="ri-folder-3-line" style={{ paddingRight: 2 }}></i>,
@@ -95,10 +92,7 @@ export function AppProject({ project }: { project: AudioProject }) {
         dividerPosition={"top"}
         expandedSize={295}
         onMouseDownCapture={() => project.activePanel.set("secondary")}
-        className={classNames(
-          styles.secondaryPanel,
-          activePanel === "secondary" ? styles.secondaryPanelActive : styles.secondaryPanelInactive,
-        )}
+        className={classNames(styles.secondaryPanel, activePanel === "secondary" && "bg-panel-active-background")}
         extraControls={<TransportControl style={{ marginTop: 2 }} project={project} />}
         panels={{
           editor: {
@@ -124,20 +118,10 @@ export function AppProject({ project }: { project: AudioProject }) {
 
 const useStyles = createUseStyles({
   secondaryPanel: {
-    margin: "4px 4px 4px 4px",
-    paddingTop: "4px",
-    borderRadius: "3px",
-  },
-  secondaryPanelInactive: {},
-  secondaryPanelActive: {
-    background: "#343434",
     paddingTop: "4px",
   },
-
   sidebarPanel: {
-    // margin: "4px 4px 4px 4px",
     paddingTop: "4px",
-    // borderRadius: "3px",
   },
   sidebarPanelInactive: {},
   sidebarPanelActive: {

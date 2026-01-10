@@ -26,7 +26,7 @@ function useViewportScrollEvents(project: AudioProject, projectDivRef: React.Ref
     projectDivRef,
     useCallback(
       (e: WheelEvent) => {
-        e.preventDefault();
+        // e.preventDefault();
         // see comment on "scroll" event below
         context.current.wheelCalled = true;
         requestAnimationFrame(function hello() {
@@ -184,7 +184,7 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
   return (
     <div
       id="projectDiv"
-      className={cn("relative bg-timeline-bg overflow-x-scroll overflow-y-hidden")}
+      className={cn("relative bg-timeline-bg overflow-x-hidden")}
       ref={projectDivRef}
       onDrop={onDrop}
       // For some reason, need to .preventDefault() so onDrop gets called
@@ -243,6 +243,10 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
         </div>
       )}
 
+      {/* Loop Markers */}
+      {loopPlayback && <TimelineLine project={project} pos={project.loopStart} color={"rgb(255,165,0)"} />}
+      {loopPlayback && <TimelineLine project={project} pos={project.loopEnd} color={"rgb(255,165,0)"} />}
+
       {/* Selection Cursor  */}
       <TimelineCursor project={project} />
 
@@ -254,10 +258,6 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
           "bg-cursor-playback w-px h-full absolute left-0 top-0 select-none pointer-events-none",
         )}
       />
-
-      {/* Loop Markers */}
-      {loopPlayback && <TimelineLine project={project} pos={project.loopStart} color={"rgb(255,165,0)"} />}
-      {loopPlayback && <TimelineLine project={project} pos={project.loopEnd} color={"rgb(255,165,0)"} adjust={-1} />}
     </div>
   );
 }

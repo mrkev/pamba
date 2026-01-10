@@ -234,6 +234,10 @@ export class TimelineT extends Structured<AutoTimelineT, typeof TimelineT> {
   override toString() {
     return `TT.${this._id}(${this.t.toFixed(2)}${this.u.substring(0, 3)})`;
   }
+
+  renderSimple() {
+    return `${this.t}${this.u[0]}`;
+  }
 }
 
 export function time(t: number, u: TimeUnit): TimelineT {

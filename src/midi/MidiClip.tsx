@@ -159,7 +159,7 @@ export class MidiClip extends Structured<AutoMidiClip, typeof MidiClip> implemen
   }
 
   override toString() {
-    return `${this.timelineStart.ensurePulses()} [ ${this.name.get()} ] ${this._timelineEndU}`;
+    return `${this.timelineStart.renderSimple()} [ ${this.name.get()} ] ${this._timelineEndU}`;
   }
 }
 

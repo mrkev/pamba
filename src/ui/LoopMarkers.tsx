@@ -8,6 +8,8 @@ import { set } from "../utils/set";
 import { PPQN } from "../wam/miditrackwam/MIDIConfiguration";
 import { pressedState } from "./pressedState";
 
+const LOOP_RECT_HEIGHT = 12;
+
 export function LoopMarkers({ project }: { project: AudioProject }) {
   const styles = useStyles();
   // for observing
@@ -20,23 +22,43 @@ export function LoopMarkers({ project }: { project: AudioProject }) {
   // just to listen to it
   // todo: a way to subscribe to any viewport change?
   usePrimitive(project.viewport.pxPerSecond);
-  const startX = loopStart.px(project);
+  const startX = project.viewport.timeToViewportPx(loopStart);
   const endX = loopEnd.px(project);
 
   const selection = selected?.status === "loop_marker" ? selected.kind : null;
-  const shapeFill = selection === "box" ? "var(--axis-timeline-separator)" : "var(--timeline-bg)";
+  const boxSelected = selection === "box";
+
+  const tscolor =
+    selection == null
+      ? "var(--timeline-tick)"
+      : selection === "start" || selection === "box"
+        ? "var(--control-bg-color)"
+        : "var(--timeline-tick)";
+
+  const tecolor =
+    selection == null
+      ? "var(--timeline-tick)"
+      : selection === "end" || selection === "box"
+        ? "var(--control-bg-color)"
+        : "var(--timeline-tick)";
+
   return (
     <>
       <div
-        className={classNames(styles.loopRect, loopPlayback && styles.loopRectActive)}
+        className={classNames(
+          "name-loop-rect",
+          "absolute bottom-0",
+          "box-border cursor-pointer border-t border-timeline-tick",
+
+          !loopPlayback && "bg-panel-active-background",
+          loopPlayback && styles.orangePattern,
+          boxSelected && "bg-timeline-bg",
+          loopPlayback && !boxSelected && "bg-axis-timeline-separator",
+        )}
         style={{
-          backgroundColor: shapeFill,
-          borderTop: loopPlayback
-            ? "1px solid var(--axis-timeline-separator)"
-            : "1px solid var(--axis-timeline-separator)",
-          cursor: "pointer",
+          height: LOOP_RECT_HEIGHT,
           left: startX,
-          width: endX - startX,
+          width: Math.floor(endX - startX) + 1,
         }}
         onMouseDown={(e) => {
           project.selected.set({ status: "loop_marker", kind: "box" });
@@ -54,10 +76,13 @@ export function LoopMarkers({ project }: { project: AudioProject }) {
         }}
       >
         <svg
-          viewBox="0 0 10 10"
+          // just shenaningans to have it render looking good
+          viewBox={`0 -1 10 10`}
           width="10"
-          height="10"
-          style={{ position: "absolute", cursor: "col-resize", left: 0, top: 0 }}
+          height={LOOP_RECT_HEIGHT + 1}
+          style={{ top: -2 }}
+          //
+          className="absolute cursor-col-resize left-0"
           onMouseDown={(e) => {
             project.selected.set({ status: "loop_marker", kind: "start" });
             pressedState.set({
@@ -75,8 +100,8 @@ export function LoopMarkers({ project }: { project: AudioProject }) {
           }}
         >
           <polygon
-            fill={selection === "start" ? "var(--axis-timeline-separator)" : shapeFill}
-            stroke={selection === "box" ? "var(--control-bg-color)" : "var(--axis-timeline-separator)"}
+            fill={tscolor}
+            stroke={tscolor}
             strokeWidth={1}
             // .5s bc of the stroke
             points="0.5,0 8,5 0.5,10"
@@ -85,10 +110,13 @@ export function LoopMarkers({ project }: { project: AudioProject }) {
         </svg>
 
         <svg
-          viewBox="0 0 10 10"
+          // just shenaningans to have it render looking good
+          viewBox={`0 -1 10 10`}
           width="10"
-          height="10"
-          style={{ position: "absolute", cursor: "col-resize", right: 0, top: 0 }}
+          height={LOOP_RECT_HEIGHT + 1}
+          style={{ top: -2 }}
+          //
+          className="absolute right-0 cursor-col-resize"
           onMouseDown={(e) => {
             project.selected.set({ status: "loop_marker", kind: "end" });
             pressedState.set({
@@ -98,12 +126,11 @@ export function LoopMarkers({ project }: { project: AudioProject }) {
               limit: [time(1 * PPQN, "pulses").add(loopStart, project), null],
             });
             e.stopPropagation();
-            console.log("end");
           }}
         >
           <polygon
-            stroke={selection === "box" ? "var(--control-bg-color)" : "var(--axis-timeline-separator)"}
-            fill={selection === "end" ? "var(--axis-timeline-separator)" : shapeFill}
+            stroke={tecolor}
+            fill={tecolor}
             strokeWidth={1}
             // .5s bc of the stroke
             points="9.5,0 9.5,10 2,5"
@@ -118,13 +145,7 @@ export function LoopMarkers({ project }: { project: AudioProject }) {
 const ORANGE_TRANSPARENT = `rgb(255,165,0, 0.6)`;
 
 const useStyles = createUseStyles({
-  loopRect: {
-    height: "11px",
-    position: "absolute",
-    boxSizing: "border-box",
-    bottom: 0,
-  },
-  loopRectActive: {
+  orangePattern: {
     backgroundSize: "4px 4px",
     backgroundImage: `repeating-linear-gradient(45deg, ${ORANGE_TRANSPARENT} 0, ${ORANGE_TRANSPARENT} 1.2px, rgba(0, 0, 0, 0) 0, rgba(0, 0, 0, 0) 50%)`,
   },

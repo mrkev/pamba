@@ -105,9 +105,8 @@ export function TrackS({
     <>
       <div
         ref={trackRef}
-        className={classNames(locked && styles.locked)}
+        className={classNames(locked && styles.locked, "relative")}
         style={{
-          position: "relative",
           height: height - TRACK_SEPARATOR_HEIGHT,
           background: activeTrack === track ? "rgba(64,64,64,0.4)" : "none",
           filter: darkenOnDrag ? "brightness(0.7)" : undefined,

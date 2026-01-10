@@ -435,7 +435,6 @@ export function useTimelineMouseEvents(
                   let newOffsetP = Math.max(0, original.t + deltaXPulses);
                   const lowerLimPulses = lowerLim && lowerLim.pulses(project);
                   const upperLimPulses = upperLim && upperLim.pulses(project);
-                  console.log(lowerLimPulses, newOffsetP);
                   if (lowerLimPulses != null && newOffsetP < lowerLimPulses) {
                     newOffsetP = lowerLimPulses;
                   }
@@ -460,7 +459,6 @@ export function useTimelineMouseEvents(
           }
 
           case "selecting_track_time":
-            console.log("selecting_track_time");
             const deltaXSecs = project.viewport.pxToSecs(e.clientX - pressed.clientX);
             const newWidth = snapped(project, e, deltaXSecs);
             project.selectionWidth.set(newWidth);

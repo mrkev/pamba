@@ -28,7 +28,11 @@ export function TimelineView({ project, renderer }: { project: AudioProject; ren
         "grid overflow-y-scroll overflow-x-hidden h-full w-full grow",
       )}
     >
-      <HeaderAxisView project={project} />
+      <HeaderAxisView
+        project={project}
+        // so it remains above the ProjectView, but note, not above axisSpacer
+        style={{ zIndex: 2 }}
+      />
       {/* 1. Track header overhang */}
       <div
         className={cn(
@@ -36,6 +40,7 @@ export function TimelineView({ project, renderer }: { project: AudioProject; ren
           "sticky top-0 flex items-center flex-row justify-evenly",
           activePanel === "primary" && "bg-panel-active-background",
           activePanel !== "primary" && "bg-background",
+          "border-l border-background",
         )}
       >
         {"↑"}
@@ -54,7 +59,15 @@ export function TimelineView({ project, renderer }: { project: AudioProject; ren
   );
 }
 
-function HeaderAxisView({ project }: { project: AudioProject }) {
+function HeaderAxisView({
+  project,
+  className,
+  style,
+}: {
+  project: AudioProject;
+  className?: string;
+  style?: React.CSSProperties;
+}) {
   const axisContainerRef = useRef<HTMLDivElement | null>(null);
   const [activePanel] = useLinkAsState(project.activePanel);
   const [viewportStartPx] = usePrimitive(project.viewport.scrollLeftPx);
@@ -66,12 +79,11 @@ function HeaderAxisView({ project }: { project: AudioProject }) {
       ref={axisContainerRef}
       className={cn(
         "name-axis-container",
-        "sticky bg-timeline-bg top-0 left-0 border-b border-b-axis-timeline-separator justify-evenly",
+        "sticky top-0 left-0 border-b border-b-axis-timeline-separator justify-evenly",
+        activePanel === "primary" ? "bg-panel-active-background" : "bg-timeline-bg",
+        className,
       )}
-      style={{
-        zIndex: 2,
-        borderTop: activePanel === "primary" ? "4px solid var(--timeline-text)" : "4px solid var(--timeline-tick)",
-      }}
+      style={style}
     >
       {/* Header axis doesn't move, we move the svg inside */}
       <Axis
@@ -97,8 +109,8 @@ const useStyles = createUseStyles({
     // gridTemplateColumns: "16px 1fr 150px",
     gridColumnGap: 0,
     gridRowGap: 0,
-    borderTopLeftRadius: "3px",
-    borderBottomLeftRadius: "3px",
+    // borderTopLeftRadius: "3px",
+    // borderBottomLeftRadius: "3px",
     // paddingRight: "4px",
     marginRight: 1,
     paddingRight: 4,

@@ -95,6 +95,17 @@ export class ProjectViewport extends Structured<AutoProjectViewport, typeof Proj
     }
   }
 
+  timeToViewportPx(p: TimelineT) {
+    switch (p.u) {
+      case "bars":
+        throw new Error("UNSUPPORTED");
+      case "pulses":
+        return this.pulsesToViewportPx(p.ensurePulses());
+      case "seconds":
+        return this.secsToViewportPx(p.ensureSecs());
+    }
+  }
+
   secsToPx(s: number) {
     const factor = this.pxPerSecond.get();
 
@@ -110,7 +121,12 @@ export class ProjectViewport extends Structured<AutoProjectViewport, typeof Proj
 
   pulsesToPx(p: number) {
     const bpm = this.project.tempo.get();
-    return this.secsToPx(pulsesToSec(p, bpm));
+    // const secs = pulsesToSec(p, bpm);
+
+    const factor = this.pxPerSecond.get();
+    const m = (factor * SECS_IN_MIN) / (PPQN * bpm);
+
+    return ymxb(m, p, 0);
   }
 
   // TODO: more direct method?

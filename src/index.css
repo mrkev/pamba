@@ -19,7 +19,6 @@
   --color-clip-border-selected: #103310;
   /* timeline */
   --color-timeline-bg: #696969;
-  --color-timeline-text: #141414;
   --color-timeline-tick: #595959;
   --color-axis-timeline-separator: #444343;
   --color-axis-spacer-headers-separator: #373535;
@@ -61,7 +60,8 @@ body {
   --track-separator: #2e2e2e;
   --border-against-bg: #eee;
   --timeline-bg: #696969;
-  --timeline-text: #141414;
+  --timeline-text: #c9c9c9;
+  --timeline-text-inactive: #161616;
   --timeline-tick: #595959;
   --axis-timeline-separator: #444343;
   --axis-spacer-headers-separator: #373535; /* interestingly has to be darker than --axis-timeline-separator to look of a similar color due to the different background grays*/

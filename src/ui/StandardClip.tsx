@@ -38,8 +38,8 @@ export function StandardClip({
   const [tool] = usePrimitive(project.pointerTool);
 
   // looks better adding this 0.5px margin to left and right
-  const width = project.viewport.pulsesToPx(timelineLength.pulses(project)) - 0.5;
-  const left = Math.floor(project.viewport.pulsesToPx(timelienStart.pulses(project))) + 0.5;
+  const left = project.viewport.timeToPx(timelienStart) + 0.5;
+  const width = project.viewport.timeToPx(timelineLength) - 0.5;
   const resizerStartRef = useRef<HTMLDivElement>(null);
   const resizerEndRef = useRef<HTMLDivElement>(null);
 
@@ -65,16 +65,13 @@ export function StandardClip({
         "flex flex-col h-full select-none box-border",
         "bg-clip-color absolute",
         "rounded-sm",
+        !editable && "pointer-events-none",
         isSelected ? "border border-clip-border-selected" : "border border-clip-color",
         className,
       )}
       ref={ref}
       onClick={onClipClick}
-      style={{
-        width: width,
-        pointerEvents: editable ? "all" : "none",
-        left,
-      }}
+      style={{ width, left }}
     >
       <div
         className={cn(

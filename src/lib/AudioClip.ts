@@ -356,7 +356,7 @@ export class AudioClip extends Structured<AutoAudioClip, typeof AudioClip> imple
 
   // etc
   override toString() {
-    const start = this.timelineStart.toString();
+    const start = this.timelineStart.renderSimple();
     const bo = this.bufferOffset.toString();
     const len = this.timelineLength.toString();
     return `[AudioClip.${this._id}, start:${start}, bo:${bo}, len:${len}]`;

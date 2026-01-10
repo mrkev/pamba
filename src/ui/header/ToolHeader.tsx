@@ -11,7 +11,7 @@ import { AudioProject } from "../../lib/project/AudioProject";
 import { cn } from "../../utils/cn";
 import { RenamableLabel } from "../RenamableLabel";
 import { UtilityNumber } from "../UtilityNumber";
-import { UtilityToggle } from "../UtilityToggle";
+import { UtilitySToggle, UtilityToggle } from "../UtilityToggle";
 import { utility } from "../utility";
 import { BounceButton } from "./BounceButton";
 import { CommandButton } from "./CommandButton";
@@ -20,6 +20,7 @@ import { PlaybeatTime } from "./PlaybeatTime";
 import { ToolSelector } from "./ToolSelector";
 import { PlaybackControl } from "./TransportControl";
 import { useCallback } from "react";
+import { UtilityButton } from "../UtilityButton";
 
 function ScaleFactorSlider({ project }: { project: AudioProject }) {
   const [scaleFactor] = usePrimitive(project.viewport.pxPerSecond);
@@ -72,6 +73,7 @@ export function ToolHeader({
   const [isAudioPlaying] = usePrimitive(renderer.isAudioPlaying);
   const [recorderStatus] = useLinkAsState(recorder.status);
   const isRecording = recorderStatus === "recording";
+  const [primaryAxis] = usePrimitive(project.primaryAxis);
 
   const dirty = appEnvironment.projectDirtyObserver.dirtyState() !== "clean";
   useSubscribeToSubbableMutationHashable(appEnvironment.projectDirtyObserver.flag, undefined, false);
@@ -230,6 +232,19 @@ export function ToolHeader({
           <div className="grow"></div>
 
           <ScaleFactorSlider project={project} />
+
+          <UtilityButton
+            title={`toggle primary axis`}
+            onClick={() => {
+              if (primaryAxis === "tempo") {
+                project.primaryAxis.set("time");
+              } else {
+                project.primaryAxis.set("tempo");
+              }
+            }}
+          >
+            {primaryAxis === "tempo" ? <i className="ri-piano-grand-line"></i> : <i className="ri-time-line"></i>}
+          </UtilityButton>
         </div>
       </div>
       <canvas

@@ -56,6 +56,8 @@ export function DebugContent({ project }: { project: AudioProject }) {
   const cursorTracks = useContainer(project.cursorTracks);
   const [viewportStartPx] = usePrimitive(project.viewport.scrollLeftPx);
   const [projectDivWidth] = usePrimitive(project.viewport.projectDivWidth);
+  const loopStart = useContainer(project.loopStart);
+  const loopEnd = useContainer(project.loopEnd);
 
   if (window.location.host.indexOf("localhost") === -1) {
     return null;
@@ -102,8 +104,12 @@ export function DebugContent({ project }: { project: AudioProject }) {
           Project: {project.projectId}
           <br />
           Viewport: |{viewportStartPx}px -{projectDivWidth}-<br />
-          Cursor: {cursorPos} {selectionWidth} <br />
+          Cursor: pos:{cursorPos} selectionWidth:{selectionWidth} <br />
           Cursor Tracks: {[...cursorTracks.values()].map((track) => `${track.name.get()}`)}
+          Loop Markers:
+          {/*  */}
+          <br />- {loopStart.renderSimple()}
+          <br />- {loopEnd.renderSimple()}
         </pre>
         <div>
           <hr></hr>
@@ -117,13 +123,11 @@ export function DebugContent({ project }: { project: AudioProject }) {
       </div>
 
       <div
+        className="overflow-scroll max-h-full min-h-0"
         style={{
           marginLeft: 4,
-          overflow: "scroll",
           background: "#222",
           flexShrink: 1,
-          minHeight: 0,
-          maxHeight: "100%",
         }}
       >
         <pre
