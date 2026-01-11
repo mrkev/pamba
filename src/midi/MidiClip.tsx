@@ -1,15 +1,14 @@
-import { arrayOf, InitFunctions, JSONOfAuto, ReplaceFunctions, SArray, SString, Structured } from "structured-state";
+import { InitFunctions, JSONOfAuto, ReplaceFunctions, SSet, SString, Structured, arrayOf, set } from "structured-state";
 import { TOTAL_VERTICAL_NOTES } from "../constants";
 import { AbstractClip, Pulses } from "../lib/AbstractClip";
 import { ProjectTrack } from "../lib/ProjectTrack";
 import { AudioProject } from "../lib/project/AudioProject";
 import { TimeUnit, TimelineT, time } from "../lib/project/TimelineT";
 import { MidiViewport } from "../lib/viewport/MidiViewport";
-import { mutablearr } from "../utils/nullthrows";
 import { MidiBuffer } from "./MidiBuffer";
+import { MidiNote, mnote } from "./MidiNote";
 import { MidiTrack } from "./MidiTrack";
 import type { NoteT } from "./SharedMidiTypes";
-import { MidiNote, mnote } from "./MidiNote";
 
 type AutoMidiClip = {
   name: SString;
@@ -29,6 +28,7 @@ export class MidiClip extends Structured<AutoMidiClip, typeof MidiClip> implemen
     readonly timelineLength: TimelineT,
     readonly buffer: MidiBuffer,
     readonly detailedViewport: MidiViewport,
+    readonly selectedNotes: SSet<MidiNote>,
     // todo: as of now, unused. midi can be trimmed like audio though.
     readonly bufferTimelineStart: TimelineT,
   ) {
@@ -63,6 +63,7 @@ export class MidiClip extends Structured<AutoMidiClip, typeof MidiClip> implemen
       init.structured(auto.timelineLength, TimelineT),
       init.structured(auto.buffer, MidiBuffer),
       init.structured(auto.viewport, MidiViewport),
+      set([]),
       init.structured(auto.bufferTimelineStart, TimelineT),
     );
   }
@@ -82,6 +83,7 @@ export class MidiClip extends Structured<AutoMidiClip, typeof MidiClip> implemen
       time(lengthPulses, "pulses"),
       Structured.create(MidiBuffer, arrayOf([MidiNote], notes.map(mnote)), time(lengthPulses, "pulses")),
       viewport ?? MidiViewport.of(10, 10, 0, 0),
+      set([]),
       time(bufferTimelineStart ?? startOffsetPulses, "pulses"),
     );
   }
@@ -154,6 +156,7 @@ export class MidiClip extends Structured<AutoMidiClip, typeof MidiClip> implemen
       this.timelineLength.clone(),
       this.buffer.clone(),
       this.detailedViewport.clone(),
+      set([]),
       this.bufferTimelineStart.clone(),
     );
     return newClip;

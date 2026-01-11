@@ -54,8 +54,8 @@ export function NoteR({
     move: useCallback((e: PointerEvent, meta: PointerPressMeta) => onPointerMove(e, meta, ctx), [ctx, onPointerMove]),
   });
 
-  /** notes only have an end resizer */
-  const resizing = usePointerEditing(
+  // notes only have an end resizer
+  const isResizing = usePointerEditing(
     resizerRef,
     useCallback(() => note.t, [note.t]),
     {
@@ -72,7 +72,7 @@ export function NoteR({
   );
 
   const width = clip.detailedViewport.pulsesToPx(duration) + 1;
-  const showResizers = (resizable && width > 15) || resizing;
+  const showResizers = (resizable && width > 15) || isResizing;
 
   return (
     <div
@@ -102,6 +102,8 @@ export function NoteR({
   );
 }
 
+/** EVENTS */
+
 type NoteEditStartEvent = {
   original: NoteT;
   target: NoteCtx;
@@ -122,7 +124,18 @@ function resizeDown(e: PointerEvent, _re: NoteEditStartEvent) {
 function resizeMove(e: PointerEvent, re: NoteEditEvent) {
   const deltaX = e.clientX - re.start.downX;
   const deltaPulses = Math.floor(re.target.clip.detailedViewport.pxToPulses(deltaX));
-  re.target.note.duration = Math.max(NOTE_MIN_SIZE_PULSES, re.original[2] + deltaPulses);
+
+  const selectedNotes = re.target.clip.selectedNotes;
+  const targetNote = re.target.note;
+
+  if (selectedNotes.has(targetNote)) {
+    for (const note of re.target.clip.selectedNotes) {
+      note.duration = Math.max(NOTE_MIN_SIZE_PULSES, re.original[2] + deltaPulses);
+    }
+  } else {
+    // idea: should resizeDown select this note, so we always rezise on a selected note?
+    re.target.note.duration = Math.max(NOTE_MIN_SIZE_PULSES, re.original[2] + deltaPulses);
+  }
 }
 
 function resizeUp(e: PointerEvent, re: NoteEditEvent) {

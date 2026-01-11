@@ -165,6 +165,8 @@ export function MidiClipEditor({
           status: "notes",
           notes: new Set(notes),
         });
+        clip.selectedNotes._replace(() => new Set(notes));
+
         setSelectionBox(null);
       },
       [clip, project.secondarySelection],
