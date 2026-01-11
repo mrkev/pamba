@@ -79,6 +79,12 @@ export class MidiBuffer extends Structured<SimpleMidiBuffer, typeof MidiBuffer> 
 }
 
 export const midiBuffer = {
+  removeNote(buffer: MidiBuffer, note: MidiNote) {
+    const result = buffer.notes.remove(note);
+    buffer.clearCache();
+    return result;
+  },
+
   noteAt(buffer: MidiBuffer, tick: number, num: number) {
     for (const note of buffer.notes) {
       const [ntick, nnum] = note.t;

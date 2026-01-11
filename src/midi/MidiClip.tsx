@@ -198,7 +198,7 @@ export function setClipLength(project: AudioProject, track: MidiTrack, clip: Mid
 
 export const midiClip = {
   // TODO: will be different if clip and buffer start don't align
-  getNotesInRange(
+  findNotesInRange(
     clip: MidiClip,
     minPulse: number = 0,
     maxPulse: number = Infinity,

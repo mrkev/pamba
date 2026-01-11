@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export type PointerPressMeta = {
   downX: number;
@@ -45,4 +45,54 @@ export function usePointerPressMove(
       elem.removeEventListener("pointerdown", onPointerDown);
     };
   }, [callbacks, elemRef]);
+}
+
+export function usePointerEditing<T>(
+  elemRef: React.RefObject<HTMLElement | null | undefined>,
+  original: () => T,
+  callbacks: {
+    down?: (ev: PointerEvent, original: T) => void;
+    move?: (ev: PointerEvent, metadata: PointerPressMeta, original: T) => void;
+    up?: (ev: PointerEvent, metadata: PointerPressMeta, original: T) => void;
+  },
+): boolean {
+  const [active, setActive] = useState(false);
+
+  useEffect(() => {
+    const elem = elemRef.current;
+    if (elem == null) {
+      return;
+    }
+
+    const onPointerDown = function (e: PointerEvent) {
+      elem.setPointerCapture(e.pointerId);
+      const orig = original();
+      callbacks.down?.(e, orig);
+      setActive(true);
+
+      const { clientX: downX, clientY: downY } = e;
+      const pointerMoveMeta = { downX, downY };
+
+      const onPointerMove = (e: PointerEvent) => {
+        callbacks.move?.(e, pointerMoveMeta, orig);
+      };
+
+      const onPointerUp = (e: PointerEvent) => {
+        callbacks.up?.(e, { downX, downY }, orig);
+        elem.releasePointerCapture(e.pointerId);
+        setActive(false);
+        elem.removeEventListener("pointerup", onPointerUp);
+        elem.removeEventListener("pointermove", onPointerMove);
+      };
+
+      elem.addEventListener("pointermove", onPointerMove);
+      elem.addEventListener("pointerup", onPointerUp);
+    };
+    elem.addEventListener("pointerdown", onPointerDown);
+    return () => {
+      elem.removeEventListener("pointerdown", onPointerDown);
+    };
+  }, [callbacks, elemRef, original]);
+
+  return active;
 }

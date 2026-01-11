@@ -153,7 +153,7 @@ export function MidiClipEditor({
         const minNote = Math.floor(clip.detailedViewport.pxToVerticalNotes(boxY));
         const maxNote = Math.floor(clip.detailedViewport.pxToVerticalNotes(boxH)) + minNote;
 
-        const notes = midiClip.getNotesInRange(
+        const notes = midiClip.findNotesInRange(
           clip,
           minPulse,
           maxPulse,
@@ -379,6 +379,7 @@ export function MidiClipEditor({
               const selected = secondarySel?.status === "notes" && secondarySel.notes.has(note);
               return (
                 <NoteR
+                  resizable={panelTool === "move"}
                   key={i}
                   note={note}
                   clip={clip}
