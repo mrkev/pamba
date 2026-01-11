@@ -1,4 +1,5 @@
 import { InitFunctions, JSONOfAuto, ReplaceFunctions, Structured } from "structured-state";
+import { NoteT } from "./SharedMidiTypes";
 
 type AutoMidiNote = {
   tick: number;
@@ -81,7 +82,15 @@ export class MidiNote extends Structured<AutoMidiNote, typeof MidiNote> {
     });
   }
 
+  get t() {
+    return [this.tick, this.number, this.duration, this.velocity] as NoteT;
+  }
+
   override toString() {
     return `MN[${this.tick} ${this.number} ${this.duration} ${this.velocity}]`;
   }
+}
+
+export function mnote(notet: NoteT) {
+  return MidiNote.of(...notet);
 }

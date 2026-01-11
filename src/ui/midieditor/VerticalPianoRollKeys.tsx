@@ -68,7 +68,6 @@ export function VerticalPianoRollKeys({ clip, track }: { clip: MidiClip; track: 
 
           case "mouseup":
           case "mouseleave": {
-            console.log("leave");
             track.allNotesOff();
           }
         }
@@ -112,7 +111,6 @@ export function VerticalPianoRollKeys({ clip, track }: { clip: MidiClip; track: 
       width={CANVAS_SCALE * PIANO_ROLL_WIDTH}
       className="sticky left-0 bg-timeline-bg"
       style={{
-        // pointerEvents: "none",
         height: noteHeight * TOTAL_VERTICAL_NOTES,
         width: PIANO_ROLL_WIDTH,
         zIndex: 1,

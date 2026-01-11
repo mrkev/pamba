@@ -14,7 +14,7 @@ function drawBuffer(
 ) {
   const len = buffer.timelineLength.ensurePulses();
   for (let i = 0; i < buffer.notes.length; i++) {
-    const [start, num, duration] = nullthrows(buffer.notes.at(i));
+    const [start, num, duration] = nullthrows(buffer.notes.at(i)).t;
     const startPx = Math.floor((start * width) / len);
     const widthPx = Math.ceil((duration * width) / len);
     const y = height - (num - minNote);
@@ -26,7 +26,7 @@ export function dataURLForMidiBuffer(width: number, buffer: MidiBuffer): [string
   let maxNote = 0;
   let minNote = MAX_NOTE;
   for (let i = 0; i < buffer.notes.length; i++) {
-    const [_, num] = nullthrows(buffer.notes.at(i));
+    const [_, num] = nullthrows(buffer.notes.at(i)).t;
     if (num > maxNote) {
       maxNote = num;
     }

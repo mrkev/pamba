@@ -203,7 +203,7 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
     for (const clip of this.clips) {
       simpleClips.push({
         id: clip._id,
-        notes: clip.buffer.notes._getRaw(),
+        notes: clip.buffer.notes._getRaw().map((note) => note.t),
         startOffsetPulses: clip.timelineStart.ensurePulses(),
         endOffsetPulses: clip._timelineEndU,
       });
@@ -221,6 +221,7 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
   // PLAY MIDI ON THIS TRACK
 
   noteOn(note: number) {
+    console.log("NOTE", note);
     this.pianoRoll.playingNotes.add(note);
     this.messageSequencer({
       action: "immEvent",
@@ -229,6 +230,7 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
   }
 
   noteOff(note: number) {
+    console.log("NOTEOFF", note);
     this.pianoRoll.playingNotes.delete(note);
     this.messageSequencer({
       action: "immEvent",
@@ -237,7 +239,15 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
   }
 
   allNotesOff() {
+    for (const note of this.pianoRoll.playingNotes) {
+      this.messageSequencer({
+        action: "immEvent",
+        event: ["off", note, 100],
+      });
+    }
+
     this.pianoRoll.playingNotes.clear();
+
     this.messageSequencer({
       action: "immEvent",
       event: ["alloff"],

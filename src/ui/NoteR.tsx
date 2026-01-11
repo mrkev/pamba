@@ -1,9 +1,9 @@
 import classNames from "classnames";
 import { useCallback, useRef } from "react";
-import { usePrimitive, useSubscribeToSubbableMutationHashable } from "structured-state";
+import { useContainer, usePrimitive, useSubscribeToSubbableMutationHashable } from "structured-state";
 import { MidiViewport } from "../lib/viewport/MidiViewport";
 import { MidiClip } from "../midi/MidiClip";
-import { NoteT } from "../midi/SharedMidiTypes";
+import { MidiNote } from "../midi/MidiNote";
 import { PointerPressMeta, usePointerPressMove } from "./usePointerPressMove";
 
 export function NoteR({
@@ -15,17 +15,18 @@ export function NoteR({
   onPointerMove,
   onPointerUp,
 }: {
-  note: NoteT;
+  note: MidiNote;
   clip: MidiClip;
   viewport: MidiViewport;
   selected: boolean;
-  onPointerDown: (e: PointerEvent, note: NoteT) => void;
-  onPointerMove: (e: PointerEvent, note: NoteT, meta: PointerPressMeta) => void;
-  onPointerUp: (e: PointerEvent, note: NoteT, meta: PointerPressMeta) => void;
+  onPointerDown: (e: PointerEvent, note: MidiNote) => void;
+  onPointerMove: (e: PointerEvent, note: MidiNote, meta: PointerPressMeta) => void;
+  onPointerUp: (e: PointerEvent, note: MidiNote, meta: PointerPressMeta) => void;
 }) {
   const [noteHeight] = usePrimitive(viewport.pxNoteHeight);
   const divRef = useRef<HTMLDivElement>(null);
-  const [tick, num, duration, velocity] = note;
+  const mnote = useContainer(note);
+  const [tick, num, duration, velocity] = mnote.t;
 
   useSubscribeToSubbableMutationHashable(clip);
 

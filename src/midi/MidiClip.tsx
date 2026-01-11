@@ -1,4 +1,4 @@
-import { InitFunctions, JSONOfAuto, ReplaceFunctions, SArray, SString, Structured } from "structured-state";
+import { arrayOf, InitFunctions, JSONOfAuto, ReplaceFunctions, SArray, SString, Structured } from "structured-state";
 import { TOTAL_VERTICAL_NOTES } from "../constants";
 import { AbstractClip, Pulses } from "../lib/AbstractClip";
 import { ProjectTrack } from "../lib/ProjectTrack";
@@ -9,6 +9,7 @@ import { mutablearr } from "../utils/nullthrows";
 import { MidiBuffer } from "./MidiBuffer";
 import { MidiTrack } from "./MidiTrack";
 import type { NoteT } from "./SharedMidiTypes";
+import { MidiNote, mnote } from "./MidiNote";
 
 type AutoMidiClip = {
   name: SString;
@@ -79,7 +80,7 @@ export class MidiClip extends Structured<AutoMidiClip, typeof MidiClip> implemen
       SString.create(name),
       time(startOffsetPulses, "pulses"),
       time(lengthPulses, "pulses"),
-      Structured.create(MidiBuffer, SArray.create(mutablearr(notes)), time(lengthPulses, "pulses")),
+      Structured.create(MidiBuffer, arrayOf([MidiNote], notes.map(mnote)), time(lengthPulses, "pulses")),
       viewport ?? MidiViewport.of(10, 10, 0, 0),
       time(bufferTimelineStart ?? startOffsetPulses, "pulses"),
     );
@@ -88,12 +89,12 @@ export class MidiClip extends Structured<AutoMidiClip, typeof MidiClip> implemen
   /////////////////////////////////////////////
 
   static addNote(clip: MidiClip, tick: number, num: number, duration: number, velocity: number) {
-    clip.buffer.addOrderedNote([tick, num, duration, velocity]);
+    clip.buffer.addOrderedNote(mnote([tick, num, duration, velocity]));
     clip.buffer.clearCache();
     clip.notifyChange();
   }
 
-  static removeNote(clip: MidiClip, note: NoteT) {
+  static removeNote(clip: MidiClip, note: MidiNote) {
     const result = clip.buffer.notes.remove(note);
     clip.buffer.clearCache();
     clip.notifyChange();
@@ -102,7 +103,7 @@ export class MidiClip extends Structured<AutoMidiClip, typeof MidiClip> implemen
 
   // Good for now, works long term?
   findNote(tick: number, number: number) {
-    return this.buffer.notes.find(([ntick, nnum]: NoteT) => ntick == tick && nnum == number) ?? null;
+    return this.buffer.notes.find((note: MidiNote) => note.tick == tick && note.number == number) ?? null;
   }
 
   // interface AbstractClip
@@ -206,7 +207,7 @@ export const midiClip = {
   ) {
     const result = [];
     for (const note of clip.buffer.notes) {
-      const [tick, num] = note;
+      const [tick, num] = note.t;
       if (tick >= minPulse && tick <= maxPulse && num >= minNote && num <= maxNote) {
         result.push(note);
       }

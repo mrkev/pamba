@@ -14,9 +14,9 @@ import { time, TimeUnit } from "../lib/project/TimelineT";
 import { MidiViewport, SMidiViewport } from "../lib/viewport/MidiViewport";
 import { MidiClip } from "../midi/MidiClip";
 import { MidiInstrument } from "../midi/MidiInstrument";
-import { isInstrumentPlugin } from "../midi/isInstrumentPlugin";
 import { MidiTrack } from "../midi/MidiTrack";
 import { NoteT } from "../midi/SharedMidiTypes";
+import { isInstrumentPlugin } from "../midi/isInstrumentPlugin";
 import { exhaustive } from "../utils/exhaustive";
 import { nullthrows } from "../utils/nullthrows";
 import { mutable } from "../utils/types";
@@ -153,7 +153,7 @@ export async function serializable(
       name: obj.name.get(),
       startOffsetPulses: obj.timelineStart.ensurePulses(),
       lengthPulses: obj.timelineLength.ensurePulses(), // todo: replace for serialized timelinet to avoid ensurePulses
-      notes: obj.buffer.notes._getRaw(),
+      notes: obj.buffer.notes._getRaw().map((note) => note.t),
       viewport: obj.detailedViewport.serialize(),
       bufferTimelineStart: obj.bufferTimelineStart.ensurePulses(),
     };
