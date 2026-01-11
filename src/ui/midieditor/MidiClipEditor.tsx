@@ -80,6 +80,7 @@ export function MidiClipEditor({
   const timelineLen = useContainer(clip.timelineLength);
   const [selectionBox, setSelectionBox] = useState<null | [number, number, number, number]>(null);
   const [activePanel] = useLinkAsState(project.activePanel);
+  const clipSel = useContainer(clip.selectedNotes);
 
   useConditionalKeydown(
     activePanel === "secondary",
@@ -378,7 +379,7 @@ export function MidiClipEditor({
 
             {/* notes */}
             {notes.map((note, i) => {
-              const selected = secondarySel?.status === "notes" && secondarySel.notes.has(note);
+              const selected = (secondarySel?.status === "notes" && secondarySel.notes.has(note)) || clipSel.has(note);
               return (
                 <NoteR
                   resizable={panelTool === "move"}
