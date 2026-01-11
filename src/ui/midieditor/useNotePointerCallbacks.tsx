@@ -3,7 +3,7 @@ import { history } from "structured-state";
 import { AudioProject, SecondaryTool } from "../../lib/project/AudioProject";
 import { MidiClip } from "../../midi/MidiClip";
 import { MidiTrack } from "../../midi/MidiTrack";
-import { Note } from "../../midi/SharedMidiTypes";
+import { NoteT } from "../../midi/SharedMidiTypes";
 import { exhaustive } from "../../utils/exhaustive";
 import { modifierState } from "../ModifierState";
 
@@ -16,10 +16,10 @@ export function useNotePointerCallbacks(
   track: MidiTrack,
   project: AudioProject,
 ) {
-  const interactionDataRef = useRef<{ notes: Map<Note, [number, number]> }>({ notes: new Map() });
+  const interactionDataRef = useRef<{ notes: Map<NoteT, [number, number]> }>({ notes: new Map() });
 
   const mouseDownForDraw = useCallback(
-    (note: Note) => {
+    (note: NoteT) => {
       history.record("delete note", () => {
         MidiClip.removeNote(clip, note);
         track.flushClipStateToProcessor();
@@ -29,7 +29,7 @@ export function useNotePointerCallbacks(
   );
 
   const mouseDownForMove = useCallback(
-    (note: Note) => {
+    (note: NoteT) => {
       const prev = project.secondarySelection.get();
       console.log("HERE");
       const selectAdd = modifierState.meta || modifierState.shift;
@@ -50,7 +50,7 @@ export function useNotePointerCallbacks(
   );
 
   const onNotePointerDown = useCallback(
-    (e: PointerEvent, note: Note) => {
+    (e: PointerEvent, note: NoteT) => {
       if (e.button !== 0) {
         return;
       }
@@ -78,7 +78,7 @@ export function useNotePointerCallbacks(
   }, []);
 
   const onNotePointerMove = useCallback(
-    (e: PointerEvent, note: Note, meta: { downX: number; downY: number }) => {
+    (e: PointerEvent, note: NoteT, meta: { downX: number; downY: number }) => {
       const selection = project.secondarySelection.get();
       if (selection?.status !== "notes") {
         return;

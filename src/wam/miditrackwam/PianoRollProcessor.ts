@@ -7,7 +7,7 @@ import type {
   WamTransportData,
 } from "@webaudiomodules/api";
 import { OrderedMap } from "../../lib/data/OrderedMap";
-import type { Note, PianoRollProcessorMessage, SimpleMidiClip } from "../../midi/SharedMidiTypes";
+import type { NoteT, PianoRollProcessorMessage, SimpleMidiClip } from "../../midi/SharedMidiTypes";
 import { nullthrows } from "../../utils/nullthrows";
 import { MIDI, MIDIConfiguration, midiOfPartial, PPQN } from "./MIDIConfiguration";
 import { MIDINoteRecorder, PianoRollClip } from "./PianoRollClip";
@@ -188,7 +188,7 @@ class PianoRollProcessor extends WamProcessor {
       const tickMoment = transportData.currentBarStarted + (this.ticks - startingTicks) * secondsPerTick;
 
       // console.log(loopedTicks, tickMoment);
-      notesForTickNew(loopedTicks, [...theClips.values()]).forEach(([ntick, nnumber, nduration, nvelocity]: Note) => {
+      notesForTickNew(loopedTicks, [...theClips.values()]).forEach(([ntick, nnumber, nduration, nvelocity]: NoteT) => {
         // console.log("events", tickMoment);
         this.emitEvents(
           this.midiEvent([MIDI.NOTE_ON | this.midiConfig.outputMidiChannel, nnumber, nvelocity], tickMoment),
@@ -313,7 +313,7 @@ try {
 }
 
 // todo; can be optimized by keeping track of where we are in the array during this "playback session"
-function notesForTickNew(currMidiTick: number, simpleClips: SimpleMidiClip[]): readonly Note[] {
+function notesForTickNew(currMidiTick: number, simpleClips: SimpleMidiClip[]): readonly NoteT[] {
   let currentClip = null;
   for (const clip of simpleClips) {
     if (clip.startOffsetPulses <= currMidiTick && clip.endOffsetPulses >= currMidiTick) {

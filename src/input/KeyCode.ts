@@ -234,3 +234,5 @@ export type KeyCode =
   | "ArrowDown"
   /*kVK_UpArrow (0x7E)	"ArrowUp"	*/
   | "ArrowUp";
+
+export type KeyModifier = "meta" | "alt" | "ctrl" | "shift";

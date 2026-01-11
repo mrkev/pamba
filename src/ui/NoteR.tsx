@@ -3,7 +3,7 @@ import { useCallback, useRef } from "react";
 import { usePrimitive, useSubscribeToSubbableMutationHashable } from "structured-state";
 import { MidiViewport } from "../lib/viewport/MidiViewport";
 import { MidiClip } from "../midi/MidiClip";
-import { Note } from "../midi/SharedMidiTypes";
+import { NoteT } from "../midi/SharedMidiTypes";
 import { PointerPressMeta, usePointerPressMove } from "./usePointerPressMove";
 
 export function NoteR({
@@ -15,13 +15,13 @@ export function NoteR({
   onPointerMove,
   onPointerUp,
 }: {
-  note: Note;
+  note: NoteT;
   clip: MidiClip;
   viewport: MidiViewport;
   selected: boolean;
-  onPointerDown: (e: PointerEvent, note: Note) => void;
-  onPointerMove: (e: PointerEvent, note: Note, meta: PointerPressMeta) => void;
-  onPointerUp: (e: PointerEvent, note: Note, meta: PointerPressMeta) => void;
+  onPointerDown: (e: PointerEvent, note: NoteT) => void;
+  onPointerMove: (e: PointerEvent, note: NoteT, meta: PointerPressMeta) => void;
+  onPointerUp: (e: PointerEvent, note: NoteT, meta: PointerPressMeta) => void;
 }) {
   const [noteHeight] = usePrimitive(viewport.pxNoteHeight);
   const divRef = useRef<HTMLDivElement>(null);

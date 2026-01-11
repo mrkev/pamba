@@ -1,7 +1,7 @@
 import { FaustAudioEffect } from "../../dsp/FaustAudioEffect";
 import { MidiClip } from "../../midi/MidiClip";
 import { MidiTrack } from "../../midi/MidiTrack";
-import { Note } from "../../midi/SharedMidiTypes";
+import { NoteT } from "../../midi/SharedMidiTypes";
 import { PambaWamNode } from "../../wam/PambaWamNode";
 import { AudioClip } from "../AudioClip";
 import { AudioTrack } from "../AudioTrack";
@@ -60,7 +60,7 @@ export type PrimarySelectionState =
 export type PanelSelectionState =
   | {
       status: "notes";
-      notes: Set<Note>;
+      notes: Set<NoteT>;
     }
   | {
       status: "audioTime";

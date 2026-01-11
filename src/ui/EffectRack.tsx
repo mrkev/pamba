@@ -61,6 +61,7 @@ export const EffectRack = React.memo(function EffectRack({
   const [highlightedDropzone, setHighlightedDropzone] = useState<number | null>(null);
 
   // prevent wheel from making it to the timeline, so we don't scroll it
+  // todo, allow it on overscroll
   useEventListener(
     "wheel",
     rackRef,

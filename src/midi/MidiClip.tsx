@@ -8,7 +8,7 @@ import { MidiViewport } from "../lib/viewport/MidiViewport";
 import { mutablearr } from "../utils/nullthrows";
 import { MidiBuffer } from "./MidiBuffer";
 import { MidiTrack } from "./MidiTrack";
-import type { Note } from "./SharedMidiTypes";
+import type { NoteT } from "./SharedMidiTypes";
 
 type AutoMidiClip = {
   name: SString;
@@ -70,7 +70,7 @@ export class MidiClip extends Structured<AutoMidiClip, typeof MidiClip> implemen
     name: string,
     startOffsetPulses: number,
     lengthPulses: number,
-    notes: Note[],
+    notes: NoteT[],
     viewport?: MidiViewport,
     bufferTimelineStart?: number,
   ) {
@@ -93,7 +93,7 @@ export class MidiClip extends Structured<AutoMidiClip, typeof MidiClip> implemen
     clip.notifyChange();
   }
 
-  static removeNote(clip: MidiClip, note: Note) {
+  static removeNote(clip: MidiClip, note: NoteT) {
     const result = clip.buffer.notes.remove(note);
     clip.buffer.clearCache();
     clip.notifyChange();
@@ -102,7 +102,7 @@ export class MidiClip extends Structured<AutoMidiClip, typeof MidiClip> implemen
 
   // Good for now, works long term?
   findNote(tick: number, number: number) {
-    return this.buffer.notes.find(([ntick, nnum]: Note) => ntick == tick && nnum == number) ?? null;
+    return this.buffer.notes.find(([ntick, nnum]: NoteT) => ntick == tick && nnum == number) ?? null;
   }
 
   // interface AbstractClip

@@ -1,15 +1,15 @@
 // Shared with audio worker
 // import { MIDI } from "../wam/miditrackwam/MIDIConfiguration";
 
-export type Note = [tick: number, number: number, duration: number, velocity: number];
+export type NoteT = [tick: number, number: number, duration: number, velocity: number];
 
-export function note(tick: number, number: number, duration: number, velocity: number): Note {
+export function notet(tick: number, number: number, duration: number, velocity: number): NoteT {
   return [tick, number, duration, velocity];
 }
 
 export type SimpleMidiClip = {
   id: string;
-  notes: readonly Note[];
+  notes: readonly NoteT[];
   // todo, make all secs frames?
   startOffsetPulses: number;
   // so we know

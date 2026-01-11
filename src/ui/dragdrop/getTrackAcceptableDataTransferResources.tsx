@@ -4,7 +4,7 @@ import { validateFaustEffectId } from "../../dsp/FAUST_EFFECTS";
 import { appEnvironment } from "../../lib/AppEnvironment";
 import { WAMAvailablePlugin } from "../../wam/plugins";
 import { AudioStorage } from "../../lib/project/AudioStorage";
-import { Note } from "../../midi/SharedMidiTypes";
+import { NoteT } from "../../midi/SharedMidiTypes";
 import { LibraryItem } from "../Library";
 import { midiClipsOfMidiFile } from "./midiTransfer";
 
@@ -25,7 +25,7 @@ export type FaustEffectLibraryItem = Extract<LibraryItem, { kind: "fausteffect" 
 export type EffectInstanceTransferResource = { kind: "effectinstance"; trackIndex: number; effectIndex: number };
 export type TrackInstanceTransferResource = { kind: "trackinstance"; trackIndex: number };
 export type AudioClipInstanceTransferResource = { kind: "audioclipinstance"; todo: number };
-export type MidiTransfer = { kind: "miditransfer"; tracks: { name: string; notes: Note[] }[] };
+export type MidiTransfer = { kind: "miditransfer"; tracks: { name: string; notes: NoteT[] }[] };
 
 export type TransferableResource =
   | AudioPackage

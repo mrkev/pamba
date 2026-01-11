@@ -2,10 +2,10 @@ import { array, InitFunctions, JSONOfAuto, ReplaceFunctions, SArray, Structured 
 import { time, TimelineT } from "../lib/project/TimelineT";
 import { dataURLForMidiBuffer } from "../utils/midiimg";
 import { nullthrows } from "../utils/nullthrows";
-import type { Note } from "./SharedMidiTypes";
+import type { NoteT } from "./SharedMidiTypes";
 
 type SimpleMidiBuffer = {
-  notes: SArray<Note>;
+  notes: SArray<NoteT>;
   len: TimelineT;
 };
 
@@ -14,7 +14,7 @@ export class MidiBuffer extends Structured<SimpleMidiBuffer, typeof MidiBuffer> 
 
   constructor(
     // ordered by tick (start)
-    readonly notes: SArray<Note>,
+    readonly notes: SArray<NoteT>,
     readonly timelineLength: TimelineT,
   ) {
     super();
@@ -36,12 +36,12 @@ export class MidiBuffer extends Structured<SimpleMidiBuffer, typeof MidiBuffer> 
     return Structured.create(MidiBuffer, init.array(json.notes), init.structured(json.len, TimelineT));
   }
 
-  static of(notes: Note[], len: number) {
+  static of(notes: NoteT[], len: number) {
     return Structured.create(MidiBuffer, array(notes), time(len, "pulses"));
   }
 
   ////////////////////////////////////
-  addOrderedNote(note: Note) {
+  addOrderedNote(note: NoteT) {
     for (let i = 0; i < this.notes.length; i++) {
       const [tick] = nullthrows(this.notes.at(i));
       if (tick >= note[0] /* .tick */) {
@@ -90,7 +90,7 @@ export const midiBuffer = {
 };
 
 export const note = {
-  clone(note: Note): Note {
+  clone(note: NoteT): NoteT {
     return [...note];
   },
 };

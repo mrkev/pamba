@@ -16,7 +16,7 @@ import { MidiClip } from "../midi/MidiClip";
 import { MidiInstrument } from "../midi/MidiInstrument";
 import { isInstrumentPlugin } from "../midi/isInstrumentPlugin";
 import { MidiTrack } from "../midi/MidiTrack";
-import { Note } from "../midi/SharedMidiTypes";
+import { NoteT } from "../midi/SharedMidiTypes";
 import { exhaustive } from "../utils/exhaustive";
 import { nullthrows } from "../utils/nullthrows";
 import { mutable } from "../utils/types";
@@ -36,7 +36,7 @@ export type SMidiClip = Readonly<{
   name: string;
   startOffsetPulses: number;
   lengthPulses: number;
-  notes: readonly Note[];
+  notes: readonly NoteT[];
   viewport: SMidiViewport;
   bufferTimelineStart: number;
 }>;

@@ -1,5 +1,5 @@
 import midiFile from "midi-file";
-import { note, Note } from "../../midi/SharedMidiTypes";
+import { notet, NoteT } from "../../midi/SharedMidiTypes";
 import { MidiTransfer } from "./getTrackAcceptableDataTransferResources";
 import { PPQN } from "../../wam/miditrackwam/MIDIConfiguration";
 
@@ -18,7 +18,7 @@ export async function midiClipsOfMidiFile(file: File): Promise<MidiTransfer | nu
     const track = midiData.tracks[t];
     let trackName = `midi_track_${t}`;
     const wipNotes = new Map<number, { tick: number; num: number; velocity: number }>();
-    const notes: Note[] = [];
+    const notes: NoteT[] = [];
 
     let time = 0;
     for (const event of track) {
@@ -54,7 +54,7 @@ export async function midiClipsOfMidiFile(file: File): Promise<MidiTransfer | nu
             continue;
           }
 
-          notes.push(note(toLocalPulses(noteOn.tick), noteOn.num, toLocalPulses(time - noteOn.tick), noteOn.velocity));
+          notes.push(notet(toLocalPulses(noteOn.tick), noteOn.num, toLocalPulses(time - noteOn.tick), noteOn.velocity));
           wipNotes.delete(event.noteNumber);
           break;
         }

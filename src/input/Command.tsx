@@ -2,7 +2,7 @@ import { AudioProject } from "../lib/project/AudioProject";
 import { bucketize } from "../utils/data";
 import { KeyCode } from "./KeyCode";
 
-type KeyboardShortcut = [key: KeyCode, ...modifiers: ("meta" | "alt" | "ctrl" | "shift")[]];
+export type KeyboardShortcut = [key: KeyCode, ...modifiers: ("meta" | "alt" | "ctrl" | "shift")[]];
 type CommandCallback = (
   e: KeyboardEvent | null,
   project: AudioProject,

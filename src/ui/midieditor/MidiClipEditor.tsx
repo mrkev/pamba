@@ -2,6 +2,7 @@ import { useLinkAsState } from "marked-subbable";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { history, useContainer, usePrimitive } from "structured-state";
 import { TOTAL_VERTICAL_NOTES } from "../../constants";
+import { keyChord } from "../../input/KeyChord";
 import { AnalizedPlayer } from "../../lib/io/AnalizedPlayer";
 import { AudioProject } from "../../lib/project/AudioProject";
 import { secsToPulses } from "../../lib/project/TimelineT";
@@ -18,9 +19,9 @@ import { useDrawOnCanvas } from "../useDrawOnCanvas";
 import { useEventListener } from "../useEventListener";
 import { PointerPressMeta, usePointerPressMove } from "../usePointerPressMove";
 import { UtilityToggle } from "../UtilityToggle";
+import { MidiEditorGridBackground } from "./MidiEditorGridBackground";
 import { useNotePointerCallbacks } from "./useNotePointerCallbacks";
 import { VerticalPianoRollKeys } from "./VerticalPianoRollKeys";
-import { MidiEditorGridBackground } from "./MidiEditorGridBackground";
 
 const DEFAULT_NOTE_DURATION = 6;
 const CLIP_TOTAL_BARS = 4;
@@ -54,6 +55,20 @@ function divSelectionBox(
   ];
 }
 
+function useConditionalKeyboardEvents(enabled: boolean, keydown: (e: KeyboardEvent) => void) {
+  useEffect(() => {
+    if (!enabled) {
+      return;
+    }
+
+    document.addEventListener("keydown", keydown);
+    return () => {
+      console.log("REMOVE");
+      document.removeEventListener("keydown", keydown);
+    };
+  }, [enabled, keydown]);
+}
+
 export function MidiClipEditor({
   clip,
   track,
@@ -77,6 +92,47 @@ export function MidiClipEditor({
   const [bpm] = usePrimitive(project.tempo);
   const timelineLen = useContainer(clip.timelineLength);
   const [selectionBox, setSelectionBox] = useState<null | [number, number, number, number]>(null);
+  const [activePanel] = useLinkAsState(project.activePanel);
+
+  useConditionalKeyboardEvents(
+    activePanel === "secondary",
+    useCallback((e: KeyboardEvent) => {
+      switch (keyChord.ofEvent(e)) {
+        case keyChord.ofKeys("KeyA", "meta"):
+          // TODO: select all
+          break;
+        case keyChord.ofKeys("ArrowRight"):
+        case keyChord.ofKeys("ArrowLeft"):
+        case keyChord.ofKeys("ArrowUp"):
+        case keyChord.ofKeys("ArrowDown"):
+        default:
+          console.log("none");
+      }
+    }, []),
+  );
+
+  useConditionalKeyboardEvents(
+    activePanel === "secondary" && secondarySel?.status === "notes",
+    useCallback(
+      (e: KeyboardEvent) => {
+        if (secondarySel?.status !== "notes") {
+          throw new Error("impossible");
+        }
+
+        switch (keyChord.ofEvent(e)) {
+          case keyChord.ofKeys("ArrowRight"):
+          case keyChord.ofKeys("ArrowLeft"):
+          case keyChord.ofKeys("ArrowUp"):
+          case keyChord.ofKeys("ArrowDown"):
+            // secondarySel.notes
+            break;
+          default:
+            console.log("none");
+        }
+      },
+      [secondarySel?.status],
+    ),
+  );
 
   const secsToPixels = useCallback(
     (secs: number, tempo: number) => {
