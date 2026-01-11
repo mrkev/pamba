@@ -1,3 +1,4 @@
+import { midiTrack } from "../../midi/MidiTrack";
 import { parseMIDIMessage } from "../MidiMessage";
 import { exhaustive } from "../state/Subbable";
 import { AudioProject } from "./AudioProject";
@@ -14,16 +15,19 @@ export class ProjectMidi {
       return;
     }
 
-    console.log("message", msg);
+    const armedMidiTrack = this.project.armedMidiTrack.get();
+    if (armedMidiTrack == null) {
+      return;
+    }
 
     // if midi is note, send to project.armedMidiTrack
     // otherwise, use midi learn map
     switch (msg.type) {
       case "noteon":
-        this.project.armedMidiTrack.get()?.noteOn(msg.key);
+        midiTrack.noteOn(armedMidiTrack, msg.key);
         break;
       case "noteoff":
-        this.project.armedMidiTrack.get()?.noteOff(msg.key);
+        midiTrack.noteOff(armedMidiTrack, msg.key);
         break;
       case "keypressure":
       case "pitchbendchange":

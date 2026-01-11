@@ -358,6 +358,7 @@ export async function construct(
         SPrimitive.of<MidiTrack | null>(null), // todo
         number(tempo),
         boolean(rep.snapToGrid ?? false),
+        boolean(true), // todo
         time(loopStart.t, loopStart.u),
         time(loopEnd.t, loopEnd.u),
         boolean(loopOnPlayback),

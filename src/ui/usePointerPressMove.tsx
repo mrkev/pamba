@@ -21,25 +21,25 @@ export function usePointerPressMove(
 
     const onPointerDown = function (e: PointerEvent) {
       elem.setPointerCapture(e.pointerId);
-
       callbacks.down?.(e);
+
       const { clientX: downX, clientY: downY } = e;
-
       const pointerMoveMeta = { downX, downY };
-      function onPointerMove(e: PointerEvent) {
+
+      const onPointerMove = (e: PointerEvent) => {
         callbacks.move?.(e, pointerMoveMeta);
-      }
+      };
 
-      elem.addEventListener("pointermove", onPointerMove);
-
-      elem.addEventListener("pointerup", function onPointerUp(e) {
+      const onPointerUp = (e: PointerEvent) => {
         callbacks.up?.(e, { downX, downY });
         elem.releasePointerCapture(e.pointerId);
         elem.removeEventListener("pointerup", onPointerUp);
         elem.removeEventListener("pointermove", onPointerMove);
-      });
-    };
+      };
 
+      elem.addEventListener("pointermove", onPointerMove);
+      elem.addEventListener("pointerup", onPointerUp);
+    };
     elem.addEventListener("pointerdown", onPointerDown);
     return () => {
       elem.removeEventListener("pointerdown", onPointerDown);

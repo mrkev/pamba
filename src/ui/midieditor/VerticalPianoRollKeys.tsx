@@ -2,7 +2,7 @@ import { useCallback, useRef } from "react";
 import { useContainer, usePrimitive } from "structured-state";
 import { TOTAL_VERTICAL_NOTES } from "../../constants";
 import { MidiClip } from "../../midi/MidiClip";
-import { MidiTrack } from "../../midi/MidiTrack";
+import { midiTrack, MidiTrack } from "../../midi/MidiTrack";
 import { useDrawOnCanvas } from "../useDrawOnCanvas";
 import { useMousePressMove } from "../useEventListener";
 import { CANVAS_SCALE, PIANO_ROLL_WIDTH } from "./MidiClipEditor";
@@ -36,7 +36,7 @@ export function VerticalPianoRollKeys({ clip, track }: { clip: MidiClip; track: 
     useCallback(
       function mousedown(e) {
         const note = noteAtY(e.offsetY);
-        track.noteOn(note);
+        midiTrack.noteOn(track, note);
         return { note };
       },
       [noteAtY, track],
@@ -52,9 +52,9 @@ export function VerticalPianoRollKeys({ clip, track }: { clip: MidiClip; track: 
 
               const newNote = noteAtY(e.offsetY);
               if (newNote != meta.mousedown.note) {
-                track.noteOff(meta.mousedown.note);
+                midiTrack.noteOff(track, meta.mousedown.note);
                 meta.mousedown.note = newNote;
-                track.noteOn(meta.mousedown.note);
+                midiTrack.noteOn(track, meta.mousedown.note);
               }
               break;
             }
@@ -62,13 +62,13 @@ export function VerticalPianoRollKeys({ clip, track }: { clip: MidiClip; track: 
           case "mouseenter": {
             const note = noteAtY(e.offsetY);
             meta.mousedown.note = note;
-            track.noteOn(meta.mousedown.note);
+            midiTrack.noteOn(track, meta.mousedown.note);
             break;
           }
 
           case "mouseup":
           case "mouseleave": {
-            track.allNotesOff();
+            midiTrack.allNotesOff(track);
           }
         }
       },

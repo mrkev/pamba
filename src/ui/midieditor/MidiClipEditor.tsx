@@ -18,8 +18,9 @@ import { NoteR } from "../NoteR";
 import { useDrawOnCanvas } from "../useDrawOnCanvas";
 import { useEventListener } from "../useEventListener";
 import { PointerPressMeta, usePointerPressMove } from "../usePointerPressMove";
-import { UtilityToggle } from "../UtilityToggle";
+import { UtilitySToggle, UtilityToggle } from "../UtilityToggle";
 import { MidiEditorGridBackground } from "./MidiEditorGridBackground";
+import { useConditionalKeydown } from "./useConditionalKeyboardEvents";
 import { useNotePointerCallbacks } from "./useNotePointerCallbacks";
 import { VerticalPianoRollKeys } from "./VerticalPianoRollKeys";
 
@@ -55,20 +56,6 @@ function divSelectionBox(
   ];
 }
 
-function useConditionalKeyboardEvents(enabled: boolean, keydown: (e: KeyboardEvent) => void) {
-  useEffect(() => {
-    if (!enabled) {
-      return;
-    }
-
-    document.addEventListener("keydown", keydown);
-    return () => {
-      console.log("REMOVE");
-      document.removeEventListener("keydown", keydown);
-    };
-  }, [enabled, keydown]);
-}
-
 export function MidiClipEditor({
   clip,
   track,
@@ -94,7 +81,7 @@ export function MidiClipEditor({
   const [selectionBox, setSelectionBox] = useState<null | [number, number, number, number]>(null);
   const [activePanel] = useLinkAsState(project.activePanel);
 
-  useConditionalKeyboardEvents(
+  useConditionalKeydown(
     activePanel === "secondary",
     useCallback((e: KeyboardEvent) => {
       switch (keyChord.ofEvent(e)) {
@@ -111,7 +98,7 @@ export function MidiClipEditor({
     }, []),
   );
 
-  useConditionalKeyboardEvents(
+  useConditionalKeydown(
     activePanel === "secondary" && secondarySel?.status === "notes",
     useCallback(
       (e: KeyboardEvent) => {
@@ -313,7 +300,7 @@ export function MidiClipEditor({
     ),
   );
 
-  const noteEvents = useNotePointerCallbacks(panelTool, clip, track, project);
+  const noteEvents = useNotePointerCallbacks(panelTool);
 
   return (
     <>
@@ -352,7 +339,7 @@ export function MidiClipEditor({
             max={20}
             step={1}
             value={noteHeight}
-            title="Vertical Zoom Level"
+            title="vertical zoom"
             className="grow"
             style={{
               marginTop: 4,
@@ -383,7 +370,7 @@ export function MidiClipEditor({
           />
 
           <VerticalPianoRollKeys clip={clip} track={track} />
-          <div ref={editorContainerRef} className={cn("relative grow")}>
+          <div ref={editorContainerRef} className={cn("name-note-editor", "relative grow")}>
             {/* background with lines */}
             <MidiEditorGridBackground clip={clip} project={project} />
 
@@ -392,10 +379,11 @@ export function MidiClipEditor({
               const selected = secondarySel?.status === "notes" && secondarySel.notes.has(note);
               return (
                 <NoteR
-                  clip={clip}
                   key={i}
                   note={note}
-                  viewport={clip.detailedViewport}
+                  clip={clip}
+                  track={track}
+                  project={project}
                   selected={selected}
                   onPointerDown={noteEvents.onNotePointerDown}
                   onPointerMove={noteEvents.onNotePointerMove}
@@ -429,6 +417,9 @@ export function MidiClipEditor({
         <div />
 
         <div className="flex flex-row">
+          <UtilitySToggle title={"hear notes"} sbool={project.hearNotes}>
+            <i className="ri-headphone-fill"></i>
+          </UtilitySToggle>
           <div className="grow"></div>
           <input
             type="range"

@@ -70,6 +70,7 @@ export class AudioProject {
     // settings //
     readonly tempo: SNumber,
     readonly snapToGrid: SBoolean,
+    readonly hearNotes: SBoolean, // hear notes in midi clip editor
     // looping //
     readonly loopStart: TimelineT,
     readonly loopEnd: TimelineT,
@@ -116,6 +117,7 @@ export class AudioProject {
       SPrimitive.of<AudioTrack | null>(null),
       SPrimitive.of<MidiTrack | null>(null),
       number(DEFAULT_TEMPO),
+      boolean(true),
       boolean(true),
       time(0, "pulses"),
       time(PPQN * 4, "pulses"),

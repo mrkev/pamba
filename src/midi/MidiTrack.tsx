@@ -26,6 +26,7 @@ import { MIDIConfiguration } from "../wam/miditrackwam/MIDIConfiguration";
 import { PianoRollModule, PianoRollNode } from "../wam/miditrackwam/PianoRollModule";
 import { MidiClip } from "./MidiClip";
 import { MidiInstrument } from "./MidiInstrument";
+import { SAMPLE_MIDI } from "./SAMPLE_MIDI";
 import type { PianoRollProcessorMessage, SimpleMidiClip } from "./SharedMidiTypes";
 
 type AutoMidiTrack = {
@@ -220,40 +221,6 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
 
   // PLAY MIDI ON THIS TRACK
 
-  noteOn(note: number) {
-    console.log("NOTE", note);
-    this.pianoRoll.playingNotes.add(note);
-    this.messageSequencer({
-      action: "immEvent",
-      event: ["on", note, 100],
-    });
-  }
-
-  noteOff(note: number) {
-    console.log("NOTEOFF", note);
-    this.pianoRoll.playingNotes.delete(note);
-    this.messageSequencer({
-      action: "immEvent",
-      event: ["off", note, 100],
-    });
-  }
-
-  allNotesOff() {
-    for (const note of this.pianoRoll.playingNotes) {
-      this.messageSequencer({
-        action: "immEvent",
-        event: ["off", note, 100],
-      });
-    }
-
-    this.pianoRoll.playingNotes.clear();
-
-    this.messageSequencer({
-      action: "immEvent",
-      event: ["alloff"],
-    });
-  }
-
   messageSequencer(message: PianoRollProcessorMessage) {
     this.pianoRoll.sendMessageToProcessor(message);
   }
@@ -346,7 +313,44 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
 }
 
 /** MidiTrack methods */
+
+function noteOn(track: MidiTrack, note: number) {
+  track.pianoRoll.playingNotes.add(note);
+  track.messageSequencer({
+    action: "immEvent",
+    event: ["on", note, 100],
+  });
+}
+
+function noteOff(track: MidiTrack, note: number) {
+  track.pianoRoll.playingNotes.delete(note);
+  track.messageSequencer({
+    action: "immEvent",
+    event: ["off", note, 100],
+  });
+}
+
+function allNotesOff(track: MidiTrack) {
+  for (const note of track.pianoRoll.playingNotes) {
+    track.messageSequencer({
+      action: "immEvent",
+      event: ["off", note, 100],
+    });
+  }
+
+  track.pianoRoll.playingNotes.clear();
+  track.messageSequencer({
+    action: "immEvent",
+    event: ["alloff"],
+  });
+}
+
 export const midiTrack = {
+  // Note Playback
+  noteOn,
+  noteOff,
+  allNotesOff,
+
   /** Clip Management */
 
   pushOrdered(project: AudioProject, track: MidiTrack, clip: MidiClip) {
@@ -368,69 +372,10 @@ export const midiTrack = {
 
   createSampleMidiClip(track: MidiTrack) {
     const newClip = MidiClip.of("new midi clip", 0, 96, []);
-    for (const note of SAMPLE_STATE.clips.default.notes) {
+    for (const note of SAMPLE_MIDI.clips.default.notes) {
       MidiClip.addNote(newClip, note.tick, note.number, note.duration, note.velocity);
     }
     // TODO: push in order?
     track.clips.push(newClip);
-  },
-};
-
-const SAMPLE_STATE = {
-  clips: {
-    default: {
-      length: 96,
-      notes: [
-        {
-          tick: 0,
-          number: 60,
-          duration: 6,
-          velocity: 100,
-        },
-        {
-          tick: 12,
-          number: 60,
-          duration: 6,
-          velocity: 100,
-        },
-        {
-          tick: 24,
-          number: 60,
-          duration: 6,
-          velocity: 100,
-        },
-        {
-          tick: 36,
-          number: 60,
-          duration: 6,
-          velocity: 100,
-        },
-        {
-          tick: 48,
-          number: 60,
-          duration: 6,
-          velocity: 100,
-        },
-        {
-          tick: 60,
-          number: 60,
-          duration: 6,
-          velocity: 100,
-        },
-        {
-          tick: 72,
-          number: 60,
-          duration: 6,
-          velocity: 100,
-        },
-        {
-          tick: 84,
-          number: 60,
-          duration: 6,
-          velocity: 100,
-        },
-      ],
-      id: "default",
-    },
   },
 };
