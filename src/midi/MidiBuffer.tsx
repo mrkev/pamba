@@ -3,7 +3,6 @@ import { time, TimelineT } from "../lib/project/TimelineT";
 import { dataURLForMidiBuffer } from "../utils/midiimg";
 import { nullthrows } from "../utils/nullthrows";
 import { MidiNote } from "./MidiNote";
-import type { NoteT } from "./SharedMidiTypes";
 
 type SimpleMidiBuffer = {
   notes: SSchemaArray<MidiNote>;
@@ -46,16 +45,6 @@ export class MidiBuffer extends Structured<SimpleMidiBuffer, typeof MidiBuffer> 
   }
 
   ////////////////////////////////////
-  addOrderedNote(note: MidiNote) {
-    for (let i = 0; i < this.notes.length; i++) {
-      const [tick] = nullthrows(this.notes.at(i)).t;
-      if (tick >= note.tick) {
-        this.notes.splice(i, 0, note);
-        return;
-      }
-    }
-    this.notes.push(note);
-  }
 
   clearCache() {
     this.memodMidiDataURL.clear();
@@ -78,7 +67,20 @@ export class MidiBuffer extends Structured<SimpleMidiBuffer, typeof MidiBuffer> 
   }
 }
 
+function addOrderedNote(buffer: MidiBuffer, note: MidiNote) {
+  for (let i = 0; i < buffer.notes.length; i++) {
+    const [tick] = nullthrows(buffer.notes.at(i)).t;
+    if (tick >= note.tick) {
+      buffer.notes.splice(i, 0, note);
+      return;
+    }
+  }
+  buffer.notes.push(note);
+}
+
 export const midiBuffer = {
+  addOrderedNote,
+
   removeNote(buffer: MidiBuffer, note: MidiNote) {
     const result = buffer.notes.remove(note);
     buffer.clearCache();
@@ -97,11 +99,5 @@ export const midiBuffer = {
         return note;
       }
     }
-  },
-};
-
-export const note = {
-  clone(note: NoteT): NoteT {
-    return [...note];
   },
 };

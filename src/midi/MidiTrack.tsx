@@ -24,7 +24,7 @@ import { ProjectTrackDSP } from "../lib/ProjectTrackDSP";
 import { nullthrows } from "../utils/nullthrows";
 import { MIDIConfiguration } from "../wam/miditrackwam/MIDIConfiguration";
 import { PianoRollModule, PianoRollNode } from "../wam/miditrackwam/PianoRollModule";
-import { MidiClip } from "./MidiClip";
+import { MidiClip, midiClip } from "./MidiClip";
 import { MidiInstrument } from "./MidiInstrument";
 import { SAMPLE_MIDI } from "./SAMPLE_MIDI";
 import type { PianoRollProcessorMessage, SimpleMidiClip } from "./SharedMidiTypes";
@@ -373,7 +373,7 @@ export const midiTrack = {
   createSampleMidiClip(track: MidiTrack) {
     const newClip = MidiClip.of("new midi clip", 0, 96, []);
     for (const note of SAMPLE_MIDI.clips.default.notes) {
-      MidiClip.addNote(newClip, note.tick, note.number, note.duration, note.velocity);
+      midiClip.addNote(newClip, note.tick, note.number, note.duration, note.velocity);
     }
     // TODO: push in order?
     track.clips.push(newClip);

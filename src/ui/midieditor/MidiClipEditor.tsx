@@ -271,7 +271,7 @@ export function MidiClipEditor({
         const noteX = Math.floor(e.offsetX / DEFAULT_NOTE_WIDTH);
         const tick = noteX * DEFAULT_NOTE_DURATION;
 
-        const prevNote = clip.findNote(tick, noteNum);
+        const prevNote = midiClip.findNote(clip, tick, noteNum);
         const panelTool = project.panelTool.get();
 
         switch (panelTool) {
@@ -289,7 +289,7 @@ export function MidiClipEditor({
               if (prevNote != null) {
                 // removal handled in note
               } else {
-                MidiClip.addNote(clip, tick, noteNum, DEFAULT_NOTE_DURATION, 100);
+                midiClip.addNote(clip, tick, noteNum, DEFAULT_NOTE_DURATION, 100);
                 track.flushClipStateToProcessor();
               }
             });

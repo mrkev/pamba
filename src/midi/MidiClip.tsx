@@ -5,7 +5,7 @@ import { ProjectTrack } from "../lib/ProjectTrack";
 import { AudioProject } from "../lib/project/AudioProject";
 import { TimeUnit, TimelineT, time } from "../lib/project/TimelineT";
 import { MidiViewport } from "../lib/viewport/MidiViewport";
-import { MidiBuffer } from "./MidiBuffer";
+import { MidiBuffer, midiBuffer } from "./MidiBuffer";
 import { MidiNote, mnote } from "./MidiNote";
 import { MidiTrack } from "./MidiTrack";
 import type { NoteT } from "./SharedMidiTypes";
@@ -88,26 +88,6 @@ export class MidiClip extends Structured<AutoMidiClip, typeof MidiClip> implemen
     );
   }
 
-  /////////////////////////////////////////////
-
-  static addNote(clip: MidiClip, tick: number, num: number, duration: number, velocity: number) {
-    clip.buffer.addOrderedNote(mnote([tick, num, duration, velocity]));
-    clip.buffer.clearCache();
-    clip.notifyChange();
-  }
-
-  static removeNote(clip: MidiClip, note: MidiNote) {
-    const result = clip.buffer.notes.remove(note);
-    clip.buffer.clearCache();
-    clip.notifyChange();
-    return result;
-  }
-
-  // Good for now, works long term?
-  findNote(tick: number, number: number) {
-    return this.buffer.notes.find((note: MidiNote) => note.tick == tick && note.number == number) ?? null;
-  }
-
   // interface AbstractClip
 
   get _timelineStartU(): Pulses {
@@ -167,13 +147,6 @@ export class MidiClip extends Structured<AutoMidiClip, typeof MidiClip> implemen
   }
 }
 
-export function createEmptyMidiClipInTrack(project: AudioProject, track: MidiTrack, startS: number, endS: number) {
-  const startPulses = project.viewport.secsToPulses(startS);
-  const length = project.viewport.secsToPulses(endS - startS);
-  const clip = MidiClip.of("new clip", startPulses, length, []);
-  ProjectTrack.addClip(project, track, clip);
-}
-
 export function setClipLength(project: AudioProject, track: MidiTrack, clip: MidiClip, t: number, u: TimeUnit) {
   const i = track.clips.indexOf(clip);
   const next = track.clips.at(i + 1);
@@ -199,26 +172,51 @@ export function setClipLength(project: AudioProject, track: MidiTrack, clip: Mid
   clip.timelineLength.set(t, u);
 }
 
-export const midiClip = {
-  // TODO: will be different if clip and buffer start don't align
-  findNotesInRange(
-    clip: MidiClip,
-    minPulse: number = 0,
-    maxPulse: number = Infinity,
-    minNote: number = 0,
-    maxNote: number = TOTAL_VERTICAL_NOTES - 1,
-  ) {
-    const result = [];
-    for (const note of clip.buffer.notes) {
-      const [tick, num] = note.t;
-      if (tick >= minPulse && tick <= maxPulse && num >= minNote && num <= maxNote) {
-        result.push(note);
-      }
-      // since notes are ordered by tick, we know no note after this will be in range
-      if (tick > maxPulse) {
-        break;
-      }
+/////////////////////
+
+function addNote(clip: MidiClip, tick: number, num: number, duration: number, velocity: number) {
+  midiBuffer.addOrderedNote(clip.buffer, mnote([tick, num, duration, velocity]));
+  clip.buffer.clearCache();
+  clip.notifyChange();
+}
+
+function removeNote(clip: MidiClip, note: MidiNote) {
+  const result = clip.buffer.notes.remove(note);
+  clip.buffer.clearCache();
+  clip.notifyChange();
+  return result;
+}
+
+// Good for now, works long term?
+function findNote(clip: MidiClip, tick: number, number: number) {
+  return clip.buffer.notes.find((note: MidiNote) => note.tick == tick && note.number == number) ?? null;
+}
+
+// TODO: will be different if clip and buffer start don't align
+function findNotesInRange(
+  clip: MidiClip,
+  minPulse: number = 0,
+  maxPulse: number = Infinity,
+  minNote: number = 0,
+  maxNote: number = TOTAL_VERTICAL_NOTES - 1,
+) {
+  const result = [];
+  for (const note of clip.buffer.notes) {
+    const [tick, num] = note.t;
+    if (tick >= minPulse && tick <= maxPulse && num >= minNote && num <= maxNote) {
+      result.push(note);
     }
-    return result;
-  },
+    // since notes are ordered by tick, we know no note after this will be in range
+    if (tick > maxPulse) {
+      break;
+    }
+  }
+  return result;
+}
+
+export const midiClip = {
+  addNote,
+  findNote,
+  removeNote,
+  findNotesInRange,
 };

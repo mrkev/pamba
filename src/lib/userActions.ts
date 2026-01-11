@@ -240,7 +240,6 @@ export const userActions = {
     const endPulses = project.viewport.secsToPulses(selected.endS);
 
     const clip = MidiClip.of(track.name.get(), startPulses, endPulses - startPulses, []);
-
     return midiTrack.pushOrdered(project, track, clip);
   },
 

@@ -1,7 +1,7 @@
 import { useCallback, useRef } from "react";
 import { history } from "structured-state";
 import { SecondaryTool } from "../../lib/project/AudioProject";
-import { MidiClip } from "../../midi/MidiClip";
+import { midiClip } from "../../midi/MidiClip";
 import { MidiNote } from "../../midi/MidiNote";
 import { midiTrack } from "../../midi/MidiTrack";
 import { exhaustive } from "../../utils/exhaustive";
@@ -20,7 +20,7 @@ export function useNotePointerCallbacks(panelTool: SecondaryTool) {
 
   const mouseDownForDraw = useCallback(({ note, clip, track }: NoteCtx) => {
     history.record("delete note", () => {
-      MidiClip.removeNote(clip, note);
+      midiClip.removeNote(clip, note);
       track.flushClipStateToProcessor();
     });
   }, []);
