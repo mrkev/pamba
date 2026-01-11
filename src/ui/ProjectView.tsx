@@ -7,6 +7,7 @@ import { useTimelineMouseEvents } from "../input/useProjectMouseEvents";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioRenderer } from "../lib/io/AudioRenderer";
 import { AudioProject } from "../lib/project/AudioProject";
+import { START_PADDING_PX } from "../lib/viewport/ProjectViewport";
 import { cn } from "../utils/cn";
 import { clamp } from "../utils/math";
 import { nullthrows } from "../utils/nullthrows";
@@ -111,18 +112,22 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
   const [scale] = usePrimitive(project.viewport.pxPerSecond);
   const [loopPlayback] = usePrimitive(project.loopOnPlayback);
 
+  // initial
   useLayoutEffect(() => {
     const pbcursor = playbackPosDiv.current;
     if (pbcursor) {
-      pbcursor.style.left = String(project.viewport.secsToPx(player.playbackTime)) + "px";
+      const px = project.viewport.secsToPx(player.playbackTime, START_PADDING_PX);
+      pbcursor.style.left = String(px) + "px";
     }
   }, [player, project.viewport, scale]);
 
+  // on frame
   useEffect(() => {
     return player.addEventListener("frame", function updateProjectViewCursor(playbackTime) {
       const pbcursor = playbackPosDiv.current;
       if (pbcursor) {
-        pbcursor.style.left = String(project.viewport.secsToPx(playbackTime)) + "px";
+        const px = project.viewport.secsToPx(playbackTime, START_PADDING_PX);
+        pbcursor.style.left = String(px) + "px";
       }
     });
   }, [player, project.viewport]);

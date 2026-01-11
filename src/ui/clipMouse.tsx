@@ -3,7 +3,6 @@ import type { AudioTrack } from "../lib/AudioTrack";
 import type { AudioProject } from "../lib/project/AudioProject";
 import { MidiClip } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
-import { modifierState } from "./ModifierState";
 import { pressedState } from "./pressedState";
 
 // import { dataWaveformToCanvas } from "../lib/waveformAsync";
@@ -30,7 +29,7 @@ export function clipMouseDownToMove(e: MouseEvent, cliptrack: ClipTrackCombo, pr
   });
 
   project.selected.setDyn((prev) => {
-    const selectAdd = modifierState.meta || modifierState.shift;
+    const selectAdd = e.metaKey || e.shiftKey;
     if (selectAdd && prev !== null && prev.status === "clips") {
       if (!prev.test.has(clip)) {
         prev.clips.push(cliptrack);

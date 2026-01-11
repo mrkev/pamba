@@ -7,6 +7,7 @@ import { time } from "../lib/project/TimelineT";
 import { set } from "../utils/set";
 import { PPQN } from "../wam/miditrackwam/MIDIConfiguration";
 import { pressedState } from "./pressedState";
+import { START_PADDING_PX } from "../lib/viewport/ProjectViewport";
 
 const LOOP_RECT_HEIGHT = 12;
 
@@ -22,8 +23,8 @@ export function LoopMarkers({ project }: { project: AudioProject }) {
   // just to listen to it
   // todo: a way to subscribe to any viewport change?
   usePrimitive(project.viewport.pxPerSecond);
-  const startX = project.viewport.timeToViewportPx(loopStart);
-  const endX = loopEnd.px(project);
+  const startX = project.viewport.timeToViewportPx(loopStart, START_PADDING_PX);
+  const endX = project.viewport.timeToViewportPx(loopEnd, START_PADDING_PX);
 
   const selection = selected?.status === "loop_marker" ? selected.kind : null;
   const boxSelected = selection === "box";

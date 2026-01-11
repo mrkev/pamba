@@ -128,19 +128,6 @@ export class TimelineT extends Structured<AutoTimelineT, typeof TimelineT> {
     }
   }
 
-  px(project: AudioProject) {
-    switch (this.u) {
-      case "seconds":
-        return project.viewport.secsToViewportPx(this.t);
-      case "pulses":
-        return project.viewport.pulsesToViewportPx(this.t);
-      case "bars":
-        throw new Error("TODO: Cant convert bars to px");
-      default:
-        exhaustive(this.u);
-    }
-  }
-
   asUnit(u: TimeUnit, project: AudioProject) {
     switch (u) {
       case "seconds":

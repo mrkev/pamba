@@ -6,6 +6,7 @@ import { AudioClip } from "../lib/AudioClip";
 import { MidiClip } from "../midi/MidiClip";
 import { cn } from "../utils/cn";
 import { useEventListener } from "./useEventListener";
+import { START_PADDING_PX } from "../lib/viewport/ProjectViewport";
 
 /** Standard component renderer for clips on the timeline */
 export function StandardClip({
@@ -38,7 +39,7 @@ export function StandardClip({
   const [tool] = usePrimitive(project.pointerTool);
 
   // looks better adding this 0.5px margin to left and right
-  const left = project.viewport.timeToPx(timelienStart) + 0.5;
+  const left = project.viewport.timeToPx(timelienStart, START_PADDING_PX) + 0.5;
   const width = project.viewport.timeToPx(timelineLength) - 0.5;
   const resizerStartRef = useRef<HTMLDivElement>(null);
   const resizerEndRef = useRef<HTMLDivElement>(null);

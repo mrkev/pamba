@@ -1,8 +1,10 @@
+import { useLinkAsState } from "marked-subbable";
 import { usePrimitive } from "structured-state";
 import { SECS_IN_MIN } from "../constants";
 import { AudioProject, AxisMeasure } from "../lib/project/AudioProject";
+import { START_PADDING_PX } from "../lib/viewport/ProjectViewport";
 import { cn } from "../utils/cn";
-import { useLinkAsState } from "marked-subbable";
+import { PPQN } from "../wam/miditrackwam/MIDIConfiguration";
 
 const formatter = new Intl.NumberFormat("en-US", {
   useGrouping: false,
@@ -32,18 +34,18 @@ function getTimeStepForRes(dist: number): number {
   }
 }
 
-function getBeatScaleFactorForOneBeatSize(dist: number): number {
+function getBeatScaleFactorForOneBeatSize(oneBeatSizePx: number): number {
   switch (true) {
-    case dist < 60 / 16:
-      return 16 * 4;
-    case dist < 60 / 8:
+    case oneBeatSizePx < 60 / 16:
+      return 16 * 4; // ie, only show every 16 * 4 beats
+    case oneBeatSizePx < 60 / 8:
       return 16;
-    case dist < 60 / 4:
+    case oneBeatSizePx < 60 / 4:
       return 4;
-    case dist < 40:
+    case oneBeatSizePx < 40:
       return 2;
     default:
-      return 1;
+      return 1; // ie, show every beat
   }
 }
 
@@ -60,20 +62,17 @@ export function getOneTickLen(project: AudioProject, tempo: number) {
  * for a viewport that starts at startS px and ends at endS
  */
 function getTimeTickData(project: AudioProject, startS: number, endS: number) {
-  const viewportStartSecs = startS;
-  const viewportEndSecs = endS;
-
   const MIN_DIST_BEETWEEN_TICKS_SEC = project.viewport.pxToSecs(MIN_TICK_DISTANCE);
   const STEP_SECS = getTimeStepForRes(MIN_DIST_BEETWEEN_TICKS_SEC);
 
-  const shaveOff = viewportStartSecs % STEP_SECS;
-  // (viewportStartSecs - shaveOff) gives us a time before the start of our viewport.
+  const backtrack = startS % STEP_SECS;
+  // (startS - backtrack) gives us a time before the start of our viewport.
   // we do want to render this one though, so that it doesn't just disappear as soon
   // as part of it is out of view, and it does appear like we're scrolling it gradually
-  const startingTickSecs = viewportStartSecs - shaveOff;
+  const startingTickSecs = startS - backtrack;
 
   const ticksToShow: Array<number> = [];
-  for (let s = startingTickSecs; s < viewportEndSecs; s += STEP_SECS) {
+  for (let s = startingTickSecs; s < endS; s += STEP_SECS) {
     ticksToShow.push(s);
   }
   return ticksToShow;
@@ -87,29 +86,31 @@ function getBeatTickData(
   project: AudioProject,
   startS: number,
   endS: number,
-  tempo: number,
 ): (readonly [beatNum: number, time: number])[] {
-  const viewportStartSecs = startS;
-  const viewportEndSecs = endS;
+  // the length of a quarter note, in seconds
+  const oneBeatLen = project.viewport.pulsesToSecs(PPQN);
+  const oneBeatSizePx = project.viewport.pulsesToPx(PPQN);
 
-  const oneBeatLen = SECS_IN_MIN / tempo;
-  const oneBeatSizePx = project.viewport.secsToPx(oneBeatLen);
+  // 1 = show every beat. 2 = show every other beat. etc.
   const tickBeatFactor = getBeatScaleFactorForOneBeatSize(oneBeatSizePx);
-  const tickBeatLength = tickBeatFactor * oneBeatLen;
+  const tickBeatLengthS = tickBeatFactor * oneBeatLen;
 
-  // Find the first beat after `viewportStartSecs` that fits our tick beat length.
+  // Find the first beat after `startS` that fits our tick beat length.
   // NOTE: technically, Math.ceil. But we render one beat before the viewport start
   // so text doesn't just "disappear" when the "beat line" scrolls out of view
-  const firstBeatNum = Math.floor(viewportStartSecs / tickBeatLength);
+  const firstBeatNum = Math.floor(startS / tickBeatLengthS);
 
   const ticksToShow = [];
   for (
-    let i = firstBeatNum * tickBeatFactor, s = tickBeatLength * firstBeatNum;
-    s < viewportEndSecs;
-    i += tickBeatFactor, s += tickBeatLength
+    let i = firstBeatNum * tickBeatFactor, //
+      s = tickBeatLengthS * firstBeatNum;
+    //
+    s < endS;
+    i += tickBeatFactor, s += tickBeatLengthS
   ) {
     ticksToShow.push([i, s] as const);
   }
+
   return ticksToShow;
 }
 
@@ -132,18 +133,16 @@ export function Axis({
   const [projectDivWidth] = usePrimitive(project.viewport.projectDivWidth);
   const [primaryAxis] = usePrimitive(project.primaryAxis);
   const [activePanel] = useLinkAsState(project.activePanel);
-
-  const [tempo] = usePrimitive(project.tempo);
   const [timeSignature] = usePrimitive(project.timeSignature);
 
   // for updating when changing scale
   usePrimitive(project.viewport.pxPerSecond);
 
-  const viewportStartSecs = project.viewport.pxToSecs(viewportStartPx);
+  const viewportStartSecs = project.viewport.pxToSecs(viewportStartPx, START_PADDING_PX);
   const viewportEndSecs = project.viewport.pxToSecs(projectDivWidth + viewportStartPx);
 
   const timeSTicks = getTimeTickData(project, viewportStartSecs, viewportEndSecs);
-  const tempoTicks = getBeatTickData(project, viewportStartSecs, viewportEndSecs, tempo);
+  const tempoTicks = getBeatTickData(project, viewportStartSecs, viewportEndSecs);
 
   const textDims = (axis: AxisMeasure) => (primaryAxis === axis ? ["11px", "2"] : ["8px", "70%"]);
 
@@ -152,7 +151,8 @@ export function Axis({
     <svg className={cn("pointer-events-none", className)} style={style}>
       {(isHeader || primaryAxis === "tempo") &&
         tempoTicks.map(([beatNum, secs]) => {
-          const px = project.viewport.secsToViewportPx(secs);
+          const px = project.viewport.secsToViewportPx(secs, START_PADDING_PX);
+
           const denom = beatNum % timeSignature[0];
           const label = `${Math.floor(beatNum / 4) + 1}` + (denom === 0 ? "" : `.${denom}`);
           const [fontSize, textY] = textDims("tempo");
@@ -184,7 +184,7 @@ export function Axis({
         })}
       {(isHeader || primaryAxis === "time") &&
         timeSTicks.map((secs) => {
-          const px = project.viewport.secsToViewportPx(secs);
+          const px = project.viewport.secsToViewportPx(secs, START_PADDING_PX);
           const [fontSize, textY] = textDims("time");
           return (
             <g className="tick" key={secs}>

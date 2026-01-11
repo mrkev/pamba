@@ -15,7 +15,7 @@ import {
 } from "../lib/clipMoveSec";
 import { AudioProject } from "../lib/project/AudioProject";
 import { ProjectTrack } from "../lib/ProjectTrack";
-import { snapped } from "../lib/viewport/ProjectViewport";
+import { snapped, START_PADDING_PX } from "../lib/viewport/ProjectViewport";
 import { MidiClip } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
 import { pressedState } from "../ui/pressedState";
@@ -54,9 +54,9 @@ export function useAxisContainerMouseEvents(
         x: e.clientX + div.scrollLeft - div.getBoundingClientRect().x,
         y: e.clientY + div.scrollTop - div.getBoundingClientRect().y,
       };
-      const asSecs = project.viewport.pxToSecs(position.x + viewportStartPx);
+      const asSecs = project.viewport.pxToSecs(position.x + viewportStartPx, START_PADDING_PX);
 
-      const newPos = snapped(project, e, asSecs);
+      const newPos = Math.max(0, snapped(project, e, asSecs));
       // player.setCursorPos(asSecs);
       project.cursorPos.set(newPos);
       project.selectionWidth.set(null);
@@ -118,7 +118,7 @@ export function useTimelineMouseEvents(
         };
 
         const asSecs = project.viewport.pxToSecs(position.x);
-        const newPos = snapped(project, e, asSecs);
+        const newPos = Math.max(0, snapped(project, e, asSecs));
 
         pressedState.set({
           status: "selecting_global_time",
@@ -208,7 +208,7 @@ export function useTimelineMouseEvents(
 
           case "selecting_global_time": {
             const { startTime } = pressed;
-            const deltaXSecs = project.viewport.pxToSecs(e.clientX - pressed.clientX);
+            const deltaXSecs = project.viewport.pxToSecs(e.clientX - pressed.clientX, START_PADDING_PX);
 
             pressedState.set(null);
             const selWidth = snapped(project, e, deltaXSecs);
@@ -244,7 +244,7 @@ export function useTimelineMouseEvents(
           }
 
           case "selecting_track_time": {
-            const deltaXSecs = project.viewport.pxToSecs(e.clientX - pressed.clientX);
+            const deltaXSecs = project.viewport.pxToSecs(e.clientX - pressed.clientX, START_PADDING_PX);
             const selWidthS = snapped(project, e, deltaXSecs);
 
             pressedState.set(null);

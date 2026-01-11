@@ -6,7 +6,7 @@ import { nullthrows } from "../../utils/nullthrows";
 import { PPQN } from "../../wam/miditrackwam/MIDIConfiguration";
 import { appEnvironment } from "../AppEnvironment";
 import { AudioProject } from "../project/AudioProject";
-import { pulsesToSec, TimelineT } from "../project/TimelineT";
+import { TimelineT } from "../project/TimelineT";
 
 type AutoProjectViewport = {
   viewportStartPx: SNumber;
@@ -15,15 +15,9 @@ type AutoProjectViewport = {
 
 export type XScale = ScaleLinear<number, number>;
 
-const START_PADDING_PX = 10;
+export const START_PADDING_PX = 0;
 
 export class ProjectViewport extends Structured<AutoProjectViewport, typeof ProjectViewport> {
-  // 1 sec corresponds to 10 px
-  // readonly secsToPxDS: DerivedState<(factor: number) => XScale>;
-  // factor 2: 1sec => 2px
-  // factor 3: 1sec => 3px
-  // etc
-
   constructor(
     readonly project: AudioProject,
     readonly projectDivWidth: SNumber,
@@ -34,13 +28,6 @@ export class ProjectViewport extends Structured<AutoProjectViewport, typeof Proj
     readonly scrollLeftPx: SNumber,
   ) {
     super();
-    // this.secsToPxDS = DerivedState.from(
-    //   [this.pxPerSecond],
-    //   (factor: number) =>
-    //     scaleLinear()
-    //       .domain([0, 1])
-    //       .range([0, 1 * factor]) as XScale,
-    // );
   }
 
   override replace(autoJson: JSONOfAuto<AutoProjectViewport>, replace: ReplaceFunctions): void {
@@ -84,61 +71,65 @@ export class ProjectViewport extends Structured<AutoProjectViewport, typeof Proj
 
   // Conversions
 
-  timeToPx(p: TimelineT) {
+  timeToPx(p: TimelineT, b = 0) {
     switch (p.u) {
       case "bars":
         throw new Error("UNSUPPORTED");
       case "pulses":
-        return this.pulsesToPx(p.ensurePulses());
+        return this.pulsesToPx(p.ensurePulses(), b);
       case "seconds":
-        return this.secsToPx(p.ensureSecs());
+        return this.secsToPx(p.ensureSecs(), b);
     }
   }
 
-  timeToViewportPx(p: TimelineT) {
+  timeToViewportPx(p: TimelineT, b = 0) {
     switch (p.u) {
       case "bars":
         throw new Error("UNSUPPORTED");
       case "pulses":
-        return this.pulsesToViewportPx(p.ensurePulses());
+        return this.pulsesToViewportPx(p.ensurePulses(), b);
       case "seconds":
-        return this.secsToViewportPx(p.ensureSecs());
+        return this.secsToViewportPx(p.ensureSecs(), b);
     }
   }
 
-  secsToPx(s: number) {
+  secsToPx(s: number, b = 0) {
     const factor = this.pxPerSecond.get();
 
-    return ymxb(factor, s, 0);
+    // y = mx + b
+    return ymxb(factor, s, b);
   }
 
-  secsToViewportPx(s: number): number {
+  secsToViewportPx(s: number, b = 0): number {
     const factor = this.pxPerSecond.get();
     const viewportStartPx = this.scrollLeftPx.get();
 
-    return ymxb(factor, s, -viewportStartPx);
+    return ymxb(factor, s, -viewportStartPx + b);
   }
 
-  pulsesToPx(p: number) {
+  pulsesToPx(p: number, b = 0) {
     const bpm = this.project.tempo.get();
     // const secs = pulsesToSec(p, bpm);
 
     const factor = this.pxPerSecond.get();
     const m = (factor * SECS_IN_MIN) / (PPQN * bpm);
 
-    return ymxb(m, p, 0);
+    return ymxb(m, p, b);
   }
 
-  // TODO: more direct method?
-  pulsesToViewportPx(p: number) {
+  pulsesToViewportPx(p: number, b = 0) {
     const bpm = this.project.tempo.get();
+    const factor = this.pxPerSecond.get();
+    const m = (factor * SECS_IN_MIN) / (PPQN * bpm);
+
     const viewportStartPx = this.scrollLeftPx.get();
-    return this.secsToPx(pulsesToSec(p, bpm)) - viewportStartPx;
+
+    return ymxb(m, p, -viewportStartPx + b);
   }
 
-  pxToSecs(px: number) {
+  pxToSecs(px: number, b = 0) {
     const factor = this.pxPerSecond.get();
-    return px / factor;
+    return inv_ymxb(factor, px, b);
   }
 
   pxToPulses(px: number) {
@@ -152,11 +143,16 @@ export class ProjectViewport extends Structured<AutoProjectViewport, typeof Proj
     return Math.floor((secs * PPQN * bpm) / SECS_IN_MIN);
   }
 
+  pulsesToSecs(pulses: number) {
+    const bpm = this.project.tempo.get();
+    return (pulses * SECS_IN_MIN) / (PPQN * bpm);
+  }
+
   // snapping
 
   snapToTempo(s: number) {
     const tempo = this.project.tempo.get();
-    const oneBeatLen = 60 / tempo;
+    const oneBeatLen = SECS_IN_MIN / tempo;
     const snappedTime = stepNumber(s, oneBeatLen);
     return snappedTime;
   }
@@ -181,4 +177,9 @@ export function snapped(project: AudioProject, e: MouseEvent, s: number) {
 /** y = mx + b */
 function ymxb(m: number, x: number, b: number) {
   return m * x + b;
+}
+
+// x = (y - b) / m
+function inv_ymxb(m: number, y: number, b: number) {
+  return (y - b) / m;
 }
