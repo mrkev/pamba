@@ -3,7 +3,7 @@ import type { AudioProject } from "../lib/project/AudioProject";
 import { MidiClip } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
 import { StandardClip } from "./StandardClip";
-import { clipMouseDownToMove, clipMouseDownToResize } from "./clipMouse";
+import { clipMouseDownToMove } from "./clipMouse";
 
 export function ClipM({
   clip,
@@ -22,18 +22,6 @@ export function ClipM({
   // const timelineLength = useContainer(clip.timelineLength);
   // const width = project.viewport.pulsesToPx(timelineLength.pulses(project));
   // const left = Math.floor(project.viewport.pulsesToPx(timelienStart.pulses(project)));
-
-  const onMouseDownToResize = useCallback(
-    (e: React.MouseEvent<HTMLDivElement>, from: "start" | "end") => {
-      const tool = project.pointerTool.get();
-      if (tool !== "move" || !editable || track == null) {
-        return;
-      }
-      console.log("MOUSE DOWN TO RESIZE");
-      clipMouseDownToResize(e, { kind: "midi", clip, track }, from);
-    },
-    [clip, editable, project.pointerTool, track],
-  );
 
   const onMouseDownToMove = useCallback(
     (e: MouseEvent) => {
@@ -81,7 +69,6 @@ export function ClipM({
       clip={clip}
       editable={editable}
       isSelected={isSelected}
-      onMouseDownToResize={onMouseDownToResize}
       onMouseDownToMove={onMouseDownToMove}
       onClipClick={onClipClick}
       contentStyle={{

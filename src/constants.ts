@@ -57,3 +57,5 @@ export const SOUND_FONT_URL = "https://www.webaudiomodules.com/community/plugins
 
 // NOTE: used only for the premade queues right now
 export const MAX_NUMBER_OF_TRACKS = 32;
+
+export const CLIP_MIN_SIZE_PULSES = 4;

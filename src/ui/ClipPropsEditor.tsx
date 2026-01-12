@@ -33,13 +33,12 @@ export function ClipPropsEditor({
         }}
       />
       Start:
-      <TimelineTEditor t={tStart} project={project} readonly onChange={() => {}} defaultUnit={"bars"} />
+      <TimelineTEditor t={tStart} project={project} readonly defaultUnit={"bars"} />
       Length:
       <TimelineTEditor
         t={tLen}
         project={project}
         readonly
-        onChange={() => {}}
         defaultUnit={clip instanceof MidiClip ? "bars" : "seconds"}
       />
       sid:

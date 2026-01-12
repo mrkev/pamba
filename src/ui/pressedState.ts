@@ -42,18 +42,6 @@ export type CursorState =
       track: AudioTrack | MidiTrack;
     }>
   | Readonly<{
-      status: "resizing_clip";
-      from: "start" | "end";
-      originalClipStart: TimelineT;
-      originalClipLength: TimelineT;
-      originalBufferOffset: TimelineT;
-      clip: AudioClip | MidiClip;
-      track: AudioTrack | MidiTrack;
-      clientX: number;
-      clientY: number;
-      inHistory: boolean;
-    }>
-  | Readonly<{
       status: "resizing_track";
       track: AudioTrack | MidiTrack;
       originalHeight: number;

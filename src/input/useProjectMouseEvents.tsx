@@ -4,15 +4,7 @@ import { MIN_TRACK_HEIGHT } from "../constants";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioTrack } from "../lib/AudioTrack";
-import {
-  clipMovePPQN,
-  clipMoveSec,
-  clipResizeEndPulses,
-  clipResizeEndSec,
-  clipResizeStartSec,
-  pointMovePulses,
-  pointMoveSec,
-} from "../lib/clipMoveSec";
+import { clipMovePPQN, clipMoveSec, pointMovePulses, pointMoveSec } from "../lib/clipMoveSec";
 import { AudioProject } from "../lib/project/AudioProject";
 import { ProjectTrack } from "../lib/ProjectTrack";
 import { snapped, START_PADDING_PX } from "../lib/viewport/ProjectViewport";
@@ -22,7 +14,6 @@ import { pressedState } from "../ui/pressedState";
 import { useDocumentEventListener, useEventListener } from "../ui/useEventListener";
 import { usePointerPressMove } from "../ui/usePointerPressMove";
 import { exhaustive } from "../utils/exhaustive";
-import { clamp } from "../utils/math";
 
 export function timelineSecs(e: MouseEvent, projectDiv: HTMLDivElement, project: AudioProject) {
   const viewportStartPx = project.viewport.scrollLeftPx.get();
@@ -120,6 +111,7 @@ export function useTimelineMouseEvents(
         const asSecs = project.viewport.pxToSecs(position.x);
         const newPos = Math.max(0, snapped(project, e, asSecs));
 
+        console.log("GLOBAL TIME");
         pressedState.set({
           status: "selecting_global_time",
           clientX: e.clientX,
@@ -199,12 +191,6 @@ export function useTimelineMouseEvents(
           case "resizing_track":
             pressedState.set(null);
             break;
-
-          case "resizing_clip": {
-            // TODO: delete time within clip
-            pressedState.set(null);
-            break;
-          }
 
           case "selecting_global_time": {
             const { startTime } = pressed;
@@ -338,62 +324,6 @@ export function useTimelineMouseEvents(
             break;
           }
 
-          case "resizing_clip": {
-            if (!pressed.inHistory) {
-              history.push("resize clip", [pressed.clip]);
-            }
-
-            const snap = e.metaKey ? !project.snapToGrid.get() : project.snapToGrid.get();
-            const deltaX = e.clientX - pressed.clientX;
-
-            if (pressed.clip instanceof MidiClip) {
-              const opDeltaXPulses = project.viewport.pxToPulses(deltaX);
-              const originalClipLengthPulses = pressed.originalClipLength.pulses(project);
-
-              if (pressed.from === "end") {
-                const newLength = originalClipLengthPulses + opDeltaXPulses;
-                const originalEndPulses =
-                  pressed.clip.timelineStart.pulses(project) + pressed.clip.timelineLength.pulses(project);
-                clipResizeEndPulses(pressed.clip, newLength, originalEndPulses, snap);
-              } else if (pressed.from === "start") {
-                throw new Error("MidiClip unimplemented");
-              } else {
-                exhaustive(pressed.from);
-              }
-            } else if (pressed.clip instanceof AudioClip) {
-              const changeSecs = project.viewport.pxToSecs(deltaX);
-              const originalClipLengthSecs = pressed.originalClipLength.secs(project);
-
-              if (pressed.from === "end") {
-                const newLength = originalClipLengthSecs + changeSecs;
-                clipResizeEndSec(pressed.clip, newLength, project, snap);
-              } else if (pressed.from === "start") {
-                const newLength = clamp(
-                  // zero length is minimum
-                  0,
-                  originalClipLengthSecs - changeSecs,
-                  // since trimming from start, max is going back all the way to zero
-                  originalClipLengthSecs + pressed.originalBufferOffset.ensureSecs(),
-                );
-
-                const effectiveChange = originalClipLengthSecs - newLength;
-                // console.log(changeSecs, newLength, effectiveChange);
-
-                const newTimelineStartSec = pressed.originalClipStart.secs(project) + effectiveChange;
-                const newBufferOffset = pressed.originalBufferOffset.ensureSecs() + effectiveChange;
-                clipResizeStartSec(pressed.clip, newLength, newBufferOffset, newTimelineStartSec, project, snap);
-              } else {
-                exhaustive(pressed.from);
-              }
-            } else {
-              exhaustive(pressed.clip);
-            }
-
-            // NOTE: hacking away the readonly
-            (pressed as any).inHistory = true;
-            break;
-          }
-
           case "selecting_global_time": {
             const deltaXSecs = project.viewport.pxToSecs(e.clientX - pressed.clientX);
             const newWidth = snapped(project, e, deltaXSecs);
@@ -414,7 +344,7 @@ export function useTimelineMouseEvents(
             const upperLim = pressed.limit?.[1] ?? null;
 
             for (const { original, point } of pressed.points) {
-              switch (point.u) {
+              switch (point.unit) {
                 case "seconds": {
                   const deltaXSecs = project.viewport.pxToSecs(deltaX);
                   let newOffsetS = Math.max(0, original.t + deltaXSecs);
@@ -451,7 +381,7 @@ export function useTimelineMouseEvents(
                 }
 
                 default:
-                  exhaustive(point.u);
+                  exhaustive(point.unit);
               }
             }
 

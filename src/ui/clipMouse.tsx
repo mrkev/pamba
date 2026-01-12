@@ -48,26 +48,3 @@ export function clipMouseDownToMove(e: MouseEvent, cliptrack: ClipTrackCombo, pr
 
   project.selectionWidth.set(null);
 }
-
-export function clipMouseDownToResize(
-  e: React.MouseEvent<HTMLDivElement>,
-  { clip, track }: ClipTrackCombo,
-  from: "start" | "end",
-) {
-  if (e.button !== 0) {
-    return;
-  }
-  pressedState.set({
-    status: "resizing_clip",
-    clip,
-    originalBufferOffset: clip.bufferOffset.clone(),
-    originalClipStart: clip.timelineStart.clone(),
-    originalClipLength: clip.timelineLength.clone(),
-    from,
-    clientX: e.clientX,
-    clientY: e.clientY,
-    inHistory: false,
-    track,
-  });
-  e.stopPropagation();
-}

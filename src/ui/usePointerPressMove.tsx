@@ -51,7 +51,7 @@ export function usePointerEditing<T>(
   elemRef: React.RefObject<HTMLElement | null | undefined>,
   original: () => T,
   callbacks: {
-    down?: (ev: PointerEvent, original: T) => void;
+    down?: (ev: PointerEvent, original: T) => void | "abort";
     move?: (ev: PointerEvent, metadata: PointerPressMeta, original: T) => void;
     up?: (ev: PointerEvent, metadata: PointerPressMeta, original: T) => void;
   },
@@ -65,9 +65,18 @@ export function usePointerEditing<T>(
     }
 
     const onPointerDown = function (e: PointerEvent) {
-      elem.setPointerCapture(e.pointerId);
+      if (e.button !== 0) {
+        // only edit with the main (left) button
+        return;
+      }
+
       const orig = original();
-      callbacks.down?.(e, orig);
+      const status = callbacks.down?.(e, orig);
+      if (status === "abort") {
+        return;
+      }
+
+      elem.setPointerCapture(e.pointerId);
       setActive(true);
 
       const { clientX: downX, clientY: downY } = e;

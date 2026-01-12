@@ -6,7 +6,7 @@ import { nullthrows } from "../../utils/nullthrows";
 import { PPQN } from "../../wam/miditrackwam/MIDIConfiguration";
 import { appEnvironment } from "../AppEnvironment";
 import { AudioProject } from "../project/AudioProject";
-import { TimelineT } from "../project/TimelineT";
+import { TimelineT, TimeUnit } from "../project/TimelineT";
 
 type AutoProjectViewport = {
   viewportStartPx: SNumber;
@@ -72,7 +72,7 @@ export class ProjectViewport extends Structured<AutoProjectViewport, typeof Proj
   // Conversions
 
   timeToPx(p: TimelineT, b = 0) {
-    switch (p.u) {
+    switch (p.unit) {
       case "bars":
         throw new Error("UNSUPPORTED");
       case "pulses":
@@ -83,7 +83,7 @@ export class ProjectViewport extends Structured<AutoProjectViewport, typeof Proj
   }
 
   timeToViewportPx(p: TimelineT, b = 0) {
-    switch (p.u) {
+    switch (p.unit) {
       case "bars":
         throw new Error("UNSUPPORTED");
       case "pulses":
@@ -136,6 +136,18 @@ export class ProjectViewport extends Structured<AutoProjectViewport, typeof Proj
     const bpm = this.project.tempo.get();
     const secs = this.pxToSecs(px);
     return Math.floor((secs * PPQN * bpm) / SECS_IN_MIN);
+  }
+
+  pxTo(px: number, unit: TimeUnit) {
+    switch (unit) {
+      case "bars":
+        throw new Error("UNSUPPORTED");
+      case "pulses":
+        return this.pxToPulses(px);
+      case "seconds":
+        return this.pxToSecs(px);
+    }
+    throw new Error("unimplemented");
   }
 
   secsToPulses(secs: number) {

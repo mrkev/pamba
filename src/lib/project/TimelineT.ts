@@ -7,6 +7,8 @@ import { exhaustive } from "../state/Subbable";
 import { AudioProject } from "./AudioProject";
 import { TimelineOperation } from "./TimelineOperation";
 
+// bars might be good to differentiate the future, when
+// we work on different time signatures (ie, variable pulses per bar)
 export type TimeUnit = "pulses" | "seconds" | "bars";
 
 type AutoTimelineT = STimelineT;
@@ -29,7 +31,7 @@ export class TimelineT extends Structured<AutoTimelineT, typeof TimelineT> {
   constructor(
     // time and unit
     private t: number,
-    public u: TimeUnit,
+    public unit: TimeUnit,
   ) {
     super();
   }
@@ -38,16 +40,16 @@ export class TimelineT extends Structured<AutoTimelineT, typeof TimelineT> {
 
   // TODO: just use autoForm where this is used?
   serialize(): STimelineT {
-    return { t: this.t, u: this.u };
+    return { t: this.t, u: this.unit };
   }
 
   override autoSimplify(): AutoTimelineT {
-    return { t: this.t, u: this.u };
+    return { t: this.t, u: this.unit };
   }
 
   override replace(auto: JSONOfAuto<AutoTimelineT>): void {
     this.t = auto.t;
-    this.u = auto.u;
+    this.unit = auto.u;
   }
 
   static construct(auto: AutoTimelineT): TimelineT {
@@ -61,31 +63,31 @@ export class TimelineT extends Structured<AutoTimelineT, typeof TimelineT> {
   public set(t: number | TimelineT, u?: TimeUnit): void {
     this.featuredMutation(() => {
       if (t instanceof TimelineT) {
-        this.set(t.t, t.u);
+        this.set(t.t, t.unit);
         return;
       }
 
       this.t = t;
       if (u != null) {
-        this.u = u;
+        this.unit = u;
       }
     });
   }
 
   public setTo(op: TimelineOperation, project: AudioProject) {
-    this.set(op.solve(this.u, project));
+    this.set(op.solve(this.unit, project));
   }
 
   public normalize(u: TimeUnit, project: AudioProject): this {
-    if (this.u !== u) {
+    if (this.unit !== u) {
       this.t = this.asUnit(u, project);
-      this.u = u;
+      this.unit = u;
     }
     return this;
   }
 
   secs(project: AudioProject): Seconds {
-    switch (this.u) {
+    switch (this.unit) {
       case "seconds":
         return this.t as Seconds;
       case "pulses":
@@ -93,12 +95,12 @@ export class TimelineT extends Structured<AutoTimelineT, typeof TimelineT> {
       case "bars":
         return pulsesToSec(this.pulses(project), project.tempo.get()) as Seconds;
       default:
-        exhaustive(this.u);
+        exhaustive(this.unit);
     }
   }
 
   pulses(project: AudioProject): Pulses {
-    return TimelineT.pulses(project, this.t, this.u);
+    return TimelineT.pulses(project, this.t, this.unit);
   }
 
   static pulses(project: AudioProject, t: number, u: TimeUnit): Pulses {
@@ -116,7 +118,7 @@ export class TimelineT extends Structured<AutoTimelineT, typeof TimelineT> {
 
   // TODO: could replace with get/set function that takes "note" argument, uses pulses setup
   bars(project: AudioProject): number {
-    switch (this.u) {
+    switch (this.unit) {
       case "seconds":
         return secsToPulses(this.t, project.tempo.get()) / PULSES_PER_BAR;
       case "pulses":
@@ -124,7 +126,7 @@ export class TimelineT extends Structured<AutoTimelineT, typeof TimelineT> {
       case "bars":
         return this.t;
       default:
-        exhaustive(this.u);
+        exhaustive(this.unit);
     }
   }
 
@@ -142,16 +144,16 @@ export class TimelineT extends Structured<AutoTimelineT, typeof TimelineT> {
   }
 
   clone() {
-    return Structured.create(TimelineT, this.t, this.u);
+    return Structured.create(TimelineT, this.t, this.unit);
   }
 
   addTime(t: number, u: TimeUnit, project: AudioProject) {
     this.featuredMutation(() => {
-      if (this.u === u) {
+      if (this.unit === u) {
         this.t += t;
       } else {
         const p = time(t, u);
-        this.t += p.asUnit(this.u, project);
+        this.t += p.asUnit(this.unit, project);
       }
     });
     return this;
@@ -159,10 +161,10 @@ export class TimelineT extends Structured<AutoTimelineT, typeof TimelineT> {
 
   add(p: TimelineT, project: AudioProject) {
     this.featuredMutation(() => {
-      if (this.u === p.u) {
+      if (this.unit === p.unit) {
         this.t += p.t;
       } else {
-        this.t += p.asUnit(this.u, project);
+        this.t += p.asUnit(this.unit, project);
       }
     });
     return this;
@@ -170,17 +172,17 @@ export class TimelineT extends Structured<AutoTimelineT, typeof TimelineT> {
 
   subtract(p: TimelineT, project: AudioProject) {
     this.featuredMutation(() => {
-      if (this.u === p.u) {
+      if (this.unit === p.unit) {
         this.t -= p.t;
       } else {
-        this.t -= p.asUnit(this.u, project);
+        this.t -= p.asUnit(this.unit, project);
       }
     });
     return this;
   }
 
   eq(b: TimelineT, project: AudioProject): boolean {
-    if (this.u === b.u) {
+    if (this.unit === b.unit) {
       return this.t === b.t;
     }
     return timelineT.compare(project, this, "=", b);
@@ -194,36 +196,36 @@ export class TimelineT extends Structured<AutoTimelineT, typeof TimelineT> {
   }
 
   ensurePulses() {
-    switch (this.u) {
+    switch (this.unit) {
       case "seconds":
-        throw new Error("expected pulses, found " + this.u);
+        throw new Error("expected pulses, found " + this.unit);
       case "bars":
         return this.t * PULSES_PER_BAR;
       case "pulses":
         return this.t;
       default:
-        exhaustive(this.u);
+        exhaustive(this.unit);
     }
   }
 
   ensureSecs() {
-    switch (this.u) {
+    switch (this.unit) {
       case "seconds":
         return this.t;
       case "bars":
       case "pulses":
-        throw new Error("expected pulses, found " + this.u);
+        throw new Error("expected pulses, found " + this.unit);
       default:
-        exhaustive(this.u);
+        exhaustive(this.unit);
     }
   }
 
   override toString() {
-    return `TT.${this._id}(${this.t.toFixed(2)}${this.u.substring(0, 3)})`;
+    return `TT.${this._id}(${this.t.toFixed(2)}${this.unit.substring(0, 3)})`;
   }
 
   renderSimple() {
-    return `${this.t}${this.u[0]}`;
+    return `${this.t}${this.unit[0]}`;
   }
 }
 
