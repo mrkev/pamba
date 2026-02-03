@@ -36,7 +36,7 @@ export function addClip<Clip extends AbstractClip<U>, U extends Pulses | Seconds
   clips: SArray<Clip>,
 ): void {
   // Essentially, we want to insert in order, sorted
-  // by the startOffsetSec of each clip.
+  // by the _timelineStartU of each clip.
   let i = 0;
   let _prev: Clip | undefined;
   let next: Clip | undefined;

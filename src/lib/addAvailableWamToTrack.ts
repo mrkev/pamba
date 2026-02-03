@@ -1,10 +1,10 @@
 import { liveAudioContext } from "../constants";
 import { MidiInstrument } from "../midi/MidiInstrument";
-import { MidiTrack } from "../midi/MidiTrack";
+import { midiTrack, MidiTrack } from "../midi/MidiTrack";
 import { assert, nullthrows } from "../utils/nullthrows";
 import { PambaWamNode } from "../wam/PambaWamNode";
-import { appEnvironment } from "./AppEnvironment";
 import { WAMAvailablePlugin } from "../wam/plugins";
+import { appEnvironment } from "./AppEnvironment";
 import { AudioTrack } from "./AudioTrack";
 
 /**
@@ -35,7 +35,7 @@ export async function addAvailableWamToTrack(
       const instrument = await MidiInstrument.createFromInstrumentPlugin(wam as any);
 
       const open = appEnvironment.openEffects.has(track.instrument.get());
-      await track.changeInstrument(instrument);
+      await midiTrack.changeInstrument(track, instrument);
       if (open) {
         appEnvironment.openEffects.add(instrument);
       }

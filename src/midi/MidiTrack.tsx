@@ -18,7 +18,6 @@ import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
 import { appEnvironment, defaultInstrument, liveWamHostGroupId } from "../lib/AppEnvironment";
 import { PBGainNode } from "../lib/offlineNodes";
 import { AudioProject } from "../lib/project/AudioProject";
-import { timelineT } from "../lib/project/TimelineT";
 import { ProjectTrackDSP } from "../lib/ProjectTrackDSP";
 import { StandardTrack } from "../lib/StandardTrack";
 import { nullthrows } from "../utils/nullthrows";
@@ -26,7 +25,6 @@ import { MIDIConfiguration } from "../wam/miditrackwam/MIDIConfiguration";
 import { PianoRollModule, PianoRollNode } from "../wam/miditrackwam/PianoRollModule";
 import { MidiClip, midiClip, sequencerClipOfMidiClip } from "./MidiClip";
 import { MidiInstrument } from "./MidiInstrument";
-import { SAMPLE_MIDI } from "./SAMPLE_MIDI";
 import type { PianoRollProcessorMessage, SequencerMidiClip } from "./SharedMidiTypes";
 
 type AutoMidiTrack = {
@@ -82,7 +80,7 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
 
   // todo: instrument can be empty?
   // TODO: SPrimitive holds Structs.
-  instrument: SPrimitive<MidiInstrument>;
+  public readonly instrument: SPrimitive<MidiInstrument>;
   // readonly pianoRoll: PianoRollModule;
 
   // the pianoRoll to play. same as .pianoRoll when playing live,
@@ -134,7 +132,10 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
     // connect instrument to rest of track dsp
     this.dsp.connectToDSPForPlayback(this.instrument.get().pambaWam.node);
 
-    if (clips.length === 0) midiTrack.createSampleMidiClip(this);
+    if (clips.length === 0) {
+      const newClip = midiClip.createSampleMidiClip();
+      this.clips.push(newClip);
+    }
   }
 
   static async createDefault(name: string = "midi track", clips: MidiClip[] = []) {
@@ -153,32 +154,6 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
       liveAudioContext(),
     )) as PianoRollModule;
     return Structured.create(MidiTrack, name, pianoRoll, instrument, clips ?? []);
-  }
-
-  // TODO: OLD INSTRUMENT ISN'T BEING PROPERLY REMOVED
-  public async changeInstrument(instrument: MidiInstrument) {
-    const currInstr = this.instrument.get();
-    // TODO: ensure audio not playing?
-    // Disconnect and destroy the old instrument
-    await liveAudioContext().suspend();
-    currInstr.pambaWam.wamInstance.audioNode.disconnect(this.pianoRoll.audioNode);
-    this.pianoRoll.audioNode.disconnectEvents(instrument.wamInstance.instanceId);
-    this.pianoRoll.audioNode.clearEvents();
-    DSP.disconnectAll(currInstr);
-    currInstr.pambaWam.wamInstance.audioNode.disconnect();
-    currInstr.pambaWam.wamInstance.audioNode.disconnectEvents();
-    currInstr.destroy();
-
-    // Setup the new instrument
-    this.instrument.set(instrument);
-    // connect to piano roll
-    instrument.wamInstance.audioNode.connect(this.pianoRoll.audioNode);
-    this.pianoRoll.audioNode.connectEvents(instrument.wamInstance.instanceId);
-    // connect to rest of track dsp
-    this.dsp.connectToDSPForPlayback(this.instrument.get().pambaWam.node);
-
-    console.log("chagned instrument to", instrument.url);
-    await liveAudioContext().resume();
   }
 
   prepareForPlayback(project: AudioProject, context: AudioContext, startingAt: number): void {
@@ -372,6 +347,32 @@ function flushClipStateToProcessor(track: MidiTrack, clip: MidiClip) {
   });
 }
 
+// TODO: OLD INSTRUMENT ISN'T BEING PROPERLY REMOVED
+async function changeInstrument(track: MidiTrack, instrument: MidiInstrument) {
+  const currInstr = track.instrument.get();
+  // TODO: ensure audio not playing?
+  // Disconnect and destroy the old instrument
+  await liveAudioContext().suspend();
+  currInstr.pambaWam.wamInstance.audioNode.disconnect(track.pianoRoll.audioNode);
+  track.pianoRoll.audioNode.disconnectEvents(instrument.wamInstance.instanceId);
+  track.pianoRoll.audioNode.clearEvents();
+  DSP.disconnectAll(currInstr);
+  currInstr.pambaWam.wamInstance.audioNode.disconnect();
+  currInstr.pambaWam.wamInstance.audioNode.disconnectEvents();
+  currInstr.destroy();
+
+  // Setup the new instrument
+  track.instrument.set(instrument);
+  // connect to piano roll
+  instrument.wamInstance.audioNode.connect(track.pianoRoll.audioNode);
+  track.pianoRoll.audioNode.connectEvents(instrument.wamInstance.instanceId);
+  // connect to rest of track dsp
+  track.dsp.connectToDSPForPlayback(track.instrument.get().pambaWam.node);
+
+  console.log("chagned instrument to", instrument.url);
+  await liveAudioContext().resume();
+}
+
 export const midiTrack = {
   // Note Playback
   noteOn,
@@ -386,29 +387,5 @@ export const midiTrack = {
   flushAllClipStateToProcessor,
   flushClipStateToProcessor,
 
-  pushOrdered(project: AudioProject, track: MidiTrack, clip: MidiClip) {
-    if (track.clips.indexOf(clip) > -1) {
-      return false;
-    }
-
-    for (let i = 0; i < track.clips.length; i++) {
-      const n = nullthrows(track.clips.at(i), "impossible");
-      if (timelineT.compare(project, n.timelineStart, ">", clip.timelineStart)) {
-        track.clips.splice(i, 0, clip);
-        return true;
-      }
-    }
-
-    track.clips.push(clip);
-    return true;
-  },
-
-  createSampleMidiClip(track: MidiTrack) {
-    const newClip = MidiClip.of("new midi clip", 0, 96, []);
-    for (const note of SAMPLE_MIDI.clips.default.notes) {
-      midiClip.addNote(newClip, note.tick, note.number, note.duration, note.velocity);
-    }
-    // TODO: push in order?
-    track.clips.push(newClip);
-  },
+  changeInstrument,
 };

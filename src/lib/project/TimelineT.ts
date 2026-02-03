@@ -1,9 +1,9 @@
 import { JSONOfAuto, Structured } from "structured-state";
 import { liveAudioContext, PULSES_PER_BAR, SECS_IN_MIN } from "../../constants";
 import { STimelineT } from "../../data/serializable";
+import { exhaustive } from "../../utils/exhaustive";
 import { PPQN } from "../../wam/miditrackwam/MIDIConfiguration";
 import { Pulses, Seconds } from "../AbstractClip";
-import { exhaustive } from "../state/Subbable";
 import { AudioProject } from "./AudioProject";
 import { TimelineOperation } from "./TimelineOperation";
 

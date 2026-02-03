@@ -1,6 +1,6 @@
 import { midiTrack } from "../../midi/MidiTrack";
+import { exhaustive } from "../../utils/exhaustive";
 import { parseMIDIMessage } from "../MidiMessage";
-import { exhaustive } from "../state/Subbable";
 import { AudioProject } from "./AudioProject";
 
 export class ProjectMidi {

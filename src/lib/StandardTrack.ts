@@ -35,6 +35,10 @@ export const standardTrack = {
     if (!project.canEditTrack(project, track)) {
       return;
     }
+
+    if (track.clips.indexOf(newClip) > -1) {
+      return;
+    }
     addClip(newClip, track.clips);
     track.didAddClip(newClip);
   },

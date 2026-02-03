@@ -1,10 +1,10 @@
 import { history } from "structured-state";
-import { MidiClip } from "../midi/MidiClip";
-import { midiTrack, MidiTrack } from "../midi/MidiTrack";
+import { midiClip, MidiClip } from "../midi/MidiClip";
+import { MidiTrack } from "../midi/MidiTrack";
 import { doConfirm } from "../ui/ConfirmDialog";
+import { exhaustive } from "../utils/exhaustive";
 import { nullthrows } from "../utils/nullthrows";
 import { appEnvironment } from "./AppEnvironment";
-import { AudioClip } from "./AudioClip";
 import { AudioTrack } from "./AudioTrack";
 import { AnalizedPlayer } from "./io/AnalizedPlayer";
 import { AudioProject, deleteTime } from "./project/AudioProject";
@@ -14,7 +14,6 @@ import { selection } from "./project/selection";
 import { PrimarySelectionState } from "./project/SelectionState";
 import { timeop } from "./project/TimelineOperation";
 import { standardTrack } from "./StandardTrack";
-import { exhaustive } from "./state/Subbable";
 
 /** User actions record hisotry */
 export const userActions = {
@@ -234,7 +233,7 @@ export const userActions = {
     const endPulses = project.viewport.secsToPulses(selected.endS);
 
     const clip = MidiClip.of(track.name.get(), startPulses, endPulses - startPulses, []);
-    return midiTrack.pushOrdered(project, track, clip);
+    return standardTrack.addClip(project, track, clip);
   },
 
   async addSampleMidiClip(project: AudioProject) {
@@ -243,6 +242,7 @@ export const userActions = {
       return false;
     }
 
-    midiTrack.createSampleMidiClip(activeTrack);
+    const clip = midiClip.createSampleMidiClip();
+    standardTrack.addClip(project, activeTrack, clip);
   },
 };
