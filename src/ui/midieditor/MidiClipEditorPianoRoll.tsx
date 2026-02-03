@@ -1,9 +1,11 @@
 import { useLinkAsState } from "marked-subbable";
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { ReactNode, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { history, useContainer, usePrimitive } from "structured-state";
 import {
   DEFAULT_NOTE_DURATION,
   MIDI_CLIP_EDITOR_MAX_H_SCALE,
+  MIDI_CLIP_EDITOR_MIN_H_SCALE,
   TOTAL_VERTICAL_NOTES,
   VERTICAL_PIANO_WIDTH,
 } from "../../constants";
@@ -20,11 +22,11 @@ import { PPQN } from "../../wam/miditrackwam/MIDIConfiguration";
 import { NoteR } from "../NoteR";
 import { useEventListener } from "../useEventListener";
 import { PointerPressMeta, usePointerPressMove } from "../usePointerPressMove";
+import { useViewportScrollEvents } from "../useViewportScrollEvents";
 import { divSelectionBox } from "./divSelectionBox";
 import { MidiEditorGridBackground } from "./MidiEditorGridBackground";
 import { useNotePointerCallbacks } from "./useNotePointerCallbacks";
 import { VerticalPianoRollKeys } from "./VerticalPianoRollKeys";
-import { useViewportScrollEvents } from "./useViewportScrollEvents";
 
 const CLIP_TOTAL_BARS = 4;
 
@@ -41,17 +43,11 @@ export function MidiClipEditorPianoRoll({
 }) {
   const pianoRollRef = useRef<HTMLDivElement>(null);
   const editorContainerRef = useRef<HTMLDivElement>(null);
-  const notes = useContainer(clip.buffer.notes);
   const [bpm] = usePrimitive(project.tempo);
-  const timelineLen = useContainer(clip.timelineLength);
   const [selectionBox, setSelectionBox] = useState<null | [number, number, number, number]>(null);
-  const clipSel = useContainer(clip.selectedNotes);
   const cursorDiv = useRef<HTMLDivElement>(null);
   const [noteHeight, setNoteHeight] = usePrimitive(clip.detailedViewport.pxNoteHeight);
-  const [pxPerPulse, setPxPerPulse] = usePrimitive(clip.detailedViewport.pxPerPulse);
-  const [secondarySel] = useLinkAsState(project.secondarySelection);
-  const [panelTool] = usePrimitive(project.panelTool);
-  const [activePanel] = useLinkAsState(project.activePanel);
+  const [scrollLeftPx] = usePrimitive(clip.detailedViewport.scrollLeftPx);
 
   const secsToPixels = useCallback(
     (secs: number, tempo: number) => {
@@ -110,50 +106,6 @@ export function MidiClipEditorPianoRoll({
     ),
   });
 
-  useEventListener(
-    "wheel",
-    pianoRollRef,
-    useCallback(
-      function (e: WheelEvent) {
-        const pianoRoll = nullthrows(pianoRollRef.current);
-        const mouseX = e.clientX - pianoRoll.getBoundingClientRect().left;
-        e.preventDefault();
-        e.stopPropagation();
-
-        // both pinches and two-finger pans trigger the wheel event trackpads.
-        // ctrlKey is true for pinches though, so we can use it to differentiate
-        // one from the other.
-        // pinch
-        if (e.ctrlKey) {
-          const sDelta = Math.exp(-e.deltaY / 70);
-          const expectedNewScale = clip.detailedViewport.pxPerPulse.get() * sDelta;
-          // Min: 10 <->  Max: Sample rate
-          clip.detailedViewport.setHScale(expectedNewScale, 1, MIDI_CLIP_EDITOR_MAX_H_SCALE, mouseX);
-        }
-
-        // pan
-        else {
-          // if (lockPlayback) {
-          //   clip.detailedViewport.lockPlayback.set(false);
-          //   // TODO: not working, keeping current scroll left position hmm
-          //   const offsetFr = offsetFrOfPlaybackPos(player.playbackPos.get());
-          //   clip.detailedViewport.scrollLeftPx.set(offsetFr / clip.sampleRate);
-          // }
-          const maxScrollLeft = pianoRoll.scrollWidth - pianoRoll.clientWidth;
-          const maxScrollTop = pianoRoll.scrollHeight - pianoRoll.clientHeight;
-          clip.detailedViewport.scrollLeftPx.setDyn((prev) => clamp(0, prev + e.deltaX, maxScrollLeft));
-          clip.detailedViewport.scrollTopPx.setDyn((prev) => clamp(0, prev + e.deltaY, maxScrollTop));
-
-          pianoRoll.scrollTo({
-            left: clip.detailedViewport.scrollLeftPx.get(),
-            top: clip.detailedViewport.scrollTopPx.get(),
-          });
-        }
-      },
-      [clip.detailedViewport],
-    ),
-  );
-
   // on first render, set the scroll
   useEffect(() => {
     const pianoRoll = nullthrows(pianoRollRef.current);
@@ -162,6 +114,41 @@ export function MidiClipEditorPianoRoll({
       top: clip.detailedViewport.scrollTopPx.get(),
     });
   }, [clip.detailedViewport.scrollLeftPx, clip.detailedViewport.scrollTopPx]);
+
+  useLayoutEffect(() => {
+    const pianoRoll = nullthrows(pianoRollRef.current);
+
+    if (!pianoRoll) {
+      return;
+    }
+
+    pianoRoll.scrollTo({ left: scrollLeftPx, behavior: "instant" });
+  }, [scrollLeftPx]);
+
+  useViewportScrollEvents(pianoRollRef, {
+    scale: useCallback(
+      (sDelta, mouseX) => {
+        // max scale is 1000
+        const expectedNewScale = clamp(
+          MIDI_CLIP_EDITOR_MIN_H_SCALE,
+          clip.detailedViewport.pxPerPulse.get() * sDelta,
+          MIDI_CLIP_EDITOR_MAX_H_SCALE,
+        );
+        clip.detailedViewport.setScale(expectedNewScale, mouseX);
+      },
+      [clip.detailedViewport],
+    ),
+
+    panX: useCallback(
+      (deltaX, absolute) => {
+        const left = absolute ? deltaX : clamp(0, clip.detailedViewport.scrollLeftPx.get() + deltaX, Infinity);
+        flushSync(() => {
+          clip.detailedViewport.scrollLeftPx.set(left);
+        });
+      },
+      [clip.detailedViewport.scrollLeftPx],
+    ),
+  });
 
   useEffect(() => {
     // update cursor to move on playback
@@ -238,12 +225,10 @@ export function MidiClipEditorPianoRoll({
     ),
   );
 
-  const noteEvents = useNotePointerCallbacks(panelTool);
-
   return (
     <div
       ref={pianoRollRef}
-      className={cn("name-piano-roll", "grid grow overflow-scroll shrink")}
+      className={cn("name-piano-roll", "grid grow overflow-y-scroll overflow-x-hidden shrink")}
       style={{ gridTemplateColumns: `${VERTICAL_PIANO_WIDTH}px 1fr`, gridTemplateRows: "1fr", alignItems: "stretch" }}
     >
       <div className="sticky top-0 left-0 z-20 bg-timeline-tick box-border"></div>
@@ -259,30 +244,35 @@ export function MidiClipEditorPianoRoll({
 
       <VerticalPianoRollKeys clip={clip} track={track} />
 
-      <PianoRollView project={project} track={track} clip={clip} />
+      <PianoRollView project={project} track={track} clip={clip}>
+        {/* cursor */}
+        <div
+          className={cn("name-sec-cursor", "absolute h-full pointer-events-none top-0 bg-[red] w-px")}
+          ref={cursorDiv}
+        />
+      </PianoRollView>
     </div>
   );
 }
 
-function PianoRollView({ project, track, clip }: { project: AudioProject; track: MidiTrack; clip: MidiClip }) {
+function PianoRollView({
+  project,
+  track,
+  clip,
+  children,
+}: {
+  project: AudioProject;
+  track: MidiTrack;
+  clip: MidiClip;
+  children?: ReactNode;
+}) {
   const prRef = useRef<HTMLDivElement>(null);
   const notes = useContainer(clip.buffer.notes);
-  const [selectionBox, setSelectionBox] = useState<null | [number, number, number, number]>(null);
+  const [selectionBox] = useState<null | [number, number, number, number]>(null);
   const clipSel = useContainer(clip.selectedNotes);
-  const cursorDiv = useRef<HTMLDivElement>(null);
   const [secondarySel] = useLinkAsState(project.secondarySelection);
   const [panelTool] = usePrimitive(project.panelTool);
-  const [scrollLeftPx] = usePrimitive(clip.detailedViewport.scrollLeftPx);
-
   const noteEvents = useNotePointerCallbacks(panelTool);
-  useViewportScrollEvents(clip, prRef);
-
-  useLayoutEffect(() => {
-    if (!prRef) {
-      return;
-    }
-    prRef.current?.scrollTo({ left: scrollLeftPx, behavior: "instant" });
-  }, [scrollLeftPx]);
 
   return (
     <div ref={prRef} className={cn("name-note-editor", "relative max-w-full max-h-full overflow-visible")}>
@@ -308,11 +298,7 @@ function PianoRollView({ project, track, clip }: { project: AudioProject; track:
         );
       })}
 
-      {/* cursor */}
-      <div
-        className={cn("name-sec-cursor", "absolute h-full pointer-events-none top-0 bg-[red] w-px")}
-        ref={cursorDiv}
-      />
+      {children}
 
       {/* selection box */}
       {selectionBox && (

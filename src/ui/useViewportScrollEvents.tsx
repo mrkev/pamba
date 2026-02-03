@@ -1,29 +1,27 @@
-import { useRef, useCallback } from "react";
-import { flushSync } from "react-dom";
-import { MIN_TIMELINE_SCALE, MAX_TIMELINE_SCALE } from "../constants";
-import { AudioProject } from "../lib/project/AudioProject";
-import { clamp } from "../utils/math";
+import { useCallback, useRef } from "react";
 import { nullthrows } from "../utils/nullthrows";
 import { useEventListener } from "./useEventListener";
 
-export function useViewportScrollEvents(project: AudioProject, projectDivRef: React.RefObject<HTMLDivElement | null>) {
+export function useViewportScrollEvents(
+  divRef: React.RefObject<HTMLDivElement | null>,
+  { scale, panX }: { scale: (sDelta: number, mouseX: number) => void; panX: (left: number, absolute: boolean) => void },
+) {
   const context = useRef({ wheelCalled: false });
 
   useEventListener(
     "wheel",
-    projectDivRef,
+    divRef,
     useCallback(
       (e: WheelEvent) => {
         // e.preventDefault();
         // see comment on "scroll" event below
         context.current.wheelCalled = true;
-        requestAnimationFrame(function hello() {
+        requestAnimationFrame(function clearWheelCalled() {
           context.current.wheelCalled = false;
-          performance.mark("hello");
         });
 
-        const projectDiv = nullthrows(projectDivRef.current);
-        const mouseX = e.clientX - projectDiv.getBoundingClientRect().left;
+        const divDims = nullthrows(divRef.current).getBoundingClientRect();
+        const mouseX = e.clientX - divDims.left;
 
         // both pinches and two-finger pans trigger the wheel event trackpads.
         // ctrlKey is true for pinches though, so we can use it to differentiate
@@ -31,33 +29,24 @@ export function useViewportScrollEvents(project: AudioProject, projectDivRef: Re
         // pinch
         if (e.ctrlKey) {
           const sDelta = Math.exp(-e.deltaY / 100);
-          // max scale is 1000
-          const expectedNewScale = clamp(
-            MIN_TIMELINE_SCALE,
-            project.viewport.pxPerSecond.get() * sDelta,
-            MAX_TIMELINE_SCALE,
-          );
-          project.viewport.setScale(expectedNewScale, mouseX);
+          scale(sDelta, mouseX);
           e.preventDefault();
           e.stopPropagation();
         }
 
         // pan
         else {
-          const start = Math.max(project.viewport.scrollLeftPx.get() + e.deltaX, 0);
-          flushSync(() => {
-            project.viewport.scrollLeftPx.set(start);
-          });
+          panX(e.deltaX, false);
         }
       },
-      [project.viewport, projectDivRef],
+      [divRef, scale, panX],
     ),
     { capture: false },
   );
 
   useEventListener(
     "scroll",
-    projectDivRef,
+    divRef,
     useCallback(
       /**
        * the "scroll" event:
@@ -74,14 +63,12 @@ export function useViewportScrollEvents(project: AudioProject, projectDivRef: Re
           return;
         }
 
-        const projectDiv = nullthrows(projectDivRef.current);
-        const scroll = projectDiv.scrollLeft;
-        flushSync(() => {
-          project.viewport.scrollLeftPx.set(scroll);
-        });
+        const projectDiv = nullthrows(divRef.current);
+        const left = projectDiv.scrollLeft;
+        panX(left, true);
         // e?.preventDefault();
       },
-      [project.viewport.scrollLeftPx, projectDivRef],
+      [divRef, panX],
     ),
   );
 }
