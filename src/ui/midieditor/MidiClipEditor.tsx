@@ -6,8 +6,8 @@ import { keyChord } from "../../input/KeyChord";
 import { AnalizedPlayer } from "../../lib/io/AnalizedPlayer";
 import { AudioProject } from "../../lib/project/AudioProject";
 import { MidiClip } from "../../midi/MidiClip";
-import { MidiTrack } from "../../midi/MidiTrack";
-import { ClipPropsEditor } from "../ClipPropsEditor";
+import { midiTrack, MidiTrack } from "../../midi/MidiTrack";
+import { ClipPropsEditor, EditorSection } from "../ClipPropsEditor";
 import { UtilitySToggle, UtilityToggle } from "../UtilityToggle";
 import { MidiClipEditorPianoRoll } from "./MidiClipEditorPianoRoll";
 import { useConditionalKeydown } from "./useConditionalKeyboardEvents";
@@ -29,6 +29,7 @@ export function MidiClipEditor({
   const [secondarySel] = useLinkAsState(project.secondarySelection);
   const [panelTool] = usePrimitive(project.panelTool);
   const [activePanel] = useLinkAsState(project.activePanel);
+  const [muted] = usePrimitive(clip.muted);
 
   useConditionalKeydown(
     activePanel === "secondary",
@@ -70,9 +71,29 @@ export function MidiClipEditor({
     ),
   );
 
+  // BUG on usePrimitive, muted, and clip.muted.get() are different
+  console.log("RENDERING", clip._id, muted, clip.muted.get());
+
   return (
     <>
       <ClipPropsEditor clip={clip} project={project} track={track} />
+
+      <EditorSection title={"Midi Clip"}>
+        <UtilityToggle
+          title={"muted"}
+          onToggle={(muted) => {
+            if (muted) {
+              midiTrack.muteClip(track, clip);
+            } else {
+              midiTrack.unmuteClip(track, clip);
+            }
+          }}
+          // do this given there is a BUG on usePrimitive, muted, and clip.muted.get() are different
+          toggled={muted && clip.muted.get()}
+        >
+          <i className="ri-volume-mute-fill"></i>
+        </UtilityToggle>
+      </EditorSection>
 
       <div className="grid grow" style={{ gridTemplateRows: "1fr auto", gridTemplateColumns: "auto 1fr", gap: 4 }}>
         <div className="flex flex-col">

@@ -4,6 +4,8 @@ import { MidiClip } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
 import { StandardClip } from "./StandardClip";
 import { clipMouseDownToMove } from "./clipMouse";
+import { cn } from "../utils/cn";
+import { usePrimitive } from "structured-state";
 
 export function ClipM({
   clip,
@@ -22,6 +24,7 @@ export function ClipM({
   // const timelineLength = useContainer(clip.timelineLength);
   // const width = project.viewport.pulsesToPx(timelineLength.pulses(project));
   // const left = Math.floor(project.viewport.pulsesToPx(timelienStart.pulses(project)));
+  const [muted] = usePrimitive(clip.muted);
 
   const onMouseDownToMove = useCallback(
     (e: MouseEvent) => {
@@ -66,6 +69,7 @@ export function ClipM({
 
   return (
     <StandardClip
+      className={cn(muted && "bg-clip-muted-color")}
       clip={clip}
       editable={editable}
       isSelected={isSelected}

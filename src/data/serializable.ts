@@ -1,5 +1,16 @@
 import { WamParameterDataMap } from "@webaudiomodules/api";
-import { arrayOf, boolean, number, SArray, set, SPrimitive, string } from "structured-state";
+import {
+  arrayOf,
+  boolean,
+  number,
+  SArray,
+  SBoolean,
+  set,
+  SPrimitive,
+  SString,
+  string,
+  Structured,
+} from "structured-state";
 import { liveAudioContext } from "../constants";
 import { FaustEffectID } from "../dsp/FAUST_EFFECTS";
 import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
@@ -21,6 +32,8 @@ import { exhaustive } from "../utils/exhaustive";
 import { nullthrows } from "../utils/nullthrows";
 import { mutable } from "../utils/types";
 import { PambaWamNode } from "../wam/PambaWamNode";
+import { MidiBuffer } from "../midi/MidiBuffer";
+import { MidiNote, mnote } from "../midi/MidiNote";
 
 export type SAudioClip = {
   kind: "AudioClip";
@@ -39,6 +52,7 @@ export type SMidiClip = Readonly<{
   notes: readonly NoteT[];
   viewport: SMidiViewport;
   bufferTimelineStart: number;
+  muted: boolean;
 }>;
 
 export type SAudioTrack = {
@@ -156,6 +170,7 @@ export async function serializable(
       notes: obj.buffer.notes._getRaw().map((note) => note.t),
       viewport: obj.detailedViewport.serialize(),
       bufferTimelineStart: obj.bufferTimelineStart.ensurePulses(),
+      muted: obj.muted.get(),
     };
   }
 
@@ -282,14 +297,18 @@ export async function construct(
     }
 
     case "MidiClip": {
-      const { name, startOffsetPulses, lengthPulses, notes, viewport } = rep;
+      const { name, startOffsetPulses, lengthPulses, notes, viewport, muted } = rep;
       // TODO: `create` creates a new ID for this clip. think about implications
-      return MidiClip.of(
-        name,
-        startOffsetPulses,
-        lengthPulses,
-        mutable(notes),
+      return Structured.create(
+        MidiClip,
+        SString.create(name),
+        time(startOffsetPulses, "pulses"),
+        time(lengthPulses, "pulses"),
+        Structured.create(MidiBuffer, arrayOf([MidiNote], notes.map(mnote)), time(lengthPulses, "pulses")),
         MidiViewport.of(viewport.pxPerPulse, viewport.pxNoteHeight, viewport.scrollLeft, viewport.scrollTop),
+        set([]),
+        time(startOffsetPulses, "pulses"),
+        SBoolean.create(muted),
       );
     }
     case "AudioTrack": {

@@ -197,6 +197,8 @@ function moveMove(e: PointerEvent, re: NoteEditEvent) {
   const deltaXPulses = Math.floor(re.target.clip.detailedViewport.pxToPulses(deltaX));
   const deltaYNotes = Math.floor(re.target.clip.detailedViewport.pxToVerticalNotes(deltaY));
 
+  console.log("moveMove", deltaYNotes);
+
   // for (const note of selection.notes) {
   //   const orig = interactionDataRef.current.notes.get(note);
   //   if (orig == null) {

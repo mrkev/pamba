@@ -1,4 +1,14 @@
-import { InitFunctions, JSONOfAuto, ReplaceFunctions, SSet, SString, Structured, arrayOf, set } from "structured-state";
+import {
+  InitFunctions,
+  JSONOfAuto,
+  ReplaceFunctions,
+  SBoolean,
+  SSet,
+  SString,
+  Structured,
+  arrayOf,
+  set,
+} from "structured-state";
 import { TOTAL_VERTICAL_NOTES } from "../constants";
 import { AbstractClip, Pulses } from "../lib/AbstractClip";
 import { ProjectTrack } from "../lib/ProjectTrack";
@@ -17,6 +27,7 @@ type AutoMidiClip = {
   buffer: MidiBuffer;
   bufferTimelineStart: TimelineT;
   viewport: MidiViewport;
+  muted: SBoolean;
 };
 
 export class MidiClip extends Structured<AutoMidiClip, typeof MidiClip> implements AbstractClip<Pulses> {
@@ -31,6 +42,7 @@ export class MidiClip extends Structured<AutoMidiClip, typeof MidiClip> implemen
     readonly selectedNotes: SSet<MidiNote>,
     // todo: as of now, unused. midi can be trimmed like audio though.
     readonly bufferTimelineStart: TimelineT,
+    readonly muted: SBoolean,
   ) {
     super();
   }
@@ -43,6 +55,7 @@ export class MidiClip extends Structured<AutoMidiClip, typeof MidiClip> implemen
       buffer: this.buffer,
       viewport: this.detailedViewport,
       bufferTimelineStart: this.bufferTimelineStart,
+      muted: this.muted,
     };
   }
 
@@ -53,6 +66,7 @@ export class MidiClip extends Structured<AutoMidiClip, typeof MidiClip> implemen
     replace.structured(json.buffer, this.buffer);
     replace.structured(json.bufferTimelineStart, this.bufferTimelineStart);
     replace.structured(json.viewport, this.detailedViewport);
+    replace.boolean(json.muted, this.muted);
   }
 
   static construct(auto: JSONOfAuto<AutoMidiClip>, init: InitFunctions): MidiClip {
@@ -65,6 +79,7 @@ export class MidiClip extends Structured<AutoMidiClip, typeof MidiClip> implemen
       init.structured(auto.viewport, MidiViewport),
       set([]),
       init.structured(auto.bufferTimelineStart, TimelineT),
+      init.boolean(auto.muted),
     );
   }
 
@@ -85,6 +100,7 @@ export class MidiClip extends Structured<AutoMidiClip, typeof MidiClip> implemen
       viewport ?? MidiViewport.of(10, 10, 0, 0),
       set([]),
       time(bufferTimelineStart ?? startOffsetPulses, "pulses"),
+      SBoolean.create(false),
     );
   }
 
@@ -141,6 +157,7 @@ export class MidiClip extends Structured<AutoMidiClip, typeof MidiClip> implemen
       this.detailedViewport.clone(),
       set([]),
       this.bufferTimelineStart.clone(),
+      SBoolean.create(this.muted.get()),
     );
     return newClip;
   }
@@ -223,3 +240,13 @@ export const midiClip = {
   removeNote,
   findNotesInRange,
 };
+
+export function sequencerClipOfMidiClip(clip: MidiClip) {
+  return {
+    id: clip._id,
+    muted: clip.muted.get(),
+    notes: clip.buffer.notes._getRaw().map((note) => note.t),
+    startOffsetPulses: clip.timelineStart.ensurePulses(),
+    endOffsetPulses: clip._timelineEndU,
+  };
+}

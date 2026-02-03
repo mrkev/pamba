@@ -37,10 +37,12 @@ export function UtilitySToggle({
   style: styleArg,
   toggleStyle = { backgroundColor: "orange" },
   sbool,
+  onToggle,
   ...props
 }: Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "onToggle"> & {
   toggleStyle?: React.CSSProperties;
   sbool: SBoolean;
+  onToggle?: (toggled: boolean) => void;
   title: string | null;
 }) {
   const [toggled] = usePrimitive(sbool);
@@ -52,6 +54,7 @@ export function UtilitySToggle({
       {...props}
       onClick={function (e) {
         sbool.set(!toggled);
+        onToggle?.(!toggled);
         e.stopPropagation();
       }}
     />

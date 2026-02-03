@@ -24,10 +24,10 @@ import { ProjectTrackDSP } from "../lib/ProjectTrackDSP";
 import { nullthrows } from "../utils/nullthrows";
 import { MIDIConfiguration } from "../wam/miditrackwam/MIDIConfiguration";
 import { PianoRollModule, PianoRollNode } from "../wam/miditrackwam/PianoRollModule";
-import { MidiClip, midiClip } from "./MidiClip";
+import { MidiClip, midiClip, sequencerClipOfMidiClip } from "./MidiClip";
 import { MidiInstrument } from "./MidiInstrument";
 import { SAMPLE_MIDI } from "./SAMPLE_MIDI";
-import type { PianoRollProcessorMessage, SimpleMidiClip } from "./SharedMidiTypes";
+import type { PianoRollProcessorMessage, SequencerMidiClip } from "./SharedMidiTypes";
 
 type AutoMidiTrack = {
   name: SString;
@@ -199,24 +199,12 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
     });
   }
 
-  clipsForProcessor(): SimpleMidiClip[] {
-    const simpleClips: SimpleMidiClip[] = [];
+  clipsForProcessor(): SequencerMidiClip[] {
+    const simpleClips: SequencerMidiClip[] = [];
     for (const clip of this.clips) {
-      simpleClips.push({
-        id: clip._id,
-        notes: clip.buffer.notes._getRaw().map((note) => note.t),
-        startOffsetPulses: clip.timelineStart.ensurePulses(),
-        endOffsetPulses: clip._timelineEndU,
-      });
+      simpleClips.push(sequencerClipOfMidiClip(clip));
     }
     return simpleClips;
-  }
-
-  flushClipStateToProcessor() {
-    this.messageSequencer({
-      action: "set_clips",
-      seqClips: this.clipsForProcessor(),
-    });
   }
 
   // PLAY MIDI ON THIS TRACK
@@ -312,8 +300,9 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
   }
 }
 
-/** MidiTrack methods */
+/******************************************* MidiTrack methods *******************************************/
 
+/** plays a note immediately */
 function noteOn(track: MidiTrack, note: number) {
   track.pianoRoll.playingNotes.add(note);
   track.messageSequencer({
@@ -322,6 +311,7 @@ function noteOn(track: MidiTrack, note: number) {
   });
 }
 
+/** stops playing a note immediately */
 function noteOff(track: MidiTrack, note: number) {
   track.pianoRoll.playingNotes.delete(note);
   track.messageSequencer({
@@ -330,6 +320,7 @@ function noteOff(track: MidiTrack, note: number) {
   });
 }
 
+/** stops playling all notes immediately */
 function allNotesOff(track: MidiTrack) {
   for (const note of track.pianoRoll.playingNotes) {
     track.messageSequencer({
@@ -345,6 +336,38 @@ function allNotesOff(track: MidiTrack) {
   });
 }
 
+function muteClip(track: MidiTrack, clip: MidiClip) {
+  clip.muted.set(true);
+  track.messageSequencer({
+    action: "clip_changed",
+    clip: sequencerClipOfMidiClip(clip),
+  });
+}
+
+function unmuteClip(track: MidiTrack, clip: MidiClip) {
+  clip.muted.set(false);
+  track.messageSequencer({
+    action: "clip_changed",
+    clip: sequencerClipOfMidiClip(clip),
+  });
+}
+
+/** sends all clip state to sequencer */
+function flushAllClipStateToProcessor(track: MidiTrack) {
+  track.messageSequencer({
+    action: "set_clips",
+    seqClips: track.clipsForProcessor(),
+  });
+}
+
+/** sends single clip state to sequencer */
+function flushClipStateToProcessor(track: MidiTrack, clip: MidiClip) {
+  track.messageSequencer({
+    action: "clip_changed",
+    clip: sequencerClipOfMidiClip(clip),
+  });
+}
+
 export const midiTrack = {
   // Note Playback
   noteOn,
@@ -352,6 +375,12 @@ export const midiTrack = {
   allNotesOff,
 
   /** Clip Management */
+
+  muteClip,
+  unmuteClip,
+
+  flushAllClipStateToProcessor,
+  flushClipStateToProcessor,
 
   pushOrdered(project: AudioProject, track: MidiTrack, clip: MidiClip) {
     if (track.clips.indexOf(clip) > -1) {

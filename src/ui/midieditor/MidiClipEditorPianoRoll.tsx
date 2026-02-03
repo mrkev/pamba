@@ -13,7 +13,7 @@ import { AnalizedPlayer } from "../../lib/io/AnalizedPlayer";
 import { AudioProject } from "../../lib/project/AudioProject";
 import { secsToPulses } from "../../lib/project/TimelineT";
 import { MidiClip, midiClip } from "../../midi/MidiClip";
-import { MidiTrack } from "../../midi/MidiTrack";
+import { midiTrack, MidiTrack } from "../../midi/MidiTrack";
 import { cn } from "../../utils/cn";
 import { exhaustive } from "../../utils/exhaustive";
 import { clamp } from "../../utils/math";
@@ -212,7 +212,7 @@ export function MidiClipEditorPianoRoll({
                 // removal handled in note
               } else {
                 midiClip.addNote(clip, tick, noteNum, DEFAULT_NOTE_DURATION, 100);
-                track.flushClipStateToProcessor();
+                midiTrack.flushAllClipStateToProcessor(track);
               }
             });
             break;

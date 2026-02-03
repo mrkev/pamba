@@ -34,7 +34,12 @@ export class OrderedMap<K, V> implements Map<K, V> {
   }
 
   set(key: K, value: V): this {
-    throw new Error("Method not implemented.");
+    if (!this._map.has(key)) {
+      throw new Error("OrderedMap.set: can't set unknown key");
+    }
+
+    this._map.set(key, value);
+    return this;
   }
   get size(): number {
     return this._map.size;

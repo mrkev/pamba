@@ -108,6 +108,7 @@ export class MidiViewport extends Structured<AutoMidiViewport, typeof MidiViewpo
   }
 
   pxToVerticalNotes(px: number) {
+    // console.log("pxToVerticalNotes", px, this.pxNoteHeight.get());
     return px / this.pxNoteHeight.get();
   }
 

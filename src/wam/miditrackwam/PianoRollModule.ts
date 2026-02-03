@@ -1,11 +1,14 @@
 import { WamEventMap } from "@webaudiomodules/api";
 import { WamNode, WebAudioModule } from "@webaudiomodules/sdk";
+import { set } from "structured-state";
 import { PianoRollProcessorMessage } from "../../midi/SharedMidiTypes";
-import { ignorePromise } from "../../utils/ignorePromise";
 import { EmptyObj } from "../../utils/types";
 import PianoRollProcessorUrl from "./PianoRollProcessor?worker&url";
 import DescriptorUrl from "./descriptor.json?url";
-import { set } from "structured-state";
+
+/**
+ * This is the main module representing all midi in a track
+ */
 
 /// MAIN THING
 export class PianoRollModule extends WebAudioModule<PianoRollNode> {
@@ -46,8 +49,8 @@ export class PianoRollModule extends WebAudioModule<PianoRollNode> {
     await this.audioContext.audioWorklet.addModule(PianoRollProcessorUrl);
 
     this.wamNode = new PianoRollNode(this, {});
-    ignorePromise(this.wamNode._initialize());
-    ignorePromise(this.wamNode.setState(initialState)); // todo: await?
+    await this.wamNode._initialize();
+    await this.wamNode.setState(initialState);
 
     // this.sequencer.pianoRoll.updateProcessor = (c: PianoRollClip) => {
     //   this.sequencer.port.postMessage({ action: "clip", id: c.state.id, state: c.getState() });

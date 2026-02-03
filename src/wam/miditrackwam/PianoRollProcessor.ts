@@ -7,7 +7,7 @@ import type {
   WamTransportData,
 } from "@webaudiomodules/api";
 import { OrderedMap } from "../../lib/data/OrderedMap";
-import type { NoteT, PianoRollProcessorMessage, SimpleMidiClip } from "../../midi/SharedMidiTypes";
+import type { NoteT, PianoRollProcessorMessage, SequencerMidiClip } from "../../midi/SharedMidiTypes";
 import { nullthrows } from "../../utils/nullthrows";
 import { MIDI, MIDIConfiguration, midiOfPartial, PPQN } from "./MIDIConfiguration";
 import { MIDINoteRecorder, PianoRollClip } from "./PianoRollClip";
@@ -34,8 +34,11 @@ class PianoRollProcessor extends WamProcessor {
 
   private readonly clips: Map<string, PianoRollClip> = new Map();
   readonly playingNotes = new Set<number>();
-  // new system
-  private seqClips: OrderedMap<string, SimpleMidiClip> = new OrderedMap();
+
+  // new system //
+
+  // clip.id => clip
+  private seqClips: OrderedMap<string, SequencerMidiClip> = new OrderedMap();
   private loop: readonly [number, number] | null = null;
 
   private pendingClipChange?: { id: string; timestamp: number };
@@ -211,6 +214,8 @@ class PianoRollProcessor extends WamProcessor {
       return;
     }
 
+    console.log("sequencer.general", payload);
+
     switch (payload.action) {
       case "clip": {
         // todo: delete, old clips message
@@ -223,7 +228,7 @@ class PianoRollProcessor extends WamProcessor {
       case "set_clips": {
         // New clips message
         this.seqClips = new OrderedMap(new Map(payload.seqClips.map((clip) => [clip.id, clip] as const)));
-        console.log(message);
+        console.log("sequencer", message);
         return;
       }
 
@@ -231,7 +236,19 @@ class PianoRollProcessor extends WamProcessor {
         // New clips message
         this.seqClips = new OrderedMap(new Map(payload.seqClips.map((clip) => [clip.id, clip] as const)));
         this.loop = payload.loop;
-        console.log(message);
+        console.log("sequencer", message);
+        return;
+      }
+
+      case "clip_changed": {
+        if (this.seqClips.size === 0) {
+          // TODO: we set this.seqClips on first playback, so
+          // if a clip changes before that do nothing
+          return;
+        }
+
+        this.seqClips.set(payload.clip.id, payload.clip);
+        console.log("sequencer", message);
         return;
       }
 
@@ -313,7 +330,7 @@ try {
 }
 
 // todo; can be optimized by keeping track of where we are in the array during this "playback session"
-function notesForTickNew(currMidiTick: number, simpleClips: SimpleMidiClip[]): readonly NoteT[] {
+function notesForTickNew(currMidiTick: number, simpleClips: SequencerMidiClip[]): readonly NoteT[] {
   let currentClip = null;
   for (const clip of simpleClips) {
     if (clip.startOffsetPulses <= currMidiTick && clip.endOffsetPulses >= currMidiTick) {
@@ -322,6 +339,10 @@ function notesForTickNew(currMidiTick: number, simpleClips: SimpleMidiClip[]): r
   }
 
   if (currentClip == null) {
+    return [];
+  }
+
+  if (currentClip.muted) {
     return [];
   }
 

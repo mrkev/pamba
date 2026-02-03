@@ -21,7 +21,7 @@ export function useNotePointerCallbacks(panelTool: SecondaryTool) {
   const mouseDownForDraw = useCallback(({ note, clip, track }: NoteCtx) => {
     history.record("delete note", () => {
       midiClip.removeNote(clip, note);
-      track.flushClipStateToProcessor();
+      midiTrack.flushAllClipStateToProcessor(track);
     });
   }, []);
 
@@ -95,6 +95,8 @@ export function useNotePointerCallbacks(panelTool: SecondaryTool) {
     const deltaXPulses = Math.floor(clip.detailedViewport.pxToPulses(deltaX));
     const deltaYNotes = Math.floor(clip.detailedViewport.pxToVerticalNotes(deltaY));
 
+    console.log("onNotePointerMove", deltaYNotes);
+
     for (const note of selection.notes) {
       const orig = interactionDataRef.current.notes.get(note);
       if (orig == null) {
@@ -109,5 +111,6 @@ export function useNotePointerCallbacks(panelTool: SecondaryTool) {
     return { notes: null };
   }, []);
 
+  // TODO: NOT USED
   return { onNotePointerDown, onNotePointerMove, onNotePointerUp };
 }

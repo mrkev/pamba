@@ -7,8 +7,9 @@ export function notet(tick: number, number: number, duration: number, velocity: 
   return [tick, number, duration, velocity];
 }
 
-export type SimpleMidiClip = {
+export type SequencerMidiClip = {
   id: string;
+  muted: boolean;
   notes: readonly NoteT[];
   // todo, make all secs frames?
   startOffsetPulses: number;
@@ -25,12 +26,16 @@ export type PianoRollProcessorMessage =
   | { action: "add_note" }
   | { action: "midiConfig"; config: any }
   | { action: "play"; id: string }
-  | { action: "prepare_playback"; seqClips: SimpleMidiClip[]; loop: readonly [number, number] | null }
-  | { action: "set_clips"; seqClips: SimpleMidiClip[] }
+  | { action: "prepare_playback"; seqClips: SequencerMidiClip[]; loop: readonly [number, number] | null }
+  | { action: "set_clips"; seqClips: SequencerMidiClip[] }
   // immediates
   | {
       action: "immEvent";
       event: ["on", note: number, velocity: number] | ["off", note: number, velocity: number] | ["alloff"];
+    }
+  | {
+      action: "clip_changed";
+      clip: SequencerMidiClip;
     };
 
 // | { action: "setPlaybackStartOffset"; offsetSec: number };
