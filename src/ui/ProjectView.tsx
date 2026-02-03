@@ -1,12 +1,15 @@
 import useResizeObserver from "@react-hook/resize-observer";
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { useContainer, usePrimitive } from "structured-state";
+import { MAX_TIMELINE_SCALE, MIN_TIMELINE_SCALE } from "../constants";
 import { useTimelineMouseEvents } from "../input/useProjectMouseEvents";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioRenderer } from "../lib/io/AudioRenderer";
 import { AudioProject } from "../lib/project/AudioProject";
 import { START_PADDING_PX } from "../lib/viewport/ProjectViewport";
 import { cn } from "../utils/cn";
+import { clamp } from "../utils/math";
 import { nullthrows } from "../utils/nullthrows";
 import { Axis } from "./Axis";
 import { getTrackAcceptableDataTransferResources } from "./dragdrop/getTrackAcceptableDataTransferResources";
@@ -15,9 +18,7 @@ import { pressedState } from "./pressedState";
 import { TimelineCursor, TimelineLine } from "./TimelineCursor";
 import { TrackS } from "./TrackS";
 import { useViewportScrollEvents } from "./useViewportScrollEvents";
-import { MAX_TIMELINE_SCALE, MIN_TIMELINE_SCALE } from "../constants";
-import { clamp } from "../utils/math";
-import { flushSync } from "react-dom";
+import { ViewportPlaybackCursor } from "./ViewportCursor";
 
 export function ProjectView({ project, renderer }: { project: AudioProject; renderer: AudioRenderer }) {
   const projectDivRef = useRef<HTMLDivElement | null>(null);
@@ -31,26 +32,6 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
   const player = renderer.analizedPlayer;
   const [scale] = usePrimitive(project.viewport.pxPerSecond);
   const [loopPlayback] = usePrimitive(project.loopOnPlayback);
-
-  // initial cursor pos
-  useLayoutEffect(() => {
-    const pbcursor = playbackPosDiv.current;
-    if (pbcursor) {
-      const px = project.viewport.secsToPx(player.playbackTime, START_PADDING_PX);
-      pbcursor.style.left = String(px) + "px";
-    }
-  }, [player, project.viewport, scale]);
-
-  // on frame
-  useEffect(() => {
-    return player.addEventListener("frame", function updateProjectViewCursor(playbackTime) {
-      const pbcursor = playbackPosDiv.current;
-      if (pbcursor) {
-        const px = project.viewport.secsToPx(playbackTime, START_PADDING_PX);
-        pbcursor.style.left = String(px) + "px";
-      }
-    });
-  }, [player, project.viewport]);
 
   useLayoutEffect(() => {
     if (!projectDivRef) {
@@ -193,13 +174,7 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
       <TimelineCursor project={project} />
 
       {/* Playback Cursor */}
-      <div
-        ref={playbackPosDiv}
-        className={cn(
-          "name-playback-pos-div",
-          "bg-cursor-playback w-px h-full absolute left-0 top-0 select-none pointer-events-none",
-        )}
-      />
+      <ViewportPlaybackCursor viewport={project.viewport} player={player} marginLeft={START_PADDING_PX} />
     </div>
   );
 }

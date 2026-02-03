@@ -3,7 +3,7 @@ import { history } from "structured-state";
 import { LIBRARY_SEARCH_INPUT_ID } from "../constants";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioRenderer } from "../lib/io/AudioRenderer";
-import { ProjectSelection } from "../lib/project/ProjectSelection";
+import { selection } from "../lib/project/selection";
 import { clipsLimits } from "../lib/project/timeline";
 import { projectPersistance } from "../lib/ProjectPersistance";
 import { userActions } from "../lib/userActions";
@@ -190,7 +190,7 @@ export const documentCommands = CommandBlock.create(["Project", "Edit", "Tools",
 
     // Clipboard
     copySelection: command(["KeyC", "meta"], (e, project) => {
-      ProjectSelection.copySelection(project);
+      selection.copySelection(project);
       e?.preventDefault();
     })
       .helptext("Copy", "Currently works only with clips")

@@ -7,7 +7,7 @@ import { EFFECT_HEIGHT, TRACK_SEPARATOR_HEIGHT } from "../constants";
 import { AudioTrack } from "../lib/AudioTrack";
 import { AnalizedPlayer } from "../lib/io/AnalizedPlayer";
 import { AudioProject } from "../lib/project/AudioProject";
-import { ProjectSelection } from "../lib/project/ProjectSelection";
+import { selection } from "../lib/project/selection";
 import { userActions } from "../lib/userActions";
 import { MidiTrack } from "../midi/MidiTrack";
 import { cn } from "../utils/cn";
@@ -71,7 +71,7 @@ export const TrackHeader = React.memo(function TrackHeader({
     <div
       className={cn("relative cursor-pointer", isSelected && "bg-selected-track-background")}
       draggable
-      onClick={() => ProjectSelection.selectTrack(project, track)}
+      onClick={() => selection.selectTrack(project, track)}
       onDragStart={onDragStart}
     >
       <div

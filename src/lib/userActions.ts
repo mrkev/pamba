@@ -10,7 +10,7 @@ import { AnalizedPlayer } from "./io/AnalizedPlayer";
 import { AudioProject, deleteTime } from "./project/AudioProject";
 import { doPaste } from "./project/ClipboardState";
 import { cliptrack } from "./project/ClipTrack";
-import { ProjectSelection } from "./project/ProjectSelection";
+import { selection } from "./project/selection";
 import { PrimarySelectionState } from "./project/SelectionState";
 import { timeop } from "./project/TimelineOperation";
 import { ProjectTrack } from "./ProjectTrack";
@@ -75,7 +75,7 @@ export const userActions = {
           const clone = ctsel.clip.clone();
           clone.timelineStart.setTo(timeop(ctsel.clip.timelineStart, "+", ctsel.clip.timelineLength), project);
           ProjectTrack.addClip(project, ctsel.track, clone);
-          ProjectSelection.selectClip(project, cliptrack(clone, ctsel.track));
+          selection.selectClip(project, cliptrack(clone, ctsel.track));
 
           break;
         }
@@ -95,13 +95,7 @@ export const userActions = {
   deleteSelectedClips(primarySelection: Extract<PrimarySelectionState, { status: "clips" }>, project: AudioProject) {
     history.record("remove clip(s)", () => {
       for (const { clip, track } of primarySelection.clips) {
-        if (track instanceof MidiTrack && clip instanceof MidiClip) {
-          AudioProject.removeMidiClip(project, track, clip);
-        } else if (track instanceof AudioTrack && clip instanceof AudioClip) {
-          AudioProject.removeAudioClip(project, track, clip);
-        } else {
-          console.warn("TODO, delete mixed!");
-        }
+        ProjectTrack.removeClip(project, track, clip);
         project.selected.set(null);
       }
     });

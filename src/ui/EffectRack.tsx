@@ -10,7 +10,7 @@ import { AudioTrack } from "../lib/AudioTrack";
 import { bypassEffect, removeEffect } from "../lib/effect";
 import { AudioRenderer } from "../lib/io/AudioRenderer";
 import { AudioProject } from "../lib/project/AudioProject";
-import { ProjectSelection } from "../lib/project/ProjectSelection";
+import { selection } from "../lib/project/selection";
 import { MidiTrack } from "../midi/MidiTrack";
 import { exhaustive } from "../utils/exhaustive";
 import { nullthrows } from "../utils/nullthrows";
@@ -160,7 +160,7 @@ export const EffectRack = React.memo(function EffectRack({
             onClickRemove={() => removeEffect(track, effect)}
             onHeaderMouseDown={() => {
               console.log("FOO");
-              ProjectSelection.selectEffect(project, effect, track);
+              selection.selectEffect(project, effect, track);
             }}
             onClickBypass={() => bypassEffect(track, effect)}
             isSelected={selected?.status === "effects" && selected.test.has(effect)}
@@ -178,7 +178,7 @@ export const EffectRack = React.memo(function EffectRack({
               appEnvironment.openEffects.delete(effect);
               removeEffect(track, effect);
             }}
-            onHeaderMouseDown={() => ProjectSelection.selectEffect(project, effect, track)}
+            onHeaderMouseDown={() => selection.selectEffect(project, effect, track)}
             onClickBypass={() => bypassEffect(track, effect)}
             isSelected={selected?.status === "effects" && selected.test.has(effect)}
             title={effect.name.get()}

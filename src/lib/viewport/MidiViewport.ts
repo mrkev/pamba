@@ -1,6 +1,6 @@
 import { boolean, InitFunctions, JSONOfAuto, number, ReplaceFunctions, SNumber, Structured } from "structured-state";
-import { clamp } from "../../utils/math";
 import { MIDI_CLIP_EDITOR_MAX_H_SCALE, MIDI_CLIP_EDITOR_MIN_H_SCALE } from "../../constants";
+import { clamp } from "../../utils/math";
 
 export type SMidiViewport = {
   pxPerPulse: number;

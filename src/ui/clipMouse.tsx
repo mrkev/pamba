@@ -1,6 +1,7 @@
 import type { AudioClip } from "../lib/AudioClip";
 import type { AudioTrack } from "../lib/AudioTrack";
 import type { AudioProject } from "../lib/project/AudioProject";
+import { selection } from "../lib/project/selection";
 import { MidiClip } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
 import { pressedState } from "./pressedState";
@@ -28,23 +29,7 @@ export function clipMouseDownToMove(e: MouseEvent, cliptrack: ClipTrackCombo, pr
     inHistory: false,
   });
 
-  project.selected.setDyn((prev) => {
-    const selectAdd = e.metaKey || e.shiftKey;
-    if (selectAdd && prev !== null && prev.status === "clips") {
-      if (!prev.test.has(clip)) {
-        prev.clips.push(cliptrack);
-        prev.test.add(clip);
-        prev.test.add(track);
-      }
-      return { ...prev };
-    } else {
-      return {
-        status: "clips",
-        clips: [cliptrack],
-        test: new Set([clip, track]),
-      };
-    }
-  });
-
+  const selectAdd = e.metaKey || e.shiftKey;
+  selection.selectClip(project, cliptrack, selectAdd);
   project.selectionWidth.set(null);
 }

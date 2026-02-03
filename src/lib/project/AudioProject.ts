@@ -28,6 +28,8 @@ import { ProjectViewport } from "../viewport/ProjectViewport";
 import { ProjectMidi } from "./ProjectMidi";
 import { PanelSelectionState, PrimarySelectionState } from "./SelectionState";
 import { TimelineT, time } from "./TimelineT";
+import { selection } from "./selection";
+import { cliptrack } from "./ClipTrack";
 
 export type PointerTool = "move" | "trimStart" | "trimEnd" | "slice";
 export type SecondaryTool = "move" | "draw";
@@ -212,30 +214,6 @@ export class AudioProject {
     project.cursorTracks.delete(track);
     project.solodTracks.delete(track);
     project.lockedTracks.delete(track);
-  }
-
-  static removeAudioClip(project: AudioProject, track: AudioTrack, clip: AudioClip): void {
-    const selected = project.selected.get();
-    if (track instanceof AudioTrack) {
-      ProjectTrack.removeClip(project, track, clip);
-    }
-    if (selected && selected.status === "clips") {
-      project.selected.set({
-        ...selected,
-        clips: selected.clips.filter((selection) => selection.clip !== clip),
-      });
-    }
-  }
-
-  static removeMidiClip(project: AudioProject, track: MidiTrack, clip: MidiClip): void {
-    const selected = project.selected.get();
-    ProjectTrack.removeClip(project, track, clip);
-    if (selected && selected.status === "clips") {
-      project.selected.set({
-        ...selected,
-        clips: selected.clips.filter((selection) => selection.clip !== clip),
-      });
-    }
   }
 }
 

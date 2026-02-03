@@ -7,6 +7,7 @@ import { PPQN } from "../../wam/miditrackwam/MIDIConfiguration";
 import { appEnvironment } from "../AppEnvironment";
 import { AudioProject } from "../project/AudioProject";
 import { TimelineT, TimeUnit } from "../project/TimelineT";
+import { StandardViewport } from "./StandardViewport";
 
 type AutoProjectViewport = {
   viewportStartPx: SNumber;
@@ -17,7 +18,10 @@ export type XScale = ScaleLinear<number, number>;
 
 export const START_PADDING_PX = 0;
 
-export class ProjectViewport extends Structured<AutoProjectViewport, typeof ProjectViewport> {
+export class ProjectViewport
+  extends Structured<AutoProjectViewport, typeof ProjectViewport>
+  implements StandardViewport
+{
   constructor(
     readonly project: AudioProject,
     readonly projectDivWidth: SNumber,
@@ -95,9 +99,7 @@ export class ProjectViewport extends Structured<AutoProjectViewport, typeof Proj
 
   secsToPx(s: number, b = 0) {
     const factor = this.pxPerSecond.get();
-
-    // y = mx + b
-    return ymxb(factor, s, b);
+    return ymxb(factor, s, b); // y = mx + b
   }
 
   secsToViewportPx(s: number, b = 0): number {
@@ -187,11 +189,11 @@ export function snapped(project: AudioProject, e: MouseEvent, s: number) {
 }
 
 /** y = mx + b */
-function ymxb(m: number, x: number, b: number) {
+export function ymxb(m: number, x: number, b: number) {
   return m * x + b;
 }
 
 // x = (y - b) / m
-function inv_ymxb(m: number, y: number, b: number) {
+export function inv_ymxb(m: number, y: number, b: number) {
   return (y - b) / m;
 }

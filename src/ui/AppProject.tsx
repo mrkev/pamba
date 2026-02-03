@@ -22,6 +22,7 @@ import { modifierState, useSingletonKeyboardModifierState } from "./ModifierStat
 import { ProjectEditor } from "./ProjectEditor";
 import { TimelineView } from "./TimelineView";
 import { UtilityTabbedPanel } from "./UtilityTabbedPanel";
+import { OverviewPanel } from "./OverviewPanel";
 
 function useStopPlaybackOnUnmount(renderer: AudioRenderer) {
   useEffect(() => {
@@ -99,6 +100,11 @@ export function AppProject({ project }: { project: AudioProject }) {
             icon: <i className="ri-edit-line"></i>,
             title: "Details",
             render: () => <BottomPanel project={project} player={renderer.analizedPlayer} renderer={renderer} />,
+          },
+          overview: {
+            icon: <i className="ri-dashboard-horizontal-fill" style={{ paddingRight: 2 }}></i>,
+            title: "Overview",
+            render: () => <OverviewPanel project={project} player={renderer.analizedPlayer} renderer={renderer} />,
           },
           debug: {
             icon: <i className="ri-bug-fill"></i>,
