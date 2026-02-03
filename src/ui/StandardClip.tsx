@@ -136,10 +136,16 @@ export function StandardClip({
       </div>
       <div className="grow" style={contentStyle}></div>
       {showResizers && (
-        <div ref={resizerStartRef} className={cn("absolute top-0 h-full cursor-ew-resize", styles.resizerStart)} />
+        <div
+          ref={resizerStartRef}
+          className={cn("absolute top-0 h-full cursor-ew-resize bg-black/0", styles.resizerStart)}
+        />
       )}
       {showResizers && (
-        <div ref={resizerEndRef} className={cn("absolute top-0 h-full cursor-ew-resize", styles.resizerEnd)} />
+        <div
+          ref={resizerEndRef}
+          className={cn("absolute top-0 h-full cursor-ew-resize bg-black/0", styles.resizerEnd)}
+        />
       )}
       {children}
     </div>
@@ -149,14 +155,10 @@ export function StandardClip({
 const useStyles = createUseStyles({
   resizerEnd: {
     width: 10,
-    background: "rgba(0,0,0,0)",
-    // background: "black",
     right: -5,
   },
   resizerStart: {
     width: 10,
-    background: "rgba(0,0,0,0)",
-    // background: "black",
     left: -5,
   },
 });

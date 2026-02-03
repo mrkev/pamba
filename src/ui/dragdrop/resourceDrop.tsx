@@ -3,7 +3,7 @@ import { addAvailableWamToTrack } from "../../lib/addAvailableWamToTrack";
 import { AudioClip } from "../../lib/AudioClip";
 import { AudioTrack } from "../../lib/AudioTrack";
 import { AudioProject } from "../../lib/project/AudioProject";
-import { ProjectTrack } from "../../lib/ProjectTrack";
+import { standardTrack } from "../../lib/StandardTrack";
 import { MidiClip } from "../../midi/MidiClip";
 import { MidiInstrument } from "../../midi/MidiInstrument";
 import { MidiTrack } from "../../midi/MidiTrack";
@@ -20,7 +20,7 @@ export const addMidiClipsIntoTrack = (project: AudioProject, track: MidiTrack, c
     }
     history.record("insert audio clip", () => {
       for (const clip of clips) {
-        ProjectTrack.addClip(project, track, clip);
+        standardTrack.addClip(project, track, clip);
       }
     });
   } catch (e) {
@@ -44,7 +44,7 @@ export const loadAudioClipIntoTrack = async (
     history.record("insert audio clip", () => {
       // load clip
       clip.timelineStart.set(startOffsetSec, "seconds");
-      ProjectTrack.addClip(project, track, clip);
+      standardTrack.addClip(project, track, clip);
     });
   } catch (e) {
     console.trace(e);

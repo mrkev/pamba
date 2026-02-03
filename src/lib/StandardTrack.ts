@@ -24,48 +24,51 @@ export interface StandardTrack<T extends AbstractClip<any>> {
   // NOTE: needs to be called right after .prepareForPlayback
   startPlayback(tempo: number, context: BaseAudioContext, offset?: number): void;
   stopPlayback(context: BaseAudioContext): void;
+
+  didAddClip(clip: T): void;
 }
 
-export class ProjectTrack {
+export const standardTrack = {
   //////////// CLIPS ////////////
 
-  static addClip<T extends AbstractClip<any>>(project: AudioProject, track: StandardTrack<T>, newClip: T): void {
+  addClip<T extends AbstractClip<any>>(project: AudioProject, track: StandardTrack<T>, newClip: T): void {
     if (!project.canEditTrack(project, track)) {
       return;
     }
     addClip(newClip, track.clips);
-  }
+    track.didAddClip(newClip);
+  },
 
   // Adds a clip right after the last clip
-  static pushClip<T extends AbstractClip<any>>(project: AudioProject, track: StandardTrack<T>, newClip: T): void {
+  pushClip<T extends AbstractClip<any>>(project: AudioProject, track: StandardTrack<T>, newClip: T): void {
     if (!project.canEditTrack(project, track)) {
       return;
     }
     pushClip(newClip, track.clips);
-  }
+  },
 
-  static moveClip<T extends AbstractClip<any>>(
+  moveClip<T extends AbstractClip<any>>(
     project: AudioProject,
     clip: T,
     srcTrack: StandardTrack<T>,
     destTrack: StandardTrack<T>,
   ): void {
     // In this order to maintain clip array invariants
-    ProjectTrack.removeClip(project, srcTrack, clip);
-    ProjectTrack.deleteTime(project, destTrack, clip._timelineStartU, clip._timelineEndU);
-    ProjectTrack.addClip(project, destTrack, clip);
+    standardTrack.removeClip(project, srcTrack, clip);
+    standardTrack.deleteTime(project, destTrack, clip._timelineStartU, clip._timelineEndU);
+    standardTrack.addClip(project, destTrack, clip);
     // moveClip(clip, this.clips);
     // this.clips._setRaw(clips as any);
-  }
+  },
 
-  static removeClip<T extends AbstractClip<any>>(project: AudioProject, track: StandardTrack<T>, clip: T): void {
+  removeClip<T extends AbstractClip<any>>(project: AudioProject, track: StandardTrack<T>, clip: T): void {
     if (!project.canEditTrack(project, track)) {
       return;
     }
     removeClip(clip, track.clips);
-  }
+  },
 
-  static deleteTime<T extends AbstractClip<any>>(
+  deleteTime<T extends AbstractClip<any>>(
     project: AudioProject,
     track: StandardTrack<T>,
     start: number,
@@ -81,9 +84,9 @@ export class ProjectTrack {
       console.log("clip", clip);
       clip.notifyChange();
     });
-  }
+  },
 
-  static splitClip<T extends AbstractClip<any>>(
+  splitClip<T extends AbstractClip<any>>(
     project: AudioProject,
     track: StandardTrack<T>,
     clip: T,
@@ -94,14 +97,14 @@ export class ProjectTrack {
     }
 
     splitClip(clip, offset, track.clips);
-  }
+  },
 
   /////////////// DEBUGGING /////////////////
 
-  static toString<T extends AbstractClip<any>>(track: StandardTrack<T> | AudioTrack | MidiTrack) {
+  toString<T extends AbstractClip<any>>(track: StandardTrack<T> | AudioTrack | MidiTrack) {
     return track.clips
       ._getRaw()
       .map((c) => c.toString())
       .join("\n");
-  }
-}
+  },
+};

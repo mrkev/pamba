@@ -57,6 +57,7 @@ export function UtilityDataList<T>({
     <div
       className={classNames(
         "flex flex-col grow shrink overflow-y-scroll text-control-text-color bg-utility-list-bg text-left",
+        "border border-utility-list-border",
         classes.list,
         listDisabled && "pointer-events-none bg-utility-list-bg-disabled",
         className,
@@ -153,7 +154,6 @@ export function UtilityDataList<T>({
 
 const useStyles = createUseStyles({
   list: {
-    border: "1px solid #999",
     borderRadius: "3px",
     padding: "2px 0px",
   },

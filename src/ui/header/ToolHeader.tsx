@@ -1,5 +1,6 @@
 import classNames from "classnames";
 import { useLinkAsState } from "marked-subbable";
+import { useCallback } from "react";
 import { createUseStyles } from "react-jss";
 import { getGlobalState, useContainer, usePrimitive, useSubscribeToSubbableMutationHashable } from "structured-state";
 import { CANVAS_HEIGHT, CANVAS_WIDTH, MAX_TIMELINE_SCALE, MIN_TIMELINE_SCALE } from "../../constants";
@@ -10,8 +11,9 @@ import { AudioRenderer } from "../../lib/io/AudioRenderer";
 import { AudioProject } from "../../lib/project/AudioProject";
 import { cn } from "../../utils/cn";
 import { RenamableLabel } from "../RenamableLabel";
+import { UtilityButton } from "../UtilityButton";
 import { UtilityNumber } from "../UtilityNumber";
-import { UtilitySToggle, UtilityToggle } from "../UtilityToggle";
+import { UtilityToggle } from "../UtilityToggle";
 import { utility } from "../utility";
 import { BounceButton } from "./BounceButton";
 import { CommandButton } from "./CommandButton";
@@ -19,8 +21,6 @@ import { CommandMenu } from "./CommandMenu";
 import { PlaybeatTime } from "./PlaybeatTime";
 import { ToolSelector } from "./ToolSelector";
 import { PlaybackControl } from "./TransportControl";
-import { useCallback } from "react";
-import { UtilityButton } from "../UtilityButton";
 
 function ScaleFactorSlider({ project }: { project: AudioProject }) {
   const [scaleFactor] = usePrimitive(project.viewport.pxPerSecond);
@@ -91,7 +91,7 @@ export function ToolHeader({
   return (
     <div className={cn("name-headerContainer", "flex flex-row w-full items-center")}>
       <img src="/logo.svg" alt="mini daw" height="24" width="auto" style={{ margin: "0px 8px" }} />
-      <div className={classNames(classes.tools, "flex flex-col")}>
+      <div className={classNames(classes.tools, "flex flex-col grow")}>
         <div className={classNames(classes.row, "flex flex-row self-stretch items-center")}>
           <div className="flex flex-row">
             <CommandMenu
@@ -146,7 +146,7 @@ export function ToolHeader({
           </div>
 
           <div className="grow"></div>
-          <span className={classes.buttonGroup}>
+          <span className={cn("flex flex-row")}>
             <CommandButton disabled={history.length < 1} command={documentCommands.getById("undo")} project={project}>
               <i className="ri-arrow-go-back-line"></i>
             </CommandButton>
@@ -265,12 +265,7 @@ export function ToolHeader({
 }
 
 const useStyles = createUseStyles({
-  buttonGroup: {
-    display: "flex",
-    flexDirection: "row",
-  },
   tools: {
-    flexGrow: 1,
     marginRight: 12,
     marginLeft: 4,
     marginBottom: 4,

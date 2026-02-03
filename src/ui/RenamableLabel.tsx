@@ -44,9 +44,9 @@ export function RenamableLabel({
       tabIndex={highlightFocus ? 0 : undefined}
       className={classNames(
         className,
-        classes.container,
+        "inline-flex flex-row items-center",
         highlightFocus && classes.focusHighlight,
-        disabled && classes.disabled,
+        disabled && "italic",
       )}
       {...divProps}
       onDoubleClick={onDoubleClick}
@@ -116,17 +116,9 @@ export function RenamableLabel({
 }
 
 const useStyles = createUseStyles({
-  container: {
-    display: "inline-flex",
-    flexDirection: "row",
-    alignItems: "center",
-  },
   focusHighlight: {
     "&:focus": {
       background: "rgba(0,0,0,0.3)",
     },
-  },
-  disabled: {
-    fontStyle: "italic",
   },
 });

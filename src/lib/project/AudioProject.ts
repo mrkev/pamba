@@ -23,7 +23,7 @@ import { appEnvironment } from "../AppEnvironment";
 import { AudioClip } from "../AudioClip";
 import { AudioTrack } from "../AudioTrack";
 import { AnalizedPlayer } from "../io/AnalizedPlayer";
-import { ProjectTrack, StandardTrack } from "../ProjectTrack";
+import { standardTrack, StandardTrack } from "../StandardTrack";
 import { ProjectViewport } from "../viewport/ProjectViewport";
 import { ProjectMidi } from "./ProjectMidi";
 import { PanelSelectionState, PrimarySelectionState } from "./SelectionState";
@@ -223,9 +223,14 @@ export function deleteTime(project: AudioProject, track: MidiTrack | AudioTrack,
   }
 
   if (track instanceof MidiTrack) {
-    ProjectTrack.deleteTime(project, track, project.viewport.secsToPulses(startS), project.viewport.secsToPulses(endS));
+    standardTrack.deleteTime(
+      project,
+      track,
+      project.viewport.secsToPulses(startS),
+      project.viewport.secsToPulses(endS),
+    );
   }
   if (track instanceof AudioTrack) {
-    ProjectTrack.deleteTime(project, track, startS, endS);
+    standardTrack.deleteTime(project, track, startS, endS);
   }
 }

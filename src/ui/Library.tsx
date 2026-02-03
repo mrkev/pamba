@@ -8,7 +8,7 @@ import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioTrack } from "../lib/AudioTrack";
 import { projectPersistance } from "../lib/ProjectPersistance";
-import { ProjectTrack } from "../lib/ProjectTrack";
+import { standardTrack } from "../lib/StandardTrack";
 import { addAvailableWamToTrack } from "../lib/addAvailableWamToTrack";
 import { AnalizedPlayer } from "../lib/io/AnalizedPlayer";
 import { AudioRenderer } from "../lib/io/AudioRenderer";
@@ -80,7 +80,7 @@ export function Library({
 
         const activeTrack = project.activeTrack.get();
         if (activeTrack !== null && activeTrack instanceof AudioTrack) {
-          ProjectTrack.pushClip(project, activeTrack, clip);
+          standardTrack.pushClip(project, activeTrack, clip);
           return;
         }
 

@@ -2,7 +2,7 @@ import { ProjectPackage } from "../data/ProjectPackage";
 import { LocalFilesystem } from "../data/localFilesystem";
 import { appEnvironment } from "./AppEnvironment";
 import { AudioClip } from "./AudioClip";
-import { ProjectTrack } from "./ProjectTrack";
+import { standardTrack } from "./StandardTrack";
 import { AudioProject } from "./project/AudioProject";
 
 export const projectPersistance = {
@@ -93,11 +93,11 @@ export const projectPersistance = {
   async sampleProject(): Promise<AudioProject> {
     const project = AudioProject.create();
     const bass = AudioProject.addAudioTrack(project);
-    ProjectTrack.addClip(project, bass, await AudioClip.fromURL("bassguitar.mp3"));
+    standardTrack.addClip(project, bass, await AudioClip.fromURL("bassguitar.mp3"));
     const drums = AudioProject.addAudioTrack(project);
-    ProjectTrack.addClip(project, drums, await AudioClip.fromURL("drums.mp3"));
+    standardTrack.addClip(project, drums, await AudioClip.fromURL("drums.mp3"));
     const clav = AudioProject.addAudioTrack(project);
-    ProjectTrack.addClip(project, clav, await AudioClip.fromURL("clav.mp3"));
+    standardTrack.addClip(project, clav, await AudioClip.fromURL("clav.mp3"));
     project.projectName.set("sample project");
     return project;
   },

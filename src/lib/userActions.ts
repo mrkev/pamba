@@ -13,7 +13,7 @@ import { cliptrack } from "./project/ClipTrack";
 import { selection } from "./project/selection";
 import { PrimarySelectionState } from "./project/SelectionState";
 import { timeop } from "./project/TimelineOperation";
-import { ProjectTrack } from "./ProjectTrack";
+import { standardTrack } from "./StandardTrack";
 import { exhaustive } from "./state/Subbable";
 
 /** User actions record hisotry */
@@ -74,7 +74,7 @@ export const userActions = {
           const ctsel = nullthrows(selected.clips.at(0));
           const clone = ctsel.clip.clone();
           clone.timelineStart.setTo(timeop(ctsel.clip.timelineStart, "+", ctsel.clip.timelineLength), project);
-          ProjectTrack.addClip(project, ctsel.track, clone);
+          standardTrack.addClip(project, ctsel.track, clone);
           selection.selectClip(project, cliptrack(clone, ctsel.track));
 
           break;
@@ -95,7 +95,7 @@ export const userActions = {
   deleteSelectedClips(primarySelection: Extract<PrimarySelectionState, { status: "clips" }>, project: AudioProject) {
     history.record("remove clip(s)", () => {
       for (const { clip, track } of primarySelection.clips) {
-        ProjectTrack.removeClip(project, track, clip);
+        standardTrack.removeClip(project, track, clip);
         project.selected.set(null);
       }
     });
@@ -174,10 +174,10 @@ export const userActions = {
           if (track instanceof AudioTrack) {
             // TODO: move history.record(...) up to the command level as possible
             history.record("delete track time", () => {
-              ProjectTrack.deleteTime(project, track, primarySelection.startS, primarySelection.endS);
+              standardTrack.deleteTime(project, track, primarySelection.startS, primarySelection.endS);
             });
           } else if (track instanceof MidiTrack) {
-            ProjectTrack.deleteTime(
+            standardTrack.deleteTime(
               project,
               track,
               project.viewport.secsToPulses(primarySelection.startS),

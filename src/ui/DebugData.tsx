@@ -1,6 +1,6 @@
 import { useLinkAsState } from "marked-subbable";
 import { DebugOut, useContainer, usePrimitive } from "structured-state";
-import { ProjectTrack } from "../lib/ProjectTrack";
+import { standardTrack } from "../lib/StandardTrack";
 import { AudioProject } from "../lib/project/AudioProject";
 import { PrimarySelectionState } from "../lib/project/SelectionState";
 import { exhaustive } from "../utils/exhaustive";
@@ -22,7 +22,7 @@ export function stringOfSelected(sel: PrimarySelectionState | null): string {
     case "tracks":
       return JSON.stringify({
         ...sel,
-        tracks: sel.tracks.map((track) => ProjectTrack.toString(track)),
+        tracks: sel.tracks.map((track) => standardTrack.toString(track)),
       });
 
     case "effects":
@@ -65,7 +65,7 @@ export function DebugContent({ project }: { project: AudioProject }) {
 
   const allState = tracks
     .map((track, i) => {
-      return `Track ${i}:\n${ProjectTrack.toString(track)}\n`;
+      return `Track ${i}:\n${standardTrack.toString(track)}\n`;
     })
     .join("\n");
 

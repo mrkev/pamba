@@ -19,10 +19,10 @@ import { HistoryPanel } from "./HistoryPanel";
 import { Library } from "./Library";
 import { MIDIPanel } from "./MIDIPanel";
 import { modifierState, useSingletonKeyboardModifierState } from "./ModifierState";
+import { OverviewPanel } from "./OverviewPanel";
 import { ProjectEditor } from "./ProjectEditor";
 import { TimelineView } from "./TimelineView";
 import { UtilityTabbedPanel } from "./UtilityTabbedPanel";
-import { OverviewPanel } from "./OverviewPanel";
 
 function useStopPlaybackOnUnmount(renderer: AudioRenderer) {
   useEffect(() => {
@@ -128,9 +128,5 @@ const useStyles = createUseStyles({
   },
   sidebarPanel: {
     paddingTop: "4px",
-  },
-  sidebarPanelInactive: {},
-  sidebarPanelActive: {
-    background: "#343434",
   },
 });

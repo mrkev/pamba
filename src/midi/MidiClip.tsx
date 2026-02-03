@@ -11,7 +11,7 @@ import {
 } from "structured-state";
 import { TOTAL_VERTICAL_NOTES } from "../constants";
 import { AbstractClip, Pulses } from "../lib/AbstractClip";
-import { ProjectTrack } from "../lib/ProjectTrack";
+import { standardTrack } from "../lib/StandardTrack";
 import { AudioProject } from "../lib/project/AudioProject";
 import { TimeUnit, TimelineT, time } from "../lib/project/TimelineT";
 import { MidiViewport } from "../lib/viewport/MidiViewport";
@@ -187,7 +187,7 @@ export function setClipLength(project: AudioProject, track: MidiTrack, clip: Mid
   const clipStart = clip.timelineStart.pulses(project);
   const start = clipStart + prevLength; // pulses
   const end = clipStart + newLength; // pulses
-  ProjectTrack.deleteTime(project, track, start, end);
+  standardTrack.deleteTime(project, track, start, end);
 
   clip.timelineLength.set(t, u);
 }

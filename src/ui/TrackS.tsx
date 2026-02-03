@@ -1,7 +1,6 @@
 import classNames from "classnames";
 import { useLinkAsState } from "marked-subbable";
 import React, { useCallback, useRef, useState } from "react";
-import { createUseStyles } from "react-jss";
 import { useContainer, usePrimitive } from "structured-state";
 import { TRACK_SEPARATOR_HEIGHT } from "../constants";
 import { useTrackMouseEvents } from "../input/useTrackMouseEvents";
@@ -12,6 +11,7 @@ import { AudioRenderer } from "../lib/io/AudioRenderer";
 import { AudioProject } from "../lib/project/AudioProject";
 import { MidiClip } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
+import { cn } from "../utils/cn";
 import { nullthrows } from "../utils/nullthrows";
 import { ClipA } from "./ClipA";
 import { ClipInvalid } from "./ClipInvalid";
@@ -45,7 +45,6 @@ export function TrackS({
   isDspExpanded: boolean;
   style?: React.CSSProperties;
 }): React.ReactElement {
-  const styles = useStyles();
   const [pressed] = usePrimitive(pressedState);
   const [selected] = useLinkAsState(project.selected);
   const clips = useContainer(track.clips);
@@ -105,7 +104,7 @@ export function TrackS({
     <>
       <div
         ref={trackRef}
-        className={classNames(locked && styles.locked, "relative")}
+        className={classNames(locked && "brightness-75", "relative")}
         style={{
           height: height - TRACK_SEPARATOR_HEIGHT,
           background: activeTrack === track ? "rgba(64,64,64,0.4)" : "none",
@@ -174,7 +173,9 @@ export function TrackS({
 
       {/* Bottom border */}
       <div
-        className={styles.trackSeparator}
+        // sticky to keep the selection div from showing above this effect track
+        // So it "sticks" when we scroll the timeline
+        className={cn("sticky left-0 w-full cursor-ns-resize bg-track-separator")}
         style={{
           height: TRACK_SEPARATOR_HEIGHT,
         }}
@@ -192,19 +193,3 @@ export function TrackS({
     </>
   );
 }
-
-const useStyles = createUseStyles({
-  trackSeparator: {
-    width: "100%",
-    background: "var(--track-separator)",
-    // to keep the selection div from showing above this effect track
-    // So it "sticks" when we scroll the timeline
-    position: "sticky",
-    left: "0",
-    // pointerEvents: "none",
-    cursor: "ns-resize",
-  },
-  locked: {
-    filter: "brightness(0.8)",
-  },
-});

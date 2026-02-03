@@ -5,7 +5,7 @@ import { MidiTrack } from "../../midi/MidiTrack";
 import { PambaWamNode } from "../../wam/PambaWamNode";
 import { AudioClip } from "../AudioClip";
 import { AudioTrack } from "../AudioTrack";
-import { ProjectTrack } from "../ProjectTrack";
+import { standardTrack } from "../StandardTrack";
 import { exhaustive } from "../state/Subbable";
 import { AudioProject } from "./AudioProject";
 import { pulsesToSec } from "./TimelineT";
@@ -40,7 +40,7 @@ export function doPaste(project: AudioProject) {
           if (track instanceof MidiTrack && clip instanceof MidiClip) {
             const clone = clip.clone();
             clone.timelineStart.set(project.viewport.secsToPulses(project.cursorPos.get()), "pulses");
-            ProjectTrack.addClip(project, track, clone);
+            standardTrack.addClip(project, track, clone);
             const endOffsetSec = pulsesToSec(clone.timelineEndPulses(), project.tempo.get());
             if (lastOffset < endOffsetSec) {
               lastOffset = endOffsetSec;
@@ -52,7 +52,7 @@ export function doPaste(project: AudioProject) {
             const clone = clip.clone();
             clip.timelineStart.set(project.cursorPos.get(), "seconds");
 
-            ProjectTrack.addClip(project, track, clone);
+            standardTrack.addClip(project, track, clone);
             if (lastOffset < clone.getTimelineEndSec()) {
               lastOffset = clone.getTimelineEndSec();
             }

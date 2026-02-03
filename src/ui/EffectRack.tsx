@@ -12,6 +12,7 @@ import { AudioRenderer } from "../lib/io/AudioRenderer";
 import { AudioProject } from "../lib/project/AudioProject";
 import { selection } from "../lib/project/selection";
 import { MidiTrack } from "../midi/MidiTrack";
+import { cn } from "../utils/cn";
 import { exhaustive } from "../utils/exhaustive";
 import { nullthrows } from "../utils/nullthrows";
 import { PambaWamNode } from "../wam/PambaWamNode";
@@ -25,19 +26,10 @@ import { useEventListener } from "./useEventListener";
 
 const useStyles = createUseStyles({
   effectRack: {
-    color: "white",
     background: "rgba(23, 23, 23, 0.7)",
-    display: "flex",
-    flexDirection: "row",
     alignItems: "stretch",
     // to keep the selection div from showing above this effect track
     zIndex: 1,
-    // So it "sticks" when we scroll the timeline
-    position: "sticky",
-    left: "0",
-    overscrollBehavior: "contain",
-    overflowX: "scroll",
-
     padding: "6px 25% 11px 4px",
     gap: "4px",
   },
@@ -213,30 +205,29 @@ export const EffectRack = React.memo(function EffectRack({
   }
 
   return (
-    <>
+    <div
+      ref={rackRef}
+      style={{
+        height: EFFECT_HEIGHT,
+        // background:
+        //   draggingOver === false ? undefined : draggingOver === "invalid" ? undefined : "rgba(23, 43, 23, 0.7)",
+      }}
+      // sticky so it "sticks" when we scroll the timeline
+      className={cn(styles.effectRack, "sticky left-0 text-white flex flex-row overflow-x-scroll overscroll-contain")}
+    >
+      {/* {track instanceof MidiTrack && <MidiInputEffect track={track} project={project} renderer={renderer} />} */}
+      {track instanceof MidiTrack && <InstrumentEffect track={track} project={project} renderer={renderer} />}
+      {chain}
       <div
-        ref={rackRef}
+        className="self-stretch bg-effect-back"
         style={{
-          height: EFFECT_HEIGHT,
-          // background:
-          //   draggingOver === false ? undefined : draggingOver === "invalid" ? undefined : "rgba(23, 43, 23, 0.7)",
+          // border: "1px solid #333",
+          padding: "4px 8px",
         }}
-        className={styles.effectRack}
       >
-        {/* {track instanceof MidiTrack && <MidiInputEffect track={track} project={project} renderer={renderer} />} */}
-        {track instanceof MidiTrack && <InstrumentEffect track={track} project={project} renderer={renderer} />}
-        {chain}
-        <div
-          className="self-stretch bg-effect-back"
-          style={{
-            // border: "1px solid #333",
-            padding: "4px 8px",
-          }}
-        >
-          Output
-        </div>
+        Output
       </div>
-    </>
+    </div>
   );
 });
 

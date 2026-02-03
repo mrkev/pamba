@@ -7,7 +7,7 @@ import { appEnvironment } from "../AppEnvironment";
 import { AudioClip } from "../AudioClip";
 import { AudioTrack } from "../AudioTrack";
 import { AudioProject } from "../project/AudioProject";
-import { ProjectTrack } from "../ProjectTrack";
+import { standardTrack } from "../StandardTrack";
 import { AudioRenderer } from "./AudioRenderer";
 
 function useMediaRecorder(loadClip: (url: string, name?: string) => void) {
@@ -62,7 +62,7 @@ export class AudioRecorder {
         const newTrack = AudioTrack.fromClip(this.project, clip);
         AudioProject.addAudioTrack(this.project, "top", newTrack, this.renderer.analizedPlayer);
       } else if (armedTrack instanceof AudioTrack) {
-        ProjectTrack.addClip(this.project, armedTrack, clip);
+        standardTrack.addClip(this.project, armedTrack, clip);
       }
     } catch (e) {
       console.trace(e);

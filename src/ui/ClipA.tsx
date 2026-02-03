@@ -3,7 +3,7 @@ import { history, useContainer, usePrimitive } from "structured-state";
 import { CLIP_HEIGHT } from "../constants";
 import type { AudioClip } from "../lib/AudioClip";
 import type { AudioTrack } from "../lib/AudioTrack";
-import { ProjectTrack } from "../lib/ProjectTrack";
+import { standardTrack } from "../lib/StandardTrack";
 import type { AudioProject } from "../lib/project/AudioProject";
 import { exhaustive } from "../utils/exhaustive";
 import { StandardClip } from "./StandardClip";
@@ -61,7 +61,7 @@ export const ClipA = React.memo(function ClipAImpl({
           const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
           const secFromStartOfClip = project.viewport.pxToSecs(pxFromStartOfClip);
           const secFromTimelineStart = timelineStart.secs(project) + secFromStartOfClip;
-          ProjectTrack.splitClip(project, track, clip, secFromTimelineStart);
+          standardTrack.splitClip(project, track, clip, secFromTimelineStart);
         });
         break;
       case "trimStart": {

@@ -19,8 +19,8 @@ import { appEnvironment, defaultInstrument, liveWamHostGroupId } from "../lib/Ap
 import { PBGainNode } from "../lib/offlineNodes";
 import { AudioProject } from "../lib/project/AudioProject";
 import { timelineT } from "../lib/project/TimelineT";
-import { StandardTrack } from "../lib/ProjectTrack";
 import { ProjectTrackDSP } from "../lib/ProjectTrackDSP";
+import { StandardTrack } from "../lib/StandardTrack";
 import { nullthrows } from "../utils/nullthrows";
 import { MIDIConfiguration } from "../wam/miditrackwam/MIDIConfiguration";
 import { PianoRollModule, PianoRollNode } from "../wam/miditrackwam/PianoRollModule";
@@ -297,6 +297,10 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
         tempo: 120, // todo: tempo
       },
     });
+  }
+
+  didAddClip(clip: MidiClip): void {
+    console.log("MidiTrack: didAddClip", clip);
   }
 }
 

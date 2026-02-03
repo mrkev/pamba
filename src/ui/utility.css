@@ -5,7 +5,7 @@
     whitespace-nowrap cursor-pointer
     border-0 font-bold
     bg-control-bg-color active:bg-control-subtle-highlight
-    text-[12px] px-[6px] py-[1px] h-[18px] min-w-[22px];
+    text-[12px] px-[6px] py-px h-[18px] min-w-[22px];
 }
 
 .utilityButton::not(disabled) {

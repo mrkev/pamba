@@ -17,7 +17,7 @@ import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioTrack } from "../lib/AudioTrack";
-import { StandardTrack } from "../lib/ProjectTrack";
+import { StandardTrack } from "../lib/StandardTrack";
 import { ProjectTrackDSP } from "../lib/ProjectTrackDSP";
 import { PBGainNode } from "../lib/offlineNodes";
 import { AudioProject, PointerTool, SecondaryTool } from "../lib/project/AudioProject";

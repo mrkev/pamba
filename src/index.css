@@ -25,9 +25,11 @@
   --color-axis-spacer-headers-separator: #373535;
   --color-cursor: white;
   --color-cursor-playback: red;
+  --color-track-separator: #2e2e2e;
   /* list */
   --color-utility-list-bg: #fff;
   --color-utility-list-bg-disabled: #ebebe4;
+  --color-utility-list-border: #999;
   --color-list-item-disabled: gray;
   /* midi editor */
   --color-midi-note: red;

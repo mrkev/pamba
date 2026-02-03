@@ -6,7 +6,7 @@ import { AudioClip } from "../lib/AudioClip";
 import { AudioTrack } from "../lib/AudioTrack";
 import { clipMovePPQN, clipMoveSec, pointMovePulses, pointMoveSec } from "../lib/clipMoveSec";
 import { AudioProject } from "../lib/project/AudioProject";
-import { ProjectTrack } from "../lib/ProjectTrack";
+import { standardTrack } from "../lib/StandardTrack";
 import { snapped, START_PADDING_PX } from "../lib/viewport/ProjectViewport";
 import { MidiClip } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
@@ -159,20 +159,20 @@ export function useTimelineMouseEvents(
                 pressed.originalTrack instanceof AudioTrack &&
                 pressed.clip instanceof AudioClip
               ) {
-                ProjectTrack.moveClip(project, pressed.clip, pressed.originalTrack, pressed.track);
+                standardTrack.moveClip(project, pressed.clip, pressed.originalTrack, pressed.track);
               } else if (
                 pressed.track instanceof MidiTrack &&
                 pressed.originalTrack instanceof MidiTrack &&
                 pressed.clip instanceof MidiClip
               ) {
-                ProjectTrack.deleteTime(
+                standardTrack.deleteTime(
                   project,
                   pressed.track,
                   pressed.clip.timelineStart.pulses(project),
                   pressed.clip._timelineEndU,
                 );
-                ProjectTrack.removeClip(project, pressed.originalTrack, pressed.clip);
-                ProjectTrack.addClip(project, pressed.track, pressed.clip);
+                standardTrack.removeClip(project, pressed.originalTrack, pressed.clip);
+                standardTrack.addClip(project, pressed.track, pressed.clip);
               } else {
                 console.warn("mouseup: moving_clip: can't operate");
               }
