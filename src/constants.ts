@@ -59,3 +59,8 @@ export const SOUND_FONT_URL = "https://www.webaudiomodules.com/community/plugins
 export const MAX_NUMBER_OF_TRACKS = 32;
 
 export const CLIP_MIN_SIZE_PULSES = 4;
+export const MIDI_CLIP_EDITOR_MIN_H_SCALE = 1;
+export const MIDI_CLIP_EDITOR_MAX_H_SCALE = 20;
+export const DEFAULT_NOTE_DURATION = 6;
+export const CANVAS_SCALE = Math.floor(window.devicePixelRatio);
+export const VERTICAL_PIANO_WIDTH = 24;

@@ -82,6 +82,29 @@ body {
   /* ////// TODO: call light vvv */
 }
 
+/* from: https://raw.githubusercontent.com/tailwindlabs/tailwindcss/refs/heads/main/packages/tailwindcss/preflight.css */
+/* it was a great journey getting here and discovering this is what was making my canvas force a small 2.5px gap under it,
+leading to an infinte loop with a ResizeObserver observing its parent div, but here we are, and I'm happy both about the
+knowledge found at the destination and the proccess of brave discovery to get to it fuck yes */
+/*
+  1. Make replaced elements `display: block` by default. (https://github.com/mozdevs/cssremedy/issues/14)
+  2. Add `vertical-align: middle` to align replaced elements more sensibly by default. (https://github.com/jensimmons/cssremedy/issues/14#issuecomment-634934210)
+      This can trigger a poorly considered lint error in some tools but is included by design.
+*/
+/* only on canvas for now I can add the rest later */
+/*
+img,
+svg,
+video,
+audio,
+iframe,
+embed,
+object, */
+canvas {
+  display: block; /* 1 */
+  vertical-align: middle; /* 2 */
+}
+
 /* LIGHT */
 /* :root {
   --background: white;

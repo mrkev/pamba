@@ -5,7 +5,7 @@ import { MidiClip } from "../../midi/MidiClip";
 import { midiTrack, MidiTrack } from "../../midi/MidiTrack";
 import { useDrawOnCanvas } from "../useDrawOnCanvas";
 import { useMousePressMove } from "../useEventListener";
-import { CANVAS_SCALE, PIANO_ROLL_WIDTH } from "./MidiClipEditor";
+import { CANVAS_SCALE, VERTICAL_PIANO_WIDTH } from "../../constants";
 
 type NoteStr = "C" | "C#" | "D" | "D#" | "E" | "F" | "F#" | "G" | "G#" | "A" | "A#" | "B";
 export const NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"] as const;
@@ -88,7 +88,7 @@ export function VerticalPianoRollKeys({ clip, track }: { clip: MidiClip; track: 
           const noteStr = NOTES[n % NOTES.length];
           ctx.fillStyle = keyboardColorOfNote(noteStr, playingNotes.has(TOTAL_VERTICAL_NOTES - n - 1));
           void playingNotesHash;
-          ctx.fillRect(0, n * noteHeight, PIANO_ROLL_WIDTH, noteHeight);
+          ctx.fillRect(0, n * noteHeight, VERTICAL_PIANO_WIDTH, noteHeight);
 
           // https://stackoverflow.com/questions/13879322/drawing-a-1px-thick-line-in-canvas-creates-a-2px-thick-line
           ctx.beginPath();
@@ -108,11 +108,11 @@ export function VerticalPianoRollKeys({ clip, track }: { clip: MidiClip; track: 
     <canvas
       ref={keysCanvasRef}
       height={CANVAS_SCALE * noteHeight * TOTAL_VERTICAL_NOTES}
-      width={CANVAS_SCALE * PIANO_ROLL_WIDTH}
+      width={CANVAS_SCALE * VERTICAL_PIANO_WIDTH}
       className="sticky left-0 bg-timeline-bg"
       style={{
         height: noteHeight * TOTAL_VERTICAL_NOTES,
-        width: PIANO_ROLL_WIDTH,
+        width: VERTICAL_PIANO_WIDTH,
         zIndex: 1,
       }}
     />

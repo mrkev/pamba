@@ -1,5 +1,6 @@
 import { boolean, InitFunctions, JSONOfAuto, number, ReplaceFunctions, SNumber, Structured } from "structured-state";
 import { clamp } from "../../utils/math";
+import { MIDI_CLIP_EDITOR_MAX_H_SCALE, MIDI_CLIP_EDITOR_MIN_H_SCALE } from "../../constants";
 
 export type SMidiViewport = {
   pxPerPulse: number;
@@ -81,6 +82,21 @@ export class MidiViewport extends Structured<AutoMidiViewport, typeof MidiViewpo
       number(this.scrollLeftPx.get()),
       number(this.scrollTopPx.get()),
     );
+  }
+
+  setScale(expectedNewScale: number, mouseX: number = 0) {
+    // min scale is 0.64, max is 1000
+    const newScale = clamp(MIDI_CLIP_EDITOR_MIN_H_SCALE, expectedNewScale, MIDI_CLIP_EDITOR_MAX_H_SCALE);
+    const currentScaleFactor = this.pxPerPulse.get();
+    const scaleFactorFactor = expectedNewScale / currentScaleFactor;
+
+    this.pxPerPulse.set(newScale);
+    const newStartPx = (this.scrollLeftPx.get() + mouseX) * scaleFactorFactor - mouseX;
+    if (newStartPx < 0) {
+      this.scrollLeftPx.set(0);
+    } else {
+      this.scrollLeftPx.set(newStartPx);
+    }
   }
 
   pulsesToPx(pulses: number) {

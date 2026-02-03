@@ -134,7 +134,10 @@ export class MidiClip extends Structured<AutoMidiClip, typeof MidiClip> implemen
       SString.create(this.name.get()),
       this.timelineStart.clone(),
       this.timelineLength.clone(),
-      this.buffer.clone(),
+      // we clone when we create a new clip for rendering, when dragging a clip.
+      // keep the buffer, so we don't re-draw the midi notes, which can be expensive.
+      // it also makes sense no? for midi buffers to be re-used?
+      this.buffer,
       this.detailedViewport.clone(),
       set([]),
       this.bufferTimelineStart.clone(),
