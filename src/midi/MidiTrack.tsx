@@ -11,6 +11,7 @@ import {
   boolean,
   string,
 } from "structured-state";
+import { Subbable } from "structured-state/dist/state/Subbable";
 import { CLIP_HEIGHT, SECS_IN_MINUTE, TIME_SIGNATURE, liveAudioContext } from "../constants";
 import { connectSerialNodes } from "../dsp/connectSerialNodes";
 import { DSP } from "../dsp/DSP";
@@ -46,6 +47,13 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
     inputMidiChannel: -1,
     outputMidiChannel: 0,
   };
+
+  _changed(target: Subbable, self: Subbable) {
+    if (target === this.clips) {
+      console.log("clips");
+    }
+    // console.log("FOOO", target, self);
+  }
 
   updateProcessorMIDIConfig(config: MIDIConfiguration) {
     this.pianoRoll.sendMessageToProcessor({ action: "midiConfig", config });
@@ -239,7 +247,7 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
     const currentBar = (offsetSec * bpm) / (BEATS_PER_BAR * SECS_IN_MINUTE);
 
     // this.pianoRoll.sendMessageToProcessor({ action: "setPlaybackStartOffset", offsetSec });
-    console.log("SCHEDULE");
+
     this.playingSource.audioNode.scheduleEvents({
       type: "wam-transport",
       data: {
@@ -272,10 +280,6 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
         tempo: 120, // todo: tempo
       },
     });
-  }
-
-  didAddClip(clip: MidiClip): void {
-    console.log("MidiTrack: didAddClip", clip);
   }
 }
 

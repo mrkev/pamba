@@ -24,8 +24,6 @@ export interface StandardTrack<T extends AbstractClip<any>> {
   // NOTE: needs to be called right after .prepareForPlayback
   startPlayback(tempo: number, context: BaseAudioContext, offset?: number): void;
   stopPlayback(context: BaseAudioContext): void;
-
-  didAddClip(clip: T): void;
 }
 
 export const standardTrack = {
@@ -40,7 +38,6 @@ export const standardTrack = {
       return;
     }
     addClip(newClip, track.clips);
-    track.didAddClip(newClip);
   },
 
   // Adds a clip right after the last clip

@@ -23,8 +23,8 @@ import { AudioClip } from "./AudioClip";
 import { AudioContextInfo } from "./initAudioContext";
 import { PBGainNode } from "./offlineNodes";
 import { AudioProject } from "./project/AudioProject";
-import { standardTrack, StandardTrack } from "./StandardTrack";
 import { ProjectTrackDSP } from "./ProjectTrackDSP";
+import { standardTrack, StandardTrack } from "./StandardTrack";
 // import { TrackThread } from "./TrackThread";
 
 type AutoAudioTrack = {
@@ -206,10 +206,6 @@ export class AudioTrack extends Structured<AutoAudioTrack, typeof AudioTrack> im
     const sourceNode = context.createBufferSource();
     sourceNode.buffer = trackBuffer;
     return sourceNode;
-  }
-
-  didAddClip(clip: AudioClip): void {
-    console.log("AudioTrack: didAddClip", clip);
   }
 
   //////////// UTILITY ////////////

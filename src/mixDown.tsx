@@ -4,7 +4,6 @@ import { AudioClip } from "./lib/AudioClip";
 // Mixes clips
 // from https://stackoverflow.com/questions/57155167/web-audio-api-playing-synchronized-sounds
 export function mixDown(clipList: ReadonlyArray<AudioClip>, numberOfChannels = 2): AudioBuffer | null {
-  performance.mark("START");
   if (clipList.length === 0) {
     return null;
   }
@@ -45,9 +44,6 @@ export function mixDown(clipList: ReadonlyArray<AudioClip>, numberOfChannels = 2
       }
     }
   }
-
-  performance.mark("END");
-  performance.measure("foo", "START", "END");
 
   return finalMix;
 }

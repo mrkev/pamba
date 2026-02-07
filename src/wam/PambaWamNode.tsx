@@ -53,7 +53,6 @@ export class PambaWamNode implements DSPStep {
   ) {
     this.node = TrackedAudioNode.of(wamInstance.audioNode);
     this.effectId = this.wamInstance.moduleId;
-    console.log("foo", this.wamInstance.descriptor);
   }
 
   static async fromAvailablePlugin(
