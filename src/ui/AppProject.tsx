@@ -56,7 +56,7 @@ export function AppProject({ project }: { project: AudioProject }) {
           onSelectTab={setActiveSidePanel}
           dividerPosition={"right"}
           onMouseDownCapture={() => project.activePanel.set("sidebar")}
-          className={classNames(styles.sidebarPanel, activePanel === "sidebar" && "bg-panel-active-background")}
+          className={classNames(activePanel === "sidebar" && "bg-panel-active-background")}
           panels={{
             library: {
               icon: <i className="ri-folder-3-line" style={{ paddingRight: 2 }}></i>,
@@ -124,9 +124,6 @@ export function AppProject({ project }: { project: AudioProject }) {
 
 const useStyles = createUseStyles({
   secondaryPanel: {
-    paddingTop: "4px",
-  },
-  sidebarPanel: {
     paddingTop: "4px",
   },
 });

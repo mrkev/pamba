@@ -69,14 +69,15 @@ export function UtilityTabbedPanel<P extends Record<string, Panel>>({
       <div
         className={classNames(
           styles.tabs,
-          isCollapsed && layout === "horizontal" && styles.collapsedTabsVertical,
-          isCollapsed && layout === "vertical" && styles.collapsedTabsHorizontal,
+          "flex flex-row flex-wrap",
+          isCollapsed && layout === "horizontal" && "flex-col flex-nowrap",
+          isCollapsed && layout === "vertical" && "flex-row flex-nowrap",
           dividerPosition === "top" && styles.bottomPanelTabs,
         )}
         style={
           layout === "horizontal"
             ? {
-                padding: "0px 0px 4px 0px",
+                padding: "4px 0px 4px 0px",
                 borderBottom: "2px solid var(--control-bg-color)",
               }
             : {
@@ -91,9 +92,9 @@ export function UtilityTabbedPanel<P extends Record<string, Panel>>({
             <button
               title={panel.title}
               key={id}
-              style={{ textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}
               className={classNames(
                 "utilityButton",
+                "overflow-hidden whitespace-nowrap text-ellipsis",
                 activeTab === id && "utilityButtonActive",
                 activeTab === id && activeButtonClassName,
               )}
@@ -134,18 +135,7 @@ export function UtilityTabbedPanel<P extends Record<string, Panel>>({
 
 const useStyles = createUseStyles({
   tabs: {
-    display: "flex",
-    flexDirection: "row",
-    flexWrap: "wrap",
     gap: 4,
-  },
-  collapsedTabsVertical: {
-    flexDirection: "column",
-    flexWrap: "nowrap",
-  },
-  collapsedTabsHorizontal: {
-    flexDirection: "row",
-    flexWrap: "nowrap",
   },
   panel: {
     display: "flex",

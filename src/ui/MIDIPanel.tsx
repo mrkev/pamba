@@ -8,6 +8,7 @@ export function MIDIPanel(_: { project: AudioProject }) {
   const [midiLearning, setMidiLearning] = useLinkAsState(appEnvironment.midiLearning);
   const inputs = useLink(appEnvironment.midiDevices.inputs);
   const midiInputs = [...inputs().values()];
+  const listening = useLink(appEnvironment.midiDevices.activeInputs);
 
   return (
     <>
@@ -29,11 +30,26 @@ export function MIDIPanel(_: { project: AudioProject }) {
       {midiInputs.map((x) => {
         const disconnected = x.state === "disconnected";
         return (
-          <div className="flex flex-row items-center" key={x.id}>
-            <input type="checkbox" disabled={disconnected} />
-            <span className={cn(disconnected && "text-list-item-disabled")} key={x.id}>
-              {x.name ?? "Input " + x.id}
-            </span>
+          <div className="flex flex-row items-start" key={x.id}>
+            <input
+              type="checkbox"
+              disabled={disconnected}
+              checked={listening().has(x.id)}
+              onChange={() => {
+                if (listening().has(x.id)) {
+                  appEnvironment.midiDevices.stopListening(x);
+                } else {
+                  appEnvironment.midiDevices.listen(x);
+                }
+              }}
+            />
+            <div>
+              <span className={cn(disconnected && "text-list-item-disabled")} key={x.id}>
+                {x.name ?? "Input " + x.id}
+              </span>
+              <br />
+              <span className="text-sm text-control-subtle-highlight">{x.id}</span>
+            </div>
           </div>
         );
       })}

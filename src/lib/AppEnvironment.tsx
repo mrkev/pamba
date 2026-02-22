@@ -2,7 +2,7 @@ import { FirebaseApp } from "firebase/app";
 import { Auth, User, getAuth } from "firebase/auth";
 import { MarkedSet, MarkedValue } from "marked-subbable";
 import { DirtyObserver, SPrimitive, array } from "structured-state";
-import { MidiDevices } from "./MidiDevices";
+import { MidiDeviceManager } from "./MidiDeviceManager";
 import { FIREBASE_ENABLED, MAX_NUMBER_OF_TRACKS, SOUND_FONT_URL } from "../constants";
 import { ProjectPackage } from "../data/ProjectPackage";
 import { LocalFilesystem } from "../data/localFilesystem";
@@ -69,7 +69,7 @@ export class AppEnvironment {
 
   // MIDI
   readonly midiLearning = MarkedValue.create<MidiLearningStatus>({ status: "off" });
-  public midiDevices: MidiDevices = null as any; // TODO: do this in a way that avoids the null?
+  public midiDevices: MidiDeviceManager = null as any; // TODO: do this in a way that avoids the null?
 
   // System
   public renderer: AudioRenderer = null as any; // TODO: do this in a way that avoids the null?
@@ -138,12 +138,12 @@ export class AppEnvironment {
       const audioStorage = AudioStorage.init();
       this.audioStorage.set(audioStorage);
 
-      const midiResult = await MidiDevices.initialize();
+      const midiResult = await MidiDeviceManager.initialize();
       if (midiResult.status === "error") {
         console.warn("no midi", midiResult.error);
       } else {
         this.midiDevices = midiResult.value;
-        const unsubscribe = this.midiDevices.listenToMidi(this.routeMidi.bind(this));
+        const unsubscribe = this.midiDevices.events.addEventListener("midimessage", this.routeMidi.bind(this));
         this.projectCloseCallbacks.push(unsubscribe);
       }
 
