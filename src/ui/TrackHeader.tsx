@@ -8,9 +8,11 @@ import { AudioTrack } from "../lib/AudioTrack";
 import { AnalizedPlayer } from "../lib/io/AnalizedPlayer";
 import { AudioProject } from "../lib/project/AudioProject";
 import { selection } from "../lib/project/selection";
+import { GAIN_ADDRESS, MUTE_ADDRESS, PAN_ADDRESS } from "../lib/ProjectTrackDSP";
 import { userActions } from "../lib/userActions";
 import { MidiTrack } from "../midi/MidiTrack";
 import { cn } from "../utils/cn";
+import { nullthrows } from "../utils/nullthrows";
 import { cx } from "./cx";
 import { pressedState } from "./pressedState";
 import { RenamableLabel } from "./RenamableLabel";
@@ -33,18 +35,23 @@ export const TrackHeader = React.memo(function TrackHeader({
   onDragStart?: (e: React.DragEvent<HTMLDivElement>) => void;
 }) {
   const styles = useStyles();
-  const [gain, setGain] = useState<number>(track.dsp.getCurrentGain().value);
-  const [muted, setMuted] = usePrimitive<boolean>(track.dsp.bypass);
+  const [gain, setGain] = useState<number>(track.dsp.gainNode.gain.value);
+  // const [muted, setMuted] = usePrimitive<boolean>(track.dsp.bypass);
   const dspExpandedTracks = useContainer(project.dspExpandedTracks);
   const solodTracks = useContainer(project.solodTracks);
   const lockedTracks = useContainer(project.lockedTracks);
-  const trackEffects = useContainer(track.dsp.effects);
+  const trackEffects = useContainer(track.dsp.effectNodes);
   const [trackName, setTrackName] = usePrimitive(track.name);
   const [height] = usePrimitive(track.height);
   const [selected] = useLinkAsState(project.selected);
   const [activeTrack] = usePrimitive(project.activeTrack);
   const [armedTrack] = usePrimitive(project.armedAudioTrack);
   const [armedMidiTrack] = usePrimitive(project.armedMidiTrack);
+  const params = useContainer(track.dsp.utility.params);
+
+  const gain2 = nullthrows(params.get(GAIN_ADDRESS), `Invalid address for effect param: ${GAIN_ADDRESS}`);
+  const muted = nullthrows(params.get(MUTE_ADDRESS), `Invalid address for effect param: ${MUTE_ADDRESS}`) === 1;
+  const pan2 = nullthrows(params.get(PAN_ADDRESS), `Invalid address for effect param: ${PAN_ADDRESS}`);
 
   const isSelected = selected !== null && selected.status === "tracks" && selected.test.has(track);
   const isSolod = solodTracks.has(track);
@@ -146,14 +153,13 @@ export const TrackHeader = React.memo(function TrackHeader({
             style={muted ? { background: "#5566EE" } : undefined}
             title="mute track"
             onClick={function (e) {
-              setMuted((prev) => {
-                return !prev;
-              });
+              track.dsp.utility.setParam(MUTE_ADDRESS, muted ? 0 : 1);
               e.stopPropagation();
             }}
           >
             M
           </button>
+
           <UtilityNumberSlider
             className="grow"
             value={gain}

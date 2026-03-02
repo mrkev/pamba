@@ -83,12 +83,12 @@ export async function handleDropOntoAudioTrack(
         `no track at index ${resource.trackIndex}`,
       );
       const effectInstance = nullthrows(
-        srcTrack.dsp.effects.at(resource.effectIndex),
+        srcTrack.dsp.effectNodes.at(resource.effectIndex),
         `track ${resource.trackIndex} has no effect at index ${resource.effectIndex}`,
       );
 
       // remove effect from source track
-      srcTrack.dsp.effects.splice(resource.effectIndex, 1);
+      srcTrack.dsp.effectNodes.splice(resource.effectIndex, 1);
       // insert where appropriate
       track.dsp.addEffect(effectInstance, "last");
       project.dspExpandedTracks.add(track);
@@ -129,12 +129,12 @@ export async function handleDropOntoMidiTrack(
         `no track at index ${resource.trackIndex}`,
       );
       const effectInstance = nullthrows(
-        srcTrack.dsp.effects.at(resource.effectIndex),
+        srcTrack.dsp.effectNodes.at(resource.effectIndex),
         `track ${resource.trackIndex} has no effect at index ${resource.effectIndex}`,
       );
 
       // remove effect from source track
-      srcTrack.dsp.effects.splice(resource.effectIndex, 1);
+      srcTrack.dsp.effectNodes.splice(resource.effectIndex, 1);
       // insert where appropriate
       track.dsp.addEffect(effectInstance, "last");
       break;
@@ -245,12 +245,12 @@ export async function handleDropOntoEffectRack(
         `no track at index ${resource.trackIndex}`,
       );
       const effectInstance = nullthrows(
-        srcTrack.dsp.effects.at(resource.effectIndex),
+        srcTrack.dsp.effectNodes.at(resource.effectIndex),
         `track ${resource.trackIndex} has no effect at index ${resource.effectIndex}`,
       );
 
       // remove effect from source track
-      srcTrack.dsp.effects.splice(resource.effectIndex, 1);
+      srcTrack.dsp.effectNodes.splice(resource.effectIndex, 1);
       // insert where appropriate
       track.dsp.addEffect(effectInstance, chainPosition ?? "last");
       break;

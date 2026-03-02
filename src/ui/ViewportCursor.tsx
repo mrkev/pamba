@@ -32,7 +32,6 @@ export function ViewportPlaybackCursor({
       const pbcursor = playbackPosDiv.current;
       if (pbcursor) {
         const px = viewport.secsToPx(playbackTime, marginLeft);
-        console.log("HERE");
         pbcursor.style.left = String(px) + "px";
       }
     });

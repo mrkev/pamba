@@ -4,7 +4,7 @@ import { PambaWamNode } from "../wam/PambaWamNode";
 import { AudioTrack } from "./AudioTrack";
 
 export function removeEffect(track: AudioTrack | MidiTrack, effect: FaustAudioEffect | PambaWamNode) {
-  track.dsp.effects.remove(effect);
+  track.dsp.effectNodes.remove(effect);
   effect.destroy();
 }
 

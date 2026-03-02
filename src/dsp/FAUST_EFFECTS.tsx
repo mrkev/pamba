@@ -5,6 +5,9 @@ export const FAUST_EFFECTS = {
   TRACK_UTILITY: () => import("./TrackUtility.dsp"),
 } as const;
 
+/** Special faust effect, since it's used on all tracks */
+export const TRACK_UTILITY_ID = "TRACK_UTILITY";
+
 export type FaustEffectID = keyof typeof FAUST_EFFECTS;
 
 export function validateFaustEffectId(val: string): FaustEffectID {

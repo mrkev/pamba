@@ -128,7 +128,6 @@ export class FaustAudioEffect implements DSPStep<TrackedAudioNode> {
 
   async cloneToOfflineContext(context: OfflineAudioContext) {
     const paramValues = await this.getAllParamValues();
-    console.log("CLONING", paramValues);
     return FaustAudioEffect.create(context, this.effectId, paramValues);
   }
 }

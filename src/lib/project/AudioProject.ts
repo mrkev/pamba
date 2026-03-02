@@ -16,20 +16,16 @@ import {
 import { ulid } from "ulid";
 import { DEFAULT_TEMPO } from "../../constants";
 import { DSP } from "../../dsp/DSP";
-import { MidiClip } from "../../midi/MidiClip";
 import { MidiTrack } from "../../midi/MidiTrack";
 import { PPQN } from "../../wam/miditrackwam/MIDIConfiguration";
 import { appEnvironment } from "../AppEnvironment";
-import { AudioClip } from "../AudioClip";
 import { AudioTrack } from "../AudioTrack";
 import { AnalizedPlayer } from "../io/AnalizedPlayer";
-import { standardTrack, StandardTrack } from "../StandardTrack";
+import { StandardTrack, standardTrack } from "../StandardTrack";
 import { ProjectViewport } from "../viewport/ProjectViewport";
 import { ProjectMidi } from "./ProjectMidi";
 import { PanelSelectionState, PrimarySelectionState } from "./SelectionState";
 import { TimelineT, time } from "./TimelineT";
-import { selection } from "./selection";
-import { cliptrack } from "./ClipTrack";
 
 export type PointerTool = "move" | "trimStart" | "trimEnd" | "slice";
 export type SecondaryTool = "move" | "draw";
@@ -141,13 +137,13 @@ export class AudioProject {
   //////// Methods on Projects ////////
 
   // TODO: maybe let's not try to add this track to playback
-  static addAudioTrack(
+  static async addAudioTrack(
     project: AudioProject,
     position: "top" | "bottom" = "top",
     track?: AudioTrack,
     player?: AnalizedPlayer,
-  ): AudioTrack {
-    const newTrack = track ?? AudioTrack.empty();
+  ): Promise<AudioTrack> {
+    const newTrack = track ?? (await AudioTrack.empty());
     if (position === "top") {
       project.allTracks.unshift(newTrack);
     } else {

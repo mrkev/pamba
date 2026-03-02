@@ -1,3 +1,5 @@
+import { liveAudioContext } from "../constants";
+
 /**
  * A wrapper for WebAudio's AudioNode, that keeps track of destinations.
  * Otherwise, calling audioNode.disconnect(dest) throws if dest is not a destination
@@ -13,6 +15,13 @@ export class TrackedAudioNode<T extends AudioNode = AudioNode> {
 
   static of<T extends AudioNode>(node: T) {
     return new TrackedAudioNode(node);
+  }
+
+  static create<C extends new (...args: any[]) => any>(
+    Ctor: C,
+    ...args: ConstructorParameters<C>
+  ): TrackedAudioNode<InstanceType<C>> {
+    return TrackedAudioNode.of(new Ctor(...args));
   }
 
   public connect(dest: TrackedAudioNode): void {
@@ -39,3 +48,12 @@ export class TrackedAudioNode<T extends AudioNode = AudioNode> {
     }
   }
 }
+
+function createAudioNode<C extends new (...args: any[]) => any>(
+  Ctor: C,
+  ...args: ConstructorParameters<C>
+): InstanceType<C> {
+  return new Ctor(...args);
+}
+
+const x = createAudioNode(GainNode, liveAudioContext());

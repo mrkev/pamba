@@ -21,9 +21,9 @@ import { AudioTrackModule } from "../wam/audiotrack/AudioTrackModule";
 import { appEnvironment } from "./AppEnvironment";
 import { AudioClip } from "./AudioClip";
 import { AudioContextInfo } from "./initAudioContext";
-import { PBGainNode } from "./offlineNodes";
+import { PBGainNode } from "./PBGainNode";
 import { AudioProject } from "./project/AudioProject";
-import { ProjectTrackDSP } from "./ProjectTrackDSP";
+import { defaultTrackUtility, ProjectTrackDSP } from "./ProjectTrackDSP";
 import { standardTrack, StandardTrack } from "./StandardTrack";
 // import { TrackThread } from "./TrackThread";
 
@@ -90,38 +90,41 @@ export class AudioTrack extends Structured<AutoAudioTrack, typeof AudioTrack> im
   }
 
   static construct(auto: JSONOfAuto<AutoAudioTrack>, init: InitFunctions): AudioTrack {
-    const projectTrackDSP = new ProjectTrackDSP(
-      string("AudioTrackDSP"),
-      PBGainNode.defaultLive(),
-      SArray.create(
-        // todo effects
-        [],
-      ),
-      boolean(false),
-    );
+    throw new Error("Need async construct to construct MidiTrack");
 
-    const trackWAM = nullthrows(appEnvironment.audioTrackWAMBank.pop()); // todo replace
+    // const projectTrackDSP = new ProjectTrackDSP(
+    //   string("AudioTrackDSP"),
+    //   PBGainNode.defaultLive(),
+    //   SArray.create(
+    //     // todo effects
+    //     [],
+    //   ),
+    //   boolean(false),
+    // );
 
-    return Structured.create(
-      AudioTrack,
-      init.string(auto.name),
-      init.schemaArray(auto.clips, [AudioClip]),
-      init.number(auto.height),
-      projectTrackDSP,
-      trackWAM,
-    );
+    // const trackWAM = nullthrows(appEnvironment.audioTrackWAMBank.pop()); // todo replace
+
+    // return Structured.create(
+    //   AudioTrack,
+    //   init.string(auto.name),
+    //   init.schemaArray(auto.clips, [AudioClip]),
+    //   init.number(auto.height),
+    //   projectTrackDSP,
+    //   trackWAM,
+    // );
   }
 
-  static empty() {
+  static async empty() {
     const effects = SArray.create([]);
     const trackWAM = nullthrows(appEnvironment.audioTrackWAMBank.pop()); // todo replace
+    const trackUtility = await defaultTrackUtility();
 
     return Structured.create(
       AudioTrack,
       string("Audio"),
       arrayOf([AudioClip], []),
       number(CLIP_HEIGHT),
-      new ProjectTrackDSP(string("AudioTrackDSP"), PBGainNode.defaultLive(), effects, boolean(false)),
+      new ProjectTrackDSP(string("AudioTrackDSP"), PBGainNode.defaultLive(), effects, boolean(false), trackUtility),
       trackWAM,
     );
   }
@@ -168,7 +171,7 @@ export class AudioTrack extends Structured<AutoAudioTrack, typeof AudioTrack> im
     this.playingSource = TrackedAudioNode.of(this.getSourceNode(context));
 
     const effectNodes = await Promise.all(
-      this.dsp.effects._getRaw().map(async (effect) => {
+      this.dsp.effectNodes._getRaw().map(async (effect) => {
         const nextEffect = await effect.cloneToOfflineContext(context, offlineContextInfo);
         if (nextEffect == null) {
           throw new Error(`Failed to prepare ${effect.effectId} for bounce!`);
@@ -211,8 +214,8 @@ export class AudioTrack extends Structured<AutoAudioTrack, typeof AudioTrack> im
   //////////// UTILITY ////////////
 
   // New track with a single clip
-  static fromClip(project: AudioProject, clip: AudioClip) {
-    const track = AudioTrack.empty();
+  static async fromClip(project: AudioProject, clip: AudioClip) {
+    const track = await AudioTrack.empty();
     standardTrack.addClip(project, track, clip);
     return track;
   }

@@ -3,12 +3,25 @@ import { WebAudioPeakMeter } from "web-audio-peak-meter";
 import { liveAudioContext } from "../constants";
 import { DSP } from "../dsp/DSP";
 import { DSPStep } from "../dsp/DSPStep";
-import { FaustEffectID } from "../dsp/FAUST_EFFECTS";
+import { FaustEffectID, TRACK_UTILITY_ID } from "../dsp/FAUST_EFFECTS";
 import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
 import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
+import { nullthrows } from "../utils/nullthrows";
 import { PambaWamNode } from "../wam/PambaWamNode";
-import { PBGainNode } from "./offlineNodes";
+import { PBGainNode } from "./PBGainNode";
 
+export const GAIN_ADDRESS = "/track/Gain";
+export const MUTE_ADDRESS = "/track/Mute";
+export const PAN_ADDRESS = "/track/Pan";
+
+export async function defaultTrackUtility() {
+  return nullthrows(
+    await FaustAudioEffect.create(liveAudioContext(), TRACK_UTILITY_ID),
+    "Couldn't create track utility",
+  );
+}
+
+/** Manages the whole DSP chain of a standard project track */
 export class ProjectTrackDSP implements DSPStep<null> {
   readonly effectId = "builtin:ProjectTrackNode";
 
@@ -20,8 +33,9 @@ export class ProjectTrackDSP implements DSPStep<null> {
   constructor(
     readonly name: SString,
     readonly gainNode: PBGainNode, // The "volume" of the track
-    readonly effects: SArray<FaustAudioEffect | PambaWamNode>,
+    readonly effectNodes: SArray<FaustAudioEffect | PambaWamNode>,
     readonly bypass: SBoolean, // effectively used as mute
+    readonly utility: FaustAudioEffect,
   ) {
     this._hiddenGainNode = PBGainNode.defaultLive();
     // TODO: garbage collect?
@@ -51,7 +65,8 @@ export class ProjectTrackDSP implements DSPStep<null> {
     DSP.connectSerialNodes([
       ///
       source,
-      ...this.effects._getRaw(),
+      ...this.effectNodes._getRaw(),
+      this.utility,
       this.gainNode,
     ]);
   }
@@ -64,7 +79,7 @@ export class ProjectTrackDSP implements DSPStep<null> {
     DSP.disconnectSerialNodes([
       ///
       source,
-      ...this.effects._getRaw(),
+      ...this.effectNodes._getRaw(),
       this.gainNode.node,
     ]);
   }
@@ -100,11 +115,11 @@ export class ProjectTrackDSP implements DSPStep<null> {
 
   addEffect(effect: PambaWamNode | FaustAudioEffect, index: number | "first" | "last") {
     if (index === "last") {
-      this.effects.push(effect);
+      this.effectNodes.push(effect);
     } else if (index === "first") {
-      this.effects.unshift(effect);
+      this.effectNodes.unshift(effect);
     } else {
-      this.effects.splice(index, 0, effect);
+      this.effectNodes.splice(index, 0, effect);
     }
   }
 }

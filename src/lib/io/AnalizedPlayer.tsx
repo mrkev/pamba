@@ -103,8 +103,6 @@ export class AnalizedPlayer extends TypedEmitter<{
   playTracks(project: AudioProject, tracks: ReadonlyArray<AudioTrack | MidiTrack>, cursorPos: number, tempo: number) {
     const liveAudioContext = liveAudioContextFn();
 
-    console.log("play tracks");
-
     this.cursorAtPlaybackStart = cursorPos;
     const loop = AudioProject.playbackWillLoop(project, cursorPos)
       ? ([project.loopStart.secs(project), project.loopEnd.secs(project)] as const)

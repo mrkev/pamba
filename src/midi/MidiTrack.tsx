@@ -13,13 +13,12 @@ import {
 } from "structured-state";
 import { Subbable } from "structured-state/dist/state/Subbable";
 import { CLIP_HEIGHT, SECS_IN_MINUTE, TIME_SIGNATURE, liveAudioContext } from "../constants";
-import { connectSerialNodes } from "../dsp/connectSerialNodes";
 import { DSP } from "../dsp/DSP";
 import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
 import { appEnvironment, defaultInstrument, liveWamHostGroupId } from "../lib/AppEnvironment";
-import { PBGainNode } from "../lib/offlineNodes";
+import { PBGainNode } from "../lib/PBGainNode";
 import { AudioProject } from "../lib/project/AudioProject";
-import { ProjectTrackDSP } from "../lib/ProjectTrackDSP";
+import { ProjectTrackDSP, defaultTrackUtility } from "../lib/ProjectTrackDSP";
 import { StandardTrack } from "../lib/StandardTrack";
 import { nullthrows } from "../utils/nullthrows";
 import { MIDIConfiguration } from "../wam/miditrackwam/MIDIConfiguration";
@@ -123,12 +122,13 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
     readonly pianoRoll: PianoRollModule,
     instrument: MidiInstrument,
     clips: MidiClip[],
+    dsp: ProjectTrackDSP,
   ) {
     super();
     this.clips = arrayOf([MidiClip], clips);
     this.playingSource = null;
     this.instrument = SPrimitive.of(instrument);
-    this.dsp = new ProjectTrackDSP(string("MidiTrackDSP"), PBGainNode.defaultLive(), SArray.create([]), boolean(false));
+    this.dsp = dsp;
     this.name = SPrimitive.of(name);
     this.height = SPrimitive.of<number>(CLIP_HEIGHT);
 
@@ -161,7 +161,15 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
       groupId,
       liveAudioContext(),
     )) as PianoRollModule;
-    return Structured.create(MidiTrack, name, pianoRoll, instrument, clips ?? []);
+    const trackUtility = await defaultTrackUtility();
+    const dsp = new ProjectTrackDSP(
+      string("MidiTrackDSP"),
+      PBGainNode.defaultLive(),
+      SArray.create([]),
+      boolean(false),
+      trackUtility,
+    );
+    return Structured.create(MidiTrack, name, pianoRoll, instrument, clips ?? [], dsp);
   }
 
   prepareForPlayback(project: AudioProject, context: AudioContext, startingAt: number): void {
@@ -215,7 +223,7 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
     this.playingSource = pianoRoll as any;
 
     const effectNodes = await Promise.all(
-      this.dsp.effects._getRaw().map(async (effect) => {
+      this.dsp.effectNodes._getRaw().map(async (effect) => {
         const nextEffect = await effect.cloneToOfflineContext(context, offlineContextInfo);
         if (nextEffect == null) {
           throw new Error(`Failed to prepare ${effect.effectId} for bounce!`);
@@ -226,7 +234,7 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
 
     const _hiddenGainNode = await this.dsp._hiddenGainNode.cloneToOfflineContext(context);
 
-    connectSerialNodes([
+    DSP.connectSerialNodes([
       ///
       // this.playingSource,
       await this.dsp.gainNode.cloneToOfflineContext(context),

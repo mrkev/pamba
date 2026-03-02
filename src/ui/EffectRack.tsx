@@ -45,7 +45,7 @@ export const EffectRack = React.memo(function EffectRack({
   renderer: AudioRenderer;
 }) {
   const styles = useStyles();
-  const effects = useContainer(track.dsp.effects);
+  const effects = useContainer(track.dsp.effectNodes);
   const [selected] = useLinkAsState(project.selected);
   const rackRef = useRef<HTMLDivElement | null>(null);
   const [isAudioPlaying] = usePrimitive(renderer.isAudioPlaying);

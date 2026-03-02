@@ -27,7 +27,7 @@ muteGain = 1 - mute;
 // Processing
 // -----------------------------
 
-process = hgroup("foo", _, _
+process = hgroup("track", _, _
   : applyGain
   : applyPan);
 

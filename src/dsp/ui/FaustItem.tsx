@@ -1,6 +1,7 @@
 import { exhaustive } from "../../utils/exhaustive";
 import { FaustAudioEffect, LayoutTypeMap } from "../FaustAudioEffect";
 import "./faust.css";
+import { FaustCheckbox } from "./FaustCheckbox";
 import { FaustGroup } from "./FaustGroup";
 import { FaustSlider } from "./FaustSlider";
 
@@ -8,6 +9,8 @@ type TFaustUIItem = LayoutTypeMap[keyof LayoutTypeMap];
 
 export function FaustItem({ item, effect, arrPos }: { item: TFaustUIItem; effect: FaustAudioEffect; arrPos: number }) {
   const { type } = item;
+
+  console.log("a", item);
 
   switch (type) {
     case "vgroup": {
@@ -47,7 +50,7 @@ export function FaustItem({ item, effect, arrPos }: { item: TFaustUIItem; effect
       return <button>button</button>;
 
     case "checkbox":
-      return <input type="checkbox" />;
+      return <FaustCheckbox item={item} effect={effect} direction={"horizontal"} />;
 
     case "nentry":
       return <div>nentry</div>;

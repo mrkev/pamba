@@ -17,23 +17,22 @@ import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioTrack } from "../lib/AudioTrack";
+import { PBGainNode } from "../lib/PBGainNode";
+import { defaultTrackUtility, ProjectTrackDSP } from "../lib/ProjectTrackDSP";
 import { StandardTrack } from "../lib/StandardTrack";
-import { ProjectTrackDSP } from "../lib/ProjectTrackDSP";
-import { PBGainNode } from "../lib/offlineNodes";
 import { AudioProject, PointerTool, SecondaryTool } from "../lib/project/AudioProject";
 import { time, TimeUnit } from "../lib/project/TimelineT";
 import { MidiViewport, SMidiViewport } from "../lib/viewport/MidiViewport";
+import { MidiBuffer } from "../midi/MidiBuffer";
 import { MidiClip } from "../midi/MidiClip";
 import { MidiInstrument } from "../midi/MidiInstrument";
+import { MidiNote, mnote } from "../midi/MidiNote";
 import { MidiTrack } from "../midi/MidiTrack";
 import { NoteT } from "../midi/SharedMidiTypes";
 import { isInstrumentPlugin } from "../midi/isInstrumentPlugin";
 import { exhaustive } from "../utils/exhaustive";
 import { nullthrows } from "../utils/nullthrows";
-import { mutable } from "../utils/types";
 import { PambaWamNode } from "../wam/PambaWamNode";
-import { MidiBuffer } from "../midi/MidiBuffer";
-import { MidiNote, mnote } from "../midi/MidiNote";
 
 export type SAudioClip = {
   kind: "AudioClip";
@@ -76,6 +75,7 @@ export type SProjectTrackDSP = {
   bypass: boolean;
   gain: number;
   effects: Array<SFaustAudioEffect | SPambaWamNode>;
+  utility: SFaustAudioEffect;
 };
 
 export type SMidiInstrument = {
@@ -121,6 +121,8 @@ export type SPambaWamNode = {
 export async function serializable(
   obj: FaustAudioEffect | PambaWamNode,
 ): Promise<SFaustAudioEffect | SFaustAudioEffect>;
+export async function serializable(obj: FaustAudioEffect): Promise<SFaustAudioEffect>;
+export async function serializable(obj: PambaWamNode): Promise<SFaustAudioEffect | SPambaWamNode>;
 export async function serializable(obj: AudioProject): Promise<SAudioProject>;
 export async function serializable(obj: AudioTrack | MidiTrack): Promise<SAudioTrack | SMidiTrack>;
 export async function serializable(obj: AudioClip): Promise<SAudioClip>;
@@ -197,9 +199,10 @@ export async function serializable(
     return {
       kind: "ProjectTrackDSP",
       name: obj.name.get(),
-      effects: await Promise.all(obj.effects._getRaw().map((effect) => serializable(effect))),
+      effects: await Promise.all(obj.effectNodes._getRaw().map((effect) => serializable(effect))),
       bypass: obj.bypass.get(),
       gain: obj.gainNode.gain.value,
+      utility: await serializable(obj.utility),
     };
   }
 
@@ -260,7 +263,8 @@ export async function serializable(
   exhaustive(obj);
 }
 
-// export async function construct(rep: SPambaWamNode): Promise<PambaWamNode>;
+export async function construct(rep: SPambaWamNode): Promise<PambaWamNode>;
+export async function construct(rep: SFaustAudioEffect): Promise<FaustAudioEffect>;
 export async function construct(rep: SFaustAudioEffect | SPambaWamNode): Promise<FaustAudioEffect | PambaWamNode>;
 export async function construct(rep: SAudioProject): Promise<AudioProject>;
 export async function construct(rep: SAudioClip): Promise<AudioClip>;
@@ -314,10 +318,7 @@ export async function construct(
     case "AudioTrack": {
       const { name, clips: sClips, height } = rep;
       const clips = await Promise.all(sClips.map((clip) => construct(clip)));
-      const projectTrackDSP =
-        "dsp" in rep
-          ? await construct(rep.dsp)
-          : new ProjectTrackDSP(string("AudioTrackDSP"), PBGainNode.defaultLive(), SArray.create([]), boolean(false));
+      const projectTrackDSP = await construct(rep.dsp);
       return await AudioTrack.of(name, clips, height, projectTrackDSP);
     }
 
@@ -331,11 +332,14 @@ export async function construct(
     case "ProjectTrackDSP": {
       const effects = await Promise.all(rep.effects?.map((effect) => construct(effect)) ?? []);
 
+      // TODO:
+      const trackUtility = "utility" in rep ? await construct(rep.utility) : await defaultTrackUtility();
       const result = new ProjectTrackDSP(
         string(rep.name),
         PBGainNode.of(rep.gain, liveAudioContext()),
         SArray.create(effects),
         boolean(rep.bypass),
+        trackUtility,
       );
       console.log("rep.gain", rep.gain, result);
 
