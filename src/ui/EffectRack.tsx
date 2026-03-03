@@ -151,7 +151,6 @@ export const EffectRack = React.memo(function EffectRack({
             effect={effect}
             onClickRemove={() => removeEffect(track, effect)}
             onHeaderMouseDown={() => {
-              console.log("FOO");
               selection.selectEffect(project, effect, track);
             }}
             onClickBypass={() => bypassEffect(track, effect)}

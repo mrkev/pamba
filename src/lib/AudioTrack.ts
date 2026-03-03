@@ -21,7 +21,6 @@ import { AudioTrackModule } from "../wam/audiotrack/AudioTrackModule";
 import { appEnvironment } from "./AppEnvironment";
 import { AudioClip } from "./AudioClip";
 import { AudioContextInfo } from "./initAudioContext";
-import { PBGainNode } from "./PBGainNode";
 import { AudioProject } from "./project/AudioProject";
 import { defaultTrackUtility, ProjectTrackDSP } from "./ProjectTrackDSP";
 import { standardTrack, StandardTrack } from "./StandardTrack";
@@ -124,7 +123,7 @@ export class AudioTrack extends Structured<AutoAudioTrack, typeof AudioTrack> im
       string("Audio"),
       arrayOf([AudioClip], []),
       number(CLIP_HEIGHT),
-      new ProjectTrackDSP(string("AudioTrackDSP"), PBGainNode.defaultLive(), effects, boolean(false), trackUtility),
+      new ProjectTrackDSP(string("AudioTrackDSP"), effects, boolean(false), trackUtility),
       trackWAM,
     );
   }
@@ -181,12 +180,16 @@ export class AudioTrack extends Structured<AutoAudioTrack, typeof AudioTrack> im
     );
 
     const _hiddenGainNode = await this.dsp._hiddenGainNode.cloneToOfflineContext(context);
+    const trackUtility = nullthrows(
+      await this.dsp.utility.cloneToOfflineContext(context),
+      "error cloning to offline context",
+    );
 
     DSP.connectSerialNodes([
       ///
       this.playingSource,
-      await this.dsp.gainNode.cloneToOfflineContext(context),
       ...effectNodes,
+      trackUtility,
       _hiddenGainNode,
     ]);
 

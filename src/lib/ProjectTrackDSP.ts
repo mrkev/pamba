@@ -32,17 +32,16 @@ export class ProjectTrackDSP implements DSPStep<null> {
 
   constructor(
     readonly name: SString,
-    readonly gainNode: PBGainNode, // The "volume" of the track
     readonly effectNodes: SArray<FaustAudioEffect | PambaWamNode>,
     readonly bypass: SBoolean, // effectively used as mute
+    /**
+     * Has gain, mute, pan
+     */
     readonly utility: FaustAudioEffect,
   ) {
     this._hiddenGainNode = PBGainNode.defaultLive();
     // TODO: garbage collect?
     this.meterInstance = new WebAudioPeakMeter(this._hiddenGainNode.outputNode().get(), undefined as any);
-
-    // connections //
-    DSP.connect(this.gainNode, this._hiddenGainNode.node);
   }
 
   inputNode(): null {
@@ -67,7 +66,7 @@ export class ProjectTrackDSP implements DSPStep<null> {
       source,
       ...this.effectNodes._getRaw(),
       this.utility,
-      this.gainNode,
+      this._hiddenGainNode,
     ]);
   }
 
@@ -80,17 +79,9 @@ export class ProjectTrackDSP implements DSPStep<null> {
       ///
       source,
       ...this.effectNodes._getRaw(),
-      this.gainNode.node,
+      this.utility,
+      this._hiddenGainNode,
     ]);
-  }
-
-  ////////////////////// GAIN ///////////////////////
-  getCurrentGain(): AudioParam {
-    return this.gainNode.gain;
-  }
-
-  setGain(val: number): void {
-    this.gainNode.gain.value = val;
   }
 
   ////////////////////// SOLO ///////////////////////

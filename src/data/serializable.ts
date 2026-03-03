@@ -17,7 +17,6 @@ import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioTrack } from "../lib/AudioTrack";
-import { PBGainNode } from "../lib/PBGainNode";
 import { defaultTrackUtility, ProjectTrackDSP } from "../lib/ProjectTrackDSP";
 import { StandardTrack } from "../lib/StandardTrack";
 import { AudioProject, PointerTool, SecondaryTool } from "../lib/project/AudioProject";
@@ -67,13 +66,13 @@ export type SMidiTrack = {
   clips: Array<SMidiClip>;
   name: string;
   instrument: SMidiInstrument;
+  dsp: SProjectTrackDSP;
 };
 
 export type SProjectTrackDSP = {
   kind: "ProjectTrackDSP";
   name: string;
   bypass: boolean;
-  gain: number;
   effects: Array<SFaustAudioEffect | SPambaWamNode>;
   utility: SFaustAudioEffect;
 };
@@ -192,6 +191,7 @@ export async function serializable(
       name: obj.name.get(),
       clips: await Promise.all(obj.clips.map((clip) => serializable(clip) as any)), // TODO: as any?
       instrument: await serializable(obj.instrument.get()),
+      dsp: await serializable(obj.dsp),
     };
   }
 
@@ -201,7 +201,6 @@ export async function serializable(
       name: obj.name.get(),
       effects: await Promise.all(obj.effectNodes._getRaw().map((effect) => serializable(effect))),
       bypass: obj.bypass.get(),
-      gain: obj.gainNode.gain.value,
       utility: await serializable(obj.utility),
     };
   }
@@ -326,22 +325,14 @@ export async function construct(
       const { clips: sClips, name } = rep;
       const clips = await Promise.all(sClips.map((clip) => construct(clip)));
       const instrument = await construct(rep.instrument);
-      return MidiTrack.createWithInstrument(instrument, name, clips);
+      const projectTrackDSP = "dsp" in rep ? await construct(rep.dsp) : undefined;
+      return MidiTrack.createWithInstrument(instrument, name, clips, projectTrackDSP);
     }
 
     case "ProjectTrackDSP": {
       const effects = await Promise.all(rep.effects?.map((effect) => construct(effect)) ?? []);
-
-      // TODO:
       const trackUtility = "utility" in rep ? await construct(rep.utility) : await defaultTrackUtility();
-      const result = new ProjectTrackDSP(
-        string(rep.name),
-        PBGainNode.of(rep.gain, liveAudioContext()),
-        SArray.create(effects),
-        boolean(rep.bypass),
-        trackUtility,
-      );
-      console.log("rep.gain", rep.gain, result);
+      const result = new ProjectTrackDSP(string(rep.name), SArray.create(effects), boolean(rep.bypass), trackUtility);
 
       return result;
     }

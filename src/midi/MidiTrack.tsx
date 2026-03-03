@@ -16,7 +16,6 @@ import { CLIP_HEIGHT, SECS_IN_MINUTE, TIME_SIGNATURE, liveAudioContext } from ".
 import { DSP } from "../dsp/DSP";
 import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
 import { appEnvironment, defaultInstrument, liveWamHostGroupId } from "../lib/AppEnvironment";
-import { PBGainNode } from "../lib/PBGainNode";
 import { AudioProject } from "../lib/project/AudioProject";
 import { ProjectTrackDSP, defaultTrackUtility } from "../lib/ProjectTrackDSP";
 import { StandardTrack } from "../lib/StandardTrack";
@@ -155,20 +154,20 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
     return this.createWithInstrument(instrument, name, clips);
   }
 
-  static async createWithInstrument(instrument: MidiInstrument, name: string, clips?: MidiClip[]) {
+  static async createWithInstrument(
+    instrument: MidiInstrument,
+    name: string,
+    clips?: MidiClip[],
+    projectTrackDSP?: ProjectTrackDSP,
+  ) {
     const [groupId] = nullthrows(appEnvironment.wamHostGroup.get());
     const pianoRoll = (await PianoRollModule.createInstance<PianoRollNode>(
       groupId,
       liveAudioContext(),
     )) as PianoRollModule;
     const trackUtility = await defaultTrackUtility();
-    const dsp = new ProjectTrackDSP(
-      string("MidiTrackDSP"),
-      PBGainNode.defaultLive(),
-      SArray.create([]),
-      boolean(false),
-      trackUtility,
-    );
+    const dsp =
+      projectTrackDSP ?? new ProjectTrackDSP(string("MidiTrackDSP"), SArray.create([]), boolean(false), trackUtility);
     return Structured.create(MidiTrack, name, pianoRoll, instrument, clips ?? [], dsp);
   }
 
@@ -233,12 +232,16 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
     );
 
     const _hiddenGainNode = await this.dsp._hiddenGainNode.cloneToOfflineContext(context);
+    const trackUtility = nullthrows(
+      await this.dsp.utility.cloneToOfflineContext(context),
+      "error cloning to offline context",
+    );
 
     DSP.connectSerialNodes([
       ///
       // this.playingSource,
-      await this.dsp.gainNode.cloneToOfflineContext(context),
       ...effectNodes,
+      trackUtility,
       _hiddenGainNode,
     ]);
 

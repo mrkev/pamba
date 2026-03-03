@@ -1,6 +1,6 @@
 import classNames from "classnames";
 import { useLinkAsState } from "marked-subbable";
-import React, { useState } from "react";
+import React from "react";
 import { createUseStyles } from "react-jss";
 import { useContainer, usePrimitive } from "structured-state";
 import { EFFECT_HEIGHT, TRACK_SEPARATOR_HEIGHT } from "../constants";
@@ -18,6 +18,7 @@ import { pressedState } from "./pressedState";
 import { RenamableLabel } from "./RenamableLabel";
 import { TrackPeakMeter } from "./TrackPeakMeter";
 import { utility } from "./utility";
+import { dbToSliderNormal, sliderNormalToDB } from "./utilityMapping";
 import { UtilityNumberSlider } from "./UtilitySlider";
 import { UtilityToggle } from "./UtilityToggle";
 
@@ -35,8 +36,6 @@ export const TrackHeader = React.memo(function TrackHeader({
   onDragStart?: (e: React.DragEvent<HTMLDivElement>) => void;
 }) {
   const styles = useStyles();
-  const [gain, setGain] = useState<number>(track.dsp.gainNode.gain.value);
-  // const [muted, setMuted] = usePrimitive<boolean>(track.dsp.bypass);
   const dspExpandedTracks = useContainer(project.dspExpandedTracks);
   const solodTracks = useContainer(project.solodTracks);
   const lockedTracks = useContainer(project.lockedTracks);
@@ -49,9 +48,9 @@ export const TrackHeader = React.memo(function TrackHeader({
   const [armedMidiTrack] = usePrimitive(project.armedMidiTrack);
   const params = useContainer(track.dsp.utility.params);
 
-  const gain2 = nullthrows(params.get(GAIN_ADDRESS), `Invalid address for effect param: ${GAIN_ADDRESS}`);
+  const gain = nullthrows(params.get(GAIN_ADDRESS), `Invalid address for effect param: ${GAIN_ADDRESS}`);
   const muted = nullthrows(params.get(MUTE_ADDRESS), `Invalid address for effect param: ${MUTE_ADDRESS}`) === 1;
-  const pan2 = nullthrows(params.get(PAN_ADDRESS), `Invalid address for effect param: ${PAN_ADDRESS}`);
+  const pan = nullthrows(params.get(PAN_ADDRESS), `Invalid address for effect param: ${PAN_ADDRESS}`);
 
   const isSelected = selected !== null && selected.status === "tracks" && selected.test.has(track);
   const isSolod = solodTracks.has(track);
@@ -162,39 +161,18 @@ export const TrackHeader = React.memo(function TrackHeader({
 
           <UtilityNumberSlider
             className="grow"
-            value={gain}
+            value={dbToSliderNormal(gain)}
             min={0}
-            max={2}
-            // https://stackoverflow.com/questions/22604500/web-audio-api-working-with-decibels
+            max={1}
             formatValue={(value) => {
-              const db = 20 * Math.log10(value);
-              if (db === -Infinity) {
-                return "-inf";
-              }
+              const db = sliderNormalToDB(value);
               return `${db.toFixed(2)}db`;
             }}
             onChange={function (val: number): void {
-              setGain(val);
-              track.dsp.setGain(val);
+              const db = sliderNormalToDB(val);
+              track.dsp.utility.setParam(GAIN_ADDRESS, db);
             }}
           />
-          {/* <input
-            style={{
-              flexGrow: 1,
-              width: "50px",
-            }}
-            className={utility.slider}
-            type="range"
-            max={2}
-            min={0}
-            step="any"
-            value={gain}
-            onChange={(e) => {
-              const val = parseFloat(e.target.value);
-              setGain(val);
-              track.setGain(val);
-            }}
-          /> */}
         </div>
 
         {/* arm, lock, peak meters */}
@@ -308,8 +286,26 @@ export const TrackHeader = React.memo(function TrackHeader({
           className="select-none"
           style={{
             height: EFFECT_HEIGHT + 17 - 2,
+            padding: "2px",
           }}
-        ></div>
+        >
+          <UtilityNumberSlider
+            className="grow"
+            value={pan}
+            min={-1}
+            max={1}
+            formatValue={(value) => {
+              if (value === 0) {
+                return "C";
+              }
+
+              return `${Math.abs(value * 100).toFixed(0)}${value < 0 ? "L" : "R"}`;
+            }}
+            onChange={function (val: number): void {
+              track.dsp.utility.setParam(PAN_ADDRESS, val);
+            }}
+          />
+        </div>
       ) : null}
 
       <div
