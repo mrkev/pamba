@@ -70,7 +70,7 @@ export async function handleDropOntoAudioTrack(
       console.warn("NOT IMEPLEMENTED");
       break;
     case "audio":
-      const startOffsetSec = project.viewport.pxToSecs(position);
+      const startOffsetSec = project.viewport.pxToSecs(position, "pos");
       await loadAudioClipIntoTrack(project, resource.url, track, startOffsetSec, resource.name);
       break;
     case "fausteffect":
@@ -167,7 +167,7 @@ export async function handleDropOntoTimelineWhitespace(resources: TransferableRe
       case "AudioPackage.local":
         break;
       case "fausteffect": {
-        const track = AudioProject.addAudioTrack(project, "bottom");
+        const track = await AudioProject.addAudioTrack(project, "bottom");
         await track.dsp.addFaustEffect(resource.id, "last");
         break;
       }
@@ -175,7 +175,7 @@ export async function handleDropOntoTimelineWhitespace(resources: TransferableRe
         switch (resource.pluginKind) {
           case "a-a": {
             // todo: if multiple of these just create one track with many effects?
-            const track = AudioProject.addAudioTrack(project, "bottom");
+            const track = await AudioProject.addAudioTrack(project, "bottom");
             await addAvailableWamToTrack(track, resource, "last");
             break;
           }
@@ -197,7 +197,7 @@ export async function handleDropOntoTimelineWhitespace(resources: TransferableRe
         break;
       }
       case "audio":
-        const track = AudioProject.addAudioTrack(project, "bottom");
+        const track = await AudioProject.addAudioTrack(project, "bottom");
         // todo: if multiple of these just create one track with many clips
         await loadAudioClipIntoTrack(project, resource.url, track, 0, resource.name);
 

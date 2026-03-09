@@ -41,7 +41,7 @@ export function OverviewPanel({
           viewport={project.viewport}
           player={player}
           // 1px padding from margin, 1 of overview, 1 of track
-          marginLeft={2}
+          // marginLeft={2}
         />
       </div>
     </>
@@ -95,8 +95,8 @@ export function ClipOverview({
   const timelineLength = useContainer(clip.timelineLength);
 
   // looks better adding this 0.5px margin to left and right
-  const left = project.viewport.timeToPx(timelienStart);
-  const width = project.viewport.timeToPx(timelineLength);
+  const left = project.viewport.timeToPx(timelienStart, "pos");
+  const width = project.viewport.timeToPx(timelineLength, "len");
 
   return (
     <div

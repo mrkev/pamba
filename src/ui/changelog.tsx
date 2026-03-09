@@ -1,11 +1,14 @@
 export const changelog = `
-next
+v3.0.0
 - save track mute stauts
 - persist track gain
 - fix persisting effects
 - looping line markers
 - new sliders in faust effects
 - play midi via external device on armed midi tracks
+- changes to UI
+- various bug fixes and improvments
+- other changes I didn't keep track of oops
 
 v0.2.6
 - add pro54 and TX81Z synths

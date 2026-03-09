@@ -2,7 +2,6 @@ import { useContainer, usePrimitive } from "structured-state";
 import { AudioProject } from "../lib/project/AudioProject";
 import { TimelineT } from "../lib/project/TimelineT";
 import { cn } from "../utils/cn";
-import { START_PADDING_PX } from "../lib/viewport/ProjectViewport";
 
 export function TimelineLine({
   project,
@@ -22,7 +21,7 @@ export function TimelineLine({
   usePrimitive(project.viewport.pxPerSecond);
 
   // some lines look better with a little adjustmet of -1 pixel, especially the end loop marker
-  const pospx = project.viewport.timeToPx(linePos, START_PADDING_PX);
+  const pospx = project.viewport.timeToPx(linePos, "pos");
   const left = adjust ? adjust(pospx) : pospx;
 
   return (
@@ -41,8 +40,8 @@ export function TimelineCursor({ project }: { project: AudioProject }) {
   const [selectionWidthRaw] = usePrimitive(project.selectionWidth);
   const selectionWidth = selectionWidthRaw == null ? 0 : selectionWidthRaw;
 
-  let left = project.viewport.secsToPx(cursorPos, START_PADDING_PX);
-  let width = project.viewport.secsToPx(Math.abs(selectionWidth));
+  let left = project.viewport.secsToPx(cursorPos, "pos");
+  let width = project.viewport.secsToPx(Math.abs(selectionWidth), "len");
 
   if (selectionWidth < 0) {
     left = left - width;

@@ -7,7 +7,7 @@ import { useTimelineMouseEvents } from "../input/useProjectMouseEvents";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioRenderer } from "../lib/io/AudioRenderer";
 import { AudioProject } from "../lib/project/AudioProject";
-import { START_PADDING_PX } from "../lib/viewport/ProjectViewport";
+import { projectViewport } from "../lib/viewport/ProjectViewport";
 import { cn } from "../utils/cn";
 import { clamp } from "../utils/math";
 import { nullthrows } from "../utils/nullthrows";
@@ -59,7 +59,7 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
           project.viewport.pxPerSecond.get() * sDelta,
           MAX_TIMELINE_SCALE,
         );
-        project.viewport.setScale(expectedNewScale, mouseX);
+        projectViewport.setXScale(project.viewport, expectedNewScale, mouseX);
       },
       [project.viewport],
     ),
@@ -174,7 +174,7 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
       <TimelineCursor project={project} />
 
       {/* Playback Cursor */}
-      <ViewportPlaybackCursor viewport={project.viewport} player={player} marginLeft={START_PADDING_PX} />
+      <ViewportPlaybackCursor viewport={project.viewport} player={player} />
     </div>
   );
 }

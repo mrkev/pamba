@@ -63,7 +63,7 @@ export function ClipM({
     1000,
   );
 
-  const totalBufferWidth = project.viewport.secsToPx(clip.buffer.timelineLength.secs(project));
+  const totalBufferWidth = project.viewport.secsToPx(clip.buffer.timelineLength.secs(project), "len");
   // const height = CLIP_HEIGHT - 3; // to clear the bottom track separator gridlines
   const bufferOffsetPx = 0; //  project.viewport.secsToPx(clip.bufferOffset);
 

@@ -1,7 +1,7 @@
 import { InitFunctions, JSONOfAuto, number, ReplaceFunctions, SNumber, SPrimitive, Structured } from "structured-state";
 import { clamp } from "../../utils/math";
 import { StandardViewport } from "./StandardViewport";
-import { ymxb } from "./ProjectViewport";
+import { ymxb } from "./linear";
 
 // px / sec => fr / px
 
@@ -59,7 +59,8 @@ export class AudioViewport extends Structured<AutoAudioViewport, typeof AudioVie
     return sampleRate / this.pxPerSecond.get();
   }
 
-  secsToPx(s: number, b = 0) {
+  secsToPx(s: number, mode: "len" | "pos") {
+    const b = 0; // todo
     const factor = this.pxPerSecond.get();
     return ymxb(factor, s, b); // y = mx + b
   }

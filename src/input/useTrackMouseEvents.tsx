@@ -3,7 +3,7 @@ import { AudioTrack } from "../lib/AudioTrack";
 import { AudioProject } from "../lib/project/AudioProject";
 import { pressedState } from "../ui/pressedState";
 import { useEventListener } from "../ui/useEventListener";
-import { snapped } from "../lib/viewport/ProjectViewport";
+import { snapped } from "../lib/viewport/snap";
 import { MidiTrack } from "../midi/MidiTrack";
 
 // TODO: merge into project mouse events?
@@ -46,8 +46,8 @@ export function useTrackMouseEvents(
           y: e.clientY + div.scrollTop - div.getBoundingClientRect().y,
         };
 
-        const asSecs = project.viewport.pxToSecs(position.x);
-        const newPos = snapped(project, e, asSecs);
+        const asSecs = project.viewport.pxToSecs(position.x, "pos");
+        const newPos = Math.max(0, snapped(project, e, asSecs));
 
         pressedState.set({
           status: "selecting_track_time",

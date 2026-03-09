@@ -4,15 +4,7 @@ import { AnalizedPlayer } from "../lib/io/AnalizedPlayer";
 import { StandardViewport } from "../lib/viewport/StandardViewport";
 import { cn } from "../utils/cn";
 
-export function ViewportPlaybackCursor({
-  viewport,
-  player,
-  marginLeft,
-}: {
-  viewport: StandardViewport;
-  player: AnalizedPlayer;
-  marginLeft?: number;
-}) {
+export function ViewportPlaybackCursor({ viewport, player }: { viewport: StandardViewport; player: AnalizedPlayer }) {
   const playbackPosDiv = useRef<null | HTMLDivElement>(null);
   const [scale] = usePrimitive(viewport.pxPerSecond);
 
@@ -20,22 +12,22 @@ export function ViewportPlaybackCursor({
   useLayoutEffect(() => {
     const pbcursor = playbackPosDiv.current;
     if (pbcursor) {
-      const px = viewport.secsToPx(player.playbackTime, marginLeft);
+      const px = viewport.secsToPx(player.playbackTime, "pos");
       pbcursor.style.left = String(px) + "px";
     }
     // change with scale too
-  }, [player, viewport, scale, marginLeft]);
+  }, [player, viewport, scale]);
 
   // on frame
   useEffect(() => {
     return player.addEventListener("frame", function updateProjectViewCursor(playbackTime) {
       const pbcursor = playbackPosDiv.current;
       if (pbcursor) {
-        const px = viewport.secsToPx(playbackTime, marginLeft);
+        const px = viewport.secsToPx(playbackTime, "pos");
         pbcursor.style.left = String(px) + "px";
       }
     });
-  }, [marginLeft, player, viewport]);
+  }, [player, viewport]);
 
   return (
     <div

@@ -7,7 +7,6 @@ import { AudioClip } from "../lib/AudioClip";
 import { clipResizeEndPulses, clipResizeEndSec, clipResizeStartSec } from "../lib/clipMoveSec";
 import { AudioProject } from "../lib/project/AudioProject";
 import { TimelineT } from "../lib/project/TimelineT";
-import { START_PADDING_PX } from "../lib/viewport/ProjectViewport";
 import { MidiClip } from "../midi/MidiClip";
 import { cn } from "../utils/cn";
 import { clamp } from "../utils/math";
@@ -43,8 +42,8 @@ export function StandardClip({
   const [tool] = usePrimitive(project.pointerTool);
 
   // looks better adding this 0.5px margin to left and right
-  const left = project.viewport.timeToPx(timelienStart, START_PADDING_PX) + 0.5;
-  const width = project.viewport.timeToPx(timelineLength) - 0.5;
+  const left = project.viewport.timeToPx(timelienStart, "pos") + 0.5;
+  const width = project.viewport.timeToPx(timelineLength, "len") - 0.5;
   const resizerStartRef = useRef<HTMLDivElement>(null);
   const resizerEndRef = useRef<HTMLDivElement>(null);
 
@@ -200,7 +199,7 @@ function resizeEndMove(e: PointerEvent, re: ClipEditEvent) {
   const targetClip = re.target.clip;
 
   const deltaX = e.clientX - re.start.downX;
-  const deltaU = Math.floor(project.viewport.pxTo(deltaX, targetClip.timelineLength.unit));
+  const deltaU = Math.floor(project.viewport.pxTo(deltaX, targetClip.timelineLength.unit, "len"));
   const snap = e.metaKey ? !project.snapToGrid.get() : project.snapToGrid.get();
 
   if (targetClip instanceof MidiClip) {
@@ -219,7 +218,7 @@ function resizeStartMove(e: PointerEvent, re: ClipEditEvent) {
   const project = re.target.project;
   const targetClip = re.target.clip;
   const deltaX = e.clientX - re.start.downX;
-  const deltaU = Math.floor(project.viewport.pxTo(deltaX, targetClip.timelineLength.unit));
+  const deltaU = Math.floor(project.viewport.pxTo(deltaX, targetClip.timelineLength.unit, "len"));
   const snap = e.metaKey ? !project.snapToGrid.get() : project.snapToGrid.get();
 
   if (targetClip instanceof MidiClip) {

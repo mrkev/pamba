@@ -84,21 +84,6 @@ export class MidiViewport extends Structured<AutoMidiViewport, typeof MidiViewpo
     );
   }
 
-  setScale(expectedNewScale: number, mouseX: number = 0) {
-    // min scale is 0.64, max is 1000
-    const newScale = clamp(MIDI_CLIP_EDITOR_MIN_H_SCALE, expectedNewScale, MIDI_CLIP_EDITOR_MAX_H_SCALE);
-    const currentScaleFactor = this.pxPerPulse.get();
-    const scaleFactorFactor = expectedNewScale / currentScaleFactor;
-
-    this.pxPerPulse.set(newScale);
-    const newStartPx = (this.scrollLeftPx.get() + mouseX) * scaleFactorFactor - mouseX;
-    if (newStartPx < 0) {
-      this.scrollLeftPx.set(0);
-    } else {
-      this.scrollLeftPx.set(newStartPx);
-    }
-  }
-
   pulsesToPx(pulses: number) {
     return pulses * this.pxPerPulse.get();
   }
@@ -111,25 +96,24 @@ export class MidiViewport extends Structured<AutoMidiViewport, typeof MidiViewpo
     // console.log("pxToVerticalNotes", px, this.pxNoteHeight.get());
     return px / this.pxNoteHeight.get();
   }
+}
 
-  setHScale(expectedNewScale: number, min: number, max: number, mouseX: number) {
+export const midiViewport = {
+  /**
+   * Sets the horizontal scale, zooming in our out relative ot a specific point x
+   */
+  setXScale(viewport: MidiViewport, expectedNewScale: number, mouseX: number = 0) {
     // min scale is 0.64, max is 1000
-    const newScale = clamp(min, expectedNewScale, max);
-    const currentScaleFactor = this.pxPerPulse.get();
+    const newScale = clamp(MIDI_CLIP_EDITOR_MIN_H_SCALE, expectedNewScale, MIDI_CLIP_EDITOR_MAX_H_SCALE);
+    const currentScaleFactor = viewport.pxPerPulse.get();
     const scaleFactorFactor = expectedNewScale / currentScaleFactor;
 
-    if (newScale === currentScaleFactor) {
-      return;
+    viewport.pxPerPulse.set(newScale);
+    const newStartPx = (viewport.scrollLeftPx.get() + mouseX) * scaleFactorFactor - mouseX;
+    if (newStartPx < 0) {
+      viewport.scrollLeftPx.set(0);
+    } else {
+      viewport.scrollLeftPx.set(newStartPx);
     }
-
-    this.pxPerPulse.set(newScale);
-    this.scrollLeftPx.setDyn((prev) => {
-      const newStartPx = (prev + mouseX) * scaleFactorFactor - mouseX;
-      // console.log(newStartPx);
-      if (newStartPx < 0) {
-        return 0;
-      }
-      return newStartPx;
-    });
-  }
-}
+  },
+};

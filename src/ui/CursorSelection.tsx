@@ -4,7 +4,6 @@ import { AudioTrack } from "../lib/AudioTrack";
 import { AudioProject } from "../lib/project/AudioProject";
 import { MidiTrack } from "../midi/MidiTrack";
 import { pressedState } from "./pressedState";
-import { START_PADDING_PX } from "../lib/viewport/ProjectViewport";
 
 export function CursorSelection({ project, track }: { project: AudioProject; track: AudioTrack | MidiTrack | null }) {
   const [cursorPos] = usePrimitive(project.cursorPos);
@@ -31,9 +30,10 @@ export function CursorSelection({ project, track }: { project: AudioProject; tra
     // it's in the header if track == null
     track == null
       ? //
-        project.viewport.secsToViewportPx(cursorPos, START_PADDING_PX)
-      : project.viewport.secsToPx(cursorPos, START_PADDING_PX);
-  let width = project.viewport.secsToPx(Math.abs(selectionWidth));
+        project.viewport.secsToViewportPx(cursorPos, "pos")
+      : project.viewport.secsToPx(cursorPos, "pos");
+
+  let width = project.viewport.secsToPx(Math.abs(selectionWidth), "len");
 
   if (selectionWidth < 0) {
     left = left - width;

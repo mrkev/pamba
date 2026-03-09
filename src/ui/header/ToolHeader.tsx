@@ -9,6 +9,7 @@ import { appEnvironment } from "../../lib/AppEnvironment";
 import { AudioRecorder } from "../../lib/io/AudioRecorder";
 import { AudioRenderer } from "../../lib/io/AudioRenderer";
 import { AudioProject } from "../../lib/project/AudioProject";
+import { projectViewport } from "../../lib/viewport/ProjectViewport";
 import { cn } from "../../utils/cn";
 import { RenamableLabel } from "../RenamableLabel";
 import { UtilityButton } from "../UtilityButton";
@@ -35,16 +36,16 @@ function ScaleFactorSlider({ project }: { project: AudioProject }) {
       title="Zoom level"
       onChange={(e) => {
         const cursorPosSecs = project.cursorPos.get();
-        const cursorPosPx = project.viewport.secsToViewportPx(cursorPosSecs);
+        const cursorPosPx = project.viewport.secsToViewportPx(cursorPosSecs, "pos");
         const projectDivWidth = project.viewport.projectDivWidth.get();
         const expectedNewScale = Math.exp(parseFloat(e.target.value));
 
         if (cursorPosPx < projectDivWidth && cursorPosPx > 0) {
           // if cursor is within view, resize around cursor
-          project.viewport.setScale(expectedNewScale, cursorPosPx);
+          projectViewport.setXScale(project.viewport, expectedNewScale, cursorPosPx);
         } else {
           // if cursor is outside the view, resize from the center
-          project.viewport.setScale(expectedNewScale, Math.floor(projectDivWidth / 2));
+          projectViewport.setXScale(project.viewport, expectedNewScale, Math.floor(projectDivWidth / 2));
         }
 
         e.preventDefault();
@@ -141,7 +142,9 @@ export function ToolHeader({
           </select> */}
           <div className="flex flex-row items-center">
             <UtilityNumber value={tempo} onChange={setTempo}></UtilityNumber>
-            <button className="utilityButton">4 / 4</button>
+            <button className="utilityButton" disabled>
+              4 / 4
+            </button>
             <PlaybeatTime project={project} player={renderer.analizedPlayer} />
           </div>
 

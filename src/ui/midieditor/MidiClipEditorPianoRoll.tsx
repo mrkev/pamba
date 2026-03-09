@@ -12,6 +12,7 @@ import {
 import { AnalizedPlayer } from "../../lib/io/AnalizedPlayer";
 import { AudioProject } from "../../lib/project/AudioProject";
 import { secsToPulses } from "../../lib/project/TimelineT";
+import { midiViewport } from "../../lib/viewport/MidiViewport";
 import { MidiClip, midiClip } from "../../midi/MidiClip";
 import { midiTrack, MidiTrack } from "../../midi/MidiTrack";
 import { cn } from "../../utils/cn";
@@ -134,7 +135,7 @@ export function MidiClipEditorPianoRoll({
           clip.detailedViewport.pxPerPulse.get() * sDelta,
           MIDI_CLIP_EDITOR_MAX_H_SCALE,
         );
-        clip.detailedViewport.setScale(expectedNewScale, mouseX);
+        midiViewport.setXScale(clip.detailedViewport, expectedNewScale, mouseX);
       },
       [clip.detailedViewport],
     ),

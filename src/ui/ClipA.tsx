@@ -23,8 +23,9 @@ export const ClipA = React.memo(function ClipAImpl({
   track: AudioTrack | null; // null if clip is being rendered for move
   editable?: boolean;
 }) {
-  const totalBufferWidth = project.viewport.secsToPx(clip.bufferLength);
-  const bufferOffsetPx = project.viewport.timeToPx(clip.bufferOffset);
+  const totalBufferWidth = project.viewport.secsToPx(clip.bufferLength, "len");
+  // len, since the buffer shouldn't be affected by the timelines left margin offset
+  const bufferOffsetPx = project.viewport.timeToPx(clip.bufferOffset, "len");
 
   const timelineStart = useContainer(clip.timelineStart);
   const timelineLength = useContainer(clip.timelineLength);
@@ -59,14 +60,14 @@ export const ClipA = React.memo(function ClipAImpl({
       case "slice":
         history.record("slice clip", () => {
           const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
-          const secFromStartOfClip = project.viewport.pxToSecs(pxFromStartOfClip);
+          const secFromStartOfClip = project.viewport.pxToSecs(pxFromStartOfClip, "pos");
           const secFromTimelineStart = timelineStart.secs(project) + secFromStartOfClip;
           standardTrack.splitClip(project, track, clip, secFromTimelineStart);
         });
         break;
       case "trimStart": {
         const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
-        const asSec = project.viewport.pxToSecs(pxFromStartOfClip);
+        const asSec = project.viewport.pxToSecs(pxFromStartOfClip, "pos");
         project.cursorPos.set(timelineStart.secs(project) + asSec);
 
         history.record("trim start of clip", () => {
@@ -85,7 +86,7 @@ export const ClipA = React.memo(function ClipAImpl({
         history.record("trip end of clip", () => {
           clip.featuredMutation(() => {
             const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
-            const secsFromStartPos = project.viewport.pxToSecs(pxFromStartOfClip);
+            const secsFromStartPos = project.viewport.pxToSecs(pxFromStartOfClip, "pos");
             clip.timelineLength.set(secsFromStartPos, "seconds");
           });
         });

@@ -59,8 +59,8 @@ export class AudioRecorder {
 
       const armedTrack = this.project.armedAudioTrack.get();
       if (armedTrack == null) {
-        const newTrack = AudioTrack.fromClip(this.project, clip);
-        AudioProject.addAudioTrack(this.project, "top", newTrack, this.renderer.analizedPlayer);
+        const newTrack = await AudioTrack.fromClip(this.project, clip);
+        await AudioProject.addAudioTrack(this.project, "top", newTrack, this.renderer.analizedPlayer);
       } else if (armedTrack instanceof AudioTrack) {
         standardTrack.addClip(this.project, armedTrack, clip);
       }

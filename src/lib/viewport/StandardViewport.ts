@@ -1,10 +1,10 @@
 import { SNumber } from "structured-state";
-import { ymxb } from "./ProjectViewport";
+import { ymxb } from "./linear";
 
 export interface StandardViewport {
   scrollLeftPx: SNumber;
   pxPerSecond: SNumber;
-  secsToPx(s: number, b?: number): number;
+  secsToPx(s: number, mode: "len" | "pos"): number;
 }
 
 export const viewport = {

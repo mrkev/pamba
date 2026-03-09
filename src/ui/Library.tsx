@@ -84,8 +84,8 @@ export function Library({
           return;
         }
 
-        const newTrack = AudioTrack.fromClip(project, clip);
-        AudioProject.addAudioTrack(project, "top", newTrack, player);
+        const newTrack = await AudioTrack.fromClip(project, clip);
+        await AudioProject.addAudioTrack(project, "top", newTrack, player);
         console.log("loaded");
       } catch (e) {
         console.trace(e);

@@ -2,7 +2,6 @@ import { useLinkAsState } from "marked-subbable";
 import { usePrimitive } from "structured-state";
 import { SECS_IN_MIN } from "../constants";
 import { AudioProject, AxisMeasure } from "../lib/project/AudioProject";
-import { START_PADDING_PX } from "../lib/viewport/ProjectViewport";
 import { cn } from "../utils/cn";
 import { PPQN } from "../wam/miditrackwam/MIDIConfiguration";
 
@@ -51,7 +50,7 @@ function getBeatScaleFactorForOneBeatSize(oneBeatSizePx: number): number {
 
 export function getOneTickLen(project: AudioProject, tempo: number) {
   const oneBeatLen = SECS_IN_MIN / tempo;
-  const oneBeatSizePx = project.viewport.secsToPx(oneBeatLen);
+  const oneBeatSizePx = project.viewport.secsToPx(oneBeatLen, "len");
   const tickBeatFactor = getBeatScaleFactorForOneBeatSize(oneBeatSizePx);
   const tickBeatLength = tickBeatFactor * oneBeatLen;
   return tickBeatLength;
@@ -62,7 +61,7 @@ export function getOneTickLen(project: AudioProject, tempo: number) {
  * for a viewport that starts at startS px and ends at endS
  */
 function getTimeTickData(project: AudioProject, startS: number, endS: number) {
-  const MIN_DIST_BEETWEEN_TICKS_SEC = project.viewport.pxToSecs(MIN_TICK_DISTANCE);
+  const MIN_DIST_BEETWEEN_TICKS_SEC = project.viewport.pxToSecs(MIN_TICK_DISTANCE, "len");
   const STEP_SECS = getTimeStepForRes(MIN_DIST_BEETWEEN_TICKS_SEC);
 
   const backtrack = startS % STEP_SECS;
@@ -89,7 +88,7 @@ function getBeatTickData(
 ): (readonly [beatNum: number, time: number])[] {
   // the length of a quarter note, in seconds
   const oneBeatLen = project.viewport.pulsesToSecs(PPQN);
-  const oneBeatSizePx = project.viewport.pulsesToPx(PPQN);
+  const oneBeatSizePx = project.viewport.pulsesToPx(PPQN, "len");
 
   // 1 = show every beat. 2 = show every other beat. etc.
   const tickBeatFactor = getBeatScaleFactorForOneBeatSize(oneBeatSizePx);
@@ -138,8 +137,8 @@ export function Axis({
   // for updating when changing scale
   usePrimitive(project.viewport.pxPerSecond);
 
-  const viewportStartSecs = project.viewport.pxToSecs(viewportStartPx, START_PADDING_PX);
-  const viewportEndSecs = project.viewport.pxToSecs(projectDivWidth + viewportStartPx);
+  const viewportStartSecs = project.viewport.pxToSecs(viewportStartPx, "pos");
+  const viewportEndSecs = project.viewport.pxToSecs(projectDivWidth + viewportStartPx, "pos");
 
   const timeSTicks = getTimeTickData(project, viewportStartSecs, viewportEndSecs);
   const tempoTicks = getBeatTickData(project, viewportStartSecs, viewportEndSecs);
@@ -151,7 +150,7 @@ export function Axis({
     <svg className={cn("pointer-events-none", className)} style={style}>
       {(isHeader || primaryAxis === "tempo") &&
         tempoTicks.map(([beatNum, secs]) => {
-          const px = project.viewport.secsToViewportPx(secs, START_PADDING_PX);
+          const px = project.viewport.secsToViewportPx(secs, "pos");
 
           const denom = beatNum % timeSignature[0];
           const label = `${Math.floor(beatNum / 4) + 1}` + (denom === 0 ? "" : `.${denom}`);
@@ -184,7 +183,7 @@ export function Axis({
         })}
       {(isHeader || primaryAxis === "time") &&
         timeSTicks.map((secs) => {
-          const px = project.viewport.secsToViewportPx(secs, START_PADDING_PX);
+          const px = project.viewport.secsToViewportPx(secs, "pos");
           const [fontSize, textY] = textDims("time");
           return (
             <g className="tick" key={secs}>

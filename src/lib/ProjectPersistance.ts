@@ -92,11 +92,11 @@ export const projectPersistance = {
 
   async sampleProject(): Promise<AudioProject> {
     const project = AudioProject.create();
-    const bass = AudioProject.addAudioTrack(project);
+    const bass = await AudioProject.addAudioTrack(project);
     standardTrack.addClip(project, bass, await AudioClip.fromURL("bassguitar.mp3"));
-    const drums = AudioProject.addAudioTrack(project);
+    const drums = await AudioProject.addAudioTrack(project);
     standardTrack.addClip(project, drums, await AudioClip.fromURL("drums.mp3"));
-    const clav = AudioProject.addAudioTrack(project);
+    const clav = await AudioProject.addAudioTrack(project);
     standardTrack.addClip(project, clav, await AudioClip.fromURL("clav.mp3"));
     project.projectName.set("sample project");
     return project;

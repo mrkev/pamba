@@ -7,12 +7,12 @@ import { MidiClip } from "../midi/MidiClip";
 export function getClipSizePx(clip: MidiClip | AudioClip, project: AudioProject) {
   const width =
     clip instanceof AudioClip
-      ? project.viewport.secsToPx(clip.timelineLength.ensureSecs())
-      : project.viewport.pulsesToPx(clip.timelineLength.ensurePulses());
+      ? project.viewport.secsToPx(clip.timelineLength.ensureSecs(), "len")
+      : project.viewport.pulsesToPx(clip.timelineLength.ensurePulses(), "len");
   const left =
     clip instanceof AudioClip
-      ? project.viewport.secsToPx(clip.timelineStart.ensureSecs())
-      : project.viewport.pulsesToPx(clip.timelineStart.ensurePulses());
+      ? project.viewport.secsToPx(clip.timelineStart.ensureSecs(), "pos")
+      : project.viewport.pulsesToPx(clip.timelineStart.ensurePulses(), "pos");
   return { left, width };
 }
 
