@@ -8,6 +8,7 @@
 @theme {
   /* controls */
   --color-effect-back: gray;
+  --color-effect-rack-bg: rgba(23, 23, 23, 0.5);
   --color-control-bg-color: #b9b9b9;
   --color-control-text-color: black;
   --color-control-subtle-highlight: #959595;

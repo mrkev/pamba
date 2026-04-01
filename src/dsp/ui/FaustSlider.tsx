@@ -57,7 +57,7 @@ export function FaustSlider({
 
   return (
     <div
-      className={cn(styles.container, "flex h-full items-center relative")}
+      className={cn(styles.container, "flex h-full items-center relative justify-between")}
       // onClick={onClick}
       onMouseDownCapture={
         midiLearning.status === "off"
@@ -82,7 +82,7 @@ export function FaustSlider({
         className="whitespace-nowrap pointer-events-none"
         style={{
           fontFamily: "monospace",
-          fontSize: 10,
+          fontSize: 9,
           // position: "absolute",
           // writingMode: vertical ? "vertical-lr" : undefined,
           // [vertical ? "top" : "right"]: 8,
@@ -112,8 +112,8 @@ export function FaustSlider({
 
 const useStyles = createUseStyles({
   container: {
-    columnGap: 3,
-    rowGap: 3,
-    fontSize: 10,
+    columnGap: 2,
+    rowGap: 2,
+    fontSize: 9,
   },
 });

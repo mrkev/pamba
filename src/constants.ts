@@ -1,10 +1,9 @@
 import { boxUp } from "./boxed";
 
 export const sampleSize = 1024;
-export const CLIP_HEIGHT = 88;
 export const TRACK_SEPARATOR_HEIGHT = 3;
-export const EFFECT_HEIGHT = CLIP_HEIGHT + 46;
-export const MIN_TRACK_HEIGHT = 76;
+export const TRACK_HEIGHT = 81;
+export const EFFECT_HEIGHT = TRACK_HEIGHT + 46;
 export const TRACK_HEADER_WIDTH = 150;
 
 export const staticAudioContext = boxUp(() => {

@@ -52,9 +52,9 @@ export const TrackPeakMeter = React.memo(function PeakMeter({ track }: { track: 
     <>
       <canvas
         height={18 * devicePixelRatio}
-        width={98 * devicePixelRatio}
+        width={100 * devicePixelRatio}
         ref={canvasRef}
-        style={{ height: 18, width: 98, borderRight: "1px solid gray", boxSizing: "border-box" }}
+        style={{ height: 18, width: 100, borderRight: "1px solid gray", boxSizing: "border-box" }}
       />
       {/* <button
               onClick={() => {

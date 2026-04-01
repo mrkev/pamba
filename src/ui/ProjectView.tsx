@@ -28,9 +28,7 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
   const [viewportStartPx] = usePrimitive(project.viewport.scrollLeftPx);
   const [projectDivWidth] = usePrimitive(project.viewport.projectDivWidth);
   const tracks = useContainer(project.allTracks);
-  const playbackPosDiv = useRef<null | HTMLDivElement>(null);
   const player = renderer.analizedPlayer;
-  const [scale] = usePrimitive(project.viewport.pxPerSecond);
   const [loopPlayback] = usePrimitive(project.loopOnPlayback);
 
   useLayoutEffect(() => {

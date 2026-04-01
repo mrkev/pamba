@@ -26,11 +26,10 @@ import { useEventListener } from "./useEventListener";
 
 const useStyles = createUseStyles({
   effectRack: {
-    background: "rgba(23, 23, 23, 0.7)",
     alignItems: "stretch",
     // to keep the selection div from showing above this effect track
     zIndex: 1,
-    padding: "6px 25% 11px 4px",
+    padding: "6px 25% 6px 4px",
     gap: "4px",
   },
 });
@@ -211,8 +210,12 @@ export const EffectRack = React.memo(function EffectRack({
         // background:
         //   draggingOver === false ? undefined : draggingOver === "invalid" ? undefined : "rgba(23, 43, 23, 0.7)",
       }}
+      // TODO: disallow pinch to zoom
       // sticky so it "sticks" when we scroll the timeline
-      className={cn(styles.effectRack, "sticky left-0 text-white flex flex-row overflow-x-scroll overscroll-contain")}
+      className={cn(
+        styles.effectRack,
+        "sticky left-0 text-white flex flex-row overflow-x-scroll overflow-y-hidden overscroll-contain bg-effect-rack-bg",
+      )}
     >
       {/* {track instanceof MidiTrack && <MidiInputEffect track={track} project={project} renderer={renderer} />} */}
       {track instanceof MidiTrack && <InstrumentEffect track={track} project={project} renderer={renderer} />}

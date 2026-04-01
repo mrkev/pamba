@@ -67,16 +67,16 @@ const INCLUDE = new Set([
 
   // WIMICS
   "com.wimmics.bigmuff",
-  // "com.wimmics.blipper", // knobs don't work
+  "com.wimmics.blipper",
   "com.wimmics.csoundpitchshifter",
-  // "com.wimmics.deathgate", // knobs don't work
-  // "com.wimmics.distomachine", // knobs don't work
+  "com.wimmics.deathgate",
+  "com.wimmics.distomachine",
   "com.wimmics.dualpitchshifter",
   "com.wimmics.graphicequalizer",
-  // "com.wimmics.greyhole", // knobs don't work
+  "com.wimmics.greyhole",
   // "com.wimmics.guitarampsim60s", // knobs don't work
-  // "com.wimmics.kbverb", // knobs don't work
-  // "com.wimmics.kppfuzz", // knobs don't work
+  "com.wimmics.kbverb",
+  "com.wimmics.kppfuzz",
   "com.wimmics.kppdistorder",
   "com.wimmics.livegain",
   "com.wimmics.oscilloscope",
@@ -84,7 +84,7 @@ const INCLUDE = new Set([
   "com.wimmics.spectroscope",
   // "com.wimmics.osctube", // knobs don't work
   // "com.wimmics.overdriverix", // knobs don't work
-  // "com.wimmics.owldirty", // knobs don't work
+  "com.wimmics.owldirty",
   "com.wimmics.owlshimmer",
   // "com.wimmics.reactpedalboard", // not very good
   // "com.wimmics.pedalboardwac2022", // doesn't exist
@@ -157,3 +157,5 @@ export const WAMPLUGINS: PambaWAMPluginDescriptor[] = plugins
  * - metadata (includes kind, my metadata)
  * - descriptor (wam descriptor, their metadata)
  */
+
+console.log("WAMPLUGINS", WAMPLUGINS);

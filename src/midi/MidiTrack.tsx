@@ -12,7 +12,7 @@ import {
   string,
 } from "structured-state";
 import { Subbable } from "structured-state/dist/state/Subbable";
-import { CLIP_HEIGHT, SECS_IN_MINUTE, TIME_SIGNATURE, liveAudioContext } from "../constants";
+import { TRACK_HEIGHT, SECS_IN_MINUTE, TIME_SIGNATURE, liveAudioContext } from "../constants";
 import { DSP } from "../dsp/DSP";
 import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
 import { appEnvironment, defaultInstrument, liveWamHostGroupId } from "../lib/AppEnvironment";
@@ -129,7 +129,7 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
     this.instrument = SPrimitive.of(instrument);
     this.dsp = dsp;
     this.name = SPrimitive.of(name);
-    this.height = SPrimitive.of<number>(CLIP_HEIGHT);
+    this.height = SPrimitive.of<number>(TRACK_HEIGHT);
 
     // connect sequencer and instrument
     // gain.connect(liveAudioContext.destination);

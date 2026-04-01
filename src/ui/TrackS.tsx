@@ -2,7 +2,7 @@ import classNames from "classnames";
 import { useLinkAsState } from "marked-subbable";
 import React, { useCallback, useRef, useState } from "react";
 import { useContainer, usePrimitive } from "structured-state";
-import { TRACK_SEPARATOR_HEIGHT } from "../constants";
+import { TRACK_HEIGHT, TRACK_SEPARATOR_HEIGHT } from "../constants";
 import { useTrackMouseEvents } from "../input/useTrackMouseEvents";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioClip } from "../lib/AudioClip";
@@ -48,7 +48,8 @@ export function TrackS({
   const [pressed] = usePrimitive(pressedState);
   const [selected] = useLinkAsState(project.selected);
   const clips = useContainer(track.clips);
-  const [height] = usePrimitive(track.height);
+  // const [height] = usePrimitive(track.height);
+  const height = TRACK_HEIGHT;
   const [activeTrack] = usePrimitive(project.activeTrack);
   const lockedTracks = useContainer(project.lockedTracks);
   const [audioStorage] = usePrimitive(appEnvironment.audioStorage);
@@ -175,20 +176,18 @@ export function TrackS({
       <div
         // sticky to keep the selection div from showing above this effect track
         // So it "sticks" when we scroll the timeline
-        className={cn("sticky left-0 w-full cursor-ns-resize bg-track-separator")}
-        style={{
-          height: TRACK_SEPARATOR_HEIGHT,
-        }}
-        onMouseDown={(e) => {
-          pressedState.set({
-            status: "resizing_track",
-            clientX: e.clientX,
-            clientY: e.clientY,
-            track,
-            originalHeight: height,
-          });
-          e.stopPropagation();
-        }}
+        className={cn("sticky left-0 w-full bg-track-separator")}
+        style={{ height: TRACK_SEPARATOR_HEIGHT }}
+        // onMouseDown={(e) => {
+        //   pressedState.set({
+        //     status: "resizing_track",
+        //     clientX: e.clientX,
+        //     clientY: e.clientY,
+        //     track,
+        //     originalHeight: height,
+        //   });
+        //   e.stopPropagation();
+        // }}
       ></div>
     </>
   );

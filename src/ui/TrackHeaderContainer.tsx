@@ -1,6 +1,6 @@
 import React, { useCallback, useRef, useState } from "react";
 import { useContainer } from "structured-state";
-import { MIN_TRACK_HEIGHT, TRACK_HEADER_WIDTH } from "../constants";
+import { TRACK_HEIGHT, TRACK_HEADER_WIDTH } from "../constants";
 import { documentCommands } from "../input/documentCommands";
 import { AnalizedPlayer } from "../lib/io/AnalizedPlayer";
 import { AudioProject } from "../lib/project/AudioProject";
@@ -123,7 +123,7 @@ export const TrackHeaderContainer = React.memo(function TrackHeaderContainerImpl
         // extra space
         className="flex flex-col"
         style={{
-          height: MIN_TRACK_HEIGHT * 2,
+          height: TRACK_HEIGHT * 2,
           padding: "4px 0px 0px 4px",
         }}
       >

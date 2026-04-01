@@ -1,6 +1,6 @@
 import React, { useCallback } from "react";
 import { history, useContainer, usePrimitive } from "structured-state";
-import { CLIP_HEIGHT } from "../constants";
+import { TRACK_HEIGHT } from "../constants";
 import type { AudioClip } from "../lib/AudioClip";
 import type { AudioTrack } from "../lib/AudioTrack";
 import { standardTrack } from "../lib/StandardTrack";
@@ -100,9 +100,9 @@ export const ClipA = React.memo(function ClipAImpl({
   const [scale] = usePrimitive(project.viewport.pxPerSecond); // need to subscribe to this
 
   const backgroundImageData = clip.getWaveformDataURL(
-    // totalBufferWidth,
-    2_000,
-    CLIP_HEIGHT,
+    Math.max(totalBufferWidth / 10, 10_000),
+
+    TRACK_HEIGHT,
     // idt I can use css variables here
     "#103310",
   );

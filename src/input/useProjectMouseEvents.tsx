@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { history } from "structured-state";
-import { MIN_TRACK_HEIGHT } from "../constants";
+import { TRACK_HEIGHT } from "../constants";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioTrack } from "../lib/AudioTrack";
@@ -319,7 +319,7 @@ export function useTimelineMouseEvents(
 
           case "resizing_track": {
             const delta = e.clientY - pressed.clientY;
-            const newHeight = Math.max(MIN_TRACK_HEIGHT, pressed.originalHeight + delta);
+            const newHeight = Math.max(TRACK_HEIGHT, pressed.originalHeight + delta);
             pressed.track.height.set(newHeight);
             break;
           }

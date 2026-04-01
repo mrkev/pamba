@@ -186,6 +186,8 @@ export function UtilitySlider({
   value,
   vertical,
   onChange,
+  style,
+  className,
   ...rest
 }: Omit<React.InputHTMLAttributes<HTMLInputElement>, "value" | "step" | "min" | "max"> & {
   vertical?: boolean;
@@ -200,7 +202,7 @@ export function UtilitySlider({
   return (
     <input
       id={id}
-      className={cn("utilitySliderS", "m-0 p-0")}
+      className={cn("utilitySliderS", "m-0 p-0", className)}
       type="range"
       min={min}
       max={max}
@@ -210,6 +212,7 @@ export function UtilitySlider({
         flexShrink: 4,
         writingMode: vertical ? "vertical-lr" : undefined,
         direction: vertical ? "rtl" : undefined,
+        ...style,
       }}
       onKeyDown={(e) => {
         switch (e.key) {

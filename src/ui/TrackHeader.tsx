@@ -3,7 +3,7 @@ import { useLinkAsState } from "marked-subbable";
 import React from "react";
 import { createUseStyles } from "react-jss";
 import { useContainer, usePrimitive } from "structured-state";
-import { EFFECT_HEIGHT, TRACK_SEPARATOR_HEIGHT } from "../constants";
+import { EFFECT_HEIGHT, TRACK_HEIGHT, TRACK_SEPARATOR_HEIGHT } from "../constants";
 import { AudioTrack } from "../lib/AudioTrack";
 import { AnalizedPlayer } from "../lib/io/AnalizedPlayer";
 import { AudioProject } from "../lib/project/AudioProject";
@@ -41,7 +41,8 @@ export const TrackHeader = React.memo(function TrackHeader({
   const lockedTracks = useContainer(project.lockedTracks);
   const trackEffects = useContainer(track.dsp.effectNodes);
   const [trackName, setTrackName] = usePrimitive(track.name);
-  const [height] = usePrimitive(track.height);
+  // const [height] = usePrimitive(track.height);
+  const height = TRACK_HEIGHT;
   const [selected] = useLinkAsState(project.selected);
   const [activeTrack] = usePrimitive(project.activeTrack);
   const [armedTrack] = usePrimitive(project.armedAudioTrack);
@@ -83,15 +84,9 @@ export const TrackHeader = React.memo(function TrackHeader({
       <div
         className="flex flex-col select-none relative"
         style={{
-          height:
-            height -
-            TRACK_SEPARATOR_HEIGHT -
-            // from padding
-            2,
+          height: height - TRACK_SEPARATOR_HEIGHT,
           paddingLeft: 2,
-          paddingTop: 2,
           paddingRight: 2,
-          // borderBottom: isDspExpanded ? `${TRACK_SEPARATOR_HEIGHT}px solid #444444` : undefined,
         }}
       >
         <div
@@ -107,7 +102,7 @@ export const TrackHeader = React.memo(function TrackHeader({
               "text-white flex justify-center items-center border-r border-[green]",
               isActive && "border-r border-[green]",
             )}
-            style={{ marginRight: 4, width: 17.5 }}
+            style={{ marginRight: 4, width: 20, borderWidth: 2 }}
           >
             {trackNumber}
           </span>
@@ -122,7 +117,7 @@ export const TrackHeader = React.memo(function TrackHeader({
         </div>
 
         {/* solo, mute, gain */}
-        <div className={styles.buttonRow}>
+        <div className={cn(styles.buttonRow, "flex flex-row items-center")}>
           <button
             className={classNames(utility.button, styles.headerButton)}
             title="solo track"
@@ -176,7 +171,7 @@ export const TrackHeader = React.memo(function TrackHeader({
         </div>
 
         {/* arm, lock, peak meters */}
-        <div className={styles.buttonRow}>
+        <div className={cn(styles.buttonRow, "flex flex-row items-center")}>
           {track instanceof AudioTrack && (
             <button
               disabled={isLocked}
@@ -198,7 +193,7 @@ export const TrackHeader = React.memo(function TrackHeader({
           {track instanceof MidiTrack && (
             <button
               disabled={isLocked}
-              className={classNames(utility.button, isArmed)}
+              className={classNames(utility.button, isArmed, "w-[20px]")}
               style={isArmed ? { background: "red" } : undefined}
               title="arm track (record to this track)"
               onClick={function (e) {
@@ -214,7 +209,7 @@ export const TrackHeader = React.memo(function TrackHeader({
             </button>
           )}
           <button
-            className={classNames(utility.button, styles.lockButton)}
+            className={classNames(utility.button, styles.lockButton, "w-[20px]")}
             style={isLocked ? { background: "purple", color: "white" } : undefined}
             title={isLocked ? "locked (click to unlock)" : "lock track"}
             onClick={function (e) {
@@ -253,16 +248,14 @@ export const TrackHeader = React.memo(function TrackHeader({
           <TrackPeakMeter track={track} />
         </div>
 
-        <div className="grow"></div>
+        {/* <div className="grow"></div> */}
         {/* TODO: allow rezising track by dragging either line below dsp, or line between dsp and clips */}
 
         <UtilityToggle
+          className="font-bold mt-[2px] bg-transparent hover:bg-effect-rack-bg text-white"
           style={{
-            margin: "2px 0px 2px 0px",
             fontSize: 10,
-            fontWeight: "bold",
-            height: 14,
-            justifyContent: "start",
+            // justifyContent: "start",
           }}
           toggled={isDspExpanded}
           onToggle={function (): void {
@@ -279,14 +272,16 @@ export const TrackHeader = React.memo(function TrackHeader({
         >
           {isDspExpanded ? <i className="ri-arrow-down-s-fill"></i> : <i className="ri-arrow-right-s-fill"></i>}
           DSP ({trackEffects.length})
+          {isDspExpanded ? <i className="ri-arrow-down-s-fill"></i> : <i className="ri-arrow-left-s-fill"></i>}
         </UtilityToggle>
       </div>
       {isDspExpanded ? (
         <div
-          className="select-none"
+          className="select-none bg-effect-rack-bg"
           style={{
-            height: EFFECT_HEIGHT + 17 - 2,
-            padding: "2px",
+            height: EFFECT_HEIGHT + 4,
+            margin: "0px 2px 0px 2px",
+            padding: "4px 2px",
           }}
         >
           <UtilityNumberSlider
@@ -307,19 +302,6 @@ export const TrackHeader = React.memo(function TrackHeader({
           />
         </div>
       ) : null}
-
-      <div
-        className="absolute left-0 w-full cursor-ns-resize"
-        style={{
-          // background: "red",
-          background: "rgba(0,0,0,0)",
-          // todo; instead of setting z-index 5, can I just use the track separator component for this?
-          zIndex: 5,
-          height: TRACK_SEPARATOR_HEIGHT * 2,
-          bottom: -TRACK_SEPARATOR_HEIGHT * 1.5,
-        }}
-        onMouseDownCapture={onMouseDownToResize}
-      ></div>
     </div>
   );
 });
@@ -334,9 +316,6 @@ const useStyles = createUseStyles({
     },
   },
   buttonRow: {
-    display: "flex",
-    flexDirection: "row",
-    alignItems: "center",
     gap: "2px",
     padding: "2px 0px 0px 0px",
   },

@@ -12,7 +12,7 @@ import {
   string,
   Structured,
 } from "structured-state";
-import { CLIP_HEIGHT, liveAudioContext } from "../constants";
+import { liveAudioContext, TRACK_HEIGHT } from "../constants";
 import { DSP } from "../dsp/DSP";
 import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
 import { mixDown } from "../mixDown";
@@ -122,7 +122,7 @@ export class AudioTrack extends Structured<AutoAudioTrack, typeof AudioTrack> im
       AudioTrack,
       string("Audio"),
       arrayOf([AudioClip], []),
-      number(CLIP_HEIGHT),
+      number(TRACK_HEIGHT),
       new ProjectTrackDSP(string("AudioTrackDSP"), effects, boolean(false), trackUtility),
       trackWAM,
     );
