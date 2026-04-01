@@ -135,60 +135,55 @@ export const EffectRack = React.memo(function EffectRack({
       }}
     />,
   ];
+
   for (let i = 0; i < effects.length; i++) {
     const effect = nullthrows(effects.at(i));
-    switch (true) {
-      case effect instanceof FaustAudioEffect: {
-        chain.push(
-          <FaustEffectModule
-            onDragStart={(ev) => {
-              onDragStart(ev, i);
-            }}
-            key={`effect-${i}`}
-            canDelete={!isAudioPlaying}
-            canBypass={!isAudioPlaying}
-            effect={effect}
-            onClickRemove={() => removeEffect(track, effect)}
-            onHeaderMouseDown={() => {
-              selection.selectEffect(project, effect, track);
-            }}
-            onClickBypass={() => bypassEffect(track, effect)}
-            isSelected={selected?.status === "effects" && selected.test.has(effect)}
-          />,
-        );
-        break;
-      }
-
-      case effect instanceof PambaWamNode: {
-        chain.push(
-          <EffectBox
-            key={`effect-${i}`}
-            canDelete={!isAudioPlaying}
-            onClickRemove={() => {
-              appEnvironment.openEffects.delete(effect);
-              removeEffect(track, effect);
-            }}
-            onHeaderMouseDown={() => selection.selectEffect(project, effect, track)}
-            onClickBypass={() => bypassEffect(track, effect)}
-            isSelected={selected?.status === "effects" && selected.test.has(effect)}
-            title={effect.name.get()}
-            onDragStart={(ev) => {
-              onDragStart(ev, i);
-            }}
+    if (effect instanceof FaustAudioEffect) {
+      chain.push(
+        <FaustEffectModule
+          onDragStart={(ev) => {
+            onDragStart(ev, i);
+          }}
+          key={`effect-${i}`}
+          canDelete={!isAudioPlaying}
+          canBypass={!isAudioPlaying}
+          effect={effect}
+          onClickRemove={() => removeEffect(track, effect)}
+          onHeaderMouseDown={() => {
+            selection.selectEffect(project, effect, track);
+          }}
+          onClickBypass={() => bypassEffect(track, effect)}
+          isSelected={selected?.status === "effects" && selected.test.has(effect)}
+        />,
+      );
+    } else if (effect instanceof PambaWamNode) {
+      chain.push(
+        <EffectBox
+          key={`effect-${i}`}
+          canDelete={!isAudioPlaying}
+          onClickRemove={() => {
+            appEnvironment.openEffects.delete(effect);
+            removeEffect(track, effect);
+          }}
+          onHeaderMouseDown={() => selection.selectEffect(project, effect, track)}
+          onClickBypass={() => bypassEffect(track, effect)}
+          isSelected={selected?.status === "effects" && selected.test.has(effect)}
+          title={effect.name.get()}
+          onDragStart={(ev) => {
+            onDragStart(ev, i);
+          }}
+        >
+          <button
+            className={"utilityButton"}
+            style={{ margin: "4px 4px" }}
+            onClick={() => appEnvironment.openEffects.add(effect)}
           >
-            <button
-              className={"utilityButton"}
-              style={{ margin: "4px 4px" }}
-              onClick={() => appEnvironment.openEffects.add(effect)}
-            >
-              Configure
-            </button>
-          </EffectBox>,
-        );
-        break;
-      }
-      default:
-        exhaustive(effect);
+            Configure
+          </button>
+        </EffectBox>,
+      );
+    } else {
+      exhaustive(effect);
     }
 
     chain.push(

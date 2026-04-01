@@ -74,23 +74,18 @@ export function Library({
 
   const loadClip = useCallback(
     async function loadClip(url: string, name?: string) {
-      try {
-        // load clip
-        const clip = await AudioClip.fromURL(url, name);
+      // load clip
+      const clip = await AudioClip.fromURL(url, name);
 
-        const activeTrack = project.activeTrack.get();
-        if (activeTrack !== null && activeTrack instanceof AudioTrack) {
-          standardTrack.pushClip(project, activeTrack, clip);
-          return;
-        }
-
-        const newTrack = await AudioTrack.fromClip(project, clip);
-        await AudioProject.addAudioTrack(project, "top", newTrack, player);
-        console.log("loaded");
-      } catch (e) {
-        console.trace(e);
+      const activeTrack = project.activeTrack.get();
+      if (activeTrack !== null && activeTrack instanceof AudioTrack) {
+        standardTrack.pushClip(project, activeTrack, clip);
         return;
       }
+
+      const newTrack = await AudioTrack.fromClip(project, clip);
+      await AudioProject.addAudioTrack(project, "top", newTrack, player);
+      console.log("loaded");
     },
     [player, project],
   );
