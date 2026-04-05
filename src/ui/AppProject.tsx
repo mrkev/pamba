@@ -150,12 +150,7 @@ export function AppProject({ project }: { project: AudioProject }) {
       <>
         <EffectWindows />
         <ToolHeader project={project} renderer={renderer} recorder={recorder} />
-        <OverviewPanel
-          project={project}
-          player={renderer.analizedPlayer}
-          renderer={renderer}
-          className="grow-0 max-h-[78px]"
-        />
+        <OverviewPanel project={project} player={renderer.analizedPlayer} renderer={renderer} className="grow-0" />
         {bottomPanel}
       </>
     );

@@ -1,6 +1,8 @@
 import classNames from "classnames";
 import { useLinkAsState } from "marked-subbable";
+import { useRef } from "react";
 import { useContainer, usePrimitive } from "structured-state";
+import { OVERVIEW_MAX_HEIGHT, OVERVIEW_TRACK_MIN_HEIGHT } from "../constants";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioTrack } from "../lib/AudioTrack";
@@ -12,11 +14,9 @@ import { selection } from "../lib/project/selection";
 import { MidiClip } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
 import { cn } from "../utils/cn";
-import { ViewportPlaybackCursor } from "./ViewportCursor";
 import { TimelineCursor, TimelineLine } from "./TimelineCursor";
-import { OVERVIEW_TRACK_MIN_HEIGHT } from "../constants";
-import { useRef } from "react";
 import { useViewportScrollEvents } from "./useViewportScrollEvents";
+import { ViewportPlaybackCursor } from "./ViewportCursor";
 
 export function OverviewPanel({
   project,
@@ -35,7 +35,14 @@ export function OverviewPanel({
   const [scale] = usePrimitive(project.viewport.pxPerSecond);
   const [loopPlayback] = usePrimitive(project.loopOnPlayback);
   const overviewRef = useRef<HTMLDivElement>(null);
-  useViewportScrollEvents(overviewRef, { scale: () => {}, panX: () => {} });
+  useViewportScrollEvents(overviewRef, {
+    scale: () => {
+      console.log("SCALE");
+    },
+    panX: () => {},
+  });
+
+  const cursorStyle = { minHeight: tracks.length * OVERVIEW_TRACK_MIN_HEIGHT + tracks.length };
 
   return (
     <div
@@ -47,7 +54,8 @@ export function OverviewPanel({
         className,
       )}
       style={{
-        minHeight: OVERVIEW_TRACK_MIN_HEIGHT * tracks.length + tracks.length,
+        maxHeight: OVERVIEW_MAX_HEIGHT,
+        minHeight: Math.min(OVERVIEW_TRACK_MIN_HEIGHT * tracks.length + tracks.length, OVERVIEW_MAX_HEIGHT),
       }}
     >
       {tracks.map((track, i) => {
@@ -62,15 +70,15 @@ export function OverviewPanel({
         );
       })}
       {/* Loop Markers */}
-      {loopPlayback && <TimelineLine project={project} pos={project.loopStart} color={"rgb(255,165,0)"} />}
-      {loopPlayback && <TimelineLine project={project} pos={project.loopEnd} color={"rgb(255,165,0)"} />}
+      {loopPlayback && (
+        <TimelineLine project={project} pos={project.loopStart} color={"rgb(255,165,0)"} style={cursorStyle} />
+      )}
+      {loopPlayback && (
+        <TimelineLine project={project} pos={project.loopEnd} color={"rgb(255,165,0)"} style={cursorStyle} />
+      )}
 
-      <TimelineCursor project={project} />
-      <ViewportPlaybackCursor
-        viewport={project.viewport}
-        player={player}
-        style={{ minHeight: tracks.length * OVERVIEW_TRACK_MIN_HEIGHT + tracks.length }}
-      />
+      <TimelineCursor project={project} style={cursorStyle} />
+      <ViewportPlaybackCursor viewport={project.viewport} player={player} style={cursorStyle} />
     </div>
   );
 }

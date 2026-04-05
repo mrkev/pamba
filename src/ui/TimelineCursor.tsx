@@ -8,7 +8,10 @@ export function TimelineLine({
   pos,
   color,
   adjust,
-}: {
+  className,
+  style,
+  ...rest
+}: React.HTMLProps<HTMLDivElement> & {
   project: AudioProject;
   pos: TimelineT;
   color: string;
@@ -26,16 +29,17 @@ export function TimelineLine({
 
   return (
     <div
-      className="absolute top-0 h-full select-none pointer-events-none"
+      className={cn("absolute top-0 h-full select-none pointer-events-none", className)}
       style={{
         borderLeft: `1px solid ${color}`,
         left,
+        ...style,
       }}
     />
   );
 }
 
-export function TimelineCursor({ project }: { project: AudioProject }) {
+export function TimelineCursor({ project, style }: { project: AudioProject; style?: React.CSSProperties }) {
   const [cursorPos] = usePrimitive(project.cursorPos);
   const [selectionWidthRaw] = usePrimitive(project.selectionWidth);
   const selectionWidth = selectionWidthRaw == null ? 0 : selectionWidthRaw;
@@ -59,6 +63,7 @@ export function TimelineCursor({ project }: { project: AudioProject }) {
         left,
         // the +1 is to account for the fact the border is rendered inside the box
         width: width + 1,
+        ...style,
       }}
     />
   );
