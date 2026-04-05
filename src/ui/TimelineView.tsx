@@ -14,7 +14,15 @@ import { LoopMarkers } from "./LoopMarkers";
 import { ProjectView } from "./ProjectView";
 import { TrackHeaderContainer } from "./TrackHeaderContainer";
 
-export function TimelineView({ project, renderer }: { project: AudioProject; renderer: AudioRenderer }) {
+export function TimelineView({
+  project,
+  renderer,
+  className,
+}: {
+  project: AudioProject;
+  renderer: AudioRenderer;
+  className?: string;
+}) {
   const classes = useStyles();
   const [activePanel] = useLinkAsState(project.activePanel);
 
@@ -25,7 +33,8 @@ export function TimelineView({ project, renderer }: { project: AudioProject; ren
       className={classNames(
         classes.container,
         "scrollbar-track",
-        "grid overflow-y-scroll overflow-x-hidden h-full w-full grow",
+        "grid gap-x-0 gap-y-0 overflow-y-scroll overflow-x-hidden w-full grow",
+        className,
       )}
     >
       <HeaderAxisView
@@ -107,8 +116,6 @@ const useStyles = createUseStyles({
     // 150 is TRACK_HEADER_WIDTH
     gridTemplateColumns: "1fr 150px",
     // gridTemplateColumns: "16px 1fr 150px",
-    gridColumnGap: 0,
-    gridRowGap: 0,
     // borderTopLeftRadius: "3px",
     // borderBottomLeftRadius: "3px",
     // paddingRight: "4px",

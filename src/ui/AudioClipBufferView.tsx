@@ -1,12 +1,12 @@
+import useResizeObserver from "@react-hook/resize-observer";
 import { useCallback, useRef, useState } from "react";
 import { useContainer, usePrimitive } from "structured-state";
-import useResizeObserver from "@react-hook/resize-observer";
 import { GPUWaveform } from "webgpu-waveform-react";
-import { AnalizedPlayer } from "../lib/io/AnalizedPlayer";
 import { AudioClip } from "../lib/AudioClip";
+import { AnalizedPlayer } from "../lib/io/AnalizedPlayer";
 import { AudioProject } from "../lib/project/AudioProject";
-import { pressedState } from "./pressedState";
 import { nullthrows } from "../utils/nullthrows";
+import { pressedState } from "./pressedState";
 import { useEventListener } from "./useEventListener";
 import { useSelectOnSurface } from "./useSelectOnSurface";
 
@@ -159,48 +159,31 @@ export function AudioClipBufferView({
     ],
   );
 
-  // useEffect(() => {
-  //   player.onFrame2 = function (playbackPos) {
-  //     const pbdiv = playbackDiv.current;
-  //     if (pbdiv) {
-  //       pbdiv.style.left = String(timelineSecsToClipPx(playbackPos)) + "px";
-  //     }
-  //   };
-  // }, [player, player.isAudioPlaying, timelineSecsToClipPx]);
   const cursorPosInClipPx = timelineSecsToClipPx(cursorPos);
   const playbackDivLeft = timelineSecsToClipPx(playbackPos);
   const [width, setWidth] = useState(0);
+  const [height, setHeight] = useState(0);
+
   useResizeObserver<HTMLCanvasElement>(
     waveformRef,
     useCallback((entry) => {
       setWidth(entry.contentRect.width ?? 0);
+      setHeight(entry.contentRect.height ?? 0);
     }, []),
   );
 
   return (
-    <div
-      style={{
-        position: "relative",
-        flexGrow: 1,
-      }}
-    >
+    <div className="relative grow shrink">
       {clip.buffer != null && (
         <GPUWaveform
           ref={waveformRef}
           audioBuffer={clip.buffer}
           scale={clip.detailedViewport.framesPerPixel(clip.sampleRate)}
-          offset={lockPlayback ? offsetFrOfPlaybackPos(playbackPos) : waveformStartFr}
-          width={width || 1}
-          height={243}
+          offset={lockPlayback ? offsetFrOfPlaybackPos(playbackPos) : waveformStartFr * devicePixelRatio}
+          width={(width || 1) * devicePixelRatio}
+          height={(height || 1) * devicePixelRatio}
           color="black"
-          style={{
-            border: "1px solid var(--track-separator)",
-            width: "100%",
-            height: 243,
-            background: "var(--timeline-bg)",
-            boxSizing: "border-box",
-            flexGrow: 1,
-          }}
+          className="w-full h-[212px] grow shrink bg-timeline-bg box-border border border-track-separator"
         />
       )}
       {/* cursor div */}

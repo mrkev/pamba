@@ -212,6 +212,8 @@ export function useTimelineMouseEvents(
               return;
             }
 
+            // negative selection
+
             project.selected.set({
               status: "time",
               startS: startTime + selWidth,

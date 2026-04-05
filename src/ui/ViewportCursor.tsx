@@ -4,7 +4,17 @@ import { AnalizedPlayer } from "../lib/io/AnalizedPlayer";
 import { StandardViewport } from "../lib/viewport/StandardViewport";
 import { cn } from "../utils/cn";
 
-export function ViewportPlaybackCursor({ viewport, player }: { viewport: StandardViewport; player: AnalizedPlayer }) {
+export function ViewportPlaybackCursor({
+  viewport,
+  player,
+  className,
+  style,
+}: {
+  viewport: StandardViewport;
+  player: AnalizedPlayer;
+  className?: string;
+  style?: React.CSSProperties;
+}) {
   const playbackPosDiv = useRef<null | HTMLDivElement>(null);
   const [scale] = usePrimitive(viewport.pxPerSecond);
 
@@ -32,9 +42,11 @@ export function ViewportPlaybackCursor({ viewport, player }: { viewport: Standar
   return (
     <div
       ref={playbackPosDiv}
+      style={style}
       className={cn(
         "name-playback-pos-div",
         "bg-cursor-playback w-px h-full absolute left-0 top-0 select-none pointer-events-none",
+        className,
       )}
     />
   );

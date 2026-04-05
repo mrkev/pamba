@@ -13,17 +13,20 @@ import { MidiClip } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
 import { cn } from "../utils/cn";
 import { ViewportPlaybackCursor } from "./ViewportCursor";
+import { TimelineCursor } from "./TimelineCursor";
 
-const CLIP_HEIGHT = 22;
+export const OVERVIEW_TRACK_MIN_HEIGHT = 12;
 
 export function OverviewPanel({
   project,
   player,
   renderer,
+  className,
 }: {
   project: AudioProject;
   player: AnalizedPlayer;
   renderer: AudioRenderer;
+  className?: string;
 }) {
   const [viewportStartPx] = usePrimitive(project.viewport.scrollLeftPx);
   const [projectDivWidth] = usePrimitive(project.viewport.projectDivWidth);
@@ -32,19 +35,37 @@ export function OverviewPanel({
   const [loopPlayback] = usePrimitive(project.loopOnPlayback);
 
   return (
-    <>
-      <div className="bg-black grow flex flex-col gap-px justify-start p-px overflow-scroll relative">
-        {tracks.map((track, i) => {
-          return <TrackOverview key={track._id} track={track} project={project} />;
-        })}
-        <ViewportPlaybackCursor
-          viewport={project.viewport}
-          player={player}
-          // 1px padding from margin, 1 of overview, 1 of track
-          // marginLeft={2}
-        />
-      </div>
-    </>
+    <div
+      className={cn(
+        "bg-timeline-bg relative box-border",
+        "flex flex-col grow justify-stretch overflow-scroll",
+        //
+        className,
+      )}
+      style={{
+        minHeight: OVERVIEW_TRACK_MIN_HEIGHT * tracks.length + tracks.length,
+      }}
+    >
+      {tracks.map((track, i) => {
+        return (
+          <>
+            <TrackOverview key={track._id} track={track} project={project} />
+            <div
+              className={cn("flex sticky left-0 grow", "border-b border-black pointer-events-none")}
+              style={{ minHeight: OVERVIEW_TRACK_MIN_HEIGHT }}
+            />
+          </>
+        );
+      })}
+      <TimelineCursor project={project} />
+      <ViewportPlaybackCursor
+        viewport={project.viewport}
+        player={player}
+        // 1px padding from margin, 1 of overview, 1 of track
+        // marginLeft={2}
+        style={{ minHeight: tracks.length * OVERVIEW_TRACK_MIN_HEIGHT + tracks.length }}
+      />
+    </div>
   );
 }
 
@@ -55,14 +76,12 @@ export function TrackOverview({ project, track }: { track: AudioTrack | MidiTrac
   const locked = lockedTracks.has(track);
 
   return (
-    <div className={cn("flex relative", "bg-timeline-bg")}>
+    <div className={cn("flex relative", "overflow-visible")} style={{ height: 0 }}>
       {clips.map((clip) => {
         const isSelected = selected !== null && selected.status === "clips" && selected.test.has(clip);
         return (
           <ClipOverview
             onKeyDown={(e) => {
-              console.log(e.key);
-
               switch (e.key) {
                 case "Backspace": {
                   console.log("DELETE");
@@ -72,7 +91,8 @@ export function TrackOverview({ project, track }: { track: AudioTrack | MidiTrac
             tabIndex={-1}
             key={clip._id}
             clip={clip}
-            className={classNames(isSelected ? "bg-clip-border-selected" : "bg-clip-color", locked && "opacity-50")}
+            className={cn("relative", isSelected ? "bg-clip-border-selected" : "bg-clip-color", locked && "opacity-50")}
+            style={{ minHeight: OVERVIEW_TRACK_MIN_HEIGHT }}
             onClick={(e) => {
               const selectAdd = e.metaKey || e.shiftKey;
               selection.selectClip(project, cliptrack(clip, track), selectAdd);
@@ -100,8 +120,8 @@ export function ClipOverview({
 
   return (
     <div
-      className={classNames("h-full rounded-sm m-px mr-0 relative cursor-pointer box-border shrink-0", className)}
-      style={{ width, left, height: CLIP_HEIGHT, ...style }}
+      className={classNames("h-full rounded-xs mr-0 relative cursor-pointer box-border shrink-0", className)}
+      style={{ width, left, ...style }}
       {...rest}
     ></div>
   );

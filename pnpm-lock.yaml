@@ -168,11 +168,11 @@ importers:
         specifier: ^0.2.3
         version: 0.2.3(@webaudiomodules/api@2.0.0-alpha.6)
       webgpu-waveform:
-        specifier: ^3.3.0
-        version: 3.3.0
+        specifier: link:../webgpu-waveform/packages/webgpu-waveform
+        version: link:../webgpu-waveform/packages/webgpu-waveform
       webgpu-waveform-react:
-        specifier: ^3.4.0
-        version: 3.4.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+        specifier: link:../webgpu-waveform/packages/webgpu-waveform-react
+        version: link:../webgpu-waveform/packages/webgpu-waveform-react
     devDependencies:
       '@eslint/eslintrc':
         specifier: ^3.3.3
@@ -2377,24 +2377,8 @@ packages:
     resolution: {integrity: sha512-RRECPsj7iu/xb5oKYcsFHSppFNnsj/52OVTRKb4zP5onXwVF3zVmmToNcOfGC+CRDpfK/U584fMg38ZHCaElKQ==}
     engines: {node: '>=7.0.0'}
 
-  color-convert@3.1.2:
-    resolution: {integrity: sha512-UNqkvCDXstVck3kdowtOTWROIJQwafjOfXSmddoDrXo4cewMKmusCeF22Q24zvjR8nwWib/3S/dfyzPItPEiJg==}
-    engines: {node: '>=14.6'}
-
   color-name@1.1.4:
     resolution: {integrity: sha512-dOy+3AuW3a2wNbZHIuMZpTcgjGuLU/uBL/ubcZF9OXbDo8ff4O8yVp5Bf0efS8uEoYo5q4Fx7dY9OgQGXgAsQA==}
-
-  color-name@2.0.2:
-    resolution: {integrity: sha512-9vEt7gE16EW7Eu7pvZnR0abW9z6ufzhXxGXZEVU9IqPdlsUiMwJeJfRtq0zePUmnbHGT9zajca7mX8zgoayo4A==}
-    engines: {node: '>=12.20'}
-
-  color-string@2.1.2:
-    resolution: {integrity: sha512-RxmjYxbWemV9gKu4zPgiZagUxbH3RQpEIO77XoSSX0ivgABDZ+h8Zuash/EMFLTI4N9QgFPOJ6JQpPZKFxa+dA==}
-    engines: {node: '>=18'}
-
-  color@5.0.2:
-    resolution: {integrity: sha512-e2hz5BzbUPcYlIRHo8ieAhYgoajrJr+hWoceg6E345TPsATMUKqDgzt8fSXZJJbxfpiPzkWyphz8yn8At7q3fA==}
-    engines: {node: '>=18'}
 
   colorjs.io@0.5.2:
     resolution: {integrity: sha512-twmVoizEW7ylZSN32OgKdXRmo1qg+wT5/6C3xu5b9QsWzSFAhHLn2xd8ro0diCsKfCj1RdaTP/nrcW+vAoQPIw==}
@@ -3880,14 +3864,6 @@ packages:
       '@types/react': '>=18'
       react: '>=18'
 
-  react-merge-refs@3.0.2:
-    resolution: {integrity: sha512-MSZAfwFfdbEvwkKWP5EI5chuLYnNUxNS7vyS0i1Jp+wtd8J4Ga2ddzhaE68aMol2Z4vCnRM/oGOo1a3V75UPlw==}
-    peerDependencies:
-      react: '>=16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0'
-    peerDependenciesMeta:
-      react:
-        optional: true
-
   react-refresh@0.18.0:
     resolution: {integrity: sha512-QgT5//D3jfjJb6Gsjxv0Slpj23ip+HtOpnNgnb2S5zU3CB26G/IDPGoy4RJB42wzFE46DRsstbW6tKHoKbhAxw==}
     engines: {node: '>=0.10.0'}
@@ -4746,17 +4722,6 @@ packages:
 
   web-vitals@4.2.4:
     resolution: {integrity: sha512-r4DIlprAGwJ7YM11VZp4R884m0Vmgr6EAKe3P+kO0PPj3Unqyvv59rczf6UiGcb9Z8QxZVcqKNwv/g0WNdWwsw==}
-
-  webgpu-waveform-react@3.4.0:
-    resolution: {integrity: sha512-CBRPJ93ZRNhYsW10K4HvXzKRV0+ciFiyPhTaNpZ2qqXsUl5mfDwL8erFK33/SRaNCZRbe8rdNTqIc9Y0Bx6GUA==}
-    engines: {node: '>=18.0.0'}
-    peerDependencies:
-      react: '>=18.0.0 || >=19.0.0'
-      react-dom: '>=18.0.0 || >=19.0.0'
-
-  webgpu-waveform@3.3.0:
-    resolution: {integrity: sha512-EG4s+ukDkRxvudzo7A89bzsN6dPGjecj5TSZW70TTgUIS0Bx+GGB273n+wLXzl19oSUSwA7pevC6w+LlAe9DIg==}
-    engines: {node: '>=18.0.0'}
 
   webidl-conversions@8.0.1:
     resolution: {integrity: sha512-BMhLD/Sw+GbJC21C/UgyaZX41nPt8bUTg+jWyDeg7e7YN4xOM05YPSIXceACnXVtqyEw/LMClUQMtMZ+PGGpqQ==}
@@ -7248,22 +7213,7 @@ snapshots:
     dependencies:
       color-name: 1.1.4
 
-  color-convert@3.1.2:
-    dependencies:
-      color-name: 2.0.2
-
   color-name@1.1.4: {}
-
-  color-name@2.0.2: {}
-
-  color-string@2.1.2:
-    dependencies:
-      color-name: 2.0.2
-
-  color@5.0.2:
-    dependencies:
-      color-convert: 3.1.2
-      color-string: 2.1.2
 
   colorjs.io@0.5.2: {}
 
@@ -9166,10 +9116,6 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  react-merge-refs@3.0.2(react@19.2.4):
-    optionalDependencies:
-      react: 19.2.4
-
   react-refresh@0.18.0: {}
 
   react-router@7.13.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4):
@@ -10084,17 +10030,6 @@ snapshots:
   web-audio-peak-meter@3.1.0: {}
 
   web-vitals@4.2.4: {}
-
-  webgpu-waveform-react@3.4.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4):
-    dependencies:
-      react: 19.2.4
-      react-dom: 19.2.4(react@19.2.4)
-      react-merge-refs: 3.0.2(react@19.2.4)
-      webgpu-waveform: 3.3.0
-
-  webgpu-waveform@3.3.0:
-    dependencies:
-      color: 5.0.2
 
   webidl-conversions@8.0.1: {}
 

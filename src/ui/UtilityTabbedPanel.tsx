@@ -14,9 +14,10 @@ export function UtilityTabbedPanel<P extends Record<string, Panel>>({
   onSelectTab,
   panels,
   dividerPosition,
-  expandedSize = 220,
+  expandedSize = "220px",
   style,
-  extraControls,
+  controlsStart,
+  controlsEnd,
   className,
   onMouseDownCapture,
   activeButtonClassName,
@@ -25,9 +26,10 @@ export function UtilityTabbedPanel<P extends Record<string, Panel>>({
   onSelectTab: SetState<keyof P | null>;
   panels: P;
   dividerPosition: "right" | "left" | "top" | "bottom";
-  expandedSize?: number;
+  expandedSize?: string;
   style?: React.CSSProperties;
-  extraControls?: React.ReactNode;
+  controlsStart?: React.ReactNode;
+  controlsEnd?: React.ReactNode;
   className?: string;
   onMouseDownCapture?: React.MouseEventHandler<HTMLDivElement>;
   activeButtonClassName?: string;
@@ -43,24 +45,25 @@ export function UtilityTabbedPanel<P extends Record<string, Panel>>({
     <div
       onMouseDownCapture={onMouseDownCapture}
       className={classNames(
-        className,
+        "flex flex-col grow items-stretch",
         styles.panel,
         layout === "vertical" && styles.panelVertical,
         isCollapsed && layout === "horizontal" && styles.panelCollapsedHorizontal,
         isCollapsed && layout === "vertical" && styles.panelCollapsedVertical,
         !isCollapsed && styles.panelExpanded,
+        className,
       )}
       style={
         !isCollapsed
           ? layout === "horizontal"
             ? {
-                maxWidth: `${expandedSize}px`,
-                minWidth: `${expandedSize}px`,
+                maxWidth: expandedSize,
+                minWidth: expandedSize,
                 ...style,
               }
             : {
-                maxHeight: `${expandedSize}px`,
-                minHeight: `${expandedSize}px`,
+                maxHeight: expandedSize,
+                minHeight: expandedSize,
                 ...style,
               }
           : style
@@ -72,7 +75,7 @@ export function UtilityTabbedPanel<P extends Record<string, Panel>>({
           "flex flex-row flex-wrap",
           isCollapsed && layout === "horizontal" && "flex-col flex-nowrap",
           isCollapsed && layout === "vertical" && "flex-row flex-nowrap",
-          dividerPosition === "top" && styles.bottomPanelTabs,
+          dividerPosition === "top" && "self-stretch",
         )}
         style={
           layout === "horizontal"
@@ -87,6 +90,7 @@ export function UtilityTabbedPanel<P extends Record<string, Panel>>({
               }
         }
       >
+        {controlsStart}
         {Object.entries(panels).map(([id, panel]) => {
           return (
             <button
@@ -112,18 +116,17 @@ export function UtilityTabbedPanel<P extends Record<string, Panel>>({
           );
         })}
         <div className="spacer"></div>
-        {extraControls}
+        {controlsEnd}
       </div>
       {layout === "horizontal"
         ? activePanel?.render()
         : activePanel && (
             <div
-              className={styles.vertical}
+              className={classNames(styles.vertical, "flex flex-row grow items-stretch")}
               style={{
                 flexShrink: 1,
                 minHeight: 0,
-
-                // paddingBottom: 4
+                paddingBottom: 4,
               }}
             >
               {activePanel.render()}
@@ -134,17 +137,11 @@ export function UtilityTabbedPanel<P extends Record<string, Panel>>({
 }
 
 const useStyles = createUseStyles({
-  tabs: {
-    gap: 4,
-  },
+  tabs: { gap: 4 },
   panel: {
-    display: "flex",
-    flexDirection: "column",
     // border: "1px solid black",
-    flexGrow: 1,
     gap: 4,
     padding: "0px 4px 0px 4px",
-    alignItems: "stretch",
     // paddingBottom: "128px",
   },
   panelVertical: {
@@ -154,22 +151,11 @@ const useStyles = createUseStyles({
     width: "22px",
   },
   panelCollapsedVertical: {
-    height: "14px",
+    height: "24px",
   },
-  panelExpanded: {
-    // maxWidth: "220px",
-    // minWidth: "220px",
-  },
-  horizontal: {
-    // flexDirection: "column",
-  },
-  vertical: {
-    flexDirection: "row",
-    display: "flex",
-    flexGrow: 1,
-    alignItems: "stretch",
-    paddingBottom: 4,
-  },
+  panelExpanded: {},
+  horizontal: {},
+  vertical: {},
   bottomPanelTabs: {
     // paddingTop: "4px",
     alignSelf: "stretch",
