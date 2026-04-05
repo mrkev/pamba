@@ -7,7 +7,7 @@ import { useDocumentKeyboardEvents } from "../input/useDocumentKeyboardEvents";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioRecorder } from "../lib/io/AudioRecorder";
 import { AudioRenderer } from "../lib/io/AudioRenderer";
-import { AudioProject } from "../lib/project/AudioProject";
+import { AppLayout, AudioProject } from "../lib/project/AudioProject";
 import { AboutPanel } from "./AboutPanel";
 import { BottomPanel } from "./BottomPanel";
 import { DebugContent } from "./DebugData";
@@ -35,13 +35,11 @@ function useStopPlaybackOnUnmount(renderer: AudioRenderer) {
   }, [renderer.analizedPlayer]);
 }
 
-type Layout = "overview" | "details";
-
 export function AppProject({ project }: { project: AudioProject }) {
   const styles = useStyles();
   const renderer = appEnvironment.renderer;
   const [recorder] = useState(() => new AudioRecorder(project, renderer));
-  const [layout, setLayout] = useState<Layout>("overview");
+  const [layout, setLayout] = usePrimitive<AppLayout>(project.layout);
 
   useSingletonKeyboardModifierState(modifierState);
   useDocumentKeyboardEvents(project);
@@ -93,20 +91,20 @@ export function AppProject({ project }: { project: AudioProject }) {
       activeTab={activeBottomPanel}
       onSelectTab={setActiveBottomPanel as any}
       dividerPosition={"top"}
-      expandedSize={layout === "details" ? "70%" : "295px"}
+      expandedSize={layout === "secondary" ? "70%" : "295px"}
       onMouseDownCapture={() => project.activePanel.set("secondary")}
       className={classNames(styles.secondaryPanel, activePanel === "secondary" && "bg-panel-active-background")}
       controlsStart={
         <UtilityToggle
           title={"expand layout"}
-          toggled={layout === "details"}
+          toggled={layout === "secondary"}
           className="p-0"
           onToggle={function (toggled: boolean): void {
             console.log("toggled", toggled);
-            setLayout(toggled ? "details" : "overview");
+            setLayout(toggled ? "secondary" : "primary");
           }}
         >
-          {layout === "details" ? <i className="ri-skip-down-line"></i> : <i className="ri-skip-up-line"></i>}
+          {layout === "secondary" ? <i className="ri-skip-down-line"></i> : <i className="ri-skip-up-line"></i>}
         </UtilityToggle>
       }
       controlsEnd={<TransportControl style={{ marginTop: 2 }} project={project} />}
@@ -135,7 +133,7 @@ export function AppProject({ project }: { project: AudioProject }) {
     />
   );
 
-  if (layout === "overview") {
+  if (layout === "primary") {
     return (
       <>
         <EffectWindows />

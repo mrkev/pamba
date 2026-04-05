@@ -13,9 +13,10 @@ import { MidiClip } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
 import { cn } from "../utils/cn";
 import { ViewportPlaybackCursor } from "./ViewportCursor";
-import { TimelineCursor } from "./TimelineCursor";
-
-export const OVERVIEW_TRACK_MIN_HEIGHT = 12;
+import { TimelineCursor, TimelineLine } from "./TimelineCursor";
+import { OVERVIEW_TRACK_MIN_HEIGHT } from "../constants";
+import { useRef } from "react";
+import { useViewportScrollEvents } from "./useViewportScrollEvents";
 
 export function OverviewPanel({
   project,
@@ -33,9 +34,12 @@ export function OverviewPanel({
   const tracks = useContainer(project.allTracks);
   const [scale] = usePrimitive(project.viewport.pxPerSecond);
   const [loopPlayback] = usePrimitive(project.loopOnPlayback);
+  const overviewRef = useRef<HTMLDivElement>(null);
+  useViewportScrollEvents(overviewRef, { scale: () => {}, panX: () => {} });
 
   return (
     <div
+      ref={overviewRef}
       className={cn(
         "bg-timeline-bg relative box-border",
         "flex flex-col grow justify-stretch overflow-scroll",
@@ -57,12 +61,14 @@ export function OverviewPanel({
           </>
         );
       })}
+      {/* Loop Markers */}
+      {loopPlayback && <TimelineLine project={project} pos={project.loopStart} color={"rgb(255,165,0)"} />}
+      {loopPlayback && <TimelineLine project={project} pos={project.loopEnd} color={"rgb(255,165,0)"} />}
+
       <TimelineCursor project={project} />
       <ViewportPlaybackCursor
         viewport={project.viewport}
         player={player}
-        // 1px padding from margin, 1 of overview, 1 of track
-        // marginLeft={2}
         style={{ minHeight: tracks.length * OVERVIEW_TRACK_MIN_HEIGHT + tracks.length }}
       />
     </div>

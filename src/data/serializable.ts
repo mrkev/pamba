@@ -19,7 +19,7 @@ import { AudioClip } from "../lib/AudioClip";
 import { AudioTrack } from "../lib/AudioTrack";
 import { defaultTrackUtility, ProjectTrackDSP } from "../lib/ProjectTrackDSP";
 import { StandardTrack } from "../lib/StandardTrack";
-import { AudioProject, PointerTool, SecondaryTool } from "../lib/project/AudioProject";
+import { AppLayout, AudioProject, PointerTool, SecondaryTool } from "../lib/project/AudioProject";
 import { time, TimeUnit } from "../lib/project/TimelineT";
 import { MidiViewport, SMidiViewport } from "../lib/viewport/MidiViewport";
 import { MidiBuffer } from "../midi/MidiBuffer";
@@ -100,6 +100,7 @@ export type SAudioProject = {
   snapToGrid: boolean;
   pointerTool: PointerTool;
   panelTool: SecondaryTool;
+  appLayout: AppLayout;
 };
 
 export type STimelineT = Readonly<{ t: number; u: TimeUnit }>;
@@ -240,6 +241,7 @@ export async function serializable(
       snapToGrid: obj.snapToGrid.get(),
       pointerTool: obj.pointerTool.get(),
       panelTool: obj.panelTool.get(),
+      appLayout: obj.layout.get(),
     };
   }
 
@@ -356,10 +358,22 @@ export async function construct(
 
     case "AudioProject": {
       const tracks = await Promise.all(rep.tracks.map((clip) => construct(clip)));
-      const { projectId, projectName, tempo, loopStart, loopEnd, loopOnPlayback, scaleFactor, viewportStartPx } = rep;
+      const {
+        projectId,
+        projectName,
+        tempo,
+        loopStart,
+        loopEnd,
+        loopOnPlayback,
+        scaleFactor,
+        viewportStartPx,
+        appLayout,
+      } = rep;
       const solodTracks = rep.solodTracks?.map((index) => tracks[index]) ?? [];
       const dspExpandedTracks = rep.dspExpandedTracks?.map((index) => tracks[index]) ?? [];
       const lockedTracks = rep.lockedTracks?.map((index) => tracks[index]) ?? [];
+
+      console.log("appLayout", appLayout);
       return new AudioProject(
         projectId,
         string(projectName),
@@ -381,6 +395,7 @@ export async function construct(
         SPrimitive.of<number | null>(null), // todo
         SPrimitive.of(0), // todo
         set<AudioTrack | MidiTrack>(), // todo
+        SPrimitive.of<AppLayout>(appLayout ?? "primary"),
         scaleFactor,
         viewportStartPx,
       );

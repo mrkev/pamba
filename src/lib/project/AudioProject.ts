@@ -30,6 +30,7 @@ import { TimelineT, time } from "./TimelineT";
 export type PointerTool = "move" | "trimStart" | "trimEnd" | "slice";
 export type SecondaryTool = "move" | "draw";
 export type Panel = "primary" | "secondary" | "sidebar";
+export type AppLayout = "primary" | "secondary";
 export type TimeSignature = readonly [numerator: number, denominator: number];
 export type AxisMeasure = "tempo" | "time";
 
@@ -84,6 +85,8 @@ export class AudioProject {
     readonly cursorTracks: SSet<AudioTrack | MidiTrack>,
     // ^^ TODO: a weak linked set might be a good idea
 
+    readonly layout: SPrimitive<AppLayout>,
+
     // viewport //
     scaleFactor: number,
     viewportStartPx: number,
@@ -125,6 +128,7 @@ export class AudioProject {
       SPrimitive.of<number | null>(null),
       SPrimitive.of(0),
       set<AudioTrack | MidiTrack>(),
+      SPrimitive.of<AppLayout>("primary"),
       10,
       0,
     );
