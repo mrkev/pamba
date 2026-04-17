@@ -22,7 +22,6 @@ export function CommandMenu({
 }) {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
-  const styles = useStyles();
 
   const timeout = useRef<number | null>(null);
   const onMenuCommandTriggered = useCallback(() => {
@@ -100,8 +99,11 @@ export function CommandMenu({
           return (
             <CommandButton
               key={label}
-              style={{ justifyContent: "start" }}
-              className={cn(styles.menuItem, "cursor-pointer whitespace-nowrap font-bold w-full flex flex-row gap-1")}
+              style={{ padding: "1px 6px" }}
+              className={cn(
+                "cursor-pointer whitespace-nowrap font-bold w-full flex flex-row gap-1 justify-start",
+                "text-control-text-color hover:text-white hover:bg-menu-item-hover-background",
+              )}
               command={command}
               project={project}
               onFlash={onMenuCommandTriggered}
@@ -121,14 +123,3 @@ export function CommandMenu({
     </div>
   );
 }
-
-const useStyles = createUseStyles({
-  menuItem: {
-    padding: "1px 6px",
-    color: "var(--control-text-color)",
-    "&:hover": {
-      background: "#23272D",
-      color: "white",
-    },
-  },
-});

@@ -156,9 +156,4 @@ const useStyles = createUseStyles({
   panelExpanded: {},
   horizontal: {},
   vertical: {},
-  bottomPanelTabs: {
-    // paddingTop: "4px",
-    alignSelf: "stretch",
-    // alignItems: "center",
-  },
 });

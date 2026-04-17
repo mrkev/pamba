@@ -12,6 +12,7 @@
   --color-control-bg-color: #b9b9b9;
   --color-control-text-color: black;
   --color-control-subtle-highlight: #959595;
+  --color-menu-item-hover-background: #23272d;
   /* clip */
   --color-clip-color: #69c33a;
   --color-clip-header: #5cab32;
@@ -84,6 +85,12 @@ body {
   --clip-border-selected: #114411;
 
   /* ////// TODO: call light vvv */
+}
+
+.pencil_cursor {
+  cursor:
+    url(pencil-fill.svg) 0 16,
+    auto;
 }
 
 /* from: https://raw.githubusercontent.com/tailwindlabs/tailwindcss/refs/heads/main/packages/tailwindcss/preflight.css */

@@ -76,24 +76,25 @@ export function MidiClipEditor({
 
   return (
     <>
-      <ClipPropsEditor clip={clip} project={project} track={track} />
-
-      <EditorSection title={"Midi Clip"}>
-        <UtilityToggle
-          title={"muted"}
-          onToggle={(muted) => {
-            if (muted) {
-              midiTrack.muteClip(track, clip);
-            } else {
-              midiTrack.unmuteClip(track, clip);
-            }
-          }}
-          // do this given there is a BUG on usePrimitive, muted, and clip.muted.get() are different
-          toggled={muted && clip.muted.get()}
-        >
-          <i className="ri-volume-mute-fill"></i>
-        </UtilityToggle>
-      </EditorSection>
+      <div className="flex flex-col items-stretch" style={{ gap: 4 }}>
+        <ClipPropsEditor clip={clip} project={project} track={track} />
+        <EditorSection title={"Midi Clip"}>
+          <UtilityToggle
+            title={"muted"}
+            onToggle={(muted) => {
+              if (muted) {
+                midiTrack.muteClip(track, clip);
+              } else {
+                midiTrack.unmuteClip(track, clip);
+              }
+            }}
+            // do this given there is a BUG on usePrimitive, muted, and clip.muted.get() are different
+            toggled={muted && clip.muted.get()}
+          >
+            <i className="ri-volume-mute-fill"></i>
+          </UtilityToggle>
+        </EditorSection>
+      </div>
 
       <div className="grid grow" style={{ gridTemplateRows: "1fr auto", gridTemplateColumns: "auto 1fr", gap: 4 }}>
         <div className="flex flex-col">

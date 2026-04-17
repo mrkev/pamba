@@ -56,19 +56,13 @@ export function AudioClipEditor({
 
   return (
     <>
-      <ClipPropsEditor clip={clip} project={project} track={track} />
-      <AudioClipPropsEditor clip={clip} project={project} />
+      <div className="flex flex-col items-stretch" style={{ gap: 4 }}>
+        <ClipPropsEditor clip={clip} project={project} track={track} />
+        <AudioClipPropsEditor clip={clip} project={project} />
+      </div>
       {/* Waveform view */}
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          flexGrow: 1,
-          overflow: "hidden",
-          gap: 4,
-        }}
-      >
-        <div style={{ display: "flex", flexDirection: "row", justifyContent: "flex-end" }}>
+      <div className="flex flex-col grow overflow-hidden" style={{ gap: 4 }}>
+        <div className="flex flex-row justify-end">
           <input
             type="range"
             value={Math.log2(pxPerSec)}

@@ -8,6 +8,7 @@ import { MidiClip } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
 import { TimelineTEditor } from "./TimelineTEditor";
 import { UtilityTextInput } from "./UtilityButton";
+import { cn } from "../utils/cn";
 
 export function ClipPropsEditor(props: { clip: AudioClip; project: AudioProject; track: AudioTrack }): ReactElement;
 export function ClipPropsEditor(props: { clip: MidiClip; project: AudioProject; track: MidiTrack }): ReactElement;
@@ -62,23 +63,20 @@ export function AudioClipPropsEditor({ clip }: { clip: AudioClip; project: Audio
 export function EditorSection({ children, title }: { children: React.ReactNode; title: string }) {
   const styles = useStyles();
   return (
-    <div style={{ marginRight: 4, border: "1px solid #114411", background: "var(--background)" }}>
-      <div className={styles.clipHeader}>{title}</div>
-      <div className={styles.clipBody}>{children}</div>
+    <div className="bg-background" style={{ marginRight: 4, border: "1px solid #114411" }}>
+      <div className={cn(styles.clipHeader, "whitespace-nowrap overflow-hidden shrink-0 text-white box-border")}>
+        {title}
+      </div>
+      <div className={cn(styles.clipBody, "flex flex-col self-start")}>{children}</div>
     </div>
   );
 }
 const useStyles = createUseStyles({
   clipHeader: {
     fontSize: 10,
-    whiteSpace: "nowrap",
-    overflow: "hidden",
-    flexShrink: 0,
     paddingBottom: "0px 0px 1px 0px",
-    color: "white",
     background: "#225522",
     borderBottom: "1px solid #114411",
-    boxSizing: "border-box",
     // borderTopRightRadius: "3px",
     // borderTopLeftRadius: "3px",
     padding: "0px 4px",
@@ -87,10 +85,7 @@ const useStyles = createUseStyles({
     // borderLeft: "1px solid #114411",
     // borderRight: "1px solid #114411",
     // borderBottom: "1px solid #114411",
-    display: "flex",
-    flexDirection: "column",
     fontSize: 11,
-    alignSelf: "flex-start",
     padding: "2px 4px",
   },
 });

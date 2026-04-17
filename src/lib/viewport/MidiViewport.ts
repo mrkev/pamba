@@ -1,6 +1,7 @@
 import { boolean, InitFunctions, JSONOfAuto, number, ReplaceFunctions, SNumber, Structured } from "structured-state";
 import { MIDI_CLIP_EDITOR_MAX_H_SCALE, MIDI_CLIP_EDITOR_MIN_H_SCALE } from "../../constants";
 import { clamp } from "../../utils/math";
+import { PPQN } from "../../wam/miditrackwam/MIDIConfiguration";
 
 export type SMidiViewport = {
   pxPerPulse: number;
@@ -15,6 +16,8 @@ type AutoMidiViewport = {
   scrollLeft: SNumber;
   scrollTop: SNumber;
 };
+
+const CLIP_TOTAL_BARS = 4;
 
 export class MidiViewport extends Structured<AutoMidiViewport, typeof MidiViewport> {
   readonly lockPlayback = boolean(false);
@@ -95,6 +98,17 @@ export class MidiViewport extends Structured<AutoMidiViewport, typeof MidiViewpo
   pxToVerticalNotes(px: number) {
     // console.log("pxToVerticalNotes", px, this.pxNoteHeight.get());
     return px / this.pxNoteHeight.get();
+  }
+
+  secsToPixels(secs: number, tempo: number) {
+    // TODO: we shouldn't need tempo for this if we do the math another way
+
+    // secs to pulses
+    const oneBeatLen = 60 / tempo;
+    const oneTickLen = oneBeatLen / PPQN;
+    const pulses = (secs / oneTickLen) % (CLIP_TOTAL_BARS * PPQN);
+
+    return this.pulsesToPx(pulses);
   }
 }
 

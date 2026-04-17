@@ -1,6 +1,5 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { cn } from "../../utils/cn";
-import { useDrawOnCanvas } from "../useDrawOnCanvas";
 
 interface Dimensions {
   width: number;
@@ -14,12 +13,12 @@ export function ResponsiveCanvas({
   className,
   style,
   canvasStyle,
-}: {
+  ...rest
+}: Omit<React.ComponentProps<"div">, "ref"> & {
   color?: string;
   label?: string;
   drawFn?: (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => void;
   className?: string;
-  style?: React.CSSProperties;
   canvasStyle?: React.CSSProperties;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -84,6 +83,7 @@ export function ResponsiveCanvas({
       className={cn("w-full h-full max-h-full max-w-full box-border overflow-hidden", className)}
       ref={containerRef}
       style={style}
+      {...rest}
     >
       <canvas ref={canvasRef} style={canvasStyle} />
     </div>

@@ -10,7 +10,7 @@ import {
   VERTICAL_PIANO_WIDTH,
 } from "../../constants";
 import { AnalizedPlayer } from "../../lib/io/AnalizedPlayer";
-import { AudioProject } from "../../lib/project/AudioProject";
+import { AudioProject, SecondaryTool } from "../../lib/project/AudioProject";
 import { secsToPulses } from "../../lib/project/TimelineT";
 import { midiViewport } from "../../lib/viewport/MidiViewport";
 import { MidiClip, midiClip } from "../../midi/MidiClip";
@@ -29,8 +29,6 @@ import { MidiEditorGridBackground } from "./MidiEditorGridBackground";
 import { useNotePointerCallbacks } from "./useNotePointerCallbacks";
 import { VerticalPianoRollKeys } from "./VerticalPianoRollKeys";
 
-const CLIP_TOTAL_BARS = 4;
-
 export function MidiClipEditorPianoRoll({
   clip,
   track,
@@ -47,24 +45,13 @@ export function MidiClipEditorPianoRoll({
   const [bpm] = usePrimitive(project.tempo);
   const [selectionBox, setSelectionBox] = useState<null | [number, number, number, number]>(null);
   const cursorDiv = useRef<HTMLDivElement>(null);
-  const [noteHeight, setNoteHeight] = usePrimitive(clip.detailedViewport.pxNoteHeight);
+  const [noteHeight] = usePrimitive(clip.detailedViewport.pxNoteHeight);
   const [scrollLeftPx] = usePrimitive(clip.detailedViewport.scrollLeftPx);
 
-  const secsToPixels = useCallback(
-    (secs: number, tempo: number) => {
-      // TODO: we shouldn't need tempo for this if we do the math another way
-
-      // secs to pulses
-      const oneBeatLen = 60 / tempo;
-      const oneTickLen = oneBeatLen / PPQN;
-      const pulses = (secs / oneTickLen) % (CLIP_TOTAL_BARS * PPQN);
-
-      return clip.detailedViewport.pulsesToPx(pulses);
-    },
-    [clip.detailedViewport],
-  );
-
   usePointerPressMove(editorContainerRef, {
+    down: useCallback(() => {
+      // todo: cancel if drawing tool
+    }, []),
     move: useCallback((ev: PointerEvent, meta: PointerPressMeta) => {
       const containerRect = editorContainerRef.current?.getBoundingClientRect();
       if (containerRect == null) {
@@ -172,10 +159,10 @@ export function MidiClipEditorPianoRoll({
         return;
       }
 
-      cursorElem.style.left = String(secsToPixels(playbackTimeSecs, bpm)) + "px";
+      cursorElem.style.left = String(clip.detailedViewport.secsToPixels(playbackTimeSecs, bpm)) + "px";
       cursorElem.style.display = "block";
     });
-  }, [bpm, clip, player, player.isAudioPlaying, project, secsToPixels]);
+  }, [bpm, clip, player, player.isAudioPlaying, project]);
 
   useEventListener(
     "mousedown",
@@ -245,12 +232,24 @@ export function MidiClipEditorPianoRoll({
 
       <VerticalPianoRollKeys clip={clip} track={track} />
 
-      <PianoRollView project={project} track={track} clip={clip}>
+      <PianoRollView project={project} track={track} clip={clip} ref={editorContainerRef}>
         {/* cursor */}
         <div
           className={cn("name-sec-cursor", "absolute h-full pointer-events-none top-0 bg-[red] w-px")}
           ref={cursorDiv}
         />
+
+        {selectionBox && (
+          <div
+            className="absolute border border-white/80 bg-white/10 box-border pointer-events-none"
+            style={{
+              left: selectionBox[0],
+              top: selectionBox[1],
+              width: selectionBox[2],
+              height: selectionBox[3],
+            }}
+          />
+        )}
       </PianoRollView>
     </div>
   );
@@ -261,22 +260,33 @@ function PianoRollView({
   track,
   clip,
   children,
-}: {
+  ref,
+  className,
+  ...rest
+}: React.ComponentProps<"div"> & {
   project: AudioProject;
   track: MidiTrack;
   clip: MidiClip;
   children?: ReactNode;
 }) {
-  const prRef = useRef<HTMLDivElement>(null);
   const notes = useContainer(clip.buffer.notes);
-  const [selectionBox] = useState<null | [number, number, number, number]>(null);
   const clipSel = useContainer(clip.selectedNotes);
   const [secondarySel] = useLinkAsState(project.secondarySelection);
-  const [panelTool] = usePrimitive(project.panelTool);
+  const [panelTool] = usePrimitive<SecondaryTool>(project.panelTool);
   const noteEvents = useNotePointerCallbacks(panelTool);
 
   return (
-    <div ref={prRef} className={cn("name-note-editor", "relative max-w-full max-h-full overflow-visible")}>
+    <div
+      ref={ref}
+      className={cn(
+        "name-note-editor",
+        "relative max-w-full max-h-full overflow-visible",
+        panelTool === "draw" && "pencil_cursor",
+        panelTool === "move" && "cursor-default",
+        className,
+      )}
+      {...rest}
+    >
       {/* background with lines */}
       <MidiEditorGridBackground clip={clip} project={project} />
 
@@ -298,21 +308,7 @@ function PianoRollView({
           />
         );
       })}
-
       {children}
-
-      {/* selection box */}
-      {selectionBox && (
-        <div
-          className={cn("name-selection-box", "absolute border border-blue-600/60 bg-blue-400/30 box-border")}
-          style={{
-            left: selectionBox[0],
-            top: selectionBox[1],
-            width: selectionBox[2],
-            height: selectionBox[3],
-          }}
-        />
-      )}
     </div>
   );
 }

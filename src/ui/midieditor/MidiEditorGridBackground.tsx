@@ -1,10 +1,9 @@
 import { useCallback } from "react";
 import { useContainer, usePrimitive } from "structured-state";
-import { TOTAL_VERTICAL_NOTES } from "../../constants";
+import { CANVAS_SCALE, TOTAL_VERTICAL_NOTES } from "../../constants";
 import { AudioProject } from "../../lib/project/AudioProject";
 import { MidiClip } from "../../midi/MidiClip";
 import { PPQN } from "../../wam/miditrackwam/MIDIConfiguration";
-import { CANVAS_SCALE } from "../../constants";
 import { ResponsiveCanvas } from "./ResponsiveCanvas";
 import { keyboardColorOfNote, NOTES } from "./VerticalPianoRollKeys";
 
@@ -68,9 +67,7 @@ export function MidiEditorGridBackground({ clip, project }: { clip: MidiClip; pr
         // top: 0 bc we render the whole height of notes always
         top: 0,
       }}
-      canvasStyle={{
-        imageRendering: "pixelated",
-      }}
+      canvasStyle={{ imageRendering: "pixelated" }}
     />
   );
 }

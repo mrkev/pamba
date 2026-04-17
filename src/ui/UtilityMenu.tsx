@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { createUseStyles } from "react-jss";
 import { cn } from "../utils/cn";
 import { utility } from "./utility";
 
@@ -18,7 +17,6 @@ export function UtilityMenu({
 }) {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
-  const styles = useStyles();
 
   useEffect(() => {
     const elem = buttonRef.current;
@@ -92,7 +90,12 @@ export function UtilityMenu({
           {Object.entries(items).map(([label, cb]) => (
             <div
               key={label}
-              className={cn(styles.menuItem, "cursor-pointer whitespace-nowrap font-bold")}
+              className={cn(
+                styles.menuItem,
+                "cursor-pointer whitespace-nowrap font-bold",
+                "text-control-text-color hover:bg-menu-item-hover-background hover:text-white",
+              )}
+              style={{ padding: "1px 6px" }}
               onMouseDown={cb}
             >
               {label}
@@ -103,14 +106,3 @@ export function UtilityMenu({
     </div>
   );
 }
-
-const useStyles = createUseStyles({
-  menuItem: {
-    padding: "1px 6px",
-    color: "var(--control-text-color)",
-    "&:hover": {
-      background: "#23272D",
-      color: "white",
-    },
-  },
-});

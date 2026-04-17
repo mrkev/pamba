@@ -35,6 +35,7 @@ export function TimelineLine({
         left,
         ...style,
       }}
+      {...rest}
     />
   );
 }
