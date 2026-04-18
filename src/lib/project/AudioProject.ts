@@ -80,8 +80,8 @@ export class AudioProject {
     // selection //
     // the width of the selection at the playback cursor
     // TODO: Rename cursor time width or something?
-    readonly selectionWidth: SPrimitive<number | null>,
-    readonly cursorPos: SNumber,
+    readonly selectionWidth: SPrimitive<number | null>, // in seconds
+    readonly cursorPos: SNumber, // in seconds
     readonly cursorTracks: SSet<AudioTrack | MidiTrack>,
     // ^^ TODO: a weak linked set might be a good idea
 

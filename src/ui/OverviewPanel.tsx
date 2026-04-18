@@ -2,7 +2,7 @@ import classNames from "classnames";
 import { useLinkAsState } from "marked-subbable";
 import { useRef } from "react";
 import { useContainer, usePrimitive } from "structured-state";
-import { OVERVIEW_MAX_HEIGHT, OVERVIEW_TRACK_MIN_HEIGHT } from "../constants";
+import { MAX_TIMELINE_SCALE, MIN_TIMELINE_SCALE, OVERVIEW_MAX_HEIGHT, OVERVIEW_TRACK_MIN_HEIGHT } from "../constants";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioTrack } from "../lib/AudioTrack";
@@ -15,7 +15,7 @@ import { MidiClip } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
 import { cn } from "../utils/cn";
 import { TimelineCursor, TimelineLine } from "./TimelineCursor";
-import { useViewportScrollEvents } from "./useViewportScrollEvents";
+import { useStandardViewport } from "./useStandardViewport";
 import { ViewportPlaybackCursor } from "./ViewportCursor";
 
 export function OverviewPanel({
@@ -35,12 +35,8 @@ export function OverviewPanel({
   const [scale] = usePrimitive(project.viewport.pxPerSecond);
   const [loopPlayback] = usePrimitive(project.loopOnPlayback);
   const overviewRef = useRef<HTMLDivElement>(null);
-  useViewportScrollEvents(overviewRef, {
-    scale: () => {
-      console.log("SCALE");
-    },
-    panX: () => {},
-  });
+
+  useStandardViewport(overviewRef, project.viewport, MIN_TIMELINE_SCALE, MAX_TIMELINE_SCALE);
 
   const cursorStyle = { minHeight: tracks.length * OVERVIEW_TRACK_MIN_HEIGHT + tracks.length };
 
@@ -77,7 +73,7 @@ export function OverviewPanel({
         <TimelineLine project={project} pos={project.loopEnd} color={"rgb(255,165,0)"} style={cursorStyle} />
       )}
 
-      <TimelineCursor project={project} style={cursorStyle} />
+      <TimelineCursor project={project} viewport={project.viewport} style={cursorStyle} />
       <ViewportPlaybackCursor viewport={project.viewport} player={player} style={cursorStyle} />
     </div>
   );

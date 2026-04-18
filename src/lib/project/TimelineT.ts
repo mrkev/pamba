@@ -9,13 +9,13 @@ import { TimelineOperation } from "./TimelineOperation";
 
 // bars might be good to differentiate the future, when
 // we work on different time signatures (ie, variable pulses per bar)
-export type TimeUnit = "pulses" | "seconds" | "bars";
+export type TimeUnit = "pulses" | "seconds" | "bars" | "frames";
 
 type AutoTimelineT = STimelineT;
 
-function pulsesToFr(pulses: number, bpm: number) {
+function pulsesToFr(pulses: number, sampleRate: number, bpm: number) {
   // TODO: not a constant sample rate
-  const k = (liveAudioContext().sampleRate * SECS_IN_MIN) / PPQN;
+  const k = (sampleRate * SECS_IN_MIN) / PPQN;
   return (k * pulses) / bpm;
 }
 
@@ -86,6 +86,8 @@ export class TimelineT extends Structured<AutoTimelineT, typeof TimelineT> {
     return this;
   }
 
+  /** get as unit */
+
   secs(project: AudioProject): Seconds {
     switch (this.unit) {
       case "seconds":
@@ -94,6 +96,8 @@ export class TimelineT extends Structured<AutoTimelineT, typeof TimelineT> {
         return pulsesToSec(this.t, project.tempo.get()) as Seconds;
       case "bars":
         return pulsesToSec(this.pulses(project), project.tempo.get()) as Seconds;
+      case "frames":
+        throw new Error("unimplemented");
       default:
         exhaustive(this.unit);
     }
@@ -111,6 +115,8 @@ export class TimelineT extends Structured<AutoTimelineT, typeof TimelineT> {
         return t as Pulses;
       case "bars":
         return (t * PULSES_PER_BAR) as Pulses;
+      case "frames":
+        throw new Error("unimplemented");
       default:
         exhaustive(u);
     }
@@ -125,6 +131,24 @@ export class TimelineT extends Structured<AutoTimelineT, typeof TimelineT> {
         return this.t / PULSES_PER_BAR;
       case "bars":
         return this.t;
+      case "frames":
+        throw new Error("unimplemented");
+      default:
+        exhaustive(this.unit);
+    }
+  }
+
+  frames(project: AudioProject): number {
+    const SAMPLE_RATE = liveAudioContext().sampleRate;
+    switch (this.unit) {
+      case "seconds":
+        return this.t * SAMPLE_RATE;
+      case "pulses":
+        return pulsesToFr(this.t, SAMPLE_RATE, project.tempo.get());
+      case "bars":
+        return pulsesToFr(this.pulses(project), SAMPLE_RATE, project.tempo.get());
+      case "frames":
+        return this.t;
       default:
         exhaustive(this.unit);
     }
@@ -138,6 +162,8 @@ export class TimelineT extends Structured<AutoTimelineT, typeof TimelineT> {
         return this.pulses(project);
       case "bars":
         return this.bars(project);
+      case "frames":
+        throw new Error("unimplemented");
       default:
         exhaustive(u);
     }
@@ -203,6 +229,8 @@ export class TimelineT extends Structured<AutoTimelineT, typeof TimelineT> {
         return this.t * PULSES_PER_BAR;
       case "pulses":
         return this.t;
+      case "frames":
+        throw new Error("unimplemented");
       default:
         exhaustive(this.unit);
     }
@@ -215,6 +243,8 @@ export class TimelineT extends Structured<AutoTimelineT, typeof TimelineT> {
       case "bars":
       case "pulses":
         throw new Error("expected pulses, found " + this.unit);
+      case "frames":
+        throw new Error("unimplemented");
       default:
         exhaustive(this.unit);
     }

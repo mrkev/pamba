@@ -5,7 +5,7 @@ import { AudioProject } from "../lib/project/AudioProject";
 import { TimelineT } from "../lib/project/TimelineT";
 import { exhaustive } from "../utils/exhaustive";
 
-const UNITS = ["pulses", "seconds", "bars"] as const;
+const UNITS = ["pulses", "seconds", "bars", "frames"] as const;
 type DisplayTimeUnit = (typeof UNITS)[number];
 
 export function TimelineTEditor({
@@ -64,6 +64,8 @@ function unitAbbr(unit: DisplayTimeUnit) {
       return "sec";
     case "bars":
       return "bar";
+    case "frames":
+      return "frm";
     default:
       exhaustive(unit);
   }
@@ -77,6 +79,8 @@ function unitTitle(unit: DisplayTimeUnit) {
       return "Seconds";
     case "bars":
       return "Bars";
+    case "frames":
+      return "Frames";
     default:
       exhaustive(unit);
   }

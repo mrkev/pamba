@@ -1,5 +1,4 @@
 import { InitFunctions, JSONOfAuto, number, ReplaceFunctions, SNumber, SPrimitive, Structured } from "structured-state";
-import { clamp } from "../../utils/math";
 import { StandardViewport } from "./StandardViewport";
 import { ymxb } from "./linear";
 
@@ -10,9 +9,14 @@ type AutoAudioViewport = {
   scrollLeft: SNumber;
 };
 
+// idea, everything related to time as a pair of TimelineT
+// everything needs to be relative to something else
+// position (0, y); needs a basis of 0.
+// range (x, y)
+
 export class AudioViewport extends Structured<AutoAudioViewport, typeof AudioViewport> implements StandardViewport {
   readonly lockPlayback = SPrimitive.of(false);
-  readonly selectionWidthFr = SPrimitive.of<number | null>(null);
+  readonly selectionWidthFr = SPrimitive.of<number | null>(null); // relative to cursor
 
   constructor(
     //
@@ -65,11 +69,10 @@ export class AudioViewport extends Structured<AutoAudioViewport, typeof AudioVie
     return ymxb(factor, s, b); // y = mx + b
   }
 
-  setScale(expectedNewScale: number, min: number, max: number, mouseX: number) {
+  setScale(newScale: number, mouseX: number) {
     // min scale is 0.64, max is 1000
-    const newScale = clamp(min, expectedNewScale, max);
     const currentScaleFactor = this.pxPerSecond.get();
-    const scaleFactorFactor = expectedNewScale / currentScaleFactor;
+    const scaleFactorFactor = newScale / currentScaleFactor;
 
     if (newScale === currentScaleFactor) {
       return;

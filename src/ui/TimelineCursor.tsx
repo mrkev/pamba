@@ -1,6 +1,7 @@
 import { useContainer, usePrimitive } from "structured-state";
 import { AudioProject } from "../lib/project/AudioProject";
 import { TimelineT } from "../lib/project/TimelineT";
+import { StandardViewport } from "../lib/viewport/StandardViewport";
 import { cn } from "../utils/cn";
 
 export function TimelineLine({
@@ -40,13 +41,21 @@ export function TimelineLine({
   );
 }
 
-export function TimelineCursor({ project, style }: { project: AudioProject; style?: React.CSSProperties }) {
+export function TimelineCursor({
+  project,
+  style,
+  viewport,
+}: {
+  project: AudioProject;
+  viewport: StandardViewport;
+  style?: React.CSSProperties;
+}) {
   const [cursorPos] = usePrimitive(project.cursorPos);
   const [selectionWidthRaw] = usePrimitive(project.selectionWidth);
   const selectionWidth = selectionWidthRaw == null ? 0 : selectionWidthRaw;
 
-  let left = project.viewport.secsToPx(cursorPos, "pos");
-  let width = project.viewport.secsToPx(Math.abs(selectionWidth), "len");
+  let left = viewport.secsToPx(cursorPos, "pos");
+  let width = viewport.secsToPx(Math.abs(selectionWidth), "len");
 
   if (selectionWidth < 0) {
     left = left - width;

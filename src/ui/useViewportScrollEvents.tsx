@@ -3,7 +3,7 @@ import { nullthrows } from "../utils/nullthrows";
 import { useEventListener } from "./useEventListener";
 
 export function useViewportScrollEvents(
-  divRef: React.RefObject<HTMLDivElement | null>,
+  divRef: React.RefObject<HTMLElement | null>,
   { scale, panX }: { scale: (sDelta: number, mouseX: number) => void; panX: (left: number, absolute: boolean) => void },
 ) {
   const context = useRef({ wheelCalled: false });

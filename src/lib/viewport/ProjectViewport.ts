@@ -1,6 +1,7 @@
 import { ScaleLinear } from "d3-scale";
 import { InitFunctions, JSONOfAuto, number, ReplaceFunctions, SNumber, Structured } from "structured-state";
 import { SECS_IN_MIN } from "../../constants";
+import { exhaustive } from "../../utils/exhaustive";
 import { clamp } from "../../utils/math";
 import { nullthrows } from "../../utils/nullthrows";
 import { PPQN } from "../../wam/miditrackwam/MIDIConfiguration";
@@ -67,6 +68,10 @@ export class ProjectViewport
         return this.pulsesToPx(p.ensurePulses(), mode);
       case "seconds":
         return this.secsToPx(p.ensureSecs(), mode);
+      case "frames":
+        throw new Error("unimplemented");
+      default:
+        exhaustive(p.unit);
     }
   }
 
@@ -78,6 +83,10 @@ export class ProjectViewport
         return this.pulsesToViewportPx(p.ensurePulses(), mode);
       case "seconds":
         return this.secsToViewportPx(p.ensureSecs(), mode);
+      case "frames":
+        throw new Error("unimplemented");
+      default:
+        exhaustive(p.unit);
     }
   }
 
@@ -138,8 +147,11 @@ export class ProjectViewport
         return this.pxToPulses(px, mode);
       case "seconds":
         return this.pxToSecs(px, mode);
+      case "frames":
+        throw new Error("unimplemented");
+      default:
+        exhaustive(unit);
     }
-    throw new Error("unimplemented");
   }
 
   secsToPulses(secs: number) {

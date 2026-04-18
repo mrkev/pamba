@@ -1,15 +1,12 @@
 import useResizeObserver from "@react-hook/resize-observer";
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
-import { flushSync } from "react-dom";
 import { useContainer, usePrimitive } from "structured-state";
 import { MAX_TIMELINE_SCALE, MIN_TIMELINE_SCALE } from "../constants";
 import { useTimelineMouseEvents } from "../input/useProjectMouseEvents";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioRenderer } from "../lib/io/AudioRenderer";
 import { AudioProject } from "../lib/project/AudioProject";
-import { projectViewport } from "../lib/viewport/ProjectViewport";
 import { cn } from "../utils/cn";
-import { clamp } from "../utils/math";
 import { nullthrows } from "../utils/nullthrows";
 import { Axis } from "./Axis";
 import { getTrackAcceptableDataTransferResources } from "./dragdrop/getTrackAcceptableDataTransferResources";
@@ -17,7 +14,7 @@ import { handleDropOntoTimelineWhitespace } from "./dragdrop/resourceDrop";
 import { pressedState } from "./pressedState";
 import { TimelineCursor, TimelineLine } from "./TimelineCursor";
 import { TrackS } from "./TrackS";
-import { useViewportScrollEvents } from "./useViewportScrollEvents";
+import { useStandardViewport } from "./useStandardViewport";
 import { ViewportPlaybackCursor } from "./ViewportCursor";
 
 export function ProjectView({ project, renderer }: { project: AudioProject; renderer: AudioRenderer }) {
@@ -48,30 +45,7 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
     ),
   );
 
-  useViewportScrollEvents(projectDivRef, {
-    scale: useCallback(
-      (sDelta, mouseX) => {
-        // max scale is 1000
-        const expectedNewScale = clamp(
-          MIN_TIMELINE_SCALE,
-          project.viewport.pxPerSecond.get() * sDelta,
-          MAX_TIMELINE_SCALE,
-        );
-        projectViewport.setXScale(project.viewport, expectedNewScale, mouseX);
-      },
-      [project.viewport],
-    ),
-
-    panX: useCallback(
-      (deltaX, absolute) => {
-        const start = absolute ? deltaX : Math.max(project.viewport.scrollLeftPx.get() + deltaX, 0);
-        flushSync(() => {
-          project.viewport.scrollLeftPx.set(start);
-        });
-      },
-      [project.viewport.scrollLeftPx],
-    ),
-  });
+  useStandardViewport(projectDivRef, project.viewport, MIN_TIMELINE_SCALE, MAX_TIMELINE_SCALE);
 
   useTimelineMouseEvents(project, projectDivRef);
 
@@ -169,7 +143,7 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
       {loopPlayback && <TimelineLine project={project} pos={project.loopEnd} color={"rgb(255,165,0)"} />}
 
       {/* Selection Cursor  */}
-      <TimelineCursor project={project} />
+      <TimelineCursor project={project} viewport={project.viewport} />
 
       {/* Playback Cursor */}
       <ViewportPlaybackCursor viewport={project.viewport} player={player} />

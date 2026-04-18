@@ -378,6 +378,7 @@ export function useTimelineMouseEvents(
                   break;
                 }
 
+                case "frames":
                 case "bars": {
                   throw new Error("todo: unimplmented");
                 }

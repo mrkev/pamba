@@ -7,8 +7,8 @@ import { AnalizedPlayer } from "../lib/io/AnalizedPlayer";
 import { AudioProject } from "../lib/project/AudioProject";
 import { nullthrows } from "../utils/nullthrows";
 import { pressedState } from "./pressedState";
-import { useEventListener } from "./useEventListener";
 import { useSelectOnSurface } from "./useSelectOnSurface";
+import { useStandardViewport } from "./useStandardViewport";
 
 export function AudioClipBufferView({
   clip,
@@ -28,6 +28,9 @@ export function AudioClipBufferView({
     selectionWidthFr == null ? 0 : selectionWidthFr,
     clip.sampleRate,
   );
+
+  const MIN_SCALE = 10;
+  const MAX_SCALE = clip.sampleRate;
 
   // for waveform
   const [scrollLeftPx] = usePrimitive(clip.detailedViewport.scrollLeftPx);
@@ -49,42 +52,7 @@ export function AudioClipBufferView({
     [clip.sampleRate, clip.timelineStartSec],
   );
 
-  useEventListener(
-    "wheel",
-    waveformRef,
-    useCallback(
-      function (e: WheelEvent) {
-        e.preventDefault();
-        e.stopPropagation();
-
-        const canvas = nullthrows(waveformRef.current);
-        const mouseX = e.clientX - canvas.getBoundingClientRect().left;
-
-        // both pinches and two-finger pans trigger the wheel event trackpads.
-        // ctrlKey is true for pinches though, so we can use it to differentiate
-        // one from the other.
-        // pinch
-        if (e.ctrlKey) {
-          const sDelta = Math.exp(-e.deltaY / 70);
-          const expectedNewScale = clip.detailedViewport.pxPerSecond.get() * sDelta;
-          // Min: 10 <->  Max: Sample rate
-          clip.detailedViewport.setScale(expectedNewScale, 10, clip.sampleRate, mouseX);
-        }
-
-        // pan
-        else {
-          if (lockPlayback) {
-            clip.detailedViewport.lockPlayback.set(false);
-            // TODO: not working, keeping current scroll left position hmm
-            const offsetFr = offsetFrOfPlaybackPos(player.playbackPos.get());
-            clip.detailedViewport.scrollLeftPx.set(offsetFr / clip.sampleRate);
-          }
-          clip.detailedViewport.scrollLeftPx.setDyn((prev) => Math.max(prev + e.deltaX, 0));
-        }
-      },
-      [clip.detailedViewport, clip.sampleRate, lockPlayback, offsetFrOfPlaybackPos, player.playbackPos],
-    ),
-  );
+  useStandardViewport(waveformRef, clip.detailedViewport, MIN_SCALE, MAX_SCALE);
 
   useSelectOnSurface(
     waveformRef,
@@ -178,8 +146,8 @@ export function AudioClipBufferView({
         <GPUWaveform
           ref={waveformRef}
           audioBuffer={clip.buffer}
-          scale={clip.detailedViewport.framesPerPixel(clip.sampleRate)}
-          offset={lockPlayback ? offsetFrOfPlaybackPos(playbackPos) : waveformStartFr * devicePixelRatio}
+          scale={clip.detailedViewport.framesPerPixel(clip.sampleRate) / devicePixelRatio}
+          offset={lockPlayback ? offsetFrOfPlaybackPos(playbackPos) : waveformStartFr}
           width={(width || 1) * devicePixelRatio}
           height={(height || 1) * devicePixelRatio}
           color="black"
@@ -190,33 +158,27 @@ export function AudioClipBufferView({
       {cursorPosInClipPx > 0 &&
         cursorPosInClipPx < 1000 && ( // TODO
           <div
+            className="absolute top-0 h-full select-none pointer-events-none"
             style={{
               borderLeft: "1px solid var(--cursor)",
               background: "rgba(232,136,58,0.5)",
               borderRight: selectionWidthPx === 0 ? undefined : "1px solid orange",
-              height: "100%",
-              position: "absolute",
-              userSelect: "none",
-              pointerEvents: "none",
               // TODO center when locked
               left: selectionWidthPx >= 0 ? cursorPosInClipPx : cursorPos + selectionWidthPx,
               width: selectionWidthPx === 0 ? 0 : Math.floor(Math.abs(selectionWidthPx) - 1),
-              top: 0,
             }}
           />
         )}
+      {/* <TimelineCursor project={project} viewport={clip.detailedViewport} /> */}
+      {/* <ViewportPlaybackCursor viewport={clip.detailedViewport} player={player} /> */}
+
       {/* playback div */}
       <div
         ref={playbackDiv}
+        className="absolute top-0 w-px h-full select-none pointer-events-none"
         style={{
           borderLeft: "1px solid red",
-          height: "100%",
-          position: "absolute",
-          userSelect: "none",
-          pointerEvents: "none",
           left: playbackDivLeft,
-          width: 1,
-          top: 0,
         }}
       />
     </div>

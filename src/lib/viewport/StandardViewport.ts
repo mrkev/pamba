@@ -1,5 +1,5 @@
 import { SNumber } from "structured-state";
-import { ymxb } from "./linear";
+import { clamp } from "../../utils/math";
 
 export interface StandardViewport {
   scrollLeftPx: SNumber;
@@ -7,9 +7,18 @@ export interface StandardViewport {
   secsToPx(s: number, mode: "len" | "pos"): number;
 }
 
-export const viewport = {
-  secsToPx(v: StandardViewport, s: number, b = 0): number {
-    const factor = v.pxPerSecond.get();
-    return ymxb(factor, s, b); // y = mx + b
+export const standardViewport = {
+  setScale(viewport: StandardViewport, MIN_SCALE: number, MAX_SCALE: number, sDelta: number, mouseX = 0) {
+    const newScale = clamp(MIN_SCALE, viewport.pxPerSecond.get() * sDelta, MAX_SCALE);
+    const currentScaleFactor = viewport.pxPerSecond.get();
+    const scaleFactorFactor = newScale / currentScaleFactor;
+
+    viewport.pxPerSecond.set(newScale);
+    const newStartPx = (viewport.scrollLeftPx.get() + mouseX) * scaleFactorFactor - mouseX;
+    if (newStartPx < 0) {
+      viewport.scrollLeftPx.set(0);
+    } else {
+      viewport.scrollLeftPx.set(newStartPx);
+    }
   },
 };
