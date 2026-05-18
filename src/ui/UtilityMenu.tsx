@@ -91,7 +91,6 @@ export function UtilityMenu({
             <div
               key={label}
               className={cn(
-                styles.menuItem,
                 "cursor-pointer whitespace-nowrap font-bold",
                 "text-control-text-color hover:bg-menu-item-hover-background hover:text-white",
               )}
