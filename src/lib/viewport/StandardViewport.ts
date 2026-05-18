@@ -1,10 +1,12 @@
 import { SNumber } from "structured-state";
 import { clamp } from "../../utils/math";
+import { ymxb } from "./linear";
 
 export interface StandardViewport {
   scrollLeftPx: SNumber;
   pxPerSecond: SNumber;
   secsToPx(s: number, mode: "len" | "pos"): number;
+  pxToSecs(px: number, mode: "len" | "pos"): number;
 }
 
 export const standardViewport = {
@@ -20,5 +22,14 @@ export const standardViewport = {
     } else {
       viewport.scrollLeftPx.set(newStartPx);
     }
+  },
+
+  secsToViewportPx(viewport: StandardViewport, s: number, mode: "pos"): number {
+    const START_PADDING_PX = 0; // todo, put in viewport?
+    const factor = viewport.pxPerSecond.get();
+    const viewportStartPx = viewport.scrollLeftPx.get();
+    const b = START_PADDING_PX;
+
+    return ymxb(factor, s, -viewportStartPx + b);
   },
 };

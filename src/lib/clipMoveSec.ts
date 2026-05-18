@@ -1,5 +1,5 @@
 import { MidiClip } from "../midi/MidiClip";
-import { getOneTickLen } from "../ui/Axis";
+import { getOneTickLen } from "../ui/axis/getBeatTickData";
 import { clamp, returnClosest, stepNumber } from "../utils/math";
 import { PPQN } from "../wam/miditrackwam/MIDIConfiguration";
 import { AudioClip } from "./AudioClip";

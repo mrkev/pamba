@@ -62,7 +62,7 @@ export function AudioClipBufferView({
         const mouseX = e.clientX - canvas.getBoundingClientRect().left;
         // const positionSamples = clip.detailedViewport.pxToFr(mouseX + waveformStartFr, clip.sampleRate);
         // const positionSecs = positionSamples / clip.sampleRate;
-        const positionSecs = clip.detailedViewport.pxToSec(mouseX);
+        const positionSecs = clip.detailedViewport.pxToSecs(mouseX, "pos"); // pos I think
         const positionTimeline = positionSecs + clip.timelineStart.ensureSecs();
 
         project.cursorPos.set(positionTimeline);

@@ -51,7 +51,7 @@ export class AudioViewport extends Structured<AutoAudioViewport, typeof AudioVie
     return Math.floor((px / this.pxPerSecond.get()) * sampleRate);
   }
 
-  pxToSec(px: number) {
+  pxToSecs(px: number, mode: "len" | "pos") {
     return (px + this.scrollLeftPx.get()) / this.pxPerSecond.get();
   }
 

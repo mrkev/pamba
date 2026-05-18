@@ -8,7 +8,7 @@ import { useAxisContainerMouseEvents } from "../input/useProjectMouseEvents";
 import { AudioRenderer } from "../lib/io/AudioRenderer";
 import { AudioProject } from "../lib/project/AudioProject";
 import { cn } from "../utils/cn";
-import { Axis } from "./Axis";
+import { Axis } from "./axis/Axis";
 import { CursorSelection } from "./CursorSelection";
 import { LoopMarkers } from "./LoopMarkers";
 import { ProjectView } from "./ProjectView";

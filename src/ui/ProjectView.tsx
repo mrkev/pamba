@@ -8,7 +8,7 @@ import { AudioRenderer } from "../lib/io/AudioRenderer";
 import { AudioProject } from "../lib/project/AudioProject";
 import { cn } from "../utils/cn";
 import { nullthrows } from "../utils/nullthrows";
-import { Axis } from "./Axis";
+import { Axis } from "./axis/Axis";
 import { getTrackAcceptableDataTransferResources } from "./dragdrop/getTrackAcceptableDataTransferResources";
 import { handleDropOntoTimelineWhitespace } from "./dragdrop/resourceDrop";
 import { pressedState } from "./pressedState";
