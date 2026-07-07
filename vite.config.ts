@@ -3,13 +3,7 @@ import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import faustLoader from "vite-plugin-faust";
 import svgrPlugin from "vite-plugin-svgr";
-import viteTsconfigPaths from "vite-tsconfig-paths";
 import tailwindcss from "@tailwindcss/vite";
-
-// To polyfill Buffer
-import { NodeGlobalsPolyfillPlugin } from "@esbuild-plugins/node-globals-polyfill";
-import { NodeModulesPolyfillPlugin } from "@esbuild-plugins/node-modules-polyfill";
-// import RollupPluginNodePolyfill from "rollup-plugin-node-polyfills";
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -17,7 +11,7 @@ export default defineConfig({
     root: "src",
     environment: "jsdom",
   },
-  plugins: [react(), tailwindcss(), viteTsconfigPaths(), svgrPlugin(), faustLoader()],
+  plugins: [react(), tailwindcss(), svgrPlugin(), faustLoader()],
   define: {
     __APP_VERSION__: JSON.stringify(process.env.npm_package_version),
   },
@@ -33,10 +27,6 @@ export default defineConfig({
       // },
     },
   },
-  esbuild: {
-    // target: "es2020",
-    // banner: "console.log('hi');",
-  },
   server: {
     headers: {
       "Cross-Origin-Opener-Policy": "same-origin",
@@ -44,15 +34,8 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
-    esbuildOptions: {
-      // define: { global: "globalThis" },
-      plugins: [
-        NodeGlobalsPolyfillPlugin({
-          buffer: true,
-          // process: true,
-        }),
-        NodeModulesPolyfillPlugin(),
-      ],
-    },
+    // Only scan the app entry. The `packages/*` git submodules ship typedoc HTML
+    // that Vite 8's Rolldown-based dep scanner would otherwise try to crawl.
+    entries: ["index.html"],
   },
 });
