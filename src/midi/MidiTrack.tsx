@@ -11,7 +11,7 @@ import {
   boolean,
   string,
 } from "structured-state";
-import { Subbable } from "structured-state/dist/state/Subbable";
+import type { Subbable } from "structured-state";
 import { TRACK_HEIGHT, SECS_IN_MINUTE, TIME_SIGNATURE, liveAudioContext } from "../constants";
 import { DSP } from "../dsp/DSP";
 import { TrackedAudioNode } from "../dsp/TrackedAudioNode";

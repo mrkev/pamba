@@ -63,7 +63,7 @@ export function StandardAxis({
               <line
                 x1={px}
                 x2={px}
-                y1={primaryAxis === "time" ? "70%" : "0"}
+                y1="0"
                 y2="100%"
                 stroke="var(--timeline-tick)"
               ></line>

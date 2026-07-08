@@ -149,6 +149,12 @@ export class SOrderedMap<K, V> extends Structured<EmptyObj, typeof SOrderedMap> 
   set(key: K, value: V): this {
     throw new Error("Method not implemented.");
   }
+  getOrInsert(_key: K, _defaultValue: V): V {
+    throw new Error("Method not implemented.");
+  }
+  getOrInsertComputed(_key: K, _callback: (key: K) => V): V {
+    throw new Error("Method not implemented.");
+  }
   get size(): number {
     return this._map.size;
   }

@@ -47,7 +47,7 @@
     "standardized-audio-context-mock": "^9.7.29",
     "structured-state": "file:../substate/packages/structured-state",
     "tailwindcss": "^4.3.2",
-    "typescript": "5.9.3",
+    "typescript": "6.0.3",
     "typescript-eslint": "^8.63.0",
     "ulid": "^3.0.2",
     "uuid": "^14.0.1",
