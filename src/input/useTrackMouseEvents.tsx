@@ -5,6 +5,7 @@ import { pressedState } from "../ui/pressedState";
 import { useEventListener } from "../ui/useEventListener";
 import { snapped } from "../lib/viewport/snap";
 import { MidiTrack } from "../midi/MidiTrack";
+import { standardViewport } from "../lib/viewport/StandardViewport";
 
 // TODO: merge into project mouse events?
 export function useTrackMouseEvents(
@@ -46,7 +47,7 @@ export function useTrackMouseEvents(
           y: e.clientY + div.scrollTop - div.getBoundingClientRect().y,
         };
 
-        const asSecs = project.viewport.pxToSecs(position.x, "pos");
+        const asSecs = standardViewport.pxToSecs(project.viewport, position.x, "pos");
         const newPos = Math.max(0, snapped(project, e, asSecs));
 
         pressedState.set({

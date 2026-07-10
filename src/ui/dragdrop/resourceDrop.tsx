@@ -4,6 +4,7 @@ import { AudioClip } from "../../lib/AudioClip";
 import { AudioTrack } from "../../lib/AudioTrack";
 import { AudioProject } from "../../lib/project/AudioProject";
 import { standardTrack } from "../../lib/StandardTrack";
+import { standardViewport } from "../../lib/viewport/StandardViewport";
 import { MidiClip } from "../../midi/MidiClip";
 import { MidiInstrument } from "../../midi/MidiInstrument";
 import { MidiTrack } from "../../midi/MidiTrack";
@@ -70,7 +71,7 @@ export async function handleDropOntoAudioTrack(
       console.warn("NOT IMEPLEMENTED");
       break;
     case "audio":
-      const startOffsetSec = project.viewport.pxToSecs(position, "pos");
+      const startOffsetSec = standardViewport.pxToSecs(project.viewport, position, "pos");
       await loadAudioClipIntoTrack(project, resource.url, track, startOffsetSec, resource.name);
       break;
     case "fausteffect":

@@ -8,6 +8,7 @@ import { clipMovePPQN, clipMoveSec, pointMovePulses, pointMoveSec } from "../lib
 import { AudioProject } from "../lib/project/AudioProject";
 import { standardTrack } from "../lib/StandardTrack";
 import { snapped } from "../lib/viewport/snap";
+import { standardViewport } from "../lib/viewport/StandardViewport";
 import { MidiClip } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
 import { pressedState } from "../ui/pressedState";
@@ -22,7 +23,7 @@ function timelineSecs(e: MouseEvent, projectDiv: HTMLDivElement, project: AudioP
     x: e.clientX + projectDiv.scrollLeft - projectDiv.getBoundingClientRect().x,
     y: e.clientY + projectDiv.scrollTop - projectDiv.getBoundingClientRect().y,
   };
-  const asSecs = project.viewport.pxToSecs(position.x + viewportStartPx, "pos");
+  const asSecs = standardViewport.pxToSecs(project.viewport, position.x + viewportStartPx, "pos");
   return asSecs;
 }
 
@@ -46,7 +47,7 @@ export function useAxisContainerMouseEvents(
         x: e.clientX + div.scrollLeft - div.getBoundingClientRect().x,
         y: e.clientY + div.scrollTop - div.getBoundingClientRect().y,
       };
-      const asSecs = project.viewport.pxToSecs(position.x + viewportStartPx, "pos");
+      const asSecs = standardViewport.pxToSecs(project.viewport, position.x + viewportStartPx, "pos");
 
       const newPos = Math.max(0, snapped(project, e, asSecs));
       // player.setCursorPos(asSecs);
@@ -109,7 +110,7 @@ export function useTimelineMouseEvents(
           y: e.clientY + div.scrollTop - div.getBoundingClientRect().y,
         };
 
-        const asSecs = project.viewport.pxToSecs(position.x, "pos");
+        const asSecs = standardViewport.pxToSecs(project.viewport, position.x, "pos");
         const newPos = Math.max(0, snapped(project, e, asSecs));
 
         console.log("GLOBAL TIME");
@@ -195,7 +196,7 @@ export function useTimelineMouseEvents(
 
           case "selecting_global_time": {
             const { startTime } = pressed;
-            const deltaXSecs = project.viewport.pxToSecs(e.clientX - pressed.clientX, "len");
+            const deltaXSecs = standardViewport.pxToSecs(project.viewport, e.clientX - pressed.clientX, "len");
             const selWidth = snapped(project, e, deltaXSecs);
             pressedState.set(null);
 
@@ -232,7 +233,7 @@ export function useTimelineMouseEvents(
           }
 
           case "selecting_track_time": {
-            const deltaXSecs = project.viewport.pxToSecs(e.clientX - pressed.clientX, "len");
+            const deltaXSecs = standardViewport.pxToSecs(project.viewport, e.clientX - pressed.clientX, "len");
             const selWidthS = snapped(project, e, deltaXSecs);
 
             pressedState.set(null);
@@ -302,7 +303,7 @@ export function useTimelineMouseEvents(
             const previewClip = pressed.clipForRendering;
 
             if (previewClip instanceof AudioClip) {
-              const deltaXSecs = project.viewport.pxToSecs(deltaX, "pos");
+              const deltaXSecs = standardViewport.pxToSecs(project.viewport, deltaX, "pos");
               const newOffset = Math.max(0, pressed.originalClipStart.secs(project) + deltaXSecs);
               clipMoveSec(previewClip, newOffset, pressed.originalClipStart, project, snap);
             } else if (previewClip instanceof MidiClip) {
@@ -327,7 +328,7 @@ export function useTimelineMouseEvents(
           }
 
           case "selecting_global_time": {
-            const deltaXSecs = project.viewport.pxToSecs(e.clientX - pressed.clientX, "len");
+            const deltaXSecs = standardViewport.pxToSecs(project.viewport, e.clientX - pressed.clientX, "len");
             const selWidth = snapped(project, e, deltaXSecs);
             project.selectionWidth.set(selWidth);
             project.selected.set(null);
@@ -348,7 +349,7 @@ export function useTimelineMouseEvents(
             for (const { original, point } of pressed.points) {
               switch (point.unit) {
                 case "seconds": {
-                  const deltaXSecs = project.viewport.pxToSecs(deltaX, "pos");
+                  const deltaXSecs = standardViewport.pxToSecs(project.viewport, deltaX, "pos");
                   let newOffsetS = Math.max(0, original.t + deltaXSecs);
                   const lowerLimSecs = lowerLim && lowerLim.secs(project);
                   const upperLimSecs = upperLim && upperLim.secs(project);
@@ -392,7 +393,7 @@ export function useTimelineMouseEvents(
           }
 
           case "selecting_track_time":
-            const deltaXSecs = project.viewport.pxToSecs(e.clientX - pressed.clientX, "len");
+            const deltaXSecs = standardViewport.pxToSecs(project.viewport, e.clientX - pressed.clientX, "len");
             const newWidth = snapped(project, e, deltaXSecs);
             project.selectionWidth.set(newWidth);
             // project.selected.set(null);

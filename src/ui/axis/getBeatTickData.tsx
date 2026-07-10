@@ -1,5 +1,6 @@
 import { SECS_IN_MIN } from "../../constants";
 import { AudioProject } from "../../lib/project/AudioProject";
+import { standardViewport } from "../../lib/viewport/StandardViewport";
 import { PPQN } from "../../wam/miditrackwam/MIDIConfiguration";
 
 export const MIN_TICK_DISTANCE = 60; // 60px
@@ -45,7 +46,7 @@ export function getBeatTickData(
  * for a viewport that starts at startS px and ends at endS
  */
 export function getTimeTickData(project: AudioProject, startS: number, endS: number) {
-  const MIN_DIST_BEETWEEN_TICKS_SEC = project.viewport.pxToSecs(MIN_TICK_DISTANCE, "len");
+  const MIN_DIST_BEETWEEN_TICKS_SEC = standardViewport.pxToSecs(project.viewport, MIN_TICK_DISTANCE, "len");
   const STEP_SECS = getTimeStepForRes(MIN_DIST_BEETWEEN_TICKS_SEC);
 
   const backtrack = startS % STEP_SECS;
@@ -63,7 +64,7 @@ export function getTimeTickData(project: AudioProject, startS: number, endS: num
 
 export function getOneTickLen(project: AudioProject, tempo: number) {
   const oneBeatLen = SECS_IN_MIN / tempo;
-  const oneBeatSizePx = project.viewport.secsToPx(oneBeatLen, "len");
+  const oneBeatSizePx = standardViewport.secsToPx(project.viewport, oneBeatLen, "len");
   const tickBeatFactor = getBeatScaleFactorForOneBeatSize(oneBeatSizePx);
   const tickBeatLength = tickBeatFactor * oneBeatLen;
   return tickBeatLength;

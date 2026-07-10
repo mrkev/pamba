@@ -8,8 +8,8 @@ import { PPQN } from "../../wam/miditrackwam/MIDIConfiguration";
 import { appEnvironment } from "../AppEnvironment";
 import { AudioProject } from "../project/AudioProject";
 import { TimelineT, TimeUnit } from "../project/TimelineT";
-import { StandardViewport } from "./StandardViewport";
-import { inv_ymxb, ymxb } from "./linear";
+import { standardViewport, StandardViewport } from "./StandardViewport";
+import { ymxb } from "./linear";
 
 type AutoProjectViewport = {
   viewportStartPx: SNumber;
@@ -18,12 +18,11 @@ type AutoProjectViewport = {
 
 export type XScale = ScaleLinear<number, number>;
 
-export const START_PADDING_PX = 8;
-
 export class ProjectViewport
   extends Structured<AutoProjectViewport, typeof ProjectViewport>
   implements StandardViewport
 {
+  readonly START_PADDING_PX = 8;
   constructor(
     readonly project: AudioProject,
     readonly projectDivWidth: SNumber,
@@ -67,7 +66,7 @@ export class ProjectViewport
       case "pulses":
         return this.pulsesToPx(p.ensurePulses(), mode);
       case "seconds":
-        return this.secsToPx(p.ensureSecs(), mode);
+        return standardViewport.secsToPx(this, p.ensureSecs(), mode);
       case "frames":
         throw new Error("unimplemented");
       default:
@@ -82,7 +81,7 @@ export class ProjectViewport
       case "pulses":
         return this.pulsesToViewportPx(p.ensurePulses(), mode);
       case "seconds":
-        return this.secsToViewportPx(p.ensureSecs(), mode);
+        return standardViewport.secsToViewportPx(this, p.ensureSecs(), mode);
       case "frames":
         throw new Error("unimplemented");
       default:
@@ -90,23 +89,8 @@ export class ProjectViewport
     }
   }
 
-  secsToPx(s: number, mode: "len" | "pos") {
-    const b = mode === "len" ? 0 : START_PADDING_PX;
-    const factor = this.pxPerSecond.get();
-    // y = mx + b
-    return ymxb(factor, s, b);
-  }
-
-  secsToViewportPx(s: number, mode: "pos"): number {
-    const factor = this.pxPerSecond.get();
-    const viewportStartPx = this.scrollLeftPx.get();
-    const b = START_PADDING_PX;
-
-    return ymxb(factor, s, -viewportStartPx + b);
-  }
-
   pulsesToPx(p: number, mode: "len" | "pos") {
-    const b = mode === "len" ? 0 : START_PADDING_PX;
+    const b = mode === "len" ? 0 : this.START_PADDING_PX;
     const bpm = this.project.tempo.get();
     // const secs = pulsesToSec(p, bpm);
 
@@ -120,22 +104,16 @@ export class ProjectViewport
     const bpm = this.project.tempo.get();
     const factor = this.pxPerSecond.get();
     const m = (factor * SECS_IN_MIN) / (PPQN * bpm);
-    const b = START_PADDING_PX;
+    const b = this.START_PADDING_PX;
 
     const viewportStartPx = this.scrollLeftPx.get();
 
     return ymxb(m, p, -viewportStartPx + b);
   }
 
-  pxToSecs(px: number, mode: "len" | "pos") {
-    const b = mode === "len" ? 0 : START_PADDING_PX;
-    const factor = this.pxPerSecond.get();
-    return inv_ymxb(factor, px, b);
-  }
-
   pxToPulses(px: number, mode: "len" | "pos") {
     const bpm = this.project.tempo.get();
-    const secs = this.pxToSecs(px, mode);
+    const secs = standardViewport.pxToSecs(this, px, mode);
     return Math.floor((secs * PPQN * bpm) / SECS_IN_MIN);
   }
 
@@ -146,7 +124,7 @@ export class ProjectViewport
       case "pulses":
         return this.pxToPulses(px, mode);
       case "seconds":
-        return this.pxToSecs(px, mode);
+        return standardViewport.pxToSecs(this, px, mode);
       case "frames":
         throw new Error("unimplemented");
       default:

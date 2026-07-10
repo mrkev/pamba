@@ -1,16 +1,16 @@
 import { InitFunctions, JSONOfAuto, ReplaceFunctions, SString, Structured, string } from "structured-state";
+import { v4 as uuidv4 } from "uuid";
 import { staticAudioContext } from "../constants";
 import { AudioPackage } from "../data/AudioPackage";
 import { SAudioClip } from "../data/serializable";
 import { nullthrows } from "../utils/nullthrows";
 import { dataURLForWaveform } from "../utils/waveform";
+import { SimpleAudioClip } from "../wam/audiotrack/SharedAudioTrackTypes";
 import { AbstractClip, Seconds, secs } from "./AbstractClip";
 import { SharedAudioBuffer } from "./SharedAudioBuffer";
 import { SOUND_LIB_FOR_HISTORY, loadSound, loadSoundFromAudioPackage } from "./loadSound";
 import { TimelineT, time } from "./project/TimelineT";
 import { AudioViewport } from "./viewport/AudioViewport";
-import { SimpleAudioClip } from "../wam/audiotrack/SharedAudioTrackTypes";
-import { v4 as uuidv4 } from "uuid";
 
 type AutoAudioClip = {
   name: SString;

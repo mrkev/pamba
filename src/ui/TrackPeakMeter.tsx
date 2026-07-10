@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { AudioTrack } from "../lib/AudioTrack";
 import { MidiTrack } from "../midi/MidiTrack";
 import { nullthrows } from "../utils/nullthrows";
@@ -37,8 +37,6 @@ export const TrackPeakMeter = React.memo(function PeakMeter({ track }: { track: 
         const filledProportionAvg = audioClipPath(rollingAvg.avg(), -48, 0);
         const margin = SPACE_BETWEEN_CHANNEL_PEAK_METERS / numChannels;
         context.fillRect(0, i * channelHeight + i * margin, canvas.width * filledProportionAvg, channelHeight - margin);
-
-        context.fillRect(0, i * channelHeight + i * margin, canvas.width * filledProportionAvg, channelHeight - margin);
       }
 
       requestAnimationFrame(rAF);
@@ -49,23 +47,15 @@ export const TrackPeakMeter = React.memo(function PeakMeter({ track }: { track: 
   });
 
   return (
-    <>
-      <canvas
-        height={18 * devicePixelRatio}
-        width={100 * devicePixelRatio}
-        ref={canvasRef}
-        style={{ height: 18, width: 100, borderRight: "1px solid gray", boxSizing: "border-box" }}
-      />
-      {/* <button
-              onClick={() => {
-                console.log(JSON.stringify(track.dsp.meterInstance.getPeaks(), null, 2));
-              }}
-            >
-              on
-            </button> */}
-    </>
+    <canvas
+      height={18 * devicePixelRatio}
+      width={100 * devicePixelRatio}
+      ref={canvasRef}
+      style={{ height: 18, width: 100, borderRight: "1px solid gray", boxSizing: "border-box" }}
+    />
   );
 });
+
 export class RollingAvg {
   private i = 0;
   private readonly buffer: Array<number>;

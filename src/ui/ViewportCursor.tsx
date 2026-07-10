@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef } from "react";
 import { usePrimitive } from "structured-state";
 import { AnalizedPlayer } from "../lib/io/AnalizedPlayer";
-import { StandardViewport } from "../lib/viewport/StandardViewport";
+import { standardViewport, StandardViewport } from "../lib/viewport/StandardViewport";
 import { cn } from "../utils/cn";
 
 export function ViewportPlaybackCursor({
@@ -22,7 +22,7 @@ export function ViewportPlaybackCursor({
   useLayoutEffect(() => {
     const pbcursor = playbackPosDiv.current;
     if (pbcursor) {
-      const px = viewport.secsToPx(player.playbackTime, "pos");
+      const px = standardViewport.secsToPx(viewport, player.playbackTime, "pos");
       pbcursor.style.left = String(px) + "px";
     }
     // change with scale too
@@ -33,7 +33,7 @@ export function ViewportPlaybackCursor({
     return player.addEventListener("frame", function updateProjectViewCursor(playbackTime) {
       const pbcursor = playbackPosDiv.current;
       if (pbcursor) {
-        const px = viewport.secsToPx(playbackTime, "pos");
+        const px = standardViewport.secsToPx(viewport, playbackTime, "pos");
         pbcursor.style.left = String(px) + "px";
       }
     });

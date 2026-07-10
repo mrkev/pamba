@@ -18,8 +18,8 @@ import { MidiViewport } from "../lib/viewport/MidiViewport";
 import { MidiBuffer, midiBuffer } from "./MidiBuffer";
 import { MidiNote, mnote } from "./MidiNote";
 import { MidiTrack } from "./MidiTrack";
-import type { NoteT } from "./SharedMidiTypes";
 import { SAMPLE_MIDI } from "./SAMPLE_MIDI";
+import type { NoteT } from "./SharedMidiTypes";
 
 type AutoMidiClip = {
   name: SString;
@@ -240,7 +240,6 @@ export const midiClip = {
   findNote,
   removeNote,
   findNotesInRange,
-
   createSampleMidiClip() {
     const newClip = MidiClip.of("new midi clip", 0, 96, []);
     for (const note of SAMPLE_MIDI.clips.default.notes) {

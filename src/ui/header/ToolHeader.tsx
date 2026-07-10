@@ -10,6 +10,7 @@ import { AudioRecorder } from "../../lib/io/AudioRecorder";
 import { AudioRenderer } from "../../lib/io/AudioRenderer";
 import { AudioProject } from "../../lib/project/AudioProject";
 import { projectViewport } from "../../lib/viewport/ProjectViewport";
+import { standardViewport } from "../../lib/viewport/StandardViewport";
 import { cn } from "../../utils/cn";
 import { RenamableLabel } from "../RenamableLabel";
 import { UtilityButton } from "../UtilityButton";
@@ -36,7 +37,7 @@ function ScaleFactorSlider({ project }: { project: AudioProject }) {
       title="Zoom level"
       onChange={(e) => {
         const cursorPosSecs = project.cursorPos.get();
-        const cursorPosPx = project.viewport.secsToViewportPx(cursorPosSecs, "pos");
+        const cursorPosPx = standardViewport.secsToViewportPx(project.viewport, cursorPosSecs, "pos");
         const projectDivWidth = project.viewport.projectDivWidth.get();
         const expectedNewScale = Math.exp(parseFloat(e.target.value));
 

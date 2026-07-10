@@ -8,6 +8,7 @@ import type { AudioProject } from "../lib/project/AudioProject";
 import { exhaustive } from "../utils/exhaustive";
 import { StandardClip } from "./StandardClip";
 import { clipMouseDownToMove } from "./clipMouse";
+import { standardViewport } from "../lib/viewport/StandardViewport";
 
 export const ClipA = React.memo(function ClipAImpl({
   clip,
@@ -23,7 +24,7 @@ export const ClipA = React.memo(function ClipAImpl({
   track: AudioTrack | null; // null if clip is being rendered for move
   editable?: boolean;
 }) {
-  const totalBufferWidth = project.viewport.secsToPx(clip.bufferLength, "len");
+  const totalBufferWidth = standardViewport.secsToPx(project.viewport, clip.bufferLength, "len");
   // len, since the buffer shouldn't be affected by the timelines left margin offset
   const bufferOffsetPx = project.viewport.timeToPx(clip.bufferOffset, "len");
 
@@ -60,14 +61,14 @@ export const ClipA = React.memo(function ClipAImpl({
       case "slice":
         history.record("slice clip", () => {
           const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
-          const secFromStartOfClip = project.viewport.pxToSecs(pxFromStartOfClip, "pos");
+          const secFromStartOfClip = standardViewport.pxToSecs(project.viewport, pxFromStartOfClip, "pos");
           const secFromTimelineStart = timelineStart.secs(project) + secFromStartOfClip;
           standardTrack.splitClip(project, track, clip, secFromTimelineStart);
         });
         break;
       case "trimStart": {
         const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
-        const asSec = project.viewport.pxToSecs(pxFromStartOfClip, "pos");
+        const asSec = standardViewport.pxToSecs(project.viewport, pxFromStartOfClip, "pos");
         project.cursorPos.set(timelineStart.secs(project) + asSec);
 
         history.record("trim start of clip", () => {
@@ -86,7 +87,7 @@ export const ClipA = React.memo(function ClipAImpl({
         history.record("trip end of clip", () => {
           clip.featuredMutation(() => {
             const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
-            const secsFromStartPos = project.viewport.pxToSecs(pxFromStartOfClip, "pos");
+            const secsFromStartPos = standardViewport.pxToSecs(project.viewport, pxFromStartOfClip, "pos");
             clip.timelineLength.set(secsFromStartPos, "seconds");
           });
         });

@@ -33,8 +33,8 @@ export function StandardAxis({
   // for updating when changing scale
   usePrimitive(viewport.pxPerSecond);
 
-  const viewportStartSecs = viewport.pxToSecs(viewportStartPx, "pos");
-  const viewportEndSecs = viewport.pxToSecs(renderWidth + viewportStartPx, "pos");
+  const viewportStartSecs = standardViewport.pxToSecs(viewport, viewportStartPx, "pos");
+  const viewportEndSecs = standardViewport.pxToSecs(viewport, renderWidth + viewportStartPx, "pos");
 
   const timeSTicks = getTimeTickData(project, viewportStartSecs, viewportEndSecs);
   const tempoTicks = getBeatTickData(project, viewportStartSecs, viewportEndSecs);
@@ -60,13 +60,7 @@ export function StandardAxis({
 
           return (
             <g className="tick" key={secs}>
-              <line
-                x1={px}
-                x2={px}
-                y1="0"
-                y2="100%"
-                stroke="var(--timeline-tick)"
-              ></line>
+              <line x1={px} x2={px} y1="0" y2="100%" stroke="var(--timeline-tick)"></line>
               {isHeader && (
                 <text
                   x={px}

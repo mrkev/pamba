@@ -4,6 +4,7 @@ import { AudioProject, AxisMeasure } from "../../lib/project/AudioProject";
 import { cn } from "../../utils/cn";
 import { formatSecs } from "./formatSecs";
 import { getBeatTickData, getTimeTickData } from "./getBeatTickData";
+import { standardViewport } from "../../lib/viewport/StandardViewport";
 
 /**
  * Renders a sliding window of ticks
@@ -29,8 +30,8 @@ export function Axis({
   // for updating when changing scale
   usePrimitive(project.viewport.pxPerSecond);
 
-  const viewportStartSecs = project.viewport.pxToSecs(viewportStartPx, "pos");
-  const viewportEndSecs = project.viewport.pxToSecs(projectDivWidth + viewportStartPx, "pos");
+  const viewportStartSecs = standardViewport.pxToSecs(project.viewport, viewportStartPx, "pos");
+  const viewportEndSecs = standardViewport.pxToSecs(project.viewport, projectDivWidth + viewportStartPx, "pos");
 
   const timeSTicks = getTimeTickData(project, viewportStartSecs, viewportEndSecs);
   const tempoTicks = getBeatTickData(project, viewportStartSecs, viewportEndSecs);
@@ -42,7 +43,7 @@ export function Axis({
     <svg className={cn("pointer-events-none", className)} style={style}>
       {(isHeader || primaryAxis === "tempo") &&
         tempoTicks.map(([beatNum, secs]) => {
-          const px = project.viewport.secsToViewportPx(secs, "pos");
+          const px = standardViewport.secsToViewportPx(project.viewport, secs, "pos");
 
           const denom = beatNum % timeSignature[0];
           const label = `${Math.floor(beatNum / 4) + 1}` + (denom === 0 ? "" : `.${denom}`);
@@ -75,7 +76,7 @@ export function Axis({
         })}
       {(isHeader || primaryAxis === "time") &&
         timeSTicks.map((secs) => {
-          const px = project.viewport.secsToViewportPx(secs, "pos");
+          const px = standardViewport.secsToViewportPx(project.viewport, secs, "pos");
           const [fontSize, textY] = textDims("time");
           return (
             <g className="tick" key={secs}>

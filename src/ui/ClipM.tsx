@@ -6,6 +6,7 @@ import { StandardClip } from "./StandardClip";
 import { clipMouseDownToMove } from "./clipMouse";
 import { cn } from "../utils/cn";
 import { usePrimitive } from "structured-state";
+import { standardViewport } from "../lib/viewport/StandardViewport";
 
 export function ClipM({
   clip,
@@ -44,14 +45,14 @@ export function ClipM({
     }
     // if (tool === "trimStart") {
     //   const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
-    //   const asSec = project.viewport.pxToSecs(pxFromStartOfClip);
+    //   const asSec = standardViewport.pxToSecs(project.viewport, pxFromStartOfClip);
     //   clip.trimStartSec += asSec;
     //   clip.startOffsetSec += asSec;
     //   clip.notifyUpdate();
     // }
     // if (tool === "trimEnd") {
     //   const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
-    //   const secsFromStartPos = project.viewport.pxToSecs(pxFromStartOfClip);
+    //   const secsFromStartPos = standardViewport.pxToSecs(project.viewport, pxFromStartOfClip);
     //   const secsFromZero = clip.trimStartSec + secsFromStartPos;
     //   clip.trimEndSec = secsFromZero;
     //   clip.notifyUpdate();
@@ -63,9 +64,9 @@ export function ClipM({
     1000,
   );
 
-  const totalBufferWidth = project.viewport.secsToPx(clip.buffer.timelineLength.secs(project), "len");
+  const totalBufferWidth = standardViewport.secsToPx(project.viewport, clip.buffer.timelineLength.secs(project), "len");
   // const height = CLIP_HEIGHT - 3; // to clear the bottom track separator gridlines
-  const bufferOffsetPx = 0; //  project.viewport.secsToPx(clip.bufferOffset);
+  const bufferOffsetPx = 0; //  standardViewport.secsToPx(project.viewport, clip.bufferOffset);
 
   return (
     <StandardClip

@@ -5,6 +5,7 @@ import { GPUWaveform } from "webgpu-waveform-react";
 import { AudioClip } from "../lib/AudioClip";
 import { AnalizedPlayer } from "../lib/io/AnalizedPlayer";
 import { AudioProject } from "../lib/project/AudioProject";
+import { standardViewport } from "../lib/viewport/StandardViewport";
 import { nullthrows } from "../utils/nullthrows";
 import { pressedState } from "./pressedState";
 import { useSelectOnSurface } from "./useSelectOnSurface";
@@ -24,7 +25,8 @@ export function AudioClipBufferView({
   const [playbackPos] = usePrimitive(player.playbackPos);
   const [cursorPos] = usePrimitive(project.cursorPos);
   const [selectionWidthFr] = usePrimitive(clip.detailedViewport.selectionWidthFr);
-  const selectionWidthPx = clip.detailedViewport.frToPx(
+  const selectionWidthPx = standardViewport.frToPx(
+    clip.detailedViewport,
     selectionWidthFr == null ? 0 : selectionWidthFr,
     clip.sampleRate,
   );
@@ -62,7 +64,7 @@ export function AudioClipBufferView({
         const mouseX = e.clientX - canvas.getBoundingClientRect().left;
         // const positionSamples = clip.detailedViewport.pxToFr(mouseX + waveformStartFr, clip.sampleRate);
         // const positionSecs = positionSamples / clip.sampleRate;
-        const positionSecs = clip.detailedViewport.pxToSecs(mouseX, "pos"); // pos I think
+        const positionSecs = standardViewport.pxToSecs(clip.detailedViewport, mouseX, "pos"); // pos I think
         const positionTimeline = positionSecs + clip.timelineStart.ensureSecs();
 
         project.cursorPos.set(positionTimeline);
@@ -75,7 +77,7 @@ export function AudioClipBufferView({
     useCallback(
       function mouseMove(e: MouseEvent, down: { clientX: number; clientY: number }) {
         // const mouseDown = nullthrows(mouseGesture.get());
-        const deltaXFr = clip.detailedViewport.pxToFr(e.clientX - down.clientX, clip.sampleRate);
+        const deltaXFr = standardViewport.pxToFr(clip.detailedViewport, e.clientX - down.clientX, clip.sampleRate);
         const newWidth = deltaXFr;
 
         if (newWidth < 1) {
@@ -114,8 +116,8 @@ export function AudioClipBufferView({
 
       const clipSecs = timelineSecs - clip.timelineStartSec;
       const clipFr = clipSecs * clip.sampleRate;
-      const clipPx = clipFr / clip.detailedViewport.framesPerPixel(clip.sampleRate);
-      return clipPx - waveformOffset / clip.detailedViewport.framesPerPixel(clip.sampleRate);
+      const clipPx = clipFr / standardViewport.framesPerPixel(clip.detailedViewport, clip.sampleRate);
+      return clipPx - waveformOffset / standardViewport.framesPerPixel(clip.detailedViewport, clip.sampleRate);
     },
     [
       clip.detailedViewport,
@@ -146,7 +148,7 @@ export function AudioClipBufferView({
         <GPUWaveform
           ref={waveformRef}
           audioBuffer={clip.buffer}
-          scale={clip.detailedViewport.framesPerPixel(clip.sampleRate) / devicePixelRatio}
+          scale={standardViewport.framesPerPixel(clip.detailedViewport, clip.sampleRate) / devicePixelRatio}
           offset={lockPlayback ? offsetFrOfPlaybackPos(playbackPos) : waveformStartFr}
           width={(width || 1) * devicePixelRatio}
           height={(height || 1) * devicePixelRatio}

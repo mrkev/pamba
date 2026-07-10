@@ -3,7 +3,7 @@
   // const cWidth = width - relu(left + width - projectDivWidth) + viewportStartPx - canvasOffset;
   // const canvasWidth = Math.ceil(Math.min(cWidth, width - canvasOffset));
   // const offset =
-  //   project.viewport.pxToSecs(canvasOffset) * clip.sampleRate + bufferOffset.ensureSecs() * clip.sampleRate;
+  //   standardViewport.pxToSecs(project.viewport, canvasOffset) * clip.sampleRate + bufferOffset.ensureSecs() * clip.sampleRate;
 /**
  * As a child of <StandardClip />
   {/* {clip.buffer != null && canvasWidth > 0 && (

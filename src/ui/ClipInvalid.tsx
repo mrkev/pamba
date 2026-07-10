@@ -2,16 +2,17 @@ import { useContainer } from "structured-state";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioProject } from "../lib/project/AudioProject";
 import { MidiClip } from "../midi/MidiClip";
+import { standardViewport } from "../lib/viewport/StandardViewport";
 
 // todo: use standard clip?
 export function getClipSizePx(clip: MidiClip | AudioClip, project: AudioProject) {
   const width =
     clip instanceof AudioClip
-      ? project.viewport.secsToPx(clip.timelineLength.ensureSecs(), "len")
+      ? standardViewport.secsToPx(project.viewport, clip.timelineLength.ensureSecs(), "len")
       : project.viewport.pulsesToPx(clip.timelineLength.ensurePulses(), "len");
   const left =
     clip instanceof AudioClip
-      ? project.viewport.secsToPx(clip.timelineStart.ensureSecs(), "pos")
+      ? standardViewport.secsToPx(project.viewport, clip.timelineStart.ensureSecs(), "pos")
       : project.viewport.pulsesToPx(clip.timelineStart.ensurePulses(), "pos");
   return { left, width };
 }

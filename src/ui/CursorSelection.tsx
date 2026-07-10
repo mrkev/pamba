@@ -2,6 +2,7 @@ import { useLinkAsState } from "marked-subbable";
 import { useContainer, usePrimitive } from "structured-state";
 import { AudioTrack } from "../lib/AudioTrack";
 import { AudioProject } from "../lib/project/AudioProject";
+import { standardViewport } from "../lib/viewport/StandardViewport";
 import { MidiTrack } from "../midi/MidiTrack";
 import { pressedState } from "./pressedState";
 
@@ -30,10 +31,10 @@ export function CursorSelection({ project, track }: { project: AudioProject; tra
     // it's in the header if track == null
     track == null
       ? //
-        project.viewport.secsToViewportPx(cursorPos, "pos")
-      : project.viewport.secsToPx(cursorPos, "pos");
+        standardViewport.secsToViewportPx(project.viewport, cursorPos, "pos")
+      : standardViewport.secsToPx(project.viewport, cursorPos, "pos");
 
-  let width = project.viewport.secsToPx(Math.abs(selectionWidth), "len");
+  let width = standardViewport.secsToPx(project.viewport, Math.abs(selectionWidth), "len");
 
   if (selectionWidth < 0) {
     left = left - width;
