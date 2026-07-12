@@ -5,6 +5,7 @@ next
 - persist app layout
 - can now bypass effects
 - improvements to midi clip editor
+- improvements to keyboard command handling
 
 v3.0.0
 - save track mute stauts

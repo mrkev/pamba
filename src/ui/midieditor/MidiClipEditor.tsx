@@ -1,16 +1,13 @@
 import { useLinkAsState } from "marked-subbable";
-import { useCallback } from "react";
 import { usePrimitive } from "structured-state";
-import { DEFAULT_NOTE_DURATION, MIDI_CLIP_EDITOR_MAX_H_SCALE } from "../../constants";
-import { keyChord } from "../../input/KeyChord";
+import { MIDI_CLIP_EDITOR_MAX_H_SCALE } from "../../constants";
 import { AnalizedPlayer } from "../../lib/io/AnalizedPlayer";
 import { AudioProject } from "../../lib/project/AudioProject";
-import { midiClip, MidiClip } from "../../midi/MidiClip";
+import { MidiClip } from "../../midi/MidiClip";
 import { midiTrack, MidiTrack } from "../../midi/MidiTrack";
 import { ClipPropsEditor, EditorSection } from "../ClipPropsEditor";
 import { UtilitySToggle, UtilityToggle } from "../UtilityToggle";
 import { MidiClipEditorPianoRoll } from "./MidiClipEditorPianoRoll";
-import { useConditionalKeydown } from "./useConditionalKeyboardEvents";
 
 export function MidiClipEditor({
   clip,
@@ -28,51 +25,10 @@ export function MidiClipEditor({
   const [pxPerPulse, setPxPerPulse] = usePrimitive(clip.detailedViewport.pxPerPulse);
   const [secondarySel] = useLinkAsState(project.secondarySelection);
   const [panelTool] = usePrimitive(project.panelTool);
-  const [activePanel] = useLinkAsState(project.activePanel);
   const [muted] = usePrimitive(clip.muted);
 
-  useConditionalKeydown(
-    activePanel === "secondary",
-    useCallback((e: KeyboardEvent) => {
-      switch (keyChord.ofEvent(e)) {
-        case keyChord.ofKeys("KeyA", "meta"):
-          // TODO: select all
-          break;
-      }
-    }, []),
-  );
-
-  useConditionalKeydown(
-    activePanel === "secondary" && secondarySel?.status === "notes",
-    useCallback(
-      (e: KeyboardEvent) => {
-        if (secondarySel?.status !== "notes") {
-          throw new Error("impossible");
-        }
-
-        // nudge selected notes: left/right by a grid step (16th note), up/down a semitone
-        switch (keyChord.ofEvent(e)) {
-          case keyChord.ofKeys("ArrowRight"):
-            e.preventDefault();
-            midiClip.moveSelectedNotes(track, clip, DEFAULT_NOTE_DURATION, 0);
-            break;
-          case keyChord.ofKeys("ArrowLeft"):
-            e.preventDefault();
-            midiClip.moveSelectedNotes(track, clip, -DEFAULT_NOTE_DURATION, 0);
-            break;
-          case keyChord.ofKeys("ArrowUp"):
-            e.preventDefault();
-            midiClip.moveSelectedNotes(track, clip, 0, 1);
-            break;
-          case keyChord.ofKeys("ArrowDown"):
-            e.preventDefault();
-            midiClip.moveSelectedNotes(track, clip, 0, -1);
-            break;
-        }
-      },
-      [clip, track, secondarySel?.status],
-    ),
-  );
+  // Keyboard shortcuts (nudge, select-all, delete) live in documentCommands as `when`-gated
+  // commands scoped to the focused MIDI editor — no editor-local key handling here.
 
   return (
     <>

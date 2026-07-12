@@ -1,8 +1,10 @@
 import { flushSync } from "react-dom";
 import { history } from "structured-state";
-import { LIBRARY_SEARCH_INPUT_ID } from "../constants";
+import { DEFAULT_NOTE_DURATION, LIBRARY_SEARCH_INPUT_ID } from "../constants";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioRenderer } from "../lib/io/AudioRenderer";
+import { midiClip, MidiClip } from "../midi/MidiClip";
+import { MidiTrack } from "../midi/MidiTrack";
 import { selection } from "../lib/project/selection";
 import { clipsLimits } from "../lib/project/timeline";
 import { projectPersistance } from "../lib/ProjectPersistance";
@@ -13,6 +15,28 @@ import { pressedState } from "../ui/pressedState";
 import { exhaustive } from "../utils/exhaustive";
 import { nullthrows } from "../utils/nullthrows";
 import { CommandBlock } from "./Command";
+
+/** The MIDI clip open in the focused secondary editor, if any (used by `when` predicates). */
+function activeMidiEditor(project: AudioProject): { clip: MidiClip; track: MidiTrack } | null {
+  if (project.activePanel.get() !== "secondary") {
+    return null;
+  }
+  const selected = project.selected.get();
+  if (selected?.status !== "clips" || selected.clips.length !== 1) {
+    return null;
+  }
+  const clipTrack = selected.clips[0];
+  return clipTrack.kind === "midi" ? { clip: clipTrack.clip, track: clipTrack.track } : null;
+}
+
+/** The focused MIDI editor's note selection, when notes are selected (for move/delete). */
+function activeNoteSelection(project: AudioProject) {
+  if (project.activePanel.get() !== "secondary") {
+    return null;
+  }
+  const sel = project.secondarySelection.get();
+  return sel?.status === "notes" ? sel : null;
+}
 
 /** Delete whatever the active panel has selected. Bound to both Backspace and Delete. */
 function deleteActiveSelection(e: KeyboardEvent | null, project: AudioProject) {
@@ -96,6 +120,69 @@ export const documentCommands = CommandBlock.create(["Project", "Edit", "Tools",
     deleteSelection: command(["Backspace"], deleteActiveSelection).section("Edit"),
 
     deleteSelectionForward: command(["Delete"], deleteActiveSelection).section("Edit"),
+
+    // MIDI editor shortcuts. These share chords (Cmd+A, arrows) with other contexts and are
+    // disambiguated by `when`, so they only fire when the MIDI editor is focused.
+    selectAllNotes: command(["KeyA", "meta"], (e, project) => {
+      const ctx = activeMidiEditor(project);
+      if (ctx == null) {
+        return;
+      }
+      e?.preventDefault();
+      ctx.clip.selectedNotes._replace(() => new Set(ctx.clip.buffer.notes._getRaw()));
+      project.secondarySelection.set({ status: "notes", clip: ctx.clip, track: ctx.track });
+    })
+      .when((project) => activeMidiEditor(project) != null)
+      .helptext("Select all notes")
+      .section("Edit"),
+
+    nudgeNotesUp: command(["ArrowUp"], (e, project) => {
+      const ctx = activeNoteSelection(project);
+      if (ctx == null) {
+        return;
+      }
+      e?.preventDefault();
+      midiClip.moveSelectedNotes(ctx.track, ctx.clip, 0, 1);
+    })
+      .when((project) => activeNoteSelection(project) != null)
+      .helptext("Nudge notes up a semitone")
+      .section("Edit"),
+
+    nudgeNotesDown: command(["ArrowDown"], (e, project) => {
+      const ctx = activeNoteSelection(project);
+      if (ctx == null) {
+        return;
+      }
+      e?.preventDefault();
+      midiClip.moveSelectedNotes(ctx.track, ctx.clip, 0, -1);
+    })
+      .when((project) => activeNoteSelection(project) != null)
+      .helptext("Nudge notes down a semitone")
+      .section("Edit"),
+
+    nudgeNotesRight: command(["ArrowRight"], (e, project) => {
+      const ctx = activeNoteSelection(project);
+      if (ctx == null) {
+        return;
+      }
+      e?.preventDefault();
+      midiClip.moveSelectedNotes(ctx.track, ctx.clip, DEFAULT_NOTE_DURATION, 0);
+    })
+      .when((project) => activeNoteSelection(project) != null)
+      .helptext("Nudge notes right")
+      .section("Edit"),
+
+    nudgeNotesLeft: command(["ArrowLeft"], (e, project) => {
+      const ctx = activeNoteSelection(project);
+      if (ctx == null) {
+        return;
+      }
+      e?.preventDefault();
+      midiClip.moveSelectedNotes(ctx.track, ctx.clip, -DEFAULT_NOTE_DURATION, 0);
+    })
+      .when((project) => activeNoteSelection(project) != null)
+      .helptext("Nudge notes left")
+      .section("Edit"),
 
     duplicateSelection: command(["KeyD", "meta"], (e, project) => {
       userActions.duplicateSelection(project);

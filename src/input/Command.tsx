@@ -15,6 +15,7 @@ export class Command<S extends string[] = string[]> {
   private _label: string | null = null;
   private _description: string | null = null;
   private _section: string | null = null;
+  private _when: ((project: AudioProject) => boolean) | null = null;
   readonly shortcut: KeyboardShortcut;
 
   readonly onTrigger = new Set<() => void>();
@@ -62,12 +63,33 @@ export class Command<S extends string[] = string[]> {
     this._section = section;
     return this;
   }
+
+  /**
+   * Restrict this command to a context (e.g. "the MIDI editor is focused"). Multiple
+   * commands can share a chord as long as their `when` predicates disambiguate them; a
+   * matching contextual command wins over an unguarded (global) one. See
+   * `CommandBlock.execByKeyboardEvent`.
+   */
+  when(predicate: (project: AudioProject) => boolean) {
+    this._when = predicate;
+    return this;
+  }
+
+  /** Whether this command is gated by a `when` predicate. */
+  isContextual(): boolean {
+    return this._when != null;
+  }
+
+  /** Whether this command may run given the current project state. */
+  matches(project: AudioProject): boolean {
+    return this._when == null || this._when(project);
+  }
 }
 
 export class CommandBlock<S extends string[], T extends Record<string, Command>> {
   private readonly byId: T;
-  private readonly byKeyCode: Map<string, Command>;
-  constructor(byId: T, byKeyCode: Map<string, Command>, _sections: S) {
+  private readonly byKeyCode: Map<string, Command[]>;
+  constructor(byId: T, byKeyCode: Map<string, Command[]>, _sections: S) {
     this.byId = byId;
     this.byKeyCode = byKeyCode;
   }
@@ -79,9 +101,25 @@ export class CommandBlock<S extends string[], T extends Record<string, Command>>
     // renderer: AudioRenderer,
   ): boolean {
     const chordId = CommandBlock.keyboardChordId(e.code, e.metaKey, e.altKey, e.ctrlKey, e.shiftKey);
-    const command = this.byKeyCode.get(chordId);
-    if (command) {
-      command.execute(e, project);
+    const commands = this.byKeyCode.get(chordId);
+    if (commands == null) {
+      return false;
+    }
+    // A contextual command (with a passing `when`) wins; otherwise fall back to an
+    // unguarded command bound to the same chord.
+    let fallback: Command | undefined;
+    for (const command of commands) {
+      if (!command.isContextual()) {
+        fallback ??= command;
+        continue;
+      }
+      if (command.matches(project)) {
+        command.execute(e, project);
+        return true;
+      }
+    }
+    if (fallback != null) {
+      fallback.execute(e, project);
       return true;
     }
     return false;
@@ -96,11 +134,11 @@ export class CommandBlock<S extends string[], T extends Record<string, Command>>
   }
 
   getAllCommands(): Command[] {
-    return [...this.byKeyCode.values()];
+    return [...this.byKeyCode.values()].flat();
   }
 
   getCommandsBySection(): Map<S[number] | null, Command[]> {
-    return bucketize((c) => c.getSection(), [...this.byKeyCode.values()]);
+    return bucketize((c) => c.getSection(), [...this.byKeyCode.values()].flat());
   }
 
   static keyboardChordId(code: string, meta: boolean, alt: boolean, ctrl: boolean, shift: boolean) {
@@ -111,7 +149,7 @@ export class CommandBlock<S extends string[], T extends Record<string, Command>>
     sections: S,
     commandFn: (fn: (shortcut: KeyboardShortcut, cb: CommandCallback) => Command<S>) => T,
   ) {
-    const byKeyCode = new Map<string, Command>();
+    const byKeyCode = new Map<string, Command[]>();
 
     function command(shortcut: KeyboardShortcut, cb: CommandCallback): Command<S> {
       const set = new Set(shortcut);
@@ -123,10 +161,14 @@ export class CommandBlock<S extends string[], T extends Record<string, Command>>
         set.has("shift"),
       );
       const command = new Command<S>(cb, shortcut);
-      if (byKeyCode.has(chordId)) {
-        throw new Error("Duplicate keyboard shortcuts for command:" + chordId);
+      // Multiple commands may share a chord as long as they're disambiguated by `when`
+      // (resolved in execByKeyboardEvent). Registration order is preserved.
+      const existing = byKeyCode.get(chordId);
+      if (existing != null) {
+        existing.push(command);
+      } else {
+        byKeyCode.set(chordId, [command]);
       }
-      byKeyCode.set(chordId, command);
       return command;
     }
 
