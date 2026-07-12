@@ -2,6 +2,8 @@ import { SBoolean } from "structured-state";
 import { DSPStep } from "./DSPStep";
 import { TrackedAudioNode } from "./TrackedAudioNode";
 
+type SerialNode = TrackedAudioNode | DSPStep<TrackedAudioNode>;
+
 export const DSP = {
   inputOf(step: TrackedAudioNode | DSPStep): TrackedAudioNode {
     switch (true) {
@@ -21,6 +23,15 @@ export const DSP = {
     }
   },
 
+  /**
+   * A node is bypassed when it exposes a `bypass` flag that's currently on. Raw
+   * TrackedAudioNodes (eg. sources, gain nodes) have no such flag and are never
+   * skipped.
+   */
+  isBypassed(node: SerialNode): boolean {
+    return "bypass" in node && node.bypass instanceof SBoolean && node.bypass.get();
+  },
+
   connect(step: DSPStep<any>, dest: TrackedAudioNode): void {
     step.outputNode().connect(DSP.inputOf(dest));
   },
@@ -37,46 +48,29 @@ export const DSP = {
   disconnectSerialNodes,
 };
 
-function connectSerialNodes(chain: Array<TrackedAudioNode | DSPStep<TrackedAudioNode>>): void {
+/**
+ * Walks each wired edge of a serial chain, skipping bypassed nodes, and applies
+ * `fn` to the (output, input) pair that connects one active node to the next.
+ */
+function forEachSerialEdge(chain: Array<SerialNode>, fn: (from: TrackedAudioNode, to: TrackedAudioNode) => void): void {
   if (chain.length < 2) {
     return;
   }
-  let currentStep = chain[0];
-  for (let i = 1; chain[i] != null; i++) {
-    const nextNode = chain[i];
-
-    if ("bypass" in nextNode && nextNode.bypass instanceof SBoolean && nextNode.bypass.get() === true) {
+  let current = chain[0];
+  for (let i = 1; i < chain.length; i++) {
+    const next = chain[i];
+    if (DSP.isBypassed(next)) {
       continue;
     }
-
-    // console.groupCollapsed(`Connected: ${currentNode.constructor.name} -> ${nextNode.constructor.name}`);
-    // console.log(currentNode);
-    // console.log("-->");
-    // console.log(nextNode);
-    // console.groupEnd();
-    DSP.outputOf(currentStep).connect(DSP.inputOf(nextNode));
-    currentStep = nextNode;
+    fn(DSP.outputOf(current), DSP.inputOf(next));
+    current = next;
   }
 }
 
-function disconnectSerialNodes(chain: Array<TrackedAudioNode | DSPStep<TrackedAudioNode>>): void {
-  if (chain.length < 2) {
-    return;
-  }
-  let currentStep = chain[0];
-  for (let i = 1; chain[i] != null; i++) {
-    const nextNode = chain[i];
+function connectSerialNodes(chain: Array<SerialNode>): void {
+  forEachSerialEdge(chain, (from, to) => from.connect(to));
+}
 
-    if ("bypass" in nextNode && nextNode.bypass instanceof SBoolean && nextNode.bypass.get() === true) {
-      continue;
-    }
-
-    // console.groupCollapsed(`Connected: ${currentNode.constructor.name} -> ${nextNode.constructor.name}`);
-    // console.log(currentNode);
-    // console.log("-->");
-    // console.log(nextNode);
-    // console.groupEnd();
-    DSP.outputOf(currentStep).disconnect(DSP.inputOf(nextNode));
-    currentStep = nextNode;
-  }
+function disconnectSerialNodes(chain: Array<SerialNode>): void {
+  forEachSerialEdge(chain, (from, to) => from.disconnect(to));
 }

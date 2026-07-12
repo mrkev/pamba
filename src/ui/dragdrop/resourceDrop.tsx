@@ -88,10 +88,13 @@ export async function handleDropOntoAudioTrack(
         `track ${resource.trackIndex} has no effect at index ${resource.effectIndex}`,
       );
 
-      // remove effect from source track
-      srcTrack.dsp.removeEffect(effectInstance);
-      // insert where appropriate
-      track.dsp.addEffect(effectInstance, "last");
+      // move within the same track in one rewire, else remove from source + add to dest
+      if (srcTrack === track) {
+        track.dsp.moveEffect(effectInstance, "last");
+      } else {
+        srcTrack.dsp.removeEffect(effectInstance);
+        track.dsp.addEffect(effectInstance, "last");
+      }
       project.dspExpandedTracks.add(track);
       break;
     case "audioclipinstance":
@@ -134,10 +137,13 @@ export async function handleDropOntoMidiTrack(
         `track ${resource.trackIndex} has no effect at index ${resource.effectIndex}`,
       );
 
-      // remove effect from source track
-      srcTrack.dsp.removeEffect(effectInstance);
-      // insert where appropriate
-      track.dsp.addEffect(effectInstance, "last");
+      // move within the same track in one rewire, else remove from source + add to dest
+      if (srcTrack === track) {
+        track.dsp.moveEffect(effectInstance, "last");
+      } else {
+        srcTrack.dsp.removeEffect(effectInstance);
+        track.dsp.addEffect(effectInstance, "last");
+      }
       break;
     case "miditransfer": {
       const clips = [];
@@ -250,10 +256,13 @@ export async function handleDropOntoEffectRack(
         `track ${resource.trackIndex} has no effect at index ${resource.effectIndex}`,
       );
 
-      // remove effect from source track
-      srcTrack.dsp.removeEffect(effectInstance);
-      // insert where appropriate
-      track.dsp.addEffect(effectInstance, chainPosition ?? "last");
+      // move within the same track in one rewire, else remove from source + add to dest
+      if (srcTrack === track) {
+        track.dsp.moveEffect(effectInstance, chainPosition ?? "last");
+      } else {
+        srcTrack.dsp.removeEffect(effectInstance);
+        track.dsp.addEffect(effectInstance, chainPosition ?? "last");
+      }
       break;
     }
 

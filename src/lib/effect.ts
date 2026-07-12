@@ -9,7 +9,5 @@ export function removeEffect(track: AudioTrack | MidiTrack, effect: FaustAudioEf
 }
 
 export function bypassEffect(track: AudioTrack | MidiTrack, effect: FaustAudioEffect | PambaWamNode) {
-  track.dsp.reconnectEffectChain(() => {
-    effect.bypass.set(!effect.bypass.get());
-  });
+  track.dsp.setEffectBypassed(effect, !effect.bypass.get());
 }

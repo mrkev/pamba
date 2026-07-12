@@ -137,7 +137,7 @@ export class MidiTrack extends Structured<AutoMidiTrack, typeof MidiTrack> imple
     pianoRoll.audioNode.connectEvents(instrument.wamInstance.instanceId);
 
     // connect instrument to rest of track dsp
-    this.dsp.connectToDSPForPlayback(this.instrument.get().pambaWam.node);
+    this.dsp.connectChain(this.instrument.get().pambaWam.node);
 
     if (clips.length === 0) {
       const newClip = midiClip.createSampleMidiClip();
@@ -382,7 +382,7 @@ async function changeInstrument(track: MidiTrack, instrument: MidiInstrument) {
   instrument.wamInstance.audioNode.connect(track.pianoRoll.audioNode);
   track.pianoRoll.audioNode.connectEvents(instrument.wamInstance.instanceId);
   // connect to rest of track dsp
-  track.dsp.connectToDSPForPlayback(track.instrument.get().pambaWam.node);
+  track.dsp.connectChain(track.instrument.get().pambaWam.node);
 
   console.log("chagned instrument to", instrument.url);
   await liveAudioContext().resume();

@@ -143,7 +143,7 @@ export class AudioTrack extends Structured<AutoAudioTrack, typeof AudioTrack> im
   prepareForPlayback(project: AudioProject, context: AudioContext, startingAt: number): void {
     // We need to keep a reference to our source node for play/pause
     this.playingSource = TrackedAudioNode.of(this.getSourceNode(context));
-    this.dsp.connectToDSPForPlayback(this.playingSource);
+    this.dsp.connectChain(this.playingSource);
 
     if (AudioProject.playbackWillLoop(project, startingAt)) {
       this.playingSource.get().loop = true;
@@ -203,7 +203,7 @@ export class AudioTrack extends Structured<AutoAudioTrack, typeof AudioTrack> im
     }
 
     this.playingSource.get().stop(0);
-    this.dsp.disconnectDSPAfterPlayback(this.playingSource);
+    this.dsp.disconnectChain(this.playingSource);
   }
 
   // TODO: I think I can keep 'trackBuffer' between plays
