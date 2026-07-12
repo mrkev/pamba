@@ -173,18 +173,29 @@ function resizeUp(e: PointerEvent, re: NoteEditEvent) {
 
 /** MOVING */
 
+// Start positions of every note being dragged, captured on pointer down and keyed by
+// note. Only one drag happens at a time, so a module-level map is enough.
+let moveOriginals = new Map<MidiNote, NoteT>();
+
 function moveDown(e: PointerEvent, re: NoteEditStartEvent) {
   // so it doesn't reach other handlers. it's causing very obvious problems for some reason
   e.preventDefault();
   e.stopPropagation();
 
-  // const selectAdd = e.metaKey || e.shiftKey;
-  // if (!selectAdd) {
-  //   re.target.clip.selectedNotes.clear();
-  // }
+  const selectedNotes = re.target.clip.selectedNotes;
 
-  re.target.clip.selectedNotes.clear();
-  re.target.clip.selectedNotes.add(re.target.note);
+  // If the grabbed note isn't already selected, make it the whole selection. If it is,
+  // leave the selection intact so every selected note moves together.
+  if (!selectedNotes.has(re.target.note)) {
+    selectedNotes.clear();
+    selectedNotes.add(re.target.note);
+  }
+
+  // Snapshot each moving note's start position so the drag is applied per-note.
+  moveOriginals = new Map();
+  for (const note of selectedNotes) {
+    moveOriginals.set(note, note.t);
+  }
 
   if (re.target.project.hearNotes.get()) {
     midiTrack.noteOn(re.target.track, re.original[1]);
@@ -197,47 +208,28 @@ function moveMove(e: PointerEvent, re: NoteEditEvent) {
   const deltaXPulses = Math.floor(re.target.clip.detailedViewport.pxToPulses(deltaX));
   const deltaYNotes = Math.floor(re.target.clip.detailedViewport.pxToVerticalNotes(deltaY));
 
-  console.log("moveMove", deltaYNotes);
-
-  // for (const note of selection.notes) {
-  //   const orig = interactionDataRef.current.notes.get(note);
-  //   if (orig == null) {
-  //     console.warn("no original note when moving");
-  //     break;
-  //   }
-  // }
-
-  const selectedNotes = re.target.clip.selectedNotes;
-  const targetNote = re.target.note;
-
-  if (selectedNotes.has(targetNote)) {
-    for (const note of re.target.clip.selectedNotes) {
-      note.tick = re.original[0] + deltaXPulses; // todo: limits
-      note.number = re.original[1] - deltaYNotes; // todo: limits
-      // clip.buffer.clearCache();
-
-      // note.tick = Math.max(NOTE_MIN_SIZE_PULSES, re.original[0] + deltaPulses);
-    }
-  } else {
-    targetNote.tick = re.original[0] + deltaXPulses; // todo: limits
-    targetNote.number = re.original[1] - deltaYNotes; // todo: limits
-    // idea: should moveDown select this note, so we always rezise on a selected note?
-    // targetNote.tick = Math.max(NOTE_MIN_SIZE_PULSES, re.original[0] + deltaPulses);
+  // Move every dragged note relative to its own start position so the group keeps its shape.
+  for (const [note, original] of moveOriginals) {
+    note.tick = original[0] + deltaXPulses; // todo: limits
+    note.number = original[1] - deltaYNotes; // todo: limits
   }
 }
 
 function moveUp(e: PointerEvent, re: NoteEditEvent) {
-  const start = re.target.note.tick;
-  const end = start + re.target.note.duration - 1;
-  const pitch = re.target.note.number;
+  // Remove notes overlapped by any of the notes we just moved, but never delete a note
+  // that was part of the move itself.
+  for (const moved of moveOriginals.keys()) {
+    const start = moved.tick;
+    const end = start + moved.duration - 1;
+    const pitch = moved.number;
 
-  // remove overlaps
-  const overlaps = midiClip.findNotesInRange(re.target.clip, start, end, pitch, pitch);
-  for (const note of overlaps) {
-    if (note === re.target.note) {
-      continue;
+    const overlaps = midiClip.findNotesInRange(re.target.clip, start, end, pitch, pitch);
+    for (const note of overlaps) {
+      if (moveOriginals.has(note)) {
+        continue;
+      }
+      midiBuffer.removeNote(re.target.clip.buffer, note);
     }
-    midiBuffer.removeNote(re.target.clip.buffer, note);
   }
 
   if (re.target.project.hearNotes.get()) {
