@@ -116,8 +116,9 @@ function BypassToggle({
   return (
     <UtilityToggle
       toggled={bypassOn}
-      onToggle={(on) => {
-        bypass.set(on);
+      onToggle={() => {
+        // The flag flip + graph rewiring is owned by the onClickBypass handler
+        // (bypassEffect); flipping `bypass` here too would double-toggle it.
         onClickBypass?.();
       }}
       title={"toggle bypass"}

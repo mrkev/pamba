@@ -146,7 +146,7 @@ export const EffectRack = React.memo(function EffectRack({
           }}
           key={`effect-${i}`}
           canDelete={!isAudioPlaying}
-          canBypass={!isAudioPlaying}
+          canBypass={true}
           effect={effect}
           onClickRemove={() => removeEffect(track, effect)}
           onHeaderMouseDown={() => {
@@ -166,6 +166,8 @@ export const EffectRack = React.memo(function EffectRack({
             removeEffect(track, effect);
           }}
           onHeaderMouseDown={() => selection.selectEffect(project, effect, track)}
+          canBypass={true}
+          bypass={effect.bypass}
           onClickBypass={() => bypassEffect(track, effect)}
           isSelected={selected?.status === "effects" && selected.test.has(effect)}
           title={effect.name.get()}

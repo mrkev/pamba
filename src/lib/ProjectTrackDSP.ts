@@ -30,6 +30,11 @@ export class ProjectTrackDSP implements DSPStep<null> {
 
   readonly meterInstance: WebAudioPeakMeter;
 
+  // The source node the live DSP chain is currently wired from, or null when the
+  // chain isn't connected (eg. an audio track that isn't playing). Used to rewire
+  // the graph in place when the effect chain changes during playback.
+  private connectedSource: TrackedAudioNode | null = null;
+
   constructor(
     readonly name: SString,
     readonly effectNodes: SArray<FaustAudioEffect | PambaWamNode>,
@@ -57,6 +62,7 @@ export class ProjectTrackDSP implements DSPStep<null> {
   }
 
   connectToDSPForPlayback(source: TrackedAudioNode): void {
+    this.connectedSource = source;
     if (this.bypass.get()) {
       return;
     }
@@ -71,6 +77,7 @@ export class ProjectTrackDSP implements DSPStep<null> {
   }
 
   disconnectDSPAfterPlayback(source: TrackedAudioNode): void {
+    this.connectedSource = null;
     if (this.bypass.get()) {
       return;
     }
@@ -82,6 +89,25 @@ export class ProjectTrackDSP implements DSPStep<null> {
       this.utility,
       this._hiddenGainNode,
     ]);
+  }
+
+  /**
+   * Rewires the live DSP graph to reflect a change to the effect chain (eg. an
+   * effect being bypassed). `mutate` applies the change between tearing down the
+   * old topology and building the new one, so disconnect/connectSerialNodes each
+   * see a consistent bypass state. A brief click is expected — there's no
+   * crossfade. No-ops (just applies the mutation) when the chain isn't live, in
+   * which case it gets rebuilt correctly the next time it's connected.
+   */
+  reconnectEffectChain(mutate: () => void): void {
+    const source = this.connectedSource;
+    if (source == null || this.bypass.get()) {
+      mutate();
+      return;
+    }
+    this.disconnectDSPAfterPlayback(source); // tear down old topology
+    mutate(); // apply the change (eg. flip an effect's bypass)
+    this.connectToDSPForPlayback(source); // build new topology
   }
 
   ////////////////////// SOLO ///////////////////////
@@ -105,12 +131,23 @@ export class ProjectTrackDSP implements DSPStep<null> {
   }
 
   addEffect(effect: PambaWamNode | FaustAudioEffect, index: number | "first" | "last") {
-    if (index === "last") {
-      this.effectNodes.push(effect);
-    } else if (index === "first") {
-      this.effectNodes.unshift(effect);
-    } else {
-      this.effectNodes.splice(index, 0, effect);
-    }
+    // Rewire so the effect is wired into the graph immediately when added during
+    // playback; otherwise it dangles unconnected (inaudible) until the next play.
+    this.reconnectEffectChain(() => {
+      if (index === "last") {
+        this.effectNodes.push(effect);
+      } else if (index === "first") {
+        this.effectNodes.unshift(effect);
+      } else {
+        this.effectNodes.splice(index, 0, effect);
+      }
+    });
+  }
+
+  /** Removes an effect from the chain, rewiring live playback. Does not destroy it. */
+  removeEffect(effect: PambaWamNode | FaustAudioEffect) {
+    this.reconnectEffectChain(() => {
+      this.effectNodes.remove(effect);
+    });
   }
 }

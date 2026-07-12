@@ -89,7 +89,7 @@ export async function handleDropOntoAudioTrack(
       );
 
       // remove effect from source track
-      srcTrack.dsp.effectNodes.splice(resource.effectIndex, 1);
+      srcTrack.dsp.removeEffect(effectInstance);
       // insert where appropriate
       track.dsp.addEffect(effectInstance, "last");
       project.dspExpandedTracks.add(track);
@@ -135,7 +135,7 @@ export async function handleDropOntoMidiTrack(
       );
 
       // remove effect from source track
-      srcTrack.dsp.effectNodes.splice(resource.effectIndex, 1);
+      srcTrack.dsp.removeEffect(effectInstance);
       // insert where appropriate
       track.dsp.addEffect(effectInstance, "last");
       break;
@@ -251,7 +251,7 @@ export async function handleDropOntoEffectRack(
       );
 
       // remove effect from source track
-      srcTrack.dsp.effectNodes.splice(resource.effectIndex, 1);
+      srcTrack.dsp.removeEffect(effectInstance);
       // insert where appropriate
       track.dsp.addEffect(effectInstance, chainPosition ?? "last");
       break;

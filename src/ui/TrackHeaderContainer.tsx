@@ -1,7 +1,6 @@
 import React, { useCallback, useRef, useState } from "react";
 import { useContainer } from "structured-state";
-import { TRACK_HEIGHT, TRACK_HEADER_WIDTH } from "../constants";
-import { documentCommands } from "../input/documentCommands";
+import { TRACK_HEADER_WIDTH, TRACK_HEIGHT } from "../constants";
 import { AnalizedPlayer } from "../lib/io/AnalizedPlayer";
 import { AudioProject } from "../lib/project/AudioProject";
 import { cn } from "../utils/cn";
@@ -12,7 +11,6 @@ import { getTrackHeaderContainerAcceptableDataTransferResources } from "./dragdr
 import { handleDropOntoTrackHeaderContainer } from "./dragdrop/resourceDrop";
 import { transferObject } from "./dragdrop/setTransferData";
 import { useDropzoneBehaviour } from "./dragdrop/useDropzoneBehaviour";
-import { utility } from "./utility";
 
 export const TrackHeaderContainer = React.memo(function TrackHeaderContainerImpl({
   project,
@@ -126,16 +124,7 @@ export const TrackHeaderContainer = React.memo(function TrackHeaderContainerImpl
           height: TRACK_HEIGHT * 2,
           padding: "4px 0px 0px 4px",
         }}
-      >
-        <button
-          className={utility.button}
-          onClick={async () => {
-            documentCommands.execById("createAudioTrack", project);
-          }}
-        >
-          new track
-        </button>
-      </div>
+      ></div>
     </div>
   );
 });

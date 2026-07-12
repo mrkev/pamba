@@ -4,10 +4,12 @@ import { PambaWamNode } from "../wam/PambaWamNode";
 import { AudioTrack } from "./AudioTrack";
 
 export function removeEffect(track: AudioTrack | MidiTrack, effect: FaustAudioEffect | PambaWamNode) {
-  track.dsp.effectNodes.remove(effect);
+  track.dsp.removeEffect(effect);
   effect.destroy();
 }
 
 export function bypassEffect(track: AudioTrack | MidiTrack, effect: FaustAudioEffect | PambaWamNode) {
-  console.log("todo: bypass", effect);
+  track.dsp.reconnectEffectChain(() => {
+    effect.bypass.set(!effect.bypass.get());
+  });
 }
