@@ -1,6 +1,5 @@
 import { FaustAudioEffect } from "../../dsp/FaustAudioEffect";
 import { MidiClip } from "../../midi/MidiClip";
-import { MidiNote } from "../../midi/MidiNote";
 import { MidiTrack } from "../../midi/MidiTrack";
 import { PambaWamNode } from "../../wam/PambaWamNode";
 import { AudioClip } from "../AudioClip";
@@ -60,7 +59,11 @@ export type PrimarySelectionState =
 export type PanelSelectionState =
   | {
       status: "notes";
-      notes: Set<MidiNote>;
+      // The selected notes themselves live in `clip.selectedNotes` (single source of
+      // truth); this just records that the secondary selection is notes on this clip.
+      // `track` is kept so note actions (delete/nudge) can flush to its processor.
+      clip: MidiClip;
+      track: MidiTrack;
     }
   | {
       status: "audioTime";

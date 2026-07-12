@@ -3,6 +3,8 @@ next
 - tracks are no longer vertically resizable
 - add expanded bottom panel view
 - persist app layout
+- can now bypass effects
+- improvements to midi clip editor
 
 v3.0.0
 - save track mute stauts

@@ -1,4 +1,3 @@
-import { useLinkAsState } from "marked-subbable";
 import { ReactNode, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { history, useContainer, usePrimitive } from "structured-state";
@@ -26,7 +25,6 @@ import { PointerPressMeta, usePointerPressMove } from "../usePointerPressMove";
 import { useViewportScrollEvents } from "../useViewportScrollEvents";
 import { divSelectionBox } from "./divSelectionBox";
 import { MidiEditorGridBackground } from "./MidiEditorGridBackground";
-import { useNotePointerCallbacks } from "./useNotePointerCallbacks";
 import { VerticalPianoRollKeys } from "./VerticalPianoRollKeys";
 
 export function MidiClipEditorPianoRoll({
@@ -82,15 +80,12 @@ export function MidiClipEditorPianoRoll({
           TOTAL_VERTICAL_NOTES - minNote,
         );
 
-        project.secondarySelection.set({
-          status: "notes",
-          notes: new Set(notes),
-        });
+        project.secondarySelection.set({ status: "notes", clip, track });
         clip.selectedNotes._replace(() => new Set(notes));
 
         setSelectionBox(null);
       },
-      [clip, project.secondarySelection],
+      [clip, track, project.secondarySelection],
     ),
   });
 
@@ -188,9 +183,10 @@ export function MidiClipEditorPianoRoll({
         switch (panelTool) {
           case "move": {
             if (prevNote) {
-              // selection handled inside the note
+              // selection handled inside the note's pointer handlers
             } else {
               project.secondarySelection.set(null);
+              clip.selectedNotes.clear();
             }
             break;
           }
@@ -271,9 +267,7 @@ function PianoRollView({
 }) {
   const notes = useContainer(clip.buffer.notes);
   const clipSel = useContainer(clip.selectedNotes);
-  const [secondarySel] = useLinkAsState(project.secondarySelection);
   const [panelTool] = usePrimitive<SecondaryTool>(project.panelTool);
-  const noteEvents = useNotePointerCallbacks(panelTool);
 
   return (
     <div
@@ -291,20 +285,16 @@ function PianoRollView({
       <MidiEditorGridBackground clip={clip} project={project} />
 
       {/* notes */}
-      {notes.map((note, i) => {
-        const selected = (secondarySel?.status === "notes" && secondarySel.notes.has(note)) || clipSel.has(note);
+      {notes.map((note) => {
         return (
           <NoteR
             resizable={panelTool === "move"}
-            key={i}
+            key={note._id}
             note={note}
             clip={clip}
             track={track}
             project={project}
-            selected={selected}
-            onPointerDown={noteEvents.onNotePointerDown}
-            onPointerMove={noteEvents.onNotePointerMove}
-            onPointerUp={noteEvents.onNotePointerUp}
+            selected={clipSel.has(note)}
           />
         );
       })}

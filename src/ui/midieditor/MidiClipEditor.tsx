@@ -1,11 +1,11 @@
 import { useLinkAsState } from "marked-subbable";
 import { useCallback } from "react";
 import { usePrimitive } from "structured-state";
-import { MIDI_CLIP_EDITOR_MAX_H_SCALE } from "../../constants";
+import { DEFAULT_NOTE_DURATION, MIDI_CLIP_EDITOR_MAX_H_SCALE } from "../../constants";
 import { keyChord } from "../../input/KeyChord";
 import { AnalizedPlayer } from "../../lib/io/AnalizedPlayer";
 import { AudioProject } from "../../lib/project/AudioProject";
-import { MidiClip } from "../../midi/MidiClip";
+import { midiClip, MidiClip } from "../../midi/MidiClip";
 import { midiTrack, MidiTrack } from "../../midi/MidiTrack";
 import { ClipPropsEditor, EditorSection } from "../ClipPropsEditor";
 import { UtilitySToggle, UtilityToggle } from "../UtilityToggle";
@@ -38,12 +38,6 @@ export function MidiClipEditor({
         case keyChord.ofKeys("KeyA", "meta"):
           // TODO: select all
           break;
-        case keyChord.ofKeys("ArrowRight"):
-        case keyChord.ofKeys("ArrowLeft"):
-        case keyChord.ofKeys("ArrowUp"):
-        case keyChord.ofKeys("ArrowDown"):
-        default:
-          console.log("none");
       }
     }, []),
   );
@@ -56,23 +50,29 @@ export function MidiClipEditor({
           throw new Error("impossible");
         }
 
+        // nudge selected notes: left/right by a grid step (16th note), up/down a semitone
         switch (keyChord.ofEvent(e)) {
           case keyChord.ofKeys("ArrowRight"):
-          case keyChord.ofKeys("ArrowLeft"):
-          case keyChord.ofKeys("ArrowUp"):
-          case keyChord.ofKeys("ArrowDown"):
-            // secondarySel.notes
+            e.preventDefault();
+            midiClip.moveSelectedNotes(track, clip, DEFAULT_NOTE_DURATION, 0);
             break;
-          default:
-            console.log("none");
+          case keyChord.ofKeys("ArrowLeft"):
+            e.preventDefault();
+            midiClip.moveSelectedNotes(track, clip, -DEFAULT_NOTE_DURATION, 0);
+            break;
+          case keyChord.ofKeys("ArrowUp"):
+            e.preventDefault();
+            midiClip.moveSelectedNotes(track, clip, 0, 1);
+            break;
+          case keyChord.ofKeys("ArrowDown"):
+            e.preventDefault();
+            midiClip.moveSelectedNotes(track, clip, 0, -1);
+            break;
         }
       },
-      [secondarySel?.status],
+      [clip, track, secondarySel?.status],
     ),
   );
-
-  // BUG on usePrimitive, muted, and clip.muted.get() are different
-  console.log("RENDERING", clip._id, muted, clip.muted.get());
 
   return (
     <>

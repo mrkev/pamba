@@ -6,12 +6,29 @@ import { AudioRenderer } from "../lib/io/AudioRenderer";
 import { selection } from "../lib/project/selection";
 import { clipsLimits } from "../lib/project/timeline";
 import { projectPersistance } from "../lib/ProjectPersistance";
+import type { AudioProject } from "../lib/project/AudioProject";
 import { userActions } from "../lib/userActions";
 import { closeProject } from "../ui/header/closeProject";
 import { pressedState } from "../ui/pressedState";
 import { exhaustive } from "../utils/exhaustive";
 import { nullthrows } from "../utils/nullthrows";
 import { CommandBlock } from "./Command";
+
+/** Delete whatever the active panel has selected. Bound to both Backspace and Delete. */
+function deleteActiveSelection(e: KeyboardEvent | null, project: AudioProject) {
+  switch (project.activePanel.get()) {
+    case "primary":
+      userActions.deletePrimarySelection(project);
+      break;
+    case "secondary":
+      userActions.deleteSecondarySelection(project);
+      break;
+    case "sidebar":
+      userActions.deleteSidebarSelection(project);
+      break;
+  }
+  e?.preventDefault();
+}
 
 export const documentCommands = CommandBlock.create(["Project", "Edit", "Tools", "Playback"] as const, (command) => {
   return {
@@ -76,22 +93,9 @@ export const documentCommands = CommandBlock.create(["Project", "Edit", "Tools",
       await userActions.addSampleMidiClip(project);
     }).section("Project"),
 
-    deleteSelection: command(["Backspace"], (e, project) => {
-      const activePanel = project.activePanel.get();
-      console.log("active", activePanel);
-      switch (activePanel) {
-        case "primary":
-          userActions.deletePrimarySelection(project);
-          break;
-        case "secondary":
-          userActions.deleteSecondarySelection(project);
-          break;
-        case "sidebar":
-          userActions.deleteSidebarSelection(project);
-          break;
-      }
-      e?.preventDefault();
-    }).section("Edit"),
+    deleteSelection: command(["Backspace"], deleteActiveSelection).section("Edit"),
+
+    deleteSelectionForward: command(["Delete"], deleteActiveSelection).section("Edit"),
 
     duplicateSelection: command(["KeyD", "meta"], (e, project) => {
       userActions.duplicateSelection(project);

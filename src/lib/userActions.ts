@@ -204,13 +204,15 @@ export const userActions = {
 
     switch (secondarySelection.status) {
       case "notes":
+        midiClip.deleteNotes(secondarySelection.track, secondarySelection.clip, secondarySelection.clip.selectedNotes);
+        project.secondarySelection.set(null);
+        break;
       case "audioTime":
+        // TODO: delete the selected audio time range
         break;
       default:
         exhaustive(secondarySelection);
     }
-
-    throw new Error("Not implemented");
   },
 
   deleteSidebarSelection(project: AudioProject) {
