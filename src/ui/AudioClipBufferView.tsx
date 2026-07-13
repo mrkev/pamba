@@ -7,6 +7,7 @@ import { AnalizedPlayer } from "../lib/io/AnalizedPlayer";
 import { AudioProject } from "../lib/project/AudioProject";
 import { standardViewport } from "../lib/viewport/StandardViewport";
 import { nullthrows } from "../utils/nullthrows";
+import { AudioClipBufferAxis } from "./axis/AudioClipBufferAxis";
 import { pressedState } from "./pressedState";
 import { useSelectOnSurface } from "./useSelectOnSurface";
 import { useStandardViewport } from "./useStandardViewport";
@@ -94,15 +95,17 @@ export function AudioClipBufferView({
 
     useCallback(
       function mouseMove(e: MouseEvent, down: { clientX: number; clientY: number }) {
-        // const mouseDown = nullthrows(mouseGesture.get());
-        const deltaXFr = standardViewport.pxToFr(clip.detailedViewport, e.clientX - down.clientX, clip.sampleRate);
-        const newWidth = deltaXFr;
-
-        if (newWidth < 1) {
+        // Signed delta: dragging left of the anchor gives a negative width, so the
+        // selection can be made backwards as well as forwards. Use a small pixel
+        // dead-zone (symmetric regardless of zoom) so a plain click with a bit of
+        // drift doesn't create a stray selection.
+        const deltaPx = e.clientX - down.clientX;
+        if (Math.abs(deltaPx) < 2) {
           clip.detailedViewport.selectionWidthFr.set(null);
-        } else {
-          clip.detailedViewport.selectionWidthFr.set(newWidth);
+          return;
         }
+        const deltaXFr = standardViewport.pxToFr(clip.detailedViewport, deltaPx, clip.sampleRate);
+        clip.detailedViewport.selectionWidthFr.set(deltaXFr);
       },
       [clip.detailedViewport, clip.sampleRate],
     ),
@@ -114,14 +117,18 @@ export function AudioClipBufferView({
           return;
         }
 
+        // The width is signed (relative to the cursor anchor). Normalize so `startS` is
+        // always the left edge and `lengthFr` is positive, per the audioTime convention.
+        const cursorS = project.cursorPos.get();
+        const lenSecs = selLenFr / clip.sampleRate;
         project.secondarySelection.set({
           status: "audioTime",
-          startS: project.cursorPos.get(),
-          lengthFr: selLenFr,
+          startS: selLenFr < 0 ? cursorS + lenSecs : cursorS,
+          lengthFr: Math.abs(selLenFr),
         });
         pressedState.set(null);
       },
-      [clip.detailedViewport.selectionWidthFr, project.cursorPos, project.secondarySelection],
+      [clip.detailedViewport.selectionWidthFr, clip.sampleRate, project.cursorPos, project.secondarySelection],
     ),
   );
 
@@ -174,6 +181,13 @@ export function AudioClipBufferView({
           className="w-full h-full grow shrink bg-timeline-bg box-border border border-track-separator"
         />
       )}
+      {/* axes: x = time (seconds into buffer), y = amplitude (-1..1) */}
+      <AudioClipBufferAxis
+        width={width}
+        height={height}
+        pxPerSec={pxPerSec}
+        startSec={(lockPlayback ? offsetFrOfPlaybackPos(playbackPos) : waveformStartFr) / clip.sampleRate}
+      />
       {/* cursor div */}
       {cursorPosInClipPx > 0 &&
         cursorPosInClipPx < 1000 && ( // TODO
@@ -184,7 +198,8 @@ export function AudioClipBufferView({
               background: "rgba(232,136,58,0.5)",
               borderRight: selectionWidthPx === 0 ? undefined : "1px solid orange",
               // TODO center when locked
-              left: selectionWidthPx >= 0 ? cursorPosInClipPx : cursorPos + selectionWidthPx,
+              // Signed width: for a backwards selection the box extends left of the cursor.
+              left: selectionWidthPx >= 0 ? cursorPosInClipPx : cursorPosInClipPx + selectionWidthPx,
               width: selectionWidthPx === 0 ? 0 : Math.floor(Math.abs(selectionWidthPx) - 1),
             }}
           />
