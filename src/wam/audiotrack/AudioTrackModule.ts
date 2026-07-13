@@ -9,13 +9,8 @@ import DESCRIPTOR_URL from "./descriptor.json?url";
 import { AudioTrackProcessorMessage } from "./SharedAudioTrackTypes";
 
 export class AudioTrackModule extends WebAudioModule<AudioTrackNode> {
-  override _descriptor: any;
+  override _descriptor: any = {};
   public wamNode: AudioTrackNode = null as any; // todo as any
-
-  // public sendClipsForPlayback(seqClips: SimpleMidiClip[]) {
-  //   const message: PianoRollProcessorMessage = { action: "newclip", seqClips };
-  //   this.sequencer.port.postMessage(message);
-  // }
 
   public sendMessageToProcessor(seqClips: AudioTrackProcessorMessage) {
     this.wamNode.port.postMessage(seqClips);
@@ -45,10 +40,6 @@ export class AudioTrackModule extends WebAudioModule<AudioTrackNode> {
     this.wamNode = new AudioTrackNode(this, {});
     ignorePromise(this.wamNode._initialize());
     ignorePromise(this.wamNode.setState(initialState)); // todo: await?
-
-    // this.sequencer.pianoRoll.updateProcessor = (c: PianoRollClip) => {
-    //   this.sequencer.port.postMessage({ action: "clip", id: c.state.id, state: c.getState() });
-    // };
 
     this.wamNode.port.addEventListener("message", (ev) => {
       if (ev.data.event == "transport") {

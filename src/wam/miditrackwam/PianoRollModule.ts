@@ -12,7 +12,7 @@ import DescriptorUrl from "./descriptor.json?url";
 
 /// MAIN THING
 export class PianoRollModule extends WebAudioModule<PianoRollNode> {
-  override _descriptor: any;
+  override _descriptor: any = {};
   wamNode: PianoRollNode = null as any; // todo as any
   readonly playingNotes = set<number>();
 
