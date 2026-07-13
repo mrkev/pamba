@@ -37,7 +37,7 @@ export function MidiEditorGridBackground({ clip, project }: { clip: MidiClip; pr
         // ctx.stroke();
       }
 
-      for (let i = 0; i < timelineLen.pulses(project); i += PPQN / 4) {
+      for (let i = 0; i <= timelineLen.pulses(project); i += PPQN / 4) {
         if (i === 0) {
           continue;
         } else if (i % 8 === 0) {

@@ -25,6 +25,7 @@ import { PointerPressMeta, usePointerPressMove } from "../usePointerPressMove";
 import { useViewportScrollEvents } from "../useViewportScrollEvents";
 import { divSelectionBox } from "./divSelectionBox";
 import { MidiEditorGridBackground } from "./MidiEditorGridBackground";
+import { MidiEditorTimeAxis } from "./MidiEditorTimeAxis";
 import { VerticalPianoRollKeys } from "./VerticalPianoRollKeys";
 
 export function MidiClipEditorPianoRoll({
@@ -217,14 +218,12 @@ export function MidiClipEditorPianoRoll({
     >
       <div className="sticky top-0 left-0 z-20 bg-timeline-tick box-border"></div>
 
-      {/* width is set to whole notes, virtualize this */}
-      <div className="h-[10px] w-full bg-red-500 sticky top-0 z-10" style={{ left: VERTICAL_PIANO_WIDTH }} />
-      {/* <MidiEditorTimeAxis
-                  className="sticky top-0 bg-timeline-tick z-10 border-b border-b-axis-timeline-separator"
-                  style={{ left: PIANO_ROLL_WIDTH }}
-                  clip={clip}
-                  project={project}
-                /> */}
+      <MidiEditorTimeAxis
+        className="sticky top-0 z-10 border-b border-b-axis-timeline-separator"
+        style={{ left: VERTICAL_PIANO_WIDTH }}
+        clip={clip}
+        project={project}
+      />
 
       <VerticalPianoRollKeys clip={clip} track={track} />
 
