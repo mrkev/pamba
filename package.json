@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
+    "@base-ui/react": "^1.6.0",
     "@grame/faustwasm": "^0.15.7",
     "@react-hook/resize-observer": "^2.0.2",
     "@shren/typed-event-emitter": "1.1.1",

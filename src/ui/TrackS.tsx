@@ -51,6 +51,7 @@ export function TrackS({
   // const [height] = usePrimitive(track.height);
   const height = TRACK_HEIGHT;
   const [activeTrack] = usePrimitive(project.activeTrack);
+  const [recordingClip] = usePrimitive(project.midi.recordingClip);
   const lockedTracks = useContainer(project.lockedTracks);
   const [audioStorage] = usePrimitive(appEnvironment.audioStorage);
   const trackRef = useRef<HTMLDivElement>(null);
@@ -133,6 +134,11 @@ export function TrackS({
           console.warn("Invalid clip in track???");
           return null;
         })}
+
+        {/* RENDER MIDI RECORDING PREVIEW (clip is detached until recording stops) */}
+        {recordingClip != null && track instanceof MidiTrack && project.midi.isRecordingTrack(track) && (
+          <ClipM clip={recordingClip} isSelected={true} track={null} project={project} editable={false} />
+        )}
 
         {/* RENDER SELECTION */}
         <CursorSelection track={track} project={project} />

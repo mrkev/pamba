@@ -5,7 +5,7 @@ import { MidiTrack } from "../midi/MidiTrack";
 import { StandardClip } from "./StandardClip";
 import { clipMouseDownToMove } from "./clipMouse";
 import { cn } from "../utils/cn";
-import { usePrimitive } from "structured-state";
+import { useContainer, usePrimitive } from "structured-state";
 import { standardViewport } from "../lib/viewport/StandardViewport";
 
 export function ClipM({
@@ -26,6 +26,9 @@ export function ClipM({
   // const width = project.viewport.pulsesToPx(timelineLength.pulses(project));
   // const left = Math.floor(project.viewport.pulsesToPx(timelienStart.pulses(project)));
   const [muted] = usePrimitive(clip.muted);
+  // re-render (and re-rasterize the note thumbnail) as notes are added/removed,
+  // e.g. while live-recording into this clip
+  useContainer(clip.buffer.notes);
 
   const onMouseDownToMove = useCallback(
     (e: MouseEvent) => {

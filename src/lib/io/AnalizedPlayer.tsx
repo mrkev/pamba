@@ -97,6 +97,16 @@ export class AnalizedPlayer extends TypedEmitter<{
     ctx.fillText(String(playbackTime.toFixed(2)) + "s", 6, 26);
   }
 
+  /**
+   * Current absolute playback position in seconds, read straight from the audio
+   * clock (as opposed to the per-frame-throttled `playbackPos`). Used to timestamp
+   * incoming events, e.g. live MIDI recording. Ignores looping.
+   */
+  currentPlaybackTimeSec(): number {
+    const liveAudioContext = liveAudioContextFn();
+    return this.cursorAtPlaybackStart + (liveAudioContext.currentTime - this.CTX_PLAY_START_TIME);
+  }
+
   playingTracks: ReadonlyArray<AudioTrack | MidiTrack> | null = null;
   playingLoop: readonly [startS: Seconds, endS: Seconds] | readonly [null, null] = [null, null];
   // Position of the cursor; where the playback is going to start

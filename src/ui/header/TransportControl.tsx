@@ -67,10 +67,13 @@ export function PlaybackControl({
 }) {
   const tracks = useContainer(project.allTracks);
   const [armedTrack] = usePrimitive(project.armedAudioTrack);
+  const [armedMidiTrack] = usePrimitive(project.armedMidiTrack);
+  const [recordingClip] = usePrimitive(project.midi.recordingClip);
   const [isAudioPlaying] = usePrimitive(renderer.isAudioPlaying);
   const [recorderStatus] = useLinkAsState(recorder.status);
-  const isRecording = recorderStatus === "recording";
-  const isTrackArmed = armedTrack != null;
+  const isMidiRecording = recordingClip != null;
+  const isRecording = recorderStatus === "recording" || isMidiRecording;
+  const isTrackArmed = armedTrack != null || armedMidiTrack != null;
   const [selectionWidth] = usePrimitive(project.selectionWidth);
   const [cursorPos] = usePrimitive(project.cursorPos);
 
@@ -107,7 +110,12 @@ export function PlaybackControl({
           disabled={tracks.length === 0}
           onClick={() => {
             AudioRenderer.ensurePlaybackStopped(renderer, project, renderer.analizedPlayer);
-            if (isRecording) {
+            // stop midi recording after playback is stopped, so committing the clip
+            // isn't blocked by canEditTrack (which forbids edits while playing)
+            if (isMidiRecording) {
+              project.midi.stopRecording();
+            }
+            if (recorderStatus === "recording") {
               recorder.stop();
             }
           }}
@@ -127,10 +135,20 @@ export function PlaybackControl({
               case "error":
                 console.error("errorrrrr");
                 return;
-              case "idle":
-                recorder.record();
+              case "idle": {
+                const midiArmed = armedMidiTrack != null;
+                const audioArmed = armedTrack != null;
+                if (midiArmed) {
+                  project.midi.startRecording();
+                }
+                // record audio to the armed audio track, or to a new track when nothing
+                // is armed. Don't spin up a new audio track when only midi is armed.
+                if (audioArmed || !midiArmed) {
+                  recorder.record();
+                }
                 AudioRenderer.ensurePlaybackGoing(renderer, project, renderer.analizedPlayer);
                 return;
+              }
               case "recording":
                 recorder.stop();
                 return;
