@@ -7,6 +7,7 @@ v3.1.0
 - improvements to midi clip editor
 - improvements to keyboard command handling
 - add select and draw note tool shortcuts
+- make pro54 the default instrument for midi tracks
 
 v3.0.0
 - save track mute stauts

@@ -2,7 +2,7 @@ import { FirebaseApp } from "firebase/app";
 import { Auth, User, getAuth } from "firebase/auth";
 import { MarkedSet, MarkedValue } from "marked-subbable";
 import { DirtyObserver, SPrimitive, array } from "structured-state";
-import { FIREBASE_ENABLED, MAX_NUMBER_OF_TRACKS, SOUND_FONT_URL } from "../constants";
+import { FIREBASE_ENABLED, MAX_NUMBER_OF_TRACKS, PRO54_URL, SOUND_FONT_URL } from "../constants";
 import { ProjectPackage } from "../data/ProjectPackage";
 import { LocalFilesystem } from "../data/localFilesystem";
 import { FAUST_EFFECTS } from "../dsp/FAUST_EFFECTS";
@@ -33,9 +33,7 @@ type ProjectState = { status: "idle" } | { status: "loading" } | { status: "load
 type Status = { is: "initing" } | { is: "ready" };
 
 type MidiLearningStatus =
-  | { status: "off" }
-  | { status: "waiting" }
-  | { status: "learning"; effect: FaustAudioEffect; address: string };
+  { status: "off" } | { status: "waiting" } | { status: "learning"; effect: FaustAudioEffect; address: string };
 
 export class AppEnvironment {
   readonly status: SPrimitive<Status>;
@@ -238,7 +236,7 @@ export function liveWamHostGroupId() {
 
 export function defaultInstrument() {
   const plugin = nullthrows(
-    appEnvironment.wamPlugins.get(SOUND_FONT_URL),
+    appEnvironment.wamPlugins.get(PRO54_URL),
     `unexpected default instrument is not an instrument`,
   );
 
