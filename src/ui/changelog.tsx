@@ -1,4 +1,8 @@
 export const changelog = `
+next
+- midi track recording
+- audio clip editor zoom improvements
+
 v3.1.0
 - record midi from an external device onto armed midi tracks
 - tracks are no longer vertically resizable

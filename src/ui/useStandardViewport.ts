@@ -17,7 +17,7 @@ export function useStandardViewport(
   useViewportScrollEvents(ref, {
     scale: useCallback(
       (sDelta, mouseX) => {
-        standardViewport.scaleByFactor(viewport, MIN_SCALE, MAX_SCALE, sDelta, mouseX);
+        standardViewport.setXScale(viewport, MIN_SCALE, MAX_SCALE, viewport.pxPerSecond.get() * sDelta, mouseX);
       },
       [MAX_SCALE, MIN_SCALE, viewport],
     ),

@@ -9,7 +9,6 @@ import { appEnvironment } from "../../lib/AppEnvironment";
 import { AudioRecorder } from "../../lib/io/AudioRecorder";
 import { AudioRenderer } from "../../lib/io/AudioRenderer";
 import { AudioProject } from "../../lib/project/AudioProject";
-import { projectViewport } from "../../lib/viewport/ProjectViewport";
 import { standardViewport } from "../../lib/viewport/StandardViewport";
 import { cn } from "../../utils/cn";
 import { RenamableLabel } from "../RenamableLabel";
@@ -41,12 +40,24 @@ function ScaleFactorSlider({ project }: { project: AudioProject }) {
         const projectDivWidth = project.viewport.projectDivWidth.get();
         const expectedNewScale = Math.exp(parseFloat(e.target.value));
 
-        if (cursorPosPx < projectDivWidth && cursorPosPx > 0) {
+        if (cursorPosPx <= projectDivWidth && cursorPosPx >= 0) {
           // if cursor is within view, resize around cursor
-          projectViewport.setXScale(project.viewport, expectedNewScale, cursorPosPx);
+          standardViewport.setXScale(
+            project.viewport,
+            MIN_TIMELINE_SCALE,
+            MAX_TIMELINE_SCALE,
+            expectedNewScale,
+            cursorPosPx,
+          );
         } else {
           // if cursor is outside the view, resize from the center
-          projectViewport.setXScale(project.viewport, expectedNewScale, Math.floor(projectDivWidth / 2));
+          standardViewport.setXScale(
+            project.viewport,
+            MIN_TIMELINE_SCALE,
+            MAX_TIMELINE_SCALE,
+            expectedNewScale,
+            Math.floor(projectDivWidth / 2),
+          );
         }
 
         e.preventDefault();

@@ -15,10 +15,14 @@ export function AudioClipBufferView({
   clip,
   project,
   player,
+  minScale,
+  maxScale,
 }: {
   clip: AudioClip;
   project: AudioProject;
   player: AnalizedPlayer;
+  minScale: number;
+  maxScale: number;
 }) {
   const waveformRef = useRef<HTMLCanvasElement>(null);
   const playbackDiv = useRef<HTMLDivElement>(null);
@@ -30,9 +34,6 @@ export function AudioClipBufferView({
     selectionWidthFr == null ? 0 : selectionWidthFr,
     clip.sampleRate,
   );
-
-  const MIN_SCALE = 10;
-  const MAX_SCALE = clip.sampleRate;
 
   // for waveform
   const [scrollLeftPx] = usePrimitive(clip.detailedViewport.scrollLeftPx);
@@ -54,7 +55,7 @@ export function AudioClipBufferView({
     [clip.sampleRate, clip.timelineStartSec],
   );
 
-  useStandardViewport(waveformRef, clip.detailedViewport, MIN_SCALE, MAX_SCALE);
+  useStandardViewport(waveformRef, clip.detailedViewport, minScale, maxScale);
 
   useSelectOnSurface(
     waveformRef,
@@ -62,16 +63,33 @@ export function AudioClipBufferView({
       function mouseDown(e: MouseEvent) {
         const canvas = nullthrows(waveformRef.current);
         const mouseX = e.clientX - canvas.getBoundingClientRect().left;
-        // const positionSamples = clip.detailedViewport.pxToFr(mouseX + waveformStartFr, clip.sampleRate);
-        // const positionSecs = positionSamples / clip.sampleRate;
-        const positionSecs = standardViewport.pxToSecs(clip.detailedViewport, mouseX, "pos"); // pos I think
+
+        // The waveform is rendered scrolled by `waveformOffsetFr` frames — the viewport
+        // scroll, or the locked playback position (see `timelineSecsToClipPx`). The click's
+        // pixel offset is measured from that same origin, so add it back to recover the
+        // true clip position. Read state fresh here so this handler isn't re-bound per frame.
+        const vp = clip.detailedViewport;
+        const waveformOffsetFr = vp.lockPlayback.get()
+          ? offsetFrOfPlaybackPos(player.playbackPos.get())
+          : Math.max(vp.scrollLeftPx.get() / vp.pxPerSecond.get(), 0) * clip.sampleRate;
+
+        const positionFr = standardViewport.pxToFr(vp, mouseX, clip.sampleRate) + waveformOffsetFr;
+        const positionSecs = positionFr / clip.sampleRate;
         const positionTimeline = positionSecs + clip.timelineStart.ensureSecs();
 
         project.cursorPos.set(positionTimeline);
         project.secondarySelection.set(null);
         clip.detailedViewport.selectionWidthFr.set(null);
       },
-      [clip.detailedViewport, clip.timelineStart, project.cursorPos, project.secondarySelection],
+      [
+        clip.detailedViewport,
+        clip.sampleRate,
+        clip.timelineStart,
+        offsetFrOfPlaybackPos,
+        player,
+        project.cursorPos,
+        project.secondarySelection,
+      ],
     ),
 
     useCallback(
@@ -143,7 +161,7 @@ export function AudioClipBufferView({
   );
 
   return (
-    <div className="relative grow shrink">
+    <div className="relative grow shrink flex overflow-hidden">
       {clip.buffer != null && (
         <GPUWaveform
           ref={waveformRef}
@@ -153,7 +171,7 @@ export function AudioClipBufferView({
           width={(width || 1) * devicePixelRatio}
           height={(height || 1) * devicePixelRatio}
           color="black"
-          className="w-full h-[212px] grow shrink bg-timeline-bg box-border border border-track-separator"
+          className="w-full h-full grow shrink bg-timeline-bg box-border border border-track-separator"
         />
       )}
       {/* cursor div */}

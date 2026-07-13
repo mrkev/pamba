@@ -120,7 +120,8 @@ export const midiViewport = {
     // min scale is 0.64, max is 1000
     const newScale = clamp(MIDI_CLIP_EDITOR_MIN_H_SCALE, expectedNewScale, MIDI_CLIP_EDITOR_MAX_H_SCALE);
     const currentScaleFactor = viewport.pxPerPulse.get();
-    const scaleFactorFactor = expectedNewScale / currentScaleFactor;
+    // Use the clamped scale so the scroll adjustment stays consistent at MIN/MAX.
+    const scaleFactorFactor = newScale / currentScaleFactor;
 
     viewport.pxPerPulse.set(newScale);
     const newStartPx = (viewport.scrollLeftPx.get() + mouseX) * scaleFactorFactor - mouseX;

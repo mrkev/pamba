@@ -20,7 +20,6 @@ export function MidiClipEditor({
   player: AnalizedPlayer;
   project: AudioProject;
 }) {
-  // const containerRef = useRef<HTMLDivElement>(null);
   const [noteHeight, setNoteHeight] = usePrimitive(clip.detailedViewport.pxNoteHeight);
   const [pxPerPulse, setPxPerPulse] = usePrimitive(clip.detailedViewport.pxPerPulse);
   const [secondarySel] = useLinkAsState(project.secondarySelection);

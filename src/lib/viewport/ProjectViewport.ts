@@ -142,23 +142,3 @@ export class ProjectViewport
     return (pulses * SECS_IN_MIN) / (PPQN * bpm);
   }
 }
-
-export const projectViewport = {
-  /**
-   * Sets the horizontal scale, zooming in our out relative ot a specific point x
-   */
-  setXScale(viewport: ProjectViewport, expectedNewScale: number, mouseX: number = 0) {
-    // min scale is 0.64, max is 1000
-    const newScale = clamp(0.64, expectedNewScale, 1000);
-    const currentScaleFactor = viewport.pxPerSecond.get();
-    const scaleFactorFactor = expectedNewScale / currentScaleFactor;
-
-    viewport.pxPerSecond.set(newScale);
-    const newStartPx = (viewport.scrollLeftPx.get() + mouseX) * scaleFactorFactor - mouseX;
-    if (newStartPx < 0) {
-      viewport.scrollLeftPx.set(0);
-    } else {
-      viewport.scrollLeftPx.set(newStartPx);
-    }
-  },
-};

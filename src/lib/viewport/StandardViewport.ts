@@ -10,19 +10,20 @@ export interface StandardViewport {
 
 export const standardViewport = {
   /**
-   * Zooms by `sDelta` (>1 in, <1 out), keeping the second under `mouseX` fixed on screen.
-   * Scale becomes `pxPerSecond * sDelta` clamped to `[MIN_SCALE, MAX_SCALE]`; scroll is
-   * adjusted for the anchor and floored at 0. Mutates `viewport` in place.
-   *
-   * @param mouseX  Anchor in viewport pixels from the left edge. Defaults to 0 (left edge).
+   * Sets the horizontal scale, zooming in our out relative ot a specific point x
    */
-  scaleByFactor(vp: StandardViewport, MIN_SCALE: number, MAX_SCALE: number, sDelta: number, mouseX = 0) {
-    const newScale = clamp(MIN_SCALE, vp.pxPerSecond.get() * sDelta, MAX_SCALE);
+  setXScale(vp: StandardViewport, MIN_SCALE: number, MAX_SCALE: number, expectedNewScale: number, mouseX: number = 0) {
+    const newScale = clamp(MIN_SCALE, expectedNewScale, MAX_SCALE);
     const currentScaleFactor = vp.pxPerSecond.get();
+    // Use the clamped scale so the scroll adjustment stays consistent at MIN/MAX.
     const scaleFactorFactor = newScale / currentScaleFactor;
 
     vp.pxPerSecond.set(newScale);
-    const newStartPx = (vp.scrollLeftPx.get() + mouseX) * scaleFactorFactor - mouseX;
+    // `mouseX` is measured from the padded viewport edge, but START_PADDING_PX is a
+    // fixed screen-space offset that doesn't scale with zoom. Convert to an anchor
+    // relative to the timeline origin so the second under `mouseX` stays pinned.
+    const anchor = mouseX - vp.START_PADDING_PX;
+    const newStartPx = (vp.scrollLeftPx.get() + anchor) * scaleFactorFactor - anchor;
     if (newStartPx < 0) {
       vp.scrollLeftPx.set(0);
     } else {
@@ -33,8 +34,8 @@ export const standardViewport = {
   /**
    * Converts a timeline position in seconds to its x offset (in px) from the viewport's
    * visible left edge: `pxPerSecond * s - scrollLeftPx`. A position at the current scroll
-   * maps to 0; positions to its right are positive. `START_PADDING_PX` is a currently-zero
-   * placeholder for future left-padding.
+   * maps to 0; positions to its right are positive. `START_PADDING_PX` is a fixed
+   * screen-space left-padding (8px for the project viewport) that does not scale with zoom.
    */
   secsToViewportPx(vp: StandardViewport, s: number, mode: "pos"): number {
     const factor = vp.pxPerSecond.get();

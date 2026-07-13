@@ -43,8 +43,8 @@ export function TimelineLine({
 
 export function TimelineCursor({
   project,
-  style,
   viewport,
+  style,
 }: {
   project: AudioProject;
   viewport: StandardViewport;

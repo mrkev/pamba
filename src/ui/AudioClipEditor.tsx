@@ -6,8 +6,7 @@ import { AudioProject } from "../lib/project/AudioProject";
 import { AudioClipBufferView } from "./AudioClipBufferView";
 import { AudioClipPropsEditor, ClipPropsEditor } from "./ClipPropsEditor";
 import { UtilityToggle } from "./UtilityToggle";
-
-export const HEIGHT = 200;
+import { standardViewport } from "../lib/viewport/StandardViewport";
 
 export function AudioClipEditor({
   clip,
@@ -25,6 +24,9 @@ export function AudioClipEditor({
 
   useContainer(clip);
 
+  const MIN_WAVEFORM_SCALE = 10;
+  const MAX_WAVEFORM_SCALE = clip.sampleRate;
+
   return (
     <>
       <div className="flex flex-col items-stretch" style={{ gap: 4 }}>
@@ -36,13 +38,41 @@ export function AudioClipEditor({
         <div className="flex flex-row justify-end">
           <input
             type="range"
-            value={Math.log2(pxPerSec)}
-            min={Math.log2(10)}
-            max={Math.log2(clip.sampleRate)}
+            value={Math.log(pxPerSec)}
+            min={Math.log(10)}
+            max={Math.log(clip.sampleRate)}
             step={0.01}
             onChange={(e) => {
-              const newVal = parseFloat(e.target.value);
-              clip.detailedViewport.pxPerSecond.set(Math.pow(2, newVal));
+              // const newVal = parseFloat(e.target.value);
+              // clip.detailedViewport.pxPerSecond.set(Math.pow(2, newVal));
+
+              const cursorPosSecs = project.cursorPos.get();
+              const cursorPosPx = standardViewport.secsToViewportPx(clip.detailedViewport, cursorPosSecs, "pos");
+              const projectDivWidth = project.viewport.projectDivWidth.get();
+              const expectedNewScale = Math.exp(parseFloat(e.target.value));
+
+              if (cursorPosPx < projectDivWidth && cursorPosPx > 0) {
+                // if cursor is within view, resize around cursor
+                standardViewport.setXScale(
+                  clip.detailedViewport,
+                  MIN_WAVEFORM_SCALE,
+                  MAX_WAVEFORM_SCALE,
+                  expectedNewScale,
+                  cursorPosPx,
+                );
+              } else {
+                // if cursor is outside the view, resize from the center
+                standardViewport.setXScale(
+                  clip.detailedViewport,
+                  MIN_WAVEFORM_SCALE,
+                  MAX_WAVEFORM_SCALE,
+                  expectedNewScale,
+                  Math.floor(projectDivWidth / 2),
+                );
+              }
+
+              e.preventDefault();
+              e.stopPropagation();
             }}
           />
           <UtilityToggle
@@ -55,7 +85,13 @@ export function AudioClipEditor({
           </UtilityToggle>
         </div>
 
-        <AudioClipBufferView clip={clip} project={project} player={player} />
+        <AudioClipBufferView
+          clip={clip}
+          project={project}
+          player={player}
+          minScale={MIN_WAVEFORM_SCALE}
+          maxScale={MAX_WAVEFORM_SCALE}
+        />
       </div>
     </>
   );
