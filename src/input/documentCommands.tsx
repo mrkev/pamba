@@ -16,6 +16,16 @@ import { exhaustive } from "../utils/exhaustive";
 import { nullthrows } from "../utils/nullthrows";
 import { CommandBlock } from "./Command";
 
+/** The Timeline view is the active panel */
+function isTimelineViewActive(project: AudioProject) {
+  // TODO: not if secondary panel is expanded?
+  if (project.activePanel.get() !== "primary") {
+    return false;
+  } else {
+    return true;
+  }
+}
+
 /** The MIDI clip open in the focused secondary editor, if any (used by `when` predicates). */
 function activeMidiEditor(project: AudioProject): { clip: MidiClip; track: MidiTrack } | null {
   if (project.activePanel.get() !== "secondary") {
@@ -308,7 +318,24 @@ export const documentCommands = CommandBlock.create(["Project", "Edit", "Tools",
       project.pointerTool.set("move");
       document.body.style.cursor = "auto";
     })
+      .when((project) => isTimelineViewActive(project))
       .helptext("Select Move Tool", "Base tool. Selects, moves, etc")
+      .section("Tools"),
+
+    moveNoteTool: command(["KeyV"], (e, project) => {
+      project.panelTool.set("move");
+      document.body.style.cursor = "auto";
+    })
+      .when((project) => activeMidiEditor(project) != null)
+      .helptext("Select Note Move Tool", "Base tool. Selects notes, moves them, etc")
+      .section("Tools"),
+
+    drawNoteTool: command(["KeyB"], (e, project) => {
+      project.panelTool.set("draw");
+      document.body.style.cursor = "auto";
+    })
+      .when((project) => activeMidiEditor(project) != null)
+      .helptext("Select Note Move Tool", "Base tool. Selects notes, moves them, etc")
       .section("Tools"),
 
     trimStartTool: command(["KeyS", "shift"], (e, project) => {
