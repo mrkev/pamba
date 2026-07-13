@@ -202,6 +202,7 @@ export const documentCommands = CommandBlock.create(["Project", "Edit", "Tools",
     jumpToTimelineStart: command(["ArrowLeft", "alt"], (e, project) => {
       project.cursorPos.set(0);
       project.selectionWidth.set(0);
+      project.viewport.scrollLeftPx.set(0);
       e?.preventDefault();
     })
       .helptext("Jump to start", "Rewinds the cursor to the beggining of the track")

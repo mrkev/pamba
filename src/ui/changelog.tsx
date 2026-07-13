@@ -1,5 +1,5 @@
 export const changelog = `
-next
+v3.1.0
 - tracks are no longer vertically resizable
 - add expanded bottom panel view
 - persist app layout
