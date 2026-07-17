@@ -24,7 +24,6 @@ export const ClipA = React.memo(function ClipAImpl({
   track: AudioTrack | null; // null if clip is being rendered for move
   editable?: boolean;
 }) {
-  const totalBufferWidth = standardViewport.secsToPx(project.viewport, clip.bufferLength, "len");
   // len, since the buffer shouldn't be affected by the timelines left margin offset
   const bufferOffsetPx = project.viewport.timeToPx(clip.bufferOffset, "len");
 
@@ -99,6 +98,8 @@ export const ClipA = React.memo(function ClipAImpl({
   }
 
   const [scale] = usePrimitive(project.viewport.pxPerSecond); // need to subscribe to this
+
+  const totalBufferWidth = standardViewport.secsToPx(project.viewport, clip.getBufferLength(), "len");
 
   const backgroundImageData = audioClip.getWaveformDataURL(
     clip,

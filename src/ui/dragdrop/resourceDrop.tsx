@@ -2,7 +2,7 @@ import { history } from "structured-state";
 import { addAvailableWamToTrack } from "../../lib/addAvailableWamToTrack";
 import { AudioClip } from "../../lib/AudioClip";
 import { AudioTrack } from "../../lib/AudioTrack";
-import { AudioProject } from "../../lib/project/AudioProject";
+import { audioProject, AudioProject } from "../../lib/project/AudioProject";
 import { standardTrack } from "../../lib/StandardTrack";
 import { standardViewport } from "../../lib/viewport/StandardViewport";
 import { MidiClip } from "../../midi/MidiClip";
@@ -174,7 +174,7 @@ export async function handleDropOntoTimelineWhitespace(resources: TransferableRe
       case "AudioPackage.local":
         break;
       case "fausteffect": {
-        const track = await AudioProject.addAudioTrack(project, "bottom");
+        const track = await audioProject.addAudioTrack(project, "bottom");
         await track.dsp.addFaustEffect(resource.id, "last");
         break;
       }
@@ -182,7 +182,7 @@ export async function handleDropOntoTimelineWhitespace(resources: TransferableRe
         switch (resource.pluginKind) {
           case "a-a": {
             // todo: if multiple of these just create one track with many effects?
-            const track = await AudioProject.addAudioTrack(project, "bottom");
+            const track = await audioProject.addAudioTrack(project, "bottom");
             await addAvailableWamToTrack(track, resource, "last");
             break;
           }
@@ -193,7 +193,7 @@ export async function handleDropOntoTimelineWhitespace(resources: TransferableRe
           case "m-a": {
             const instrument = await MidiInstrument.createFromInstrumentPlugin(resource as any); //refined in the switch above
             const newTrack = await MidiTrack.createWithInstrument(instrument, "midi track"); // todo: instrument name
-            await AudioProject.addMidiTrack(project, "bottom", newTrack);
+            await audioProject.addMidiTrack(project, "bottom", newTrack);
             break;
           }
 
@@ -204,7 +204,7 @@ export async function handleDropOntoTimelineWhitespace(resources: TransferableRe
         break;
       }
       case "audio":
-        const track = await AudioProject.addAudioTrack(project, "bottom");
+        const track = await audioProject.addAudioTrack(project, "bottom");
         // todo: if multiple of these just create one track with many clips
         await loadAudioClipIntoTrack(project, resource.url, track, 0, resource.name);
 
@@ -214,7 +214,7 @@ export async function handleDropOntoTimelineWhitespace(resources: TransferableRe
           const lastNote = track.notes.at(-1);
           const length = lastNote == null ? ONE_BAR_PULSES : lastNote[0] + lastNote[2];
           const newTrack = await MidiTrack.createDefault(track.name, [MidiClip.of(track.name, 0, length, track.notes)]);
-          await AudioProject.addMidiTrack(project, "bottom", newTrack);
+          await audioProject.addMidiTrack(project, "bottom", newTrack);
         }
         break;
       }

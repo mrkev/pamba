@@ -46,20 +46,7 @@ export function ClipM({
     if (!(div instanceof HTMLDivElement)) {
       return;
     }
-    // if (tool === "trimStart") {
-    //   const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
-    //   const asSec = standardViewport.pxToSecs(project.viewport, pxFromStartOfClip);
-    //   clip.trimStartSec += asSec;
-    //   clip.startOffsetSec += asSec;
-    //   clip.notifyUpdate();
-    // }
-    // if (tool === "trimEnd") {
-    //   const pxFromStartOfClip = e.clientX - div.getBoundingClientRect().x;
-    //   const secsFromStartPos = standardViewport.pxToSecs(project.viewport, pxFromStartOfClip);
-    //   const secsFromZero = clip.trimStartSec + secsFromStartPos;
-    //   clip.trimEndSec = secsFromZero;
-    //   clip.notifyUpdate();
-    // }
+    // TODO: unimplemented
   }, []);
 
   const [backgroundImageData, imgHeight] = clip.buffer.getMidiDataURL(

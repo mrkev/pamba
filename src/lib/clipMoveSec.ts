@@ -12,7 +12,7 @@ export function clipResizeEndSec(clip: AudioClip, newLengthSec: number, project:
     0,
     newLengthSec,
     // and also prevent it from extending beyond its original length
-    clip.bufferLength - clip.bufferOffset.ensureSecs(),
+    clip.getBufferLength() - clip.bufferOffset.ensureSecs(),
   );
 
   if (!snap) {

@@ -137,11 +137,29 @@ export class AudioProject {
   public canEditTrack(project: AudioProject, track: MidiTrack | AudioTrack | StandardTrack<any>) {
     return !project.lockedTracks.has(track) && !appEnvironment.renderer.analizedPlayer.isAudioPlaying;
   }
+}
 
-  //////// Methods on Projects ////////
+export function deleteTime(project: AudioProject, track: MidiTrack | AudioTrack, startS: number, endS: number): void {
+  if (!project.canEditTrack(project, track)) {
+    return;
+  }
 
+  if (track instanceof MidiTrack) {
+    standardTrack.deleteTime(
+      project,
+      track,
+      project.viewport.secsToPulses(startS),
+      project.viewport.secsToPulses(endS),
+    );
+  }
+  if (track instanceof AudioTrack) {
+    standardTrack.deleteTime(project, track, startS, endS);
+  }
+}
+
+export const audioProject = {
   // TODO: maybe let's not try to add this track to playback
-  static async addAudioTrack(
+  async addAudioTrack(
     project: AudioProject,
     position: "top" | "bottom" = "top",
     track?: AudioTrack,
@@ -160,9 +178,9 @@ export class AudioProject {
 
     DSP.connect(newTrack.dsp, appEnvironment.renderer.analizedPlayer.mixDownNode);
     return newTrack;
-  }
+  },
 
-  static async addMidiTrack(project: AudioProject, position: "top" | "bottom" = "top", track?: MidiTrack) {
+  async addMidiTrack(project: AudioProject, position: "top" | "bottom" = "top", track?: MidiTrack) {
     const newTrack = track ?? (await MidiTrack.createDefault());
     if (position === "top") {
       project.allTracks.unshift(newTrack);
@@ -172,9 +190,9 @@ export class AudioProject {
 
     DSP.connect(newTrack.dsp, appEnvironment.renderer.analizedPlayer.mixDownNode);
     return newTrack;
-  }
+  },
 
-  static removeTrack(project: AudioProject, player: AnalizedPlayer, track: AudioTrack | MidiTrack) {
+  removeTrack(project: AudioProject, player: AnalizedPlayer, track: AudioTrack | MidiTrack) {
     const selected = project.selected.get();
     const pos = project.allTracks.indexOf(track);
     if (pos === -1) {
@@ -214,23 +232,7 @@ export class AudioProject {
     project.cursorTracks.delete(track);
     project.solodTracks.delete(track);
     project.lockedTracks.delete(track);
-  }
-}
+  },
 
-export function deleteTime(project: AudioProject, track: MidiTrack | AudioTrack, startS: number, endS: number): void {
-  if (!project.canEditTrack(project, track)) {
-    return;
-  }
-
-  if (track instanceof MidiTrack) {
-    standardTrack.deleteTime(
-      project,
-      track,
-      project.viewport.secsToPulses(startS),
-      project.viewport.secsToPulses(endS),
-    );
-  }
-  if (track instanceof AudioTrack) {
-    standardTrack.deleteTime(project, track, startS, endS);
-  }
-}
+  deleteTime,
+};

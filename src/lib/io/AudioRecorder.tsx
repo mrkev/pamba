@@ -6,7 +6,7 @@ import { nullthrows } from "../../utils/nullthrows";
 import { appEnvironment } from "../AppEnvironment";
 import { AudioClip } from "../AudioClip";
 import { AudioTrack } from "../AudioTrack";
-import { AudioProject } from "../project/AudioProject";
+import { audioProject, AudioProject } from "../project/AudioProject";
 import { standardTrack } from "../StandardTrack";
 import { AudioRenderer } from "./AudioRenderer";
 
@@ -60,7 +60,7 @@ export class AudioRecorder {
       const armedTrack = this.project.armedAudioTrack.get();
       if (armedTrack == null) {
         const newTrack = await AudioTrack.fromClip(this.project, clip);
-        await AudioProject.addAudioTrack(this.project, "top", newTrack, this.renderer.analizedPlayer);
+        await audioProject.addAudioTrack(this.project, "top", newTrack, this.renderer.analizedPlayer);
       } else if (armedTrack instanceof AudioTrack) {
         standardTrack.addClip(this.project, armedTrack, clip);
       }

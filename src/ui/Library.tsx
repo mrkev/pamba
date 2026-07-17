@@ -12,7 +12,7 @@ import { standardTrack } from "../lib/StandardTrack";
 import { addAvailableWamToTrack } from "../lib/addAvailableWamToTrack";
 import { AnalizedPlayer } from "../lib/io/AnalizedPlayer";
 import { AudioRenderer } from "../lib/io/AudioRenderer";
-import { AudioProject } from "../lib/project/AudioProject";
+import { audioProject, AudioProject } from "../lib/project/AudioProject";
 import { exhaustive } from "../utils/exhaustive";
 import { ignorePromise } from "../utils/ignorePromise";
 import { nullthrows } from "../utils/nullthrows";
@@ -84,7 +84,7 @@ export function Library({
       }
 
       const newTrack = await AudioTrack.fromClip(project, clip);
-      await AudioProject.addAudioTrack(project, "top", newTrack, player);
+      await audioProject.addAudioTrack(project, "top", newTrack, player);
       console.log("loaded");
     },
     [player, project],

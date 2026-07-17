@@ -3,11 +3,12 @@ import { midiClip, MidiClip } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
 import { doConfirm } from "../ui/ConfirmDialog";
 import { exhaustive } from "../utils/exhaustive";
+import { ignorePromise } from "../utils/ignorePromise";
 import { nullthrows } from "../utils/nullthrows";
 import { appEnvironment } from "./AppEnvironment";
 import { AudioTrack } from "./AudioTrack";
 import { AnalizedPlayer } from "./io/AnalizedPlayer";
-import { AudioProject, deleteTime } from "./project/AudioProject";
+import { audioProject, AudioProject } from "./project/AudioProject";
 import { doPaste } from "./project/ClipboardState";
 import { cliptrack } from "./project/ClipTrack";
 import { selection } from "./project/selection";
@@ -19,13 +20,13 @@ import { standardTrack } from "./StandardTrack";
 export const userActions = {
   addAudioTrack: (project: AudioProject) => {
     history.record("add audio track", () => {
-      AudioProject.addAudioTrack(project, "top", undefined, appEnvironment.renderer.analizedPlayer);
+      ignorePromise(audioProject.addAudioTrack(project, "top", undefined, appEnvironment.renderer.analizedPlayer));
     });
   },
 
   async addMidiTrack(project: AudioProject) {
     // TODO historoy
-    await AudioProject.addMidiTrack(project);
+    await audioProject.addMidiTrack(project);
   },
 
   deleteTrack: async (track: AudioTrack | MidiTrack, player: AnalizedPlayer, project: AudioProject) => {
@@ -42,7 +43,7 @@ export const userActions = {
     if ((await doConfirm(`delete track "${track.name.get()}"?\n\nThis cannot be undone (yet)!`)) === "yes") {
       // TODO: HISTORY
       // history.record("delete track(s)", () => {
-      AudioProject.removeTrack(project, player, track);
+      audioProject.removeTrack(project, player, track);
       // });
     }
   },
@@ -117,8 +118,7 @@ export const userActions = {
   deleteSelectedTime(primarySelection: Extract<PrimarySelectionState, { status: "time" }>, project: AudioProject) {
     history.record("delete time selection", () => {
       for (const track of project.allTracks) {
-        // todo move here
-        deleteTime(project, track, primarySelection.startS, primarySelection.endS);
+        audioProject.deleteTime(project, track, primarySelection.startS, primarySelection.endS);
       }
     });
   },
@@ -155,7 +155,7 @@ export const userActions = {
         // TODO: if playing don't delete. show track locked?
         for (const track of primarySelection.tracks) {
           console.log("remove", primarySelection);
-          AudioProject.removeTrack(project, appEnvironment.renderer.analizedPlayer, track);
+          audioProject.removeTrack(project, appEnvironment.renderer.analizedPlayer, track);
           project.selected.set(null);
         }
         break;

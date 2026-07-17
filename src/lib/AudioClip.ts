@@ -22,13 +22,12 @@ type AutoAudioClip = {
 
 // A clip of Audio. Basic topology:
 //
+// buffer.duration:       +----------------------------+
 //                        [~~~|====== clip ========|~~~]
-// bufferLength:          +----------------------------+
 // bufferOffset:          +---+
 //                          + | - // buffer offset positive, means we cut form clip start, negative is invalid
-// trimEndSec:            +------------------------+ // doesn't exist anymore
 // +--timelineStartSec--------+
-// clipLength                 +--------------------+
+// clipLength                 +--------------------+ (now timelineLength)
 // +--timelineEndSec-------------------------------+
 //
 // These properties represent media that has a certain length (in frames), but has
@@ -43,9 +42,6 @@ export class AudioClip extends Structured<AutoAudioClip, typeof AudioClip> imple
   // Let's not pre-compute this since we don't know the acutal dimensions
   // but lets memoize the last size used for perf. shouldn't change.
   readonly memodWaveformDataURL: Map<string, { width: number; height: number; data: string }> = new Map();
-
-  //
-  readonly bufferLength: Seconds; // seconds, whole buffer
 
   // unused
   public gainAutomation: Array<{ time: number; value: number }> = [{ time: 0, value: 1 }];
@@ -64,21 +60,28 @@ export class AudioClip extends Structured<AutoAudioClip, typeof AudioClip> imple
     // TODO: make missing clips their own class, without buffer info props. They serialize to SAudioClip too
     if (buffer == null) {
       this.status = "missing";
-      this.bufferLength = secs(10_000); // TODO: make clip unbounded by length? serialize and star buffer length when first creating a clip?
-      // can help identify the clip too. Ie, when selecting media to replace this, verify that the numbers match.
       // TODO
       this.sampleRate = 48000;
       this.buffer = null;
     } else {
       this.status = "ready";
-      // todo, should convert buffer.length to seconds myself? Are buffer.duration
-      // and buffer.length always congruent?
-      // By default, there is no trim and the clip has offset 0
-      this.bufferLength = secs(buffer.duration);
       this.sampleRate = buffer.sampleRate;
+      // By default, there is no trim and the clip has offset 0
     }
 
     this.bufferOffset = bufferOffset;
+  }
+
+  getBufferLength(): Seconds {
+    // TODO
+    if (this.buffer == null) {
+      return secs(10_000); // TODO: make clip unbounded by length? serialize and star buffer length when first creating a clip?
+      // can help identify the clip too. Ie, when selecting media to replace this, verify that the numbers match.
+    } else {
+      // todo, should convert buffer.length to seconds myself? Are buffer.duration
+      // and buffer.length always congruent?
+      return secs(this.buffer.duration);
+    }
   }
 
   // experimental
@@ -242,7 +245,7 @@ export class AudioClip extends Structured<AutoAudioClip, typeof AudioClip> imple
     //                  >-BO-+
     // ^0:00
 
-    if (newEnd > this.timelineStart.ensureSecs() + this.bufferLength - this.bufferOffset.ensureSecs()) {
+    if (newEnd > this.timelineStart.ensureSecs() + this.getBufferLength() - this.bufferOffset.ensureSecs()) {
       // console.log(
       //   newEnd,
       //   this.timelineStartSec + this.bufferLength - this.bufferOffset.ensureSecs(),
@@ -259,24 +262,16 @@ export class AudioClip extends Structured<AutoAudioClip, typeof AudioClip> imple
 
   // Frames units
 
-  private secToFr(sec: number): number {
-    return Math.floor(sec * this.sampleRate);
-  }
-
-  private frToSec(fr: number): Seconds {
-    return (fr / this.sampleRate) as Seconds;
-  }
-
   public bufferOffsetFr() {
-    return this.secToFr(this.bufferOffset.ensureSecs());
+    return audioClip.secToFr(this, this.bufferOffset.ensureSecs());
   }
 
   public timelineStartFr() {
-    return this.secToFr(this.timelineStart.ensureSecs());
+    return audioClip.secToFr(this, this.timelineStart.ensureSecs());
   }
 
   public clipLengthFr() {
-    return this.secToFr(this.timelineLength.ensureSecs());
+    return audioClip.secToFr(this, this.timelineLength.ensureSecs());
   }
 
   // interface AbstractClip
@@ -328,7 +323,7 @@ export class AudioClip extends Structured<AutoAudioClip, typeof AudioClip> imple
   }
 
   private bufferTimelineEndSec() {
-    return this.timelineStart.ensureSecs() - this.bufferOffset.ensureSecs() + this.bufferLength;
+    return this.timelineStart.ensureSecs() - this.bufferOffset.ensureSecs() + this.getBufferLength();
   }
 
   public bufferLenSec(): number {
@@ -348,6 +343,14 @@ export class AudioClip extends Structured<AutoAudioClip, typeof AudioClip> imple
 }
 
 export const audioClip = {
+  secToFr(clip: AudioClip, sec: number): number {
+    return Math.floor(sec * clip.sampleRate);
+  },
+
+  frToSec(clip: AudioClip, fr: number): Seconds {
+    return (fr / clip.sampleRate) as Seconds;
+  },
+
   /**
    * Renders the clip's whole buffer as a waveform image, returned as a data URL.
    * Results are memoized on the clip, keyed by size only: re-rendering an already
@@ -371,7 +374,7 @@ export const audioClip = {
    * Projects the clip into the plain, SharedArrayBuffer-backed shape the audio thread
    * consumes (see SimpleAudioClip). Throws if the clip has no buffer (ie, status "missing").
    */
-  toSimple(clip: AudioClip): Readonly<SimpleAudioClip> {
+  toSimple(clip: AudioClip): SimpleAudioClip {
     return {
       channels: nullthrows(clip.buffer).channels,
       id: clip._id,

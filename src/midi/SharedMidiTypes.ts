@@ -7,7 +7,7 @@ export function notet(tick: number, number: number, duration: number, velocity: 
   return [tick, number, duration, velocity];
 }
 
-export type SequencerMidiClip = {
+export type SequencerMidiClip = Readonly<{
   id: string;
   muted: boolean;
   notes: readonly NoteT[];
@@ -15,7 +15,7 @@ export type SequencerMidiClip = {
   startOffsetPulses: number;
   // so we know
   endOffsetPulses: number; // todo, make frames?
-};
+}>;
 
 export type PianoRollProcessorMessage =
   | {

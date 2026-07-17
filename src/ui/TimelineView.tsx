@@ -1,7 +1,6 @@
 import classNames from "classnames";
 import { useLinkAsState } from "marked-subbable";
 import { useRef } from "react";
-import { createUseStyles } from "react-jss";
 import { usePrimitive } from "structured-state";
 import { TRACK_HEADER_WIDTH } from "../constants";
 import { useAxisContainerMouseEvents } from "../input/useProjectMouseEvents";
@@ -23,7 +22,6 @@ export function TimelineView({
   renderer: AudioRenderer;
   className?: string;
 }) {
-  const classes = useStyles();
   const [activePanel] = useLinkAsState(project.activePanel);
 
   return (
@@ -31,11 +29,24 @@ export function TimelineView({
       id="container"
       onMouseDownCapture={() => project.activePanel.set("primary")}
       className={classNames(
-        classes.container,
         "scrollbar-track",
         "grid gap-x-0 gap-y-0 overflow-y-scroll overflow-x-hidden w-full grow mr-px",
         className,
       )}
+      style={{
+        // Grid example, can I replicate this?
+        // https://codepen.io/neoky/pen/mGpaKN
+        gridTemplateRows: "30px 1fr",
+        // 150 is TRACK_HEADER_WIDTH
+        gridTemplateColumns: "1fr 150px",
+        // gridTemplateColumns: "16px 1fr 150px",
+        // borderTopLeftRadius: "3px",
+        // borderBottomLeftRadius: "3px",
+        // paddingRight: "4px",
+        // marginRight: 1,
+        paddingRight: 4,
+        // border: "3px solid black",
+      }}
     >
       <HeaderAxisView
         project={project}
@@ -117,20 +128,3 @@ function HeaderAxisView({
     </div>
   );
 }
-
-// Grid example, can I replicate this?
-// https://codepen.io/neoky/pen/mGpaKN
-const useStyles = createUseStyles({
-  container: {
-    gridTemplateRows: "30px 1fr",
-    // 150 is TRACK_HEADER_WIDTH
-    gridTemplateColumns: "1fr 150px",
-    // gridTemplateColumns: "16px 1fr 150px",
-    // borderTopLeftRadius: "3px",
-    // borderBottomLeftRadius: "3px",
-    // paddingRight: "4px",
-    // marginRight: 1,
-    paddingRight: 4,
-    // border: "3px solid black",
-  },
-});

@@ -1,12 +1,12 @@
 // Shared with audio worker
 
-export type SimpleAudioClip = {
+export type SimpleAudioClip = Readonly<{
   id: string;
   channels: SharedArrayBuffer[];
   // todo, make all frames?
   startOffsetSec: number;
   // endOffsetT: number;
-};
+}>;
 
 export type AudioTrackProcessorMessage =
   //
