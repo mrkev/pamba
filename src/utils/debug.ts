@@ -1,3 +1,3 @@
 export function debugLog(tag: string, ...data: any[]) {
-  console.log("[tag]", ...data);
+  console.log(`[${tag}]`, ...data);
 }

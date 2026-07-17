@@ -7,7 +7,8 @@ import { PambaWamNode } from "../../wam/PambaWamNode";
 import { AudioClip } from "../AudioClip";
 import { AudioTrack } from "../AudioTrack";
 import { AudioProject } from "./AudioProject";
-import { clipboard } from "./ClipboardState";
+import { SAudioClip, SMidiClip } from "../../data/serializable";
+import { clipboard, serializeClip } from "./ClipboardState";
 import type { ClipTrack } from "./ClipTrack";
 
 export const selection = {
@@ -99,7 +100,7 @@ export const selection = {
 
   /// DELETION
 
-  copySelection(project: AudioProject) {
+  async copySelection(project: AudioProject) {
     const selected = project.selected.get();
 
     if (!selected) {
@@ -108,7 +109,16 @@ export const selection = {
 
     switch (selected.status) {
       case "clips": {
-        clipboard.set({ kind: "clips", clips: selected.clips.map((selection) => selection.clip.clone()) });
+        const clips: (SAudioClip | SMidiClip)[] = [];
+        for (const { clip } of selected.clips) {
+          const serialized = await serializeClip(clip);
+          if (serialized == null) {
+            console.warn("copy: skipping clip with missing media");
+            continue;
+          }
+          clips.push(serialized);
+        }
+        clipboard.set({ kind: "clips", clips });
         break;
       }
       case "tracks":

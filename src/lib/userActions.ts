@@ -48,9 +48,9 @@ export const userActions = {
     }
   },
 
-  doPaste(project: AudioProject) {
+  async doPaste(project: AudioProject) {
     // TODO: history. how?
-    doPaste(project);
+    await doPaste(project);
   },
 
   // selection
@@ -127,7 +127,6 @@ export const userActions = {
    * Deletes whatever is selected.    // TODO: history
    */
   deletePrimarySelection(project: AudioProject) {
-    console.log("FOOOOOOOOOOOOOOOOOOO");
     const primarySelection = project.selected.get();
     if (primarySelection == null) {
       return;

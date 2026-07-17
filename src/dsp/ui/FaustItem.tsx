@@ -10,8 +10,6 @@ type TFaustUIItem = LayoutTypeMap[keyof LayoutTypeMap];
 export function FaustItem({ item, effect, arrPos }: { item: TFaustUIItem; effect: FaustAudioEffect; arrPos: number }) {
   const { type } = item;
 
-  console.log("a", item);
-
   switch (type) {
     case "vgroup": {
       return <FaustGroup item={item} effect={effect} isFirstItem={arrPos === 0} />;

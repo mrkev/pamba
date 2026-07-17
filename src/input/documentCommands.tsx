@@ -3,13 +3,13 @@ import { history } from "structured-state";
 import { DEFAULT_NOTE_DURATION, LIBRARY_SEARCH_INPUT_ID } from "../constants";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioRenderer } from "../lib/io/AudioRenderer";
-import { midiClip, MidiClip } from "../midi/MidiClip";
-import { MidiTrack } from "../midi/MidiTrack";
+import type { AudioProject } from "../lib/project/AudioProject";
 import { selection } from "../lib/project/selection";
 import { clipsLimits } from "../lib/project/timeline";
 import { projectPersistance } from "../lib/ProjectPersistance";
-import type { AudioProject } from "../lib/project/AudioProject";
 import { userActions } from "../lib/userActions";
+import { midiClip, MidiClip } from "../midi/MidiClip";
+import { MidiTrack } from "../midi/MidiTrack";
 import { closeProject } from "../ui/header/closeProject";
 import { pressedState } from "../ui/pressedState";
 import { exhaustive } from "../utils/exhaustive";
@@ -291,16 +291,16 @@ export const documentCommands = CommandBlock.create(["Project", "Edit", "Tools",
       .section("Playback"),
 
     // Clipboard
-    copySelection: command(["KeyC", "meta"], (e, project) => {
-      selection.copySelection(project);
+    copySelection: command(["KeyC", "meta"], async (e, project) => {
       e?.preventDefault();
+      await selection.copySelection(project);
     })
       .helptext("Copy", "Currently works only with clips")
       .section("Edit"),
 
-    pasteClipboard: command(["KeyV", "meta"], (e, project) => {
-      userActions.doPaste(project);
+    pasteClipboard: command(["KeyV", "meta"], async (e, project) => {
       e?.preventDefault();
+      await userActions.doPaste(project);
     })
       .helptext("Paste", "Currently works only with clips")
       .section("Edit"),
