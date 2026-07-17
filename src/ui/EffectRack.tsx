@@ -1,6 +1,5 @@
 import { useLinkAsState } from "marked-subbable";
 import React, { useCallback, useRef, useState } from "react";
-import { createUseStyles } from "react-jss";
 import { useContainer, usePrimitive } from "structured-state";
 import { EFFECT_HEIGHT } from "../constants";
 import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
@@ -24,16 +23,6 @@ import { transferObject } from "./dragdrop/setTransferData";
 import { useDropzoneBehaviour } from "./dragdrop/useDropzoneBehaviour";
 import { useEventListener } from "./useEventListener";
 
-const useStyles = createUseStyles({
-  effectRack: {
-    alignItems: "stretch",
-    // to keep the selection div from showing above this effect track
-    zIndex: 1,
-    padding: "6px 25% 6px 4px",
-    gap: "4px",
-  },
-});
-
 export const EffectRack = React.memo(function EffectRack({
   track,
   project,
@@ -43,7 +32,6 @@ export const EffectRack = React.memo(function EffectRack({
   project: AudioProject;
   renderer: AudioRenderer;
 }) {
-  const styles = useStyles();
   const effects = useContainer(track.dsp.effectNodes);
   const [selected] = useLinkAsState(project.selected);
   const rackRef = useRef<HTMLDivElement | null>(null);
@@ -204,13 +192,17 @@ export const EffectRack = React.memo(function EffectRack({
       ref={rackRef}
       style={{
         height: EFFECT_HEIGHT,
+        // to keep the selection div from showing above this effect track
+        zIndex: 1,
+        padding: "6px 25% 6px 4px",
+        gap: "4px",
         // background:
         //   draggingOver === false ? undefined : draggingOver === "invalid" ? undefined : "rgba(23, 43, 23, 0.7)",
       }}
       // TODO: disallow pinch to zoom
-      // sticky so it "sticks" when we scroll the timeline
       className={cn(
-        styles.effectRack,
+        "items-stretch",
+        // sticky so it "sticks" when we scroll the timeline
         "sticky left-0 text-white flex flex-row overflow-x-scroll overflow-y-hidden overscroll-contain bg-effect-rack-bg",
       )}
     >

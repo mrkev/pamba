@@ -77,9 +77,9 @@ describe("deleteTime", () => {
     // console.log(printClips(all));
 
     expect(all.length).toBe(2);
-    expect(all.at(0)?.timelineStartSec).toBe(0);
+    expect(all.at(0)?.getTimelineStartSec()).toBe(0);
     expect(all.at(0)?.getTimelineEndSec()).toBe(1);
-    expect(all.at(1)?.timelineStartSec).toBe(2);
+    expect(all.at(1)?.getTimelineStartSec()).toBe(2);
     expect(all.at(1)?.getTimelineEndSec()).toBe(3);
   });
 });
@@ -91,7 +91,7 @@ describe("pushClip", () => {
     const res = pushClip(foo, all);
 
     expect(res).toContain(foo);
-    expect(foo.timelineStartSec).toEqual(2);
+    expect(foo.getTimelineStartSec()).toEqual(2);
     expect(res.indexOf(foo)).toEqual(2);
   });
 });
@@ -141,7 +141,7 @@ describe("addClip", () => {
 
     expect(all).toContain(foo);
     expect(all.indexOf(foo)).toEqual(0);
-    expect(all.at(1)?.timelineStartSec).toEqual(10);
+    expect(all.at(1)?.getTimelineStartSec()).toEqual(10);
     expect(all.at(1)?.getTimelineEndSec()).toEqual(15);
   });
 
@@ -164,7 +164,7 @@ describe("addClip", () => {
     expect(all).toContain(foo);
     expect(all.length).toBe(3);
     expect(all.at(0)?.getTimelineEndSec()).toBe(2);
-    expect(all.at(2)?.timelineStartSec).toBe(8);
+    expect(all.at(2)?.getTimelineStartSec()).toBe(8);
   });
 });
 
@@ -175,9 +175,9 @@ describe("splitClip", () => {
     splitClip(foo, 5, all);
 
     expect(all.length).toBe(2);
-    expect(all.at(0)?.timelineStartSec).toBe(0);
+    expect(all.at(0)?.getTimelineStartSec()).toBe(0);
     expect(all.at(0)?.getTimelineEndSec()).toBe(5);
-    expect(all.at(1)?.timelineStartSec).toBe(5);
+    expect(all.at(1)?.getTimelineStartSec()).toBe(5);
     expect(all.at(1)?.getTimelineEndSec()).toBe(10);
   });
 
@@ -190,9 +190,9 @@ describe("splitClip", () => {
     expect(all.length).toBe(2);
     expect(all).toContain(before);
     expect(all).toContain(after);
-    expect(before.timelineStartSec).toBe(0);
+    expect(before.getTimelineStartSec()).toBe(0);
     expect(before.getTimelineEndSec()).toBe(5);
-    expect(after.timelineStartSec).toBe(5);
+    expect(after.getTimelineStartSec()).toBe(5);
     expect(after.getTimelineEndSec()).toBe(10);
   });
 
@@ -203,11 +203,11 @@ describe("splitClip", () => {
     const [_, __] = nullthrows(splitClip(after, 6, all));
 
     expect(all.length).toBe(3);
-    expect(all.at(0)?.timelineStartSec).toBe(2);
+    expect(all.at(0)?.getTimelineStartSec()).toBe(2);
     expect(all.at(0)?.getTimelineEndSec()).toBe(4);
-    expect(all.at(1)?.timelineStartSec).toBe(4);
+    expect(all.at(1)?.getTimelineStartSec()).toBe(4);
     expect(all.at(1)?.getTimelineEndSec()).toBe(6);
-    expect(all.at(2)?.timelineStartSec).toBe(6);
+    expect(all.at(2)?.getTimelineStartSec()).toBe(6);
     expect(all.at(2)?.getTimelineEndSec()).toBe(8);
   });
 });

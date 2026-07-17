@@ -46,14 +46,14 @@ export function AudioClipBufferView({
 
   const offsetFrOfPlaybackPos = useCallback(
     (timelineSecs: number) => {
-      const clipSecs = timelineSecs - clip.timelineStartSec;
+      const clipSecs = timelineSecs - clip.getTimelineStartSec();
       if (clipSecs < 0) {
         return 0;
       }
       const clipFr = clipSecs * clip.sampleRate;
       return clipFr;
     },
-    [clip.sampleRate, clip.timelineStartSec],
+    [clip],
   );
 
   useStandardViewport(waveformRef, clip.detailedViewport, minScale, maxScale);
@@ -139,19 +139,12 @@ export function AudioClipBufferView({
         ? offsetFrOfPlaybackPos(playbackPos)
         : waveformStartFr;
 
-      const clipSecs = timelineSecs - clip.timelineStartSec;
+      const clipSecs = timelineSecs - clip.getTimelineStartSec();
       const clipFr = clipSecs * clip.sampleRate;
       const clipPx = clipFr / standardViewport.framesPerPixel(clip.detailedViewport, clip.sampleRate);
       return clipPx - waveformOffset / standardViewport.framesPerPixel(clip.detailedViewport, clip.sampleRate);
     },
-    [
-      clip.detailedViewport,
-      clip.sampleRate,
-      clip.timelineStartSec,
-      offsetFrOfPlaybackPos,
-      playbackPos,
-      waveformStartFr,
-    ],
+    [clip, offsetFrOfPlaybackPos, playbackPos, waveformStartFr],
   );
 
   const cursorPosInClipPx = timelineSecsToClipPx(cursorPos);

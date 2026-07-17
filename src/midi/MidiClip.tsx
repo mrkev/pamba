@@ -21,7 +21,7 @@ import { MidiBuffer, midiBuffer } from "./MidiBuffer";
 import { MidiNote, mnote } from "./MidiNote";
 import { MidiTrack, midiTrack } from "./MidiTrack";
 import { SAMPLE_MIDI } from "./SAMPLE_MIDI";
-import type { NoteT } from "./SharedMidiTypes";
+import type { NoteT, SequencerMidiClip } from "./SharedMidiTypes";
 
 type AutoMidiClip = {
   name: SString;
@@ -388,7 +388,7 @@ export const midiClip = {
   },
 };
 
-export function sequencerClipOfMidiClip(clip: MidiClip) {
+export function sequencerClipOfMidiClip(clip: MidiClip): SequencerMidiClip {
   return {
     id: clip._id,
     muted: clip.muted.get(),

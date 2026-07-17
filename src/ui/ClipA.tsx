@@ -1,14 +1,14 @@
 import React, { useCallback } from "react";
 import { history, useContainer, usePrimitive } from "structured-state";
 import { TRACK_HEIGHT } from "../constants";
-import type { AudioClip } from "../lib/AudioClip";
+import { audioClip, type AudioClip } from "../lib/AudioClip";
 import type { AudioTrack } from "../lib/AudioTrack";
 import { standardTrack } from "../lib/StandardTrack";
 import type { AudioProject } from "../lib/project/AudioProject";
+import { standardViewport } from "../lib/viewport/StandardViewport";
 import { exhaustive } from "../utils/exhaustive";
 import { StandardClip } from "./StandardClip";
 import { clipMouseDownToMove } from "./clipMouse";
-import { standardViewport } from "../lib/viewport/StandardViewport";
 
 export const ClipA = React.memo(function ClipAImpl({
   clip,
@@ -100,9 +100,9 @@ export const ClipA = React.memo(function ClipAImpl({
 
   const [scale] = usePrimitive(project.viewport.pxPerSecond); // need to subscribe to this
 
-  const backgroundImageData = clip.getWaveformDataURL(
+  const backgroundImageData = audioClip.getWaveformDataURL(
+    clip,
     Math.max(totalBufferWidth / 10, 10_000),
-
     TRACK_HEIGHT,
     // idt I can use css variables here
     "#103310",

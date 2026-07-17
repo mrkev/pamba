@@ -58,10 +58,13 @@ export function UtilityDataList<T>({
       className={classNames(
         "flex flex-col grow shrink overflow-y-scroll text-control-text-color bg-utility-list-bg text-left",
         "border border-utility-list-border",
-        classes.list,
         listDisabled && "pointer-events-none bg-utility-list-bg-disabled",
         className,
       )}
+      style={{
+        borderRadius: "3px",
+        padding: "2px 0px",
+      }}
       aria-disabled={listDisabled}
     >
       {filtered.map(function (item, i) {
@@ -153,10 +156,6 @@ export function UtilityDataList<T>({
 }
 
 const useStyles = createUseStyles({
-  list: {
-    borderRadius: "3px",
-    padding: "2px 0px",
-  },
   listItem: {
     padding: "0px 2px",
     "&:focus": {

@@ -1,7 +1,6 @@
 import classNames from "classnames";
 import { useLinkAsState } from "marked-subbable";
 import { useEffect, useState } from "react";
-import { createUseStyles } from "react-jss";
 import { usePrimitive } from "structured-state";
 import { useDocumentKeyboardEvents } from "../input/useDocumentKeyboardEvents";
 import { appEnvironment } from "../lib/AppEnvironment";
@@ -36,7 +35,6 @@ function useStopPlaybackOnUnmount(renderer: AudioRenderer) {
 }
 
 export function AppProject({ project }: { project: AudioProject }) {
-  const styles = useStyles();
   const renderer = appEnvironment.renderer;
   const [recorder] = useState(() => new AudioRecorder(project, renderer));
   const [layout, setLayout] = usePrimitive<AppLayout>(project.layout);
@@ -93,7 +91,8 @@ export function AppProject({ project }: { project: AudioProject }) {
       dividerPosition={"top"}
       expandedSize={layout === "secondary" ? "70%" : "295px"}
       onMouseDownCapture={() => project.activePanel.set("secondary")}
-      className={classNames(styles.secondaryPanel, activePanel === "secondary" && "bg-panel-active-background")}
+      className={classNames(activePanel === "secondary" && "bg-panel-active-background")}
+      style={{ paddingTop: "4px" }}
       controlsStart={
         <UtilityToggle
           title={"expand layout"}
@@ -156,9 +155,3 @@ export function AppProject({ project }: { project: AudioProject }) {
     );
   }
 }
-
-const useStyles = createUseStyles({
-  secondaryPanel: {
-    paddingTop: "4px",
-  },
-});

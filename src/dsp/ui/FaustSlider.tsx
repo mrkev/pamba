@@ -1,6 +1,5 @@
 import type { FaustUIInputItem } from "@grame/faustwasm";
 import { useLinkAsState } from "marked-subbable";
-import { createUseStyles } from "react-jss";
 import { useContainer } from "structured-state";
 import { appEnvironment } from "../../lib/AppEnvironment";
 import { UtilitySlider } from "../../ui/UtilitySlider";
@@ -49,16 +48,13 @@ export function FaustSlider({
     }
   })();
 
-  const styles = useStyles();
-
   const stepDecimals = countDecimals(step ?? 0);
   const minSize = Math.max((min ?? 0).toFixed(stepDecimals).length, (max ?? 0).toFixed(stepDecimals).length);
   const renderValue = value.toFixed(countDecimals(step ?? 0)).padStart(minSize, "\xa0"); // Non-breakable space is char 0xa0 (160 dec)
 
   return (
     <div
-      className={cn(styles.container, "flex h-full items-center relative justify-between")}
-      // onClick={onClick}
+      className={cn("flex h-full items-center relative justify-between")}
       onMouseDownCapture={
         midiLearning.status === "off"
           ? undefined
@@ -71,6 +67,10 @@ export function FaustSlider({
       }
       style={{
         flexDirection: !isHorizontal ? "column-reverse" : "row",
+        columnGap: 2,
+        rowGap: 2,
+        fontSize: 9,
+
         // border: document.activeElement?.id === id ? "1px solid red" : undefined,
         ...style,
       }}
@@ -83,11 +83,6 @@ export function FaustSlider({
         style={{
           fontFamily: "monospace",
           fontSize: 9,
-          // position: "absolute",
-          // writingMode: vertical ? "vertical-lr" : undefined,
-          // [vertical ? "top" : "right"]: 8,
-          // mixBlendMode: "overlay",
-          // color: "var(--background)",
         }}
       >
         {renderValue}
@@ -109,11 +104,3 @@ export function FaustSlider({
     </div>
   );
 }
-
-const useStyles = createUseStyles({
-  container: {
-    columnGap: 2,
-    rowGap: 2,
-    fontSize: 9,
-  },
-});

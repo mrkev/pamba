@@ -19,7 +19,7 @@ describe("timelineStartSec", () => {
     const foo = clip(0, 1);
     foo.timelineStart.set(10, "seconds");
 
-    expect(foo.timelineStartSec).toBe(10);
+    expect(foo.getTimelineStartSec()).toBe(10);
     expect(foo.getTimelineEndSec()).toBe(11);
     expect(foo.bufferOffset.ensureSecs()).toBe(0);
   });
@@ -30,7 +30,7 @@ describe("endOffsetSec", () => {
     const foo = clip(0, 10);
     foo.setTimelineEndSec(5);
 
-    expect(foo.timelineStartSec).toBe(0);
+    expect(foo.getTimelineStartSec()).toBe(0);
     expect(foo.getTimelineEndSec()).toBe(5);
     expect(foo.bufferOffset.ensureSecs()).toBe(0);
   });
@@ -39,7 +39,7 @@ describe("endOffsetSec", () => {
     const foo = clip(2, 6);
     foo.setTimelineEndSec(5);
 
-    expect(foo.timelineStartSec).toBe(2);
+    expect(foo.getTimelineStartSec()).toBe(2);
     expect(foo.getTimelineEndSec()).toBe(5);
     expect(foo.bufferOffset.ensureSecs()).toBe(0);
   });

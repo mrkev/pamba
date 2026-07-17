@@ -1,8 +1,8 @@
 import { InitFunctions, JSONOfAuto, ReplaceFunctions, SString, Structured, string } from "structured-state";
-import { v4 as uuidv4 } from "uuid";
 import { staticAudioContext } from "../constants";
 import { AudioPackage } from "../data/AudioPackage";
 import { SAudioClip } from "../data/serializable";
+import { debugLog } from "../utils/debug";
 import { nullthrows } from "../utils/nullthrows";
 import { dataURLForWaveform } from "../utils/waveform";
 import { SimpleAudioClip } from "../wam/audiotrack/SharedAudioTrackTypes";
@@ -36,20 +36,16 @@ type AutoAudioClip = {
 export class AudioClip extends Structured<AutoAudioClip, typeof AudioClip> implements AbstractClip<Seconds> {
   // constants
   readonly sampleRate: number; // how many frames per second
-  readonly id = uuidv4();
 
   // status, from construction
   readonly status: "ready" | "missing";
   readonly detailedViewport = AudioViewport.of(80, 0);
   // Let's not pre-compute this since we don't know the acutal dimensions
   // but lets memoize the last size used for perf. shouldn't change.
-  private readonly memodWaveformDataURL: Map<string, { width: number; height: number; data: string }> = new Map();
+  readonly memodWaveformDataURL: Map<string, { width: number; height: number; data: string }> = new Map();
 
   //
-  // public bufferOffset: Seconds; // todo: make linked state
   readonly bufferLength: Seconds; // seconds, whole buffer
-
-  // public clipLengthSec: Seconds; // TODO: incorporate?
 
   // unused
   public gainAutomation: Array<{ time: number; value: number }> = [{ time: 0, value: 1 }];
@@ -132,10 +128,6 @@ export class AudioClip extends Structured<AutoAudioClip, typeof AudioClip> imple
     );
   }
 
-  get timelineStartSec() {
-    return this.timelineStart.ensureSecs();
-  }
-
   static async fromAudioPackage(
     audioPackage: AudioPackage,
     dimensions?: { bufferOffset: number; timelineStartSec: number; clipLengthSec: number },
@@ -175,7 +167,7 @@ export class AudioClip extends Structured<AutoAudioClip, typeof AudioClip> imple
     );
   }
 
-  async fromMissingMedia(
+  static async fromMissingMedia(
     url: string,
     dimensions: { bufferOffset: number; timelineStartSec: number; clipLengthSec: number },
     name?: string,
@@ -227,19 +219,8 @@ export class AudioClip extends Structured<AutoAudioClip, typeof AudioClip> imple
     return newClip;
   }
 
-  getWaveformDataURL(width: number, height: number, color: string) {
-    const key = `${width}x${height}`;
-    const val = this.memodWaveformDataURL.get(key);
-
-    if (val != null) {
-      return val.data;
-    }
-
-    console.log("getWaveformDataURL: NO MEMO", width, height, color);
-
-    const waveform = dataURLForWaveform(width, height, color, this.buffer);
-    this.memodWaveformDataURL.set(key, { width, height, data: waveform });
-    return waveform;
+  getTimelineStartSec() {
+    return this.timelineStart.ensureSecs();
   }
 
   getTimelineEndSec() {
@@ -255,13 +236,13 @@ export class AudioClip extends Structured<AutoAudioClip, typeof AudioClip> imple
 
     //
     //                  |~~~~[        clip       ]~~~~~~~~~~|
-    // >--timelineStartSec---+
+    // >--timelineStart------+
     //                       >-----clipLength----+
     // >-------------timelineEndSec--------------+
     //                  >-BO-+
     // ^0:00
 
-    if (newEnd > this.timelineStartSec + this.bufferLength - this.bufferOffset.ensureSecs()) {
+    if (newEnd > this.timelineStart.ensureSecs() + this.bufferLength - this.bufferOffset.ensureSecs()) {
       // console.log(
       //   newEnd,
       //   this.timelineStartSec + this.bufferLength - this.bufferOffset.ensureSecs(),
@@ -364,12 +345,37 @@ export class AudioClip extends Structured<AutoAudioClip, typeof AudioClip> imple
     const len = this.timelineLength.toString();
     return `[AudioClip.${this._id}, start:${start}, bo:${bo}, len:${len}]`;
   }
+}
 
-  public toSimple(): Readonly<SimpleAudioClip> {
+export const audioClip = {
+  /**
+   * Renders the clip's whole buffer as a waveform image, returned as a data URL.
+   * Results are memoized on the clip, keyed by size only: re-rendering an already
+   * cached size with a different `color` returns the previously cached image.
+   */
+  getWaveformDataURL(clip: AudioClip, width: number, height: number, color: string) {
+    const key = `${width}x${height}`;
+    const val = clip.memodWaveformDataURL.get(key);
+
+    if (val != null) {
+      return val.data;
+    }
+
+    debugLog("getWaveformDataURL", "NO MEMO", width, height, color);
+    const waveform = dataURLForWaveform(width, height, color, clip.buffer);
+    clip.memodWaveformDataURL.set(key, { width, height, data: waveform });
+    return waveform;
+  },
+
+  /**
+   * Projects the clip into the plain, SharedArrayBuffer-backed shape the audio thread
+   * consumes (see SimpleAudioClip). Throws if the clip has no buffer (ie, status "missing").
+   */
+  toSimple(clip: AudioClip): Readonly<SimpleAudioClip> {
     return {
-      channels: nullthrows(this.buffer).channels,
-      id: this.id,
+      channels: nullthrows(clip.buffer).channels,
+      id: clip._id,
       startOffsetSec: 0,
     };
-  }
-}
+  },
+};

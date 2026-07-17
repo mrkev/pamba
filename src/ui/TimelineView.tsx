@@ -33,7 +33,7 @@ export function TimelineView({
       className={classNames(
         classes.container,
         "scrollbar-track",
-        "grid gap-x-0 gap-y-0 overflow-y-scroll overflow-x-hidden w-full grow",
+        "grid gap-x-0 gap-y-0 overflow-y-scroll overflow-x-hidden w-full grow mr-px",
         className,
       )}
     >
@@ -45,12 +45,22 @@ export function TimelineView({
       {/* 1. Track header overhang */}
       <div
         className={cn(
-          classes.axisSpacer,
+          "name-axisSpacer",
           "sticky top-0 flex items-center flex-row justify-evenly",
           activePanel === "primary" && "bg-panel-active-background",
           activePanel !== "primary" && "bg-background",
           "border-l border-background",
         )}
+        style={{
+          height: "29px",
+          // borderBottom: "1px solid var(--axis-spacer-headers-separator)",
+          width: TRACK_HEADER_WIDTH,
+          // we add 10 to cover some empty space to the right. there
+          // seems to be some padding to display the scrollbar, but it lets
+          // the loop marker show underneath
+          borderRight: "10px solid var(--background)",
+          zIndex: 2,
+        }}
       >
         {"↑"}
       </div>
@@ -119,18 +129,8 @@ const useStyles = createUseStyles({
     // borderTopLeftRadius: "3px",
     // borderBottomLeftRadius: "3px",
     // paddingRight: "4px",
-    marginRight: 1,
+    // marginRight: 1,
     paddingRight: 4,
     // border: "3px solid black",
-  },
-  axisSpacer: {
-    height: "29px",
-    // borderBottom: "1px solid var(--axis-spacer-headers-separator)",
-    width: TRACK_HEADER_WIDTH,
-    // we add 10 to cover some empty space to the right. there
-    // seems to be some padding to display the scrollbar, but it lets
-    // the loop marker show underneath
-    borderRight: "10px solid var(--background)",
-    zIndex: 2,
   },
 });

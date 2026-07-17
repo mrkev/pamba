@@ -19,7 +19,7 @@ import { mixDown } from "../mixDown";
 import { nullthrows } from "../utils/nullthrows";
 import { AudioTrackModule } from "../wam/audiotrack/AudioTrackModule";
 import { appEnvironment } from "./AppEnvironment";
-import { AudioClip } from "./AudioClip";
+import { audioClip, AudioClip } from "./AudioClip";
 import { AudioContextInfo } from "./initAudioContext";
 import { AudioProject } from "./project/AudioProject";
 import { defaultTrackUtility, ProjectTrackDSP } from "./ProjectTrackDSP";
@@ -34,8 +34,6 @@ type AutoAudioTrack = {
 };
 
 export class AudioTrack extends Structured<AutoAudioTrack, typeof AudioTrack> implements StandardTrack<AudioClip> {
-  // public readonly dsp: ProjectTrackDSP;
-
   // For background processing
   // private thread_UNUSED = new TrackThread();
 
@@ -226,20 +224,20 @@ export class AudioTrack extends Structured<AutoAudioTrack, typeof AudioTrack> im
   public flushFirstClipToProcessor() {
     this.wamModule.sendMessageToProcessor({
       action: "set_clips",
-      seqClips: [nullthrows(this.clips.at(0), "no clip").toSimple()],
+      seqClips: [audioClip.toSimple(nullthrows(this.clips.at(0), "no clip"))],
     });
   }
 
   public testWAMPlayback() {
     const context = liveAudioContext();
-
     this.wamModule.wamNode.connect(context.destination);
-
     this.wamModule.sendMessageToProcessor({
       action: "play",
     });
   }
 }
+
+export const audioTrack = {};
 
 /**
  * TODO: play only on press play
