@@ -30,16 +30,8 @@ export type ClipboardState =
 
 export const clipboard = MarkedValue.create<ClipboardState | null>(null);
 
-/**
- * Serializes a clip into the clipboard's snapshot form. Returns null for audio clips whose media
- * never loaded (`status: "missing"`): their buffer isn't in the session cache, so they can't be
- * reconstructed on paste.
- */
 export async function serializeClip(clip: AudioClip | MidiClip): Promise<SAudioClip | SMidiClip | null> {
   if (clip instanceof AudioClip) {
-    if (clip.status === "missing") {
-      return null;
-    }
     return serializable(clip);
   }
   return serializable(clip);

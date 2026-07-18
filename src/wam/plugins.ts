@@ -157,5 +157,3 @@ export const WAMPLUGINS: PambaWAMPluginDescriptor[] = plugins
  * - metadata (includes kind, my metadata)
  * - descriptor (wam descriptor, their metadata)
  */
-
-console.log("WAMPLUGINS", WAMPLUGINS);

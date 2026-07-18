@@ -5,6 +5,7 @@ import { GPUWaveform } from "webgpu-waveform-react";
 import { AudioClip } from "../lib/AudioClip";
 import { AnalizedPlayer } from "../lib/io/AnalizedPlayer";
 import { AudioProject } from "../lib/project/AudioProject";
+import { SharedAudioBuffer } from "../lib/SharedAudioBuffer";
 import { standardViewport } from "../lib/viewport/StandardViewport";
 import { nullthrows } from "../utils/nullthrows";
 import { AudioClipBufferAxis } from "./axis/AudioClipBufferAxis";
@@ -14,12 +15,14 @@ import { useStandardViewport } from "./useStandardViewport";
 
 export function AudioClipBufferView({
   clip,
+  buffer,
   project,
   player,
   minScale,
   maxScale,
 }: {
   clip: AudioClip;
+  buffer: SharedAudioBuffer;
   project: AudioProject;
   player: AnalizedPlayer;
   minScale: number;
@@ -33,14 +36,14 @@ export function AudioClipBufferView({
   const selectionWidthPx = standardViewport.frToPx(
     clip.detailedViewport,
     selectionWidthFr == null ? 0 : selectionWidthFr,
-    clip.sampleRate,
+    clip.getSampleRate(),
   );
 
   // for waveform
   const [scrollLeftPx] = usePrimitive(clip.detailedViewport.scrollLeftPx);
   const [pxPerSec] = usePrimitive(clip.detailedViewport.pxPerSecond);
   const [lockPlayback] = usePrimitive(clip.detailedViewport.lockPlayback);
-  const waveformStartFr = Math.max(scrollLeftPx / pxPerSec, 0) * clip.sampleRate;
+  const waveformStartFr = Math.max(scrollLeftPx / pxPerSec, 0) * clip.getSampleRate();
 
   useContainer(clip);
 
@@ -50,7 +53,7 @@ export function AudioClipBufferView({
       if (clipSecs < 0) {
         return 0;
       }
-      const clipFr = clipSecs * clip.sampleRate;
+      const clipFr = clipSecs * clip.getSampleRate();
       return clipFr;
     },
     [clip],
@@ -72,25 +75,17 @@ export function AudioClipBufferView({
         const vp = clip.detailedViewport;
         const waveformOffsetFr = vp.lockPlayback.get()
           ? offsetFrOfPlaybackPos(player.playbackPos.get())
-          : Math.max(vp.scrollLeftPx.get() / vp.pxPerSecond.get(), 0) * clip.sampleRate;
+          : Math.max(vp.scrollLeftPx.get() / vp.pxPerSecond.get(), 0) * clip.getSampleRate();
 
-        const positionFr = standardViewport.pxToFr(vp, mouseX, clip.sampleRate) + waveformOffsetFr;
-        const positionSecs = positionFr / clip.sampleRate;
+        const positionFr = standardViewport.pxToFr(vp, mouseX, clip.getSampleRate()) + waveformOffsetFr;
+        const positionSecs = positionFr / clip.getSampleRate();
         const positionTimeline = positionSecs + clip.timelineStart.ensureSecs();
 
         project.cursorPos.set(positionTimeline);
         project.secondarySelection.set(null);
         clip.detailedViewport.selectionWidthFr.set(null);
       },
-      [
-        clip.detailedViewport,
-        clip.sampleRate,
-        clip.timelineStart,
-        offsetFrOfPlaybackPos,
-        player,
-        project.cursorPos,
-        project.secondarySelection,
-      ],
+      [clip, offsetFrOfPlaybackPos, player.playbackPos, project.cursorPos, project.secondarySelection],
     ),
 
     useCallback(
@@ -104,10 +99,10 @@ export function AudioClipBufferView({
           clip.detailedViewport.selectionWidthFr.set(null);
           return;
         }
-        const deltaXFr = standardViewport.pxToFr(clip.detailedViewport, deltaPx, clip.sampleRate);
+        const deltaXFr = standardViewport.pxToFr(clip.detailedViewport, deltaPx, clip.getSampleRate());
         clip.detailedViewport.selectionWidthFr.set(deltaXFr);
       },
-      [clip.detailedViewport, clip.sampleRate],
+      [clip],
     ),
 
     useCallback(
@@ -120,7 +115,7 @@ export function AudioClipBufferView({
         // The width is signed (relative to the cursor anchor). Normalize so `startS` is
         // always the left edge and `lengthFr` is positive, per the audioTime convention.
         const cursorS = project.cursorPos.get();
-        const lenSecs = selLenFr / clip.sampleRate;
+        const lenSecs = selLenFr / clip.getSampleRate();
         project.secondarySelection.set({
           status: "audioTime",
           startS: selLenFr < 0 ? cursorS + lenSecs : cursorS,
@@ -128,7 +123,7 @@ export function AudioClipBufferView({
         });
         pressedState.set(null);
       },
-      [clip.detailedViewport.selectionWidthFr, clip.sampleRate, project.cursorPos, project.secondarySelection],
+      [clip, project.cursorPos, project.secondarySelection],
     ),
   );
 
@@ -140,9 +135,9 @@ export function AudioClipBufferView({
         : waveformStartFr;
 
       const clipSecs = timelineSecs - clip.getTimelineStartSec();
-      const clipFr = clipSecs * clip.sampleRate;
-      const clipPx = clipFr / standardViewport.framesPerPixel(clip.detailedViewport, clip.sampleRate);
-      return clipPx - waveformOffset / standardViewport.framesPerPixel(clip.detailedViewport, clip.sampleRate);
+      const clipFr = clipSecs * clip.getSampleRate();
+      const clipPx = clipFr / standardViewport.framesPerPixel(clip.detailedViewport, clip.getSampleRate());
+      return clipPx - waveformOffset / standardViewport.framesPerPixel(clip.detailedViewport, clip.getSampleRate());
     },
     [clip, offsetFrOfPlaybackPos, playbackPos, waveformStartFr],
   );
@@ -166,7 +161,7 @@ export function AudioClipBufferView({
         <GPUWaveform
           ref={waveformRef}
           audioBuffer={clip.buffer}
-          scale={standardViewport.framesPerPixel(clip.detailedViewport, clip.sampleRate) / devicePixelRatio}
+          scale={standardViewport.framesPerPixel(clip.detailedViewport, clip.getSampleRate()) / devicePixelRatio}
           offset={lockPlayback ? offsetFrOfPlaybackPos(playbackPos) : waveformStartFr}
           width={(width || 1) * devicePixelRatio}
           height={(height || 1) * devicePixelRatio}
@@ -179,7 +174,7 @@ export function AudioClipBufferView({
         width={width}
         height={height}
         pxPerSec={pxPerSec}
-        startSec={(lockPlayback ? offsetFrOfPlaybackPos(playbackPos) : waveformStartFr) / clip.sampleRate}
+        startSec={(lockPlayback ? offsetFrOfPlaybackPos(playbackPos) : waveformStartFr) / clip.getSampleRate()}
       />
       {/* cursor div */}
       {cursorPosInClipPx > 0 &&

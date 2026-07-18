@@ -33,21 +33,18 @@ type AutoAudioClip = {
 // These properties represent media that has a certain length (in frames), but has
 // been trimmed to be of another length.
 export class AudioClip extends Structured<AutoAudioClip, typeof AudioClip> implements AbstractClip<Seconds> {
-  // constants
-  readonly sampleRate: number; // how many frames per second
-
   // status, from construction
-  readonly status: "ready" | "missing";
   readonly detailedViewport = AudioViewport.of(80, 0);
   // Let's not pre-compute this since we don't know the acutal dimensions
   // but lets memoize the last size used for perf. shouldn't change.
   readonly memodWaveformDataURL: Map<string, { width: number; height: number; data: string }> = new Map();
 
   // unused
-  public gainAutomation: Array<{ time: number; value: number }> = [{ time: 0, value: 1 }];
+  // public gainAutomation: Array<{ time: number; value: number }> = [{ time: 0, value: 1 }];
+  // readonly status: "ready" | "missing";
 
   constructor(
-    readonly buffer: SharedAudioBuffer | null,
+    readonly buffer: SharedAudioBuffer,
     readonly name: SString,
     // Buffer
     readonly bufferURL: string,
@@ -57,19 +54,6 @@ export class AudioClip extends Structured<AutoAudioClip, typeof AudioClip> imple
     readonly timelineLength: TimelineT, // length of the clip on the timeline
   ) {
     super();
-    // TODO: make missing clips their own class, without buffer info props. They serialize to SAudioClip too
-    if (buffer == null) {
-      this.status = "missing";
-      // TODO
-      this.sampleRate = 48000;
-      this.buffer = null;
-    } else {
-      this.status = "ready";
-      this.sampleRate = buffer.sampleRate;
-      // By default, there is no trim and the clip has offset 0
-    }
-
-    this.bufferOffset = bufferOffset;
   }
 
   getBufferLength(): Seconds {
@@ -81,6 +65,14 @@ export class AudioClip extends Structured<AutoAudioClip, typeof AudioClip> imple
       // todo, should convert buffer.length to seconds myself? Are buffer.duration
       // and buffer.length always congruent?
       return secs(this.buffer.duration);
+    }
+  }
+
+  getSampleRate() {
+    if (this.buffer == null) {
+      return 48_000;
+    } else {
+      return this.buffer.sampleRate;
     }
   }
 
@@ -162,25 +154,6 @@ export class AudioClip extends Structured<AutoAudioClip, typeof AudioClip> imple
     return Structured.create(
       AudioClip,
       buffer,
-      string(name || "untitled"),
-      url,
-      time(bufferOffset, "seconds"),
-      time(timelineStartSec, "seconds"),
-      time(clipLengthSec, "seconds"),
-    );
-  }
-
-  static async fromMissingMedia(
-    url: string,
-    dimensions: { bufferOffset: number; timelineStartSec: number; clipLengthSec: number },
-    name?: string,
-  ) {
-    const bufferOffset = dimensions?.bufferOffset;
-    const timelineStartSec = dimensions?.timelineStartSec;
-    const clipLengthSec = dimensions?.clipLengthSec;
-    return Structured.create(
-      AudioClip,
-      null,
       string(name || "untitled"),
       url,
       time(bufferOffset, "seconds"),
@@ -344,11 +317,11 @@ export class AudioClip extends Structured<AutoAudioClip, typeof AudioClip> imple
 
 export const audioClip = {
   secToFr(clip: AudioClip, sec: number): number {
-    return Math.floor(sec * clip.sampleRate);
+    return Math.floor(sec * clip.getSampleRate());
   },
 
   frToSec(clip: AudioClip, fr: number): Seconds {
-    return (fr / clip.sampleRate) as Seconds;
+    return (fr / clip.getSampleRate()) as Seconds;
   },
 
   /**
@@ -372,11 +345,11 @@ export const audioClip = {
 
   /**
    * Projects the clip into the plain, SharedArrayBuffer-backed shape the audio thread
-   * consumes (see SimpleAudioClip). Throws if the clip has no buffer (ie, status "missing").
+   * consumes (see SimpleAudioClip).
    */
   toSimple(clip: AudioClip): SimpleAudioClip {
     return {
-      channels: nullthrows(clip.buffer).channels,
+      channels: clip.buffer.channels,
       id: clip._id,
       startOffsetSec: 0,
     };

@@ -9,14 +9,13 @@ import { MidiClip } from "../../midi/MidiClip";
 import { MidiInstrument } from "../../midi/MidiInstrument";
 import { MidiTrack } from "../../midi/MidiTrack";
 import { exhaustive } from "../../utils/exhaustive";
-import { ignorePromise } from "../../utils/ignorePromise";
 import { nullthrows } from "../../utils/nullthrows";
 import { ONE_BAR_PULSES } from "../../wam/miditrackwam/MIDIConfiguration";
 import { TransferableResource } from "./getTrackAcceptableDataTransferResources";
 
 export const addMidiClipsIntoTrack = (project: AudioProject, track: MidiTrack, clips: MidiClip[]): void => {
   try {
-    if (!project.canEditTrack(project, track)) {
+    if (!audioProject.canEditTrack(project, track)) {
       return;
     }
     history.record("insert audio clip", () => {
@@ -38,7 +37,7 @@ export const loadAudioClipIntoTrack = async (
   name: string,
 ): Promise<void> => {
   try {
-    if (!project.canEditTrack(project, track)) {
+    if (!audioProject.canEditTrack(project, track)) {
       return;
     }
     const clip = await AudioClip.fromURL(url, name);
@@ -118,14 +117,14 @@ export async function handleDropOntoMidiTrack(
     case "trackinstance":
       throw new Error("Can't transfer trackinstance onto MidiTrack");
     case "WAMAvailablePlugin":
-      ignorePromise(addAvailableWamToTrack(track, resource, "last"));
+      await addAvailableWamToTrack(track, resource, "last");
       break;
     case "AudioPackage.local":
       throw new Error("Can't transfer AudioPackage.local onto MidiTrack");
     case "audio":
       throw new Error("Can't transfer audio onto MidiTrack");
     case "fausteffect":
-      ignorePromise(track.dsp.addFaustEffect(resource.id, "last"));
+      await track.dsp.addFaustEffect(resource.id, "last");
       break;
     case "effectinstance":
       const srcTrack = nullthrows(

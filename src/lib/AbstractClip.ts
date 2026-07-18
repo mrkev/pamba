@@ -7,27 +7,34 @@ export function printClips(clips: SArray<AbstractClip<any>>) {
 }
 
 export function assertClipInvariants<U extends Pulses | Seconds>(clips: SArray<AbstractClip<U>>) {
+  if (clips.length == 0) {
+    return;
+  }
+
+  // All clips on a track are stored in the same unit (seconds for audio,
+  // pulses for midi), so we measure everything against the first clip's unit.
+  // `ensure` throws if a clip disagrees, which enforces that invariant here.
+  // (bars/frames are not a valid clip storage unit.)
+  const unit = nullthrows(clips.at(0)).timelineStart.unit;
+
   let cStart = 0;
   let cEnd = 0;
+
   for (let i = 0; i < clips.length; i++) {
     const clip = nullthrows(clips.at(i));
-    if (clip._timelineStartU < cStart) {
-      // console.log(`Out of place clip at position ${i}!`, clip, clips);
+    const clipStart = clip.timelineStart.ensure(unit);
+    const clipEnd = clipStart + clip.timelineLength.ensure(unit);
+
+    if (clipStart < cStart) {
       throw new Error("Failed invariant: clips are not sorted.\n" + "They look like this:\n" + printClips(clips));
     }
 
-    if (cEnd > clip._timelineStartU) {
-      // console.log(
-      //   `Clip at position ${i} overlaps with previous!`,
-      //   clip.toString(),
-      //   cEnd
-      // );
-      // console.log(`${cEnd} > ${clip.startOffsetSec}`);
+    if (cEnd > clipStart) {
       throw new Error("Failed invariant: clips overlap.\n" + "They look like this:\n" + printClips(clips));
     }
 
-    cStart = clip._timelineStartU;
-    cEnd = clip._timelineStartU;
+    cStart = clipStart;
+    cEnd = clipEnd;
   }
 }
 
@@ -115,19 +122,41 @@ export function deleteTime<Clip extends AbstractClip<U>, U extends Pulses | Seco
   const res = clips;
   for (let i = 0; i < clips.length; i++) {
     const current = nullthrows(clips.at(i));
+    const cStart = current._timelineStartU;
+    const cEnd = current._timelineEndU;
 
-    const remStart = start < current._timelineStartU && current._timelineStartU < end;
-    const remEnd = start < current._timelineEndU && current._timelineEndU < end;
+    // No overlap with the deleted range. Touching at a single boundary
+    // (cEnd === start or cStart === end) counts as no overlap, so a clip that
+    // merely abuts the range is left alone rather than trimmed to nothing.
+    if (cEnd <= start || cStart >= end) {
+      continue;
+    }
 
-    // remove the whole clip
-    if (remStart && remEnd) {
+    // The clip lies entirely within the deleted range → remove it whole.
+    if (cStart >= start && cEnd <= end) {
       toRemove.push(current);
       continue;
     }
 
-    // Trim the start of the clip
-    if (remStart) {
-      // need to remove and re-sort clip
+    // The deleted range is strictly interior to the clip → split into two,
+    // leaving a gap where the range was.
+    if (cStart < start && end < cEnd) {
+      const first = current;
+      const second = current.clone() as Clip;
+
+      toResort.push(second);
+
+      first._setTimelineEndU(start as U);
+      second.trimStartToTimelineU(end as U);
+
+      notifyClips.push(first);
+      notifyClips.push(second);
+      continue;
+    }
+
+    // The clip's leading edge is inside the range → push its start to `end`.
+    // Its position changes, so remove and re-sort it.
+    if (cStart >= start) {
       current.trimStartToTimelineU(end as U);
       toRemove.push(current);
       toResort.push(current);
@@ -135,31 +164,9 @@ export function deleteTime<Clip extends AbstractClip<U>, U extends Pulses | Seco
       continue;
     }
 
-    // Trim the end of the clip
-    if (remEnd) {
-      current._setTimelineEndU(start as U);
-      notifyClips.push(current);
-      continue;
-    }
-
-    // lastly, there's the case where the whole range to be removed lies within
-    // this clip, in which case we would split this clip into three parts and
-    // remove the one corresponding to the time we want to delete
-    if (
-      current._timelineStartU < start &&
-      start < current._timelineEndU &&
-      current._timelineStartU < end &&
-      end < current._timelineEndU
-    ) {
-      const first = current;
-      const second = current.clone();
-
-      toResort.push(second);
-
-      first._setTimelineEndU(start as U);
-      second.trimStartToTimelineU(end as U);
-      // console.log("HERE");
-    }
+    // Otherwise the clip's trailing edge is inside the range → pull end to `start`.
+    current._setTimelineEndU(start as U);
+    notifyClips.push(current);
   }
 
   // console.log("clips", clips, toRemove, toResort);
@@ -236,56 +243,12 @@ export function pushClip<Clip extends AbstractClip<U>, U extends Pulses | Second
   if (lastClip == null) {
     newClip.timelineStart.set(0);
   } else {
-    newClip.timelineStart.set(lastClip.timelineStart);
+    // Start the new clip right at the end of the last clip, expressed in that
+    // clip's native unit (seconds for audio, pulses for midi).
+    newClip.timelineStart.set(lastClip._timelineEndU, lastClip.timelineStart.unit);
   }
 
   clips.push(newClip);
-  assertClipInvariants(clips);
-  return clips;
-}
-
-/**
- * Moves a clip to the right spot in the array
- */
-export function moveClip<Clip extends AbstractClip<U>, U extends Pulses | Seconds>(
-  clip: Clip,
-  clips: SArray<Clip>,
-): SArray<Clip> {
-  if (clips.length === 0) {
-    throw new Error("moving in empty array");
-  }
-
-  const newArr: Clip[] = [];
-
-  let placed = false;
-  let removed = false;
-
-  for (let i = 0; i < clips.length; i++) {
-    const c = nullthrows(clips.at(i));
-
-    if (clip._timelineStartU <= c._timelineStartU) {
-      newArr.push(clip);
-      placed = true;
-    }
-
-    if (c === clip) {
-      removed = true;
-      continue;
-    } else {
-      newArr.push(c);
-    }
-  }
-
-  if (!removed) {
-    throw new Error("move: Clip not found in array");
-  }
-
-  if (!placed) {
-    newArr.push(clip);
-  }
-
-  clips._replace(() => newArr);
-
   assertClipInvariants(clips);
   return clips;
 }

@@ -5,7 +5,7 @@ import { AbstractClip, addClip, deleteTime, pushClip, removeClip, splitClip } fr
 import { AudioTrack } from "./AudioTrack";
 import { ProjectTrackDSP } from "./ProjectTrackDSP";
 import { AudioContextInfo } from "./initAudioContext";
-import { AudioProject } from "./project/AudioProject";
+import { audioProject, AudioProject } from "./project/AudioProject";
 
 // TODO: move these things out of the abstract class
 export interface StandardTrack<T extends AbstractClip<any>> {
@@ -30,7 +30,7 @@ export const standardTrack = {
   //////////// CLIPS ////////////
 
   addClip<T extends AbstractClip<any>>(project: AudioProject, track: StandardTrack<T>, newClip: T): void {
-    if (!project.canEditTrack(project, track)) {
+    if (!audioProject.canEditTrack(project, track)) {
       return;
     }
 
@@ -42,7 +42,7 @@ export const standardTrack = {
 
   // Adds a clip right after the last clip
   pushClip<T extends AbstractClip<any>>(project: AudioProject, track: StandardTrack<T>, newClip: T): void {
-    if (!project.canEditTrack(project, track)) {
+    if (!audioProject.canEditTrack(project, track)) {
       return;
     }
     pushClip(newClip, track.clips);
@@ -54,16 +54,21 @@ export const standardTrack = {
     srcTrack: StandardTrack<T>,
     destTrack: StandardTrack<T>,
   ): void {
-    // In this order to maintain clip array invariants
+    // Guard both tracks up front so the move is all-or-nothing. Otherwise a
+    // lock on one of the two tracks would let a subset of the steps run,
+    // either losing the clip or aliasing it into both tracks' arrays.
+    if (!audioProject.canEditTrack(project, srcTrack) || !audioProject.canEditTrack(project, destTrack)) {
+      return;
+    }
+
+    // In this order to maintain clip array invariants. addClip clears the
+    // destination range itself, so no separate deleteTime is needed here.
     standardTrack.removeClip(project, srcTrack, clip);
-    standardTrack.deleteTime(project, destTrack, clip._timelineStartU, clip._timelineEndU);
     standardTrack.addClip(project, destTrack, clip);
-    // moveClip(clip, this.clips);
-    // this.clips._setRaw(clips as any);
   },
 
   removeClip<T extends AbstractClip<any>>(project: AudioProject, track: StandardTrack<T>, clip: T): void {
-    if (!project.canEditTrack(project, track)) {
+    if (!audioProject.canEditTrack(project, track)) {
       return;
     }
     removeClip(clip, track.clips);
@@ -75,14 +80,12 @@ export const standardTrack = {
     start: number,
     end: number,
   ): void {
-    if (!project.canEditTrack(project, track)) {
+    if (!audioProject.canEditTrack(project, track)) {
       return;
     }
 
-    console.log("AT deleteTime");
     const notifyClips = deleteTime(start, end, track.clips);
     notifyClips.forEach((clip) => {
-      console.log("clip", clip);
       clip.notifyChange();
     });
   },
@@ -93,7 +96,7 @@ export const standardTrack = {
     clip: T,
     offset: number,
   ): void {
-    if (!project.canEditTrack(project, track)) {
+    if (!audioProject.canEditTrack(project, track)) {
       return;
     }
 

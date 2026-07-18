@@ -1,6 +1,7 @@
 /// <reference types="vitest/config" />
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
+import { configDefaults } from "vitest/config";
 import faustLoader from "vite-plugin-faust";
 import svgrPlugin from "vite-plugin-svgr";
 import tailwindcss from "@tailwindcss/vite";
@@ -10,6 +11,9 @@ export default defineConfig({
   test: {
     // root: "src",
     environment: "jsdom",
+    setupFiles: ["./src/lib/__tests__/setup.ts"],
+    // packages/* are git submodules with their own (jest-based) test setups.
+    exclude: [...configDefaults.exclude, "packages/**"],
   },
   plugins: [react(), tailwindcss(), svgrPlugin(), faustLoader()],
   define: {

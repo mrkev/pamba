@@ -18,7 +18,7 @@ export function mixDown(clipList: ReadonlyArray<AudioClip>, numberOfChannels = 2
   }
 
   //create a buffer using the totalLength and sampleRate of the first buffer node
-  const finalMix = staticAudioContext().createBuffer(numberOfChannels, totalLength, clipList[0].sampleRate);
+  const finalMix = staticAudioContext().createBuffer(numberOfChannels, totalLength, clipList[0].getSampleRate());
 
   // The spec doesn't quite specify if getChannelData() returns a reference or a
   // copy, so let's call it as little as possible just in case.

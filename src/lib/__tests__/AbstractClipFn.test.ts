@@ -34,6 +34,32 @@ function clips(clips: AudioClip[]) {
   return SArray.create(clips);
 }
 
+describe("assertClipInvariants", () => {
+  it("passes for an empty array", () => {
+    expect(() => assertClipInvariants(clips([]))).not.toThrow();
+  });
+
+  it("passes for a single clip", () => {
+    expect(() => assertClipInvariants(clips([bclip(0, 1)]))).not.toThrow();
+  });
+
+  it("passes for sorted, non-overlapping clips", () => {
+    expect(() => assertClipInvariants(clips([bclip(0, 1), bclip(2, 3), bclip(5, 8)]))).not.toThrow();
+  });
+
+  it("allows clips that touch at a boundary", () => {
+    expect(() => assertClipInvariants(clips([bclip(0, 1), bclip(1, 2)]))).not.toThrow();
+  });
+
+  it("throws when clips overlap", () => {
+    expect(() => assertClipInvariants(clips([bclip(0, 2), bclip(1, 3)]))).toThrow(/overlap/);
+  });
+
+  it("throws when clips are out of order", () => {
+    expect(() => assertClipInvariants(clips([bclip(2, 3), bclip(0, 1)]))).toThrow(/sorted/);
+  });
+});
+
 describe("removeClip", () => {
   it("removes the clip", () => {
     const foo = bclip(0, 1);
@@ -49,6 +75,16 @@ describe("removeClip", () => {
 
     expect(all).not.toContain(foo);
     assertClipInvariants(all);
+  });
+
+  it("is a no-op when the clip is not present", () => {
+    const foo = bclip(0, 1);
+    const orphan = bclip(2, 3);
+    const all = clips([foo]);
+    removeClip(orphan, all);
+
+    expect(all.length).toBe(1);
+    expect(all).toContain(foo);
   });
 });
 
@@ -82,6 +118,105 @@ describe("deleteTime", () => {
     expect(all.at(1)?.getTimelineStartSec()).toBe(2);
     expect(all.at(1)?.getTimelineEndSec()).toBe(3);
   });
+
+  it("is a no-op and returns [] when start === end", () => {
+    const all = clips([bclip(0, 1), bclip(2, 3)]);
+    expect(deleteTime(2, 2, all)).toEqual([]);
+    expect(all.length).toBe(2);
+  });
+
+  it("throws when start > end", () => {
+    const all = clips([bclip(0, 1)]);
+    expect(() => deleteTime(5, 1, all)).toThrow();
+  });
+
+  it("removes a clip whose range exactly matches the deleted range", () => {
+    const all = clips([bclip(0, 1), bclip(2, 4), bclip(5, 6)]);
+    deleteTime(2, 4, all);
+
+    expect(all.length).toBe(2);
+    expect(all.at(0)?.getTimelineStartSec()).toBe(0);
+    expect(all.at(1)?.getTimelineStartSec()).toBe(5);
+    assertClipInvariants(all);
+  });
+
+  it("removes a fully-contained clip that shares the start boundary (no sliver)", () => {
+    const all = clips([bclip(0, 1), bclip(2, 4)]);
+    deleteTime(2, 5, all);
+
+    expect(all.length).toBe(1);
+    expect(all.at(0)?.getTimelineStartSec()).toBe(0);
+    expect(all.at(0)?.getTimelineEndSec()).toBe(1);
+  });
+
+  it("removes a fully-contained clip that shares the end boundary (no sliver)", () => {
+    const all = clips([bclip(2, 4), bclip(6, 7)]);
+    deleteTime(1, 4, all);
+
+    expect(all.length).toBe(1);
+    expect(all.at(0)?.getTimelineStartSec()).toBe(6);
+  });
+
+  it("leaves an abutting clip untouched", () => {
+    const all = clips([bclip(0, 2), bclip(2, 4)]);
+    deleteTime(2, 3, all);
+
+    expect(all.length).toBe(2);
+    expect(all.at(0)?.getTimelineStartSec()).toBe(0);
+    expect(all.at(0)?.getTimelineEndSec()).toBe(2);
+    expect(all.at(1)?.getTimelineStartSec()).toBe(3);
+    expect(all.at(1)?.getTimelineEndSec()).toBe(4);
+  });
+
+  it("trims the end of a clip overlapping from the left", () => {
+    const all = clips([bclip(0, 3)]);
+    deleteTime(2, 5, all);
+
+    expect(all.length).toBe(1);
+    expect(all.at(0)?.getTimelineStartSec()).toBe(0);
+    expect(all.at(0)?.getTimelineEndSec()).toBe(2);
+  });
+
+  it("trims the start of a clip overlapping from the right", () => {
+    const all = clips([bclip(3, 6)]);
+    deleteTime(1, 4, all);
+
+    expect(all.length).toBe(1);
+    expect(all.at(0)?.getTimelineStartSec()).toBe(4);
+    expect(all.at(0)?.getTimelineEndSec()).toBe(6);
+  });
+
+  it("removes and trims across multiple clips", () => {
+    const all = clips([bclip(0, 2), bclip(3, 5), bclip(6, 8), bclip(10, 12)]);
+    deleteTime(1, 7, all);
+
+    // [0-1] (trailing trim), [3-5] removed, [6-8] -> [7-8], [10-12] untouched
+    expect(all.length).toBe(3);
+    expect(all.at(0)?.getTimelineStartSec()).toBe(0);
+    expect(all.at(0)?.getTimelineEndSec()).toBe(1);
+    expect(all.at(1)?.getTimelineStartSec()).toBe(7);
+    expect(all.at(1)?.getTimelineEndSec()).toBe(8);
+    expect(all.at(2)?.getTimelineStartSec()).toBe(10);
+    assertClipInvariants(all);
+  });
+
+  it("returns the trimmed clip so callers can notify it", () => {
+    const all = clips([bclip(0, 3)]);
+    const clip = all.at(0);
+    const notified = deleteTime(2, 5, all);
+
+    expect(notified).toContain(clip);
+  });
+
+  it("returns both pieces when the deleted range splits a clip", () => {
+    const all = clips([bclip(0, 10)]);
+    const notified = deleteTime(3, 6, all);
+
+    expect(notified.length).toBe(2);
+    expect(all.length).toBe(2);
+    expect(all.at(0)?.getTimelineEndSec()).toBe(3);
+    expect(all.at(1)?.getTimelineStartSec()).toBe(6);
+  });
 });
 
 describe("pushClip", () => {
@@ -93,6 +228,15 @@ describe("pushClip", () => {
     expect(res).toContain(foo);
     expect(foo.getTimelineStartSec()).toEqual(2);
     expect(res.indexOf(foo)).toEqual(2);
+  });
+
+  it("pushes to 0 on an empty track", () => {
+    const all = clips([]);
+    const foo = bclip(3, 5);
+    pushClip(foo, all);
+
+    expect(foo.getTimelineStartSec()).toBe(0);
+    expect(all.indexOf(foo)).toBe(0);
   });
 });
 
@@ -209,5 +353,30 @@ describe("splitClip", () => {
     expect(all.at(1)?.getTimelineEndSec()).toBe(6);
     expect(all.at(2)?.getTimelineStartSec()).toBe(6);
     expect(all.at(2)?.getTimelineEndSec()).toBe(8);
+  });
+
+  it("returns null when the split point is past the clip end", () => {
+    const foo = bclip(0, 10);
+    const all = clips([foo]);
+
+    expect(splitClip(foo, 15, all)).toBe(null);
+    expect(all.length).toBe(1);
+  });
+
+  it("returns null when the split point is before the clip start", () => {
+    const foo = bclip(2, 8);
+    const all = clips([foo]);
+
+    expect(splitClip(foo, 1, all)).toBe(null);
+    expect(all.length).toBe(1);
+  });
+
+  it("returns null when the clip is not in the array", () => {
+    const foo = bclip(0, 10);
+    const orphan = bclip(0, 10);
+    const all = clips([foo]);
+
+    expect(splitClip(orphan, 5, all)).toBe(null);
+    expect(all.length).toBe(1);
   });
 });

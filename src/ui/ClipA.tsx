@@ -24,9 +24,7 @@ export const ClipA = React.memo(function ClipAImpl({
   track: AudioTrack | null; // null if clip is being rendered for move
   editable?: boolean;
 }) {
-  // len, since the buffer shouldn't be affected by the timelines left margin offset
-  const bufferOffsetPx = project.viewport.timeToPx(clip.bufferOffset, "len");
-
+  const [scale] = usePrimitive(project.viewport.pxPerSecond); // need to subscribe to this
   const timelineStart = useContainer(clip.timelineStart);
   const timelineLength = useContainer(clip.timelineLength);
 
@@ -97,8 +95,6 @@ export const ClipA = React.memo(function ClipAImpl({
     }
   }
 
-  const [scale] = usePrimitive(project.viewport.pxPerSecond); // need to subscribe to this
-
   const totalBufferWidth = standardViewport.secsToPx(project.viewport, clip.getBufferLength(), "len");
 
   const backgroundImageData = audioClip.getWaveformDataURL(
@@ -108,6 +104,9 @@ export const ClipA = React.memo(function ClipAImpl({
     // idt I can use css variables here
     "#103310",
   );
+
+  // len, since the buffer shouldn't be affected by the timelines left margin offset
+  const bufferOffsetPx = project.viewport.timeToPx(clip.bufferOffset, "len");
 
   return (
     <StandardClip
@@ -123,6 +122,6 @@ export const ClipA = React.memo(function ClipAImpl({
         backgroundRepeat: "no-repeat",
         imageRendering: "pixelated",
       }}
-    ></StandardClip>
+    />
   );
 });

@@ -55,7 +55,7 @@ export function AudioClipPropsEditor({ clip }: { clip: AudioClip; project: Audio
       Filename:
       <UtilityTextInput value={clip.bufferURL} />
       Sample Rate:
-      <UtilityTextInput value={String(clip.sampleRate)} />
+      <UtilityTextInput value={String(clip.getSampleRate())} />
     </EditorSection>
   );
 }

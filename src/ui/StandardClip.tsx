@@ -114,6 +114,7 @@ export function StandardClip({
       )}
       ref={ref}
       onClick={onClipClick}
+      tabIndex={0}
       style={{ width, left }}
     >
       <div

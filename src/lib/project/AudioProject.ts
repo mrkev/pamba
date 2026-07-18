@@ -133,17 +133,13 @@ export class AudioProject {
       0,
     );
   }
+}
 
-  public canEditTrack(project: AudioProject, track: MidiTrack | AudioTrack | StandardTrack<any>) {
-    return !project.lockedTracks.has(track) && !appEnvironment.renderer.analizedPlayer.isAudioPlaying;
-  }
+function canEditTrack(project: AudioProject, track: MidiTrack | AudioTrack | StandardTrack<any>) {
+  return !project.lockedTracks.has(track) && !appEnvironment.renderer.analizedPlayer.isAudioPlaying;
 }
 
 export function deleteTime(project: AudioProject, track: MidiTrack | AudioTrack, startS: number, endS: number): void {
-  if (!project.canEditTrack(project, track)) {
-    return;
-  }
-
   if (track instanceof MidiTrack) {
     standardTrack.deleteTime(
       project,
@@ -235,4 +231,5 @@ export const audioProject = {
   },
 
   deleteTime,
+  canEditTrack,
 };

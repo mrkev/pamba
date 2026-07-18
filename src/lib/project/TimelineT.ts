@@ -4,6 +4,7 @@ import { STimelineT } from "../../data/serializable";
 import { exhaustive } from "../../utils/exhaustive";
 import { PPQN } from "../../wam/miditrackwam/MIDIConfiguration";
 import { Pulses, Seconds } from "../AbstractClip";
+import { compare, CompareOp } from "../compare";
 import { AudioProject } from "./AudioProject";
 import { TimelineOperation } from "./TimelineOperation";
 
@@ -105,6 +106,14 @@ export class TimelineT extends Structured<AutoTimelineT, typeof TimelineT> {
 
   pulses(project: AudioProject): Pulses {
     return TimelineT.pulses(project, this.t, this.unit);
+  }
+
+  /** Direct comparison requires both TimelineT to use the same unit */
+  directCompare(op: CompareOp, b: TimelineT) {
+    if (this.unit !== b.unit) {
+      throw new Error(`TimelineT: can't compare ${this.unit} and ${b.unit}`);
+    }
+    return compare(this.t, op, b.t);
   }
 
   static pulses(project: AudioProject, t: number, u: TimeUnit): Pulses {
@@ -221,6 +230,21 @@ export class TimelineT extends Structured<AutoTimelineT, typeof TimelineT> {
     return this;
   }
 
+  ensure(unit: TimeUnit) {
+    switch (unit) {
+      case "seconds":
+        return this.ensureSecs();
+      case "bars":
+        throw new Error("unimplemented");
+      case "pulses":
+        return this.ensurePulses();
+      case "frames":
+        throw new Error("unimplemented");
+      default:
+        exhaustive(unit);
+    }
+  }
+
   ensurePulses() {
     switch (this.unit) {
       case "seconds":
@@ -242,7 +266,7 @@ export class TimelineT extends Structured<AutoTimelineT, typeof TimelineT> {
         return this.t;
       case "bars":
       case "pulses":
-        throw new Error("expected pulses, found " + this.unit);
+        throw new Error("expected secs, found " + this.unit);
       case "frames":
         throw new Error("unimplemented");
       default:
@@ -263,25 +287,30 @@ export function time(t: number, u: TimeUnit): TimelineT {
   return Structured.create(TimelineT, t, u);
 }
 
+const TIMELINE_ORIGIN_PULSES = time(0, "pulses");
+const TIMELINE_ORIGIN_SECS = time(0, "seconds");
+const TIMELINE_ORIGIN_FRAMES = time(0, "frames");
+const TIMELINE_ORIGIN_BARS = time(0, "bars");
+
 export const timelineT = {
-  compare(project: AudioProject, a: TimelineT, op: "<" | ">" | "=" | "<=" | ">=" | "!=", b: TimelineT): boolean {
+  compare(project: AudioProject, a: TimelineT, op: CompareOp, b: TimelineT): boolean {
     const aSecs = a.secs(project);
     const bSecs = b.secs(project);
-    switch (op) {
-      case "<":
-        return aSecs < bSecs;
-      case "=":
-        return aSecs === bSecs;
-      case ">":
-        return aSecs > bSecs;
-      case "!=":
-        return aSecs != bSecs;
-      case "<=":
-        return aSecs <= bSecs;
-      case ">=":
-        return aSecs >= bSecs;
+    return compare(aSecs, op, bSecs);
+  },
+
+  originOf(u: TimeUnit) {
+    switch (u) {
+      case "seconds":
+        return TIMELINE_ORIGIN_SECS;
+      case "bars":
+        return TIMELINE_ORIGIN_BARS;
+      case "pulses":
+        return TIMELINE_ORIGIN_PULSES;
+      case "frames":
+        return TIMELINE_ORIGIN_FRAMES;
       default:
-        throw exhaustive(op);
+        exhaustive(u);
     }
   },
 };

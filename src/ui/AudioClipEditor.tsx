@@ -25,7 +25,7 @@ export function AudioClipEditor({
   useContainer(clip);
 
   const MIN_WAVEFORM_SCALE = 10;
-  const MAX_WAVEFORM_SCALE = clip.sampleRate;
+  const MAX_WAVEFORM_SCALE = clip.getSampleRate();
 
   return (
     <>
@@ -40,7 +40,7 @@ export function AudioClipEditor({
             type="range"
             value={Math.log(pxPerSec)}
             min={Math.log(10)}
-            max={Math.log(clip.sampleRate)}
+            max={Math.log(clip.getSampleRate())}
             step={0.01}
             onChange={(e) => {
               // const newVal = parseFloat(e.target.value);
@@ -85,13 +85,18 @@ export function AudioClipEditor({
           </UtilityToggle>
         </div>
 
-        <AudioClipBufferView
-          clip={clip}
-          project={project}
-          player={player}
-          minScale={MIN_WAVEFORM_SCALE}
-          maxScale={MAX_WAVEFORM_SCALE}
-        />
+        {clip.buffer == null ? (
+          <div>no buffer</div>
+        ) : (
+          <AudioClipBufferView
+            clip={clip}
+            buffer={clip.buffer}
+            project={project}
+            player={player}
+            minScale={MIN_WAVEFORM_SCALE}
+            maxScale={MAX_WAVEFORM_SCALE}
+          />
+        )}
       </div>
     </>
   );
