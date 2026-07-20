@@ -25,7 +25,17 @@ export function pulsesToSec(pulses: number, bpm: number) {
 }
 
 export function secsToPulses(secs: number, bpm: number) {
-  return Math.floor((secs * PPQN * bpm) / SECS_IN_MIN);
+  return Math.floor(secsToPulsesExact(secs, bpm));
+}
+
+/**
+ * `secsToPulses` without the floor, for positions that are drawn rather than quantized.
+ * Flooring a position that was itself derived from a whole pulse can land a pulse early
+ * (float error puts it just under the integer), which is a visible jump once a pulse is
+ * several pixels wide.
+ */
+export function secsToPulsesExact(secs: number, bpm: number) {
+  return (secs * PPQN * bpm) / SECS_IN_MIN;
 }
 
 export class TimelineT extends Structured<AutoTimelineT, typeof TimelineT> {
@@ -182,6 +192,17 @@ export class TimelineT extends Structured<AutoTimelineT, typeof TimelineT> {
     return Structured.create(TimelineT, this.t, this.unit);
   }
 
+  addScalar(t: number) {
+    this.featuredMutation(() => {
+      this.t += t;
+    });
+  }
+
+  enusreAdd(b: TimelineT) {
+    const bt = b.ensure(this.unit);
+    this.addScalar(bt);
+  }
+
   addTime(t: number, u: TimeUnit, project: AudioProject) {
     this.featuredMutation(() => {
       if (this.unit === u) {
@@ -195,13 +216,8 @@ export class TimelineT extends Structured<AutoTimelineT, typeof TimelineT> {
   }
 
   add(p: TimelineT, project: AudioProject) {
-    this.featuredMutation(() => {
-      if (this.unit === p.unit) {
-        this.t += p.t;
-      } else {
-        this.t += p.asUnit(this.unit, project);
-      }
-    });
+    const t = this.unit === p.unit ? p.t : p.asUnit(this.unit, project);
+    this.addScalar(t);
     return this;
   }
 
@@ -312,5 +328,11 @@ export const timelineT = {
       default:
         exhaustive(u);
     }
+  },
+
+  ensureSum(a: TimelineT, b: TimelineT) {
+    const at = a.ensure(a.unit);
+    const bt = b.ensure(a.unit);
+    return time(at + bt, a.unit);
   },
 };

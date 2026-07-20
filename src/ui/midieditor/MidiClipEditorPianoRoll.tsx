@@ -10,7 +10,7 @@ import {
 } from "../../constants";
 import { AnalizedPlayer } from "../../lib/io/AnalizedPlayer";
 import { AudioProject, SecondaryTool } from "../../lib/project/AudioProject";
-import { secsToPulses } from "../../lib/project/TimelineT";
+import { pulsesToSec, secsToPulses, secsToPulsesExact } from "../../lib/project/TimelineT";
 import { midiViewport } from "../../lib/viewport/MidiViewport";
 import { snapPulses } from "../../lib/viewport/snap";
 import { MidiClip } from "../../midi/MidiClip";
@@ -22,6 +22,7 @@ import { clamp } from "../../utils/math";
 import { nullthrows } from "../../utils/nullthrows";
 import { PPQN } from "../../wam/miditrackwam/MIDIConfiguration";
 import { NoteR } from "../NoteR";
+import { CursorLine } from "../TimelineCursor";
 import { useEventListener } from "../useEventListener";
 import { PointerPressMeta, usePointerPressMove } from "../usePointerPressMove";
 import { useViewportScrollEvents } from "../useViewportScrollEvents";
@@ -47,10 +48,20 @@ export function MidiClipEditorPianoRoll({
   const drawGestureRef = useRef<{ note: MidiNote; startTick: number } | null>(null);
   const [bpm] = usePrimitive(project.tempo);
   const [selectionBox, setSelectionBox] = useState<null | [number, number, number, number]>(null);
-  const cursorDiv = useRef<HTMLDivElement>(null);
+  const playbackDiv = useRef<HTMLDivElement>(null);
   const [noteHeight] = usePrimitive(clip.detailedViewport.pxNoteHeight);
   const [scrollLeftPx] = usePrimitive(clip.detailedViewport.scrollLeftPx);
   const [scrollTopPx] = usePrimitive(clip.detailedViewport.scrollTopPx);
+  const [playbackPos] = usePrimitive(player.playbackPos);
+
+  // The project cursor is a timeline position, but the piano roll lays notes out clip-relative,
+  // so express it in pulses past the clip's start. It's hidden when it falls outside the clip
+  // (the container is `overflow-visible`, so an off-clip cursor would paint over the keys).
+  const [cursorPos] = usePrimitive(project.cursorPos);
+  const timelineStart = useContainer(clip.timelineStart);
+  const timelineLength = useContainer(clip.timelineLength);
+  const cursorPulsesInClip = secsToPulsesExact(cursorPos, bpm) - timelineStart.pulses(project);
+  const cursorInClip = cursorPulsesInClip >= 0 && cursorPulsesInClip <= timelineLength.pulses(project);
 
   // duration (in pulses) of a draw gesture given the current pointer x, snapped to grid
   const drawDuration = useCallback(
@@ -72,7 +83,10 @@ export function MidiClipEditorPianoRoll({
           }
           const TOTAL_HEIGHT = noteHeight * TOTAL_VERTICAL_NOTES;
           const num = Math.floor((TOTAL_HEIGHT - e.offsetY) / noteHeight);
-          const startTick = Math.max(0, snapPulses(project, e, Math.floor(clip.detailedViewport.pxToPulses(e.offsetX))));
+          const startTick = Math.max(
+            0,
+            snapPulses(project, e, Math.floor(clip.detailedViewport.pxToPulses(e.offsetX))),
+          );
           // create the note live so it renders and can be sized by dragging; committed on up
           const note = midiClip.addNote(clip, startTick, num, DEFAULT_NOTE_DURATION, 100);
           drawGestureRef.current = { note, startTick };
@@ -190,28 +204,26 @@ export function MidiClipEditorPianoRoll({
   });
 
   useEffect(() => {
-    // update cursor to move on playback
     return player.addEventListener("frame", function updateMidiClipEditorCursor(playbackTimeSecs) {
-      const cursorElem = cursorDiv.current;
-      if (cursorElem == null) {
+      const playheadElem = playbackDiv.current;
+      if (playheadElem == null) {
         return;
       }
 
       const playbackTimePulses = secsToPulses(playbackTimeSecs, bpm);
       // before
       if (playbackTimePulses < clip.timelineStart.pulses(project)) {
-        cursorElem.style.display = "none";
+        playheadElem.style.display = "none";
         return;
       }
 
       // after
       if (playbackTimePulses > clip._timelineEndU) {
-        cursorElem.style.display = "none";
+        playheadElem.style.display = "none";
         return;
       }
 
-      cursorElem.style.left = String(clip.detailedViewport.secsToPixels(playbackTimeSecs, bpm)) + "px";
-      cursorElem.style.display = "block";
+      playheadElem.style.display = "block";
     });
   }, [bpm, clip, player, player.isAudioPlaying, project]);
 
@@ -221,14 +233,21 @@ export function MidiClipEditorPianoRoll({
     useCallback(
       (e: MouseEvent) => {
         // draw is handled by the pointer gesture (create + drag-to-size); here we only clear the
-        // note selection when pressing empty space with the move tool.
+        // note selection and move the cursor when pressing empty space with the move tool.
         if (project.panelTool.get() !== "move" || e.target !== editorContainerRef.current) {
           return;
         }
         project.secondarySelection.set(null);
         clip.selectedNotes.clear();
+
+        // `offsetX` is relative to the container, which scrolls with the notes, so it's already
+        // in the same clip-relative space they're laid out in. Snap like the draw tool does, then
+        // back to a timeline position, since the cursor is project-wide (paste reads it).
+        const tick = Math.max(0, snapPulses(project, e, Math.floor(clip.detailedViewport.pxToPulses(e.offsetX))));
+        project.cursorPos.set(pulsesToSec(clip.timelineStart.pulses(project) + tick, project.tempo.get()));
+        project.selectionWidth.set(null);
       },
-      [clip, project.panelTool, project.secondarySelection],
+      [clip, project],
     ),
   );
 
@@ -275,11 +294,15 @@ export function MidiClipEditorPianoRoll({
       <VerticalPianoRollKeys clip={clip} track={track} />
 
       <PianoRollView project={project} track={track} clip={clip} ref={editorContainerRef}>
-        {/* cursor */}
+        {/* playback head */}
         <div
-          className={cn("name-sec-cursor", "absolute h-full pointer-events-none top-0 bg-[red] w-px")}
-          ref={cursorDiv}
+          className={cn("absolute h-full pointer-events-none top-0 bg-[red] w-px")}
+          style={{ left: clip.detailedViewport.secsToPixels(playbackPos, bpm) }}
+          ref={playbackDiv}
         />
+
+        {/* cursor */}
+        {cursorInClip && <CursorLine left={clip.detailedViewport.pulsesToPx(cursorPulsesInClip)} />}
 
         {selectionBox && (
           <div

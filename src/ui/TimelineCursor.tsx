@@ -41,6 +41,38 @@ export function TimelineLine({
   );
 }
 
+/**
+ * The cursor's look: a line at `left`, growing a second edge when it spans a selection of
+ * `width`. Takes pixels rather than a viewport because the callers don't share one — the
+ * timeline measures in seconds (`StandardViewport`) and the MIDI editor in pulses
+ * (`MidiViewport`), so only the geometry is common.
+ */
+export function CursorLine({
+  left,
+  width = 0,
+  className,
+  style,
+  ...rest
+}: React.ComponentProps<"div"> & { left: number; width?: number }) {
+  return (
+    <div
+      className={cn(
+        "box-border",
+        "absolute top-0 h-full select-none pointer-events-none border-l border-l-cursor",
+        width !== 0 && "border-r border-r-cursor",
+        className,
+      )}
+      style={{
+        left,
+        // the +1 is to account for the fact the border is rendered inside the box
+        width: width + 1,
+        ...style,
+      }}
+      {...rest}
+    />
+  );
+}
+
 export function TimelineCursor({
   project,
   viewport,
@@ -62,21 +94,7 @@ export function TimelineCursor({
     width = Math.abs(width);
   }
 
-  return (
-    <div
-      className={cn(
-        "box-border",
-        "absolute top-0 h-full select-none pointer-events-none border-l border-l-cursor",
-        selectionWidth !== 0 && "border-r border-r-cursor",
-      )}
-      style={{
-        left,
-        // the +1 is to account for the fact the border is rendered inside the box
-        width: width + 1,
-        ...style,
-      }}
-    />
-  );
+  return <CursorLine left={left} width={width} style={style} />;
 }
 
 export function MarkerTriangle({

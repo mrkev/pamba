@@ -5,8 +5,9 @@ next
 - audio clip editor cursor fixes
 - add axes audio clip editor
 - add time axis to midi clip editor
-- improvemetns to midi editor
+- improvemetns to editing in midi clip editor
 - various other ui changes
+- add cursor to midi clip editor
 
 v3.1.0
 - record midi from an external device onto armed midi tracks

@@ -217,9 +217,12 @@ export function pushClip<Clip extends AbstractClip<U>, U extends Pulses | Second
   if (lastClip == null) {
     newClip.timelineStart.set(0);
   } else {
+    const unit = lastClip.timelineStart.unit;
+    const lastStart = lastClip.timelineStart.ensure(unit);
+    const lastEnd = lastClip.timelineLength.ensure(unit);
     // Start the new clip right at the end of the last clip, expressed in that
     // clip's native unit (seconds for audio, pulses for midi).
-    newClip.timelineStart.set(lastClip._timelineEndU, lastClip.timelineStart.unit);
+    newClip.timelineStart.set(lastStart + lastEnd, unit);
   }
 
   clips.push(newClip);
@@ -239,7 +242,6 @@ export function secs(num: number) {
 export function secsAsNum(num: Seconds) {
   return num as number;
 }
-// rn mostly used for invariants
 
 export interface AbstractClip<U extends Seconds | Pulses> extends Structured<any, any> {
   readonly timelineStart: TimelineT;

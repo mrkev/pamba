@@ -118,7 +118,6 @@ export class MidiClip extends Structured<AutoMidiClip, typeof MidiClip> implemen
     if (newEnd < this.timelineStart.ensurePulses()) {
       throw new Error("Can't set endOffsetSec to be before startOffsetSec");
     }
-    // this.lengthPulses = (newEnd - this._startOffsetPulses) as Pulses;
     this.timelineLength.set(newEnd - this.timelineStart.ensurePulses(), "pulses");
   }
 

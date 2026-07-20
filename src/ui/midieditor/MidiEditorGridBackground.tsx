@@ -24,17 +24,10 @@ export function MidiEditorGridBackground({ clip, project }: { clip: MidiClip; pr
         const noteKind = keyboardColorOfNote(noteStr, false);
         const color = noteKind === "black" ? "#555" : "#666";
 
-        // const noteStr = NOTES[n % NOTES.length];
-        // ctx.fillStyle = keyboardColorOfNote(noteStr);
-        // ctx.fillRect(0, n * noteHeight, noteWidth, noteHeight);
-        // https://stackoverflow.com/questions/13879322/drawing-a-1px-thick-line-in-canvas-creates-a-2px-thick-line
-
+        // One row per note, shaded like the key it lines up with in `VerticalPianoRollKeys`
+        // (same `n * noteHeight` layout, so the two stay aligned).
         ctx.fillStyle = color;
-        ctx.fillRect(0, n * noteHeight + 0.5, canvas.width, n * (noteHeight + 1) + 0.5);
-        // ctx.beginPath();
-        // ctx.moveTo(0, n * noteHeight + 0.5);
-        // ctx.lineTo(canvas.width, n * noteHeight + 0.5);
-        // ctx.stroke();
+        ctx.fillRect(0, n * noteHeight, canvas.width, noteHeight);
       }
 
       for (let i = 0; i <= timelineLen.pulses(project); i += PPQN / 4) {
