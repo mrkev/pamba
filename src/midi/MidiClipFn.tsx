@@ -342,27 +342,3 @@ export function sequencerClipOfMidiClip(clip: MidiClip): SequencerMidiClip {
     endOffsetPulses: clip._timelineEndU,
   };
 }
-export function setClipLength(project: AudioProject, track: MidiTrack, clip: MidiClip, t: number, u: TimeUnit) {
-  const i = track.clips.indexOf(clip);
-  const next = track.clips.at(i + 1);
-  if (i < 0) {
-    throw new Error("setClipLength: clip not in track");
-  }
-
-  const prevLength = clip.timelineLength.pulses(project);
-  const newLength = TimelineT.pulses(project, t, u);
-
-  // nothing special to do anything in these cases
-  if (newLength < prevLength || next === null) {
-    clip.timelineLength.set(t, u);
-    return;
-  }
-
-  // Delete all the area we're expanding into, and set the new length
-  const clipStart = clip.timelineStart.pulses(project);
-  const start = clipStart + prevLength; // pulses
-  const end = clipStart + newLength; // pulses
-  standardTrack.deleteTime(project, track, start, end);
-
-  clip.timelineLength.set(t, u);
-}

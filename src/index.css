@@ -205,3 +205,13 @@ kbd {
   background-color: rgba(0, 0, 0, 0.5);
   border-radius: 4px;
 }
+
+/* keeps the element scrollable, but the scrollbar stops taking up layout space.
+   for short elements a classic scrollbar can eat most of the content box. */
+.scrollbar-hidden {
+  scrollbar-width: none;
+}
+
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}

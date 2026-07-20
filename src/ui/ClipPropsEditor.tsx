@@ -1,9 +1,10 @@
 import { ReactElement } from "react";
 import { createUseStyles } from "react-jss";
-import { useContainer, usePrimitive } from "structured-state";
+import { history, useContainer, usePrimitive } from "structured-state";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioTrack } from "../lib/AudioTrack";
 import { AudioProject } from "../lib/project/AudioProject";
+import { standardTrack } from "../lib/StandardTrack";
 import { MidiClip } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
 import { TimelineTEditor } from "./TimelineTEditor";
@@ -15,6 +16,7 @@ export function ClipPropsEditor(props: { clip: MidiClip; project: AudioProject; 
 export function ClipPropsEditor({
   clip,
   project,
+  track,
 }: {
   clip: AudioClip | MidiClip;
   project: AudioProject;
@@ -39,8 +41,18 @@ export function ClipPropsEditor({
       <TimelineTEditor
         t={tLen}
         project={project}
-        readonly
         defaultUnit={clip instanceof MidiClip ? "bars" : "seconds"}
+        onChange={(t, unit) => {
+          history.record("resize clip", () => {
+            // The overloads above pair clip with track; re-narrowing keeps that pairing
+            // visible to setClipLength, which is generic over a single clip type.
+            if (clip instanceof MidiClip && track instanceof MidiTrack) {
+              standardTrack.setClipLength(project, track, clip, t, unit);
+            } else if (clip instanceof AudioClip && track instanceof AudioTrack) {
+              standardTrack.setClipLength(project, track, clip, t, unit);
+            }
+          });
+        }}
       />
       sid:
       <UtilityTextInput value={clip._id} />

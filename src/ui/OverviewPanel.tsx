@@ -46,7 +46,8 @@ export function OverviewPanel({
       className={cn(
         "bg-timeline-bg relative box-border",
         "flex flex-col grow justify-stretch overflow-scroll",
-        //
+        // the panel is only a few px per track, a classic scrollbar would hide a whole track
+        "scrollbar-hidden",
         className,
       )}
       style={{

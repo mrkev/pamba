@@ -173,27 +173,6 @@ export function ToolHeader({
 
           <div style={{ width: 12 }}></div>
 
-          <UtilityToggle
-            title="snap to grid"
-            toggled={snapToGrid}
-            onToggle={function (toggled: boolean): void {
-              project.snapToGrid.set(toggled);
-            }}
-          >
-            <i className="ri-focus-3-line"></i>
-          </UtilityToggle>
-
-          <UtilityToggle
-            disabled={isAudioPlaying || isRecording}
-            title={loopPlayback ? "deactivate loop brace" : "activate loop brace"}
-            toggled={loopPlayback}
-            onToggle={function (toggled: boolean): void {
-              project.loopOnPlayback.set(toggled);
-            }}
-          >
-            <i className="ri-loop-left-line"></i>
-          </UtilityToggle>
-
           <PlaybackControl project={project} renderer={renderer} className="self-center" recorder={recorder} />
           <ToolSelector project={project} />
           <div className="grow"></div>
@@ -211,24 +190,6 @@ export function ToolHeader({
           </button>
         </div>
         <div className={classNames(classes.row, "flex flex-row self-stretch items-center")}>
-          {/* <span
-            style={{
-              display: "flex",
-              flexDirection: "row",
-              alignItems: "center",
-              color: "var(--text-on-background)",
-              marginLeft: 0,
-            }}
-          >
-            <input
-              type="checkbox"
-              checked={snapToGrid}
-              onChange={() => {
-                project.snapToGrid.setDyn((prev) => !prev);
-              }}
-            ></input>
-            snap to grid
-          </span> */}
           {/* Space to center project title */}
           {/* <div className="shrink-0" style={{ minWidth: "185px" }}></div> */}
           {/* <TransportControl project={project} renderer={renderer} recorder={recorder} /> */}
@@ -247,6 +208,27 @@ export function ToolHeader({
           <div className="grow"></div>
 
           <ScaleFactorSlider project={project} />
+
+          <UtilityToggle
+            title="snap to grid"
+            toggled={snapToGrid}
+            onToggle={function (toggled: boolean): void {
+              project.snapToGrid.set(toggled);
+            }}
+          >
+            <i className="ri-lock-fill"></i>
+          </UtilityToggle>
+
+          <UtilityToggle
+            disabled={isAudioPlaying || isRecording}
+            title={loopPlayback ? "deactivate loop brace" : "activate loop brace"}
+            toggled={loopPlayback}
+            onToggle={function (toggled: boolean): void {
+              project.loopOnPlayback.set(toggled);
+            }}
+          >
+            <i className="ri-loop-left-line"></i>
+          </UtilityToggle>
 
           <UtilityButton
             title={`toggle primary axis`}

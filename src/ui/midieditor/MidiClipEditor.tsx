@@ -1,11 +1,11 @@
 import { useLinkAsState } from "marked-subbable";
 import { usePrimitive } from "structured-state";
 import { MIDI_CLIP_EDITOR_MAX_H_SCALE } from "../../constants";
-import { PPQN } from "../../wam/miditrackwam/MIDIConfiguration";
 import { AnalizedPlayer } from "../../lib/io/AnalizedPlayer";
 import { AudioProject } from "../../lib/project/AudioProject";
 import { MidiClip } from "../../midi/MidiClip";
 import { midiTrack, MidiTrack } from "../../midi/MidiTrack";
+import { PPQN } from "../../wam/miditrackwam/MIDIConfiguration";
 import { ClipPropsEditor, EditorSection } from "../ClipPropsEditor";
 import { UtilitySToggle, UtilityToggle } from "../UtilityToggle";
 import { MidiClipEditorPianoRoll } from "./MidiClipEditorPianoRoll";
@@ -109,14 +109,11 @@ export function MidiClipEditor({
           <UtilitySToggle title={"hear notes"} sbool={project.hearNotes}>
             <i className="ri-headphone-fill"></i>
           </UtilitySToggle>
-          <UtilityToggle
-            title={"snap to grid (hold ⌘ to invert)"}
-            toggled={snap}
-            onToggle={(toggled) => project.midi.snap.set(toggled)}
-          >
-            <i className="ri-magnet-line"></i>
+          <UtilityToggle title={"snap to grid"} toggled={snap} onToggle={(toggled) => project.midi.snap.set(toggled)}>
+            <i className="ri-lock-fill"></i>
           </UtilityToggle>
           <select
+            disabled={!snap}
             title={"grid resolution"}
             value={snapDivision}
             onChange={(e) => project.midi.snapDivision.set(parseInt(e.target.value, 10))}
