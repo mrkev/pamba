@@ -29,3 +29,23 @@ export function snapToTempo(project: AudioProject, s: number) {
   const snappedTime = stepNumber(s, oneBeatLen);
   return snappedTime;
 }
+
+/**
+ * Snaps an absolute pulse value to the piano-roll grid, honoring the MIDI editor's snap
+ * toggle (`project.midi.snap`) and the meta-key bypass convention (holding meta inverts it).
+ * Returns `pulses` unchanged when snapping is off.
+ */
+export function snapPulses(project: AudioProject, e: MouseEvent, pulses: number): number {
+  let snap = project.midi.snap.get();
+  if (e.metaKey) {
+    snap = !snap;
+  }
+  if (!snap) {
+    return pulses;
+  }
+  const division = project.midi.snapDivision.get();
+  if (division <= 0) {
+    return pulses;
+  }
+  return Math.round(pulses / division) * division;
+}

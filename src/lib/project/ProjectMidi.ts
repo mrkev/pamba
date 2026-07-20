@@ -1,7 +1,9 @@
 import { SPrimitive, history } from "structured-state";
-import { MidiClip, midiClip } from "../../midi/MidiClip";
+import { MidiClip } from "../../midi/MidiClip";
+import { midiClip } from "../../midi/MidiClipFn";
 import { MidiTrack, midiTrack } from "../../midi/MidiTrack";
 import { exhaustive } from "../../utils/exhaustive";
+import { PPQN } from "../../wam/miditrackwam/MIDIConfiguration";
 import { appEnvironment } from "../AppEnvironment";
 import { parseMIDIMessage } from "../MidiMessage";
 import { standardTrack } from "../StandardTrack";
@@ -24,6 +26,12 @@ export class ProjectMidi {
   // preview overlay. null when we're not recording. Reactive so the UI can subscribe.
   readonly recordingClip = SPrimitive.of<MidiClip | null>(null);
   private session: RecordingSession | null = null;
+
+  // Piano-roll grid snapping (note moves/resizes/draws). Independent of the timeline's
+  // `project.snapToGrid`; holding meta inverts it per-gesture. `snapDivision` is the grid
+  // step in pulses (default 1/16 note). Runtime-only (not serialized).
+  readonly snap = SPrimitive.of<boolean>(true);
+  readonly snapDivision = SPrimitive.of<number>(PPQN / 4);
 
   constructor(
     //

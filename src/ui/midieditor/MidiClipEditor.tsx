@@ -1,6 +1,7 @@
 import { useLinkAsState } from "marked-subbable";
 import { usePrimitive } from "structured-state";
 import { MIDI_CLIP_EDITOR_MAX_H_SCALE } from "../../constants";
+import { PPQN } from "../../wam/miditrackwam/MIDIConfiguration";
 import { AnalizedPlayer } from "../../lib/io/AnalizedPlayer";
 import { AudioProject } from "../../lib/project/AudioProject";
 import { MidiClip } from "../../midi/MidiClip";
@@ -25,6 +26,8 @@ export function MidiClipEditor({
   const [secondarySel] = useLinkAsState(project.secondarySelection);
   const [panelTool] = usePrimitive(project.panelTool);
   const [muted] = usePrimitive(clip.muted);
+  const [snap] = usePrimitive(project.midi.snap);
+  const [snapDivision] = usePrimitive(project.midi.snapDivision);
 
   // Keyboard shortcuts (nudge, select-all, delete) live in documentCommands as `when`-gated
   // commands scoped to the focused MIDI editor — no editor-local key handling here.
@@ -102,10 +105,29 @@ export function MidiClipEditor({
         <MidiClipEditorPianoRoll clip={clip} track={track} project={project} player={player} />
         <div />
 
-        <div className="flex flex-row">
+        <div className="flex flex-row" style={{ gap: 4, alignItems: "center" }}>
           <UtilitySToggle title={"hear notes"} sbool={project.hearNotes}>
             <i className="ri-headphone-fill"></i>
           </UtilitySToggle>
+          <UtilityToggle
+            title={"snap to grid (hold ⌘ to invert)"}
+            toggled={snap}
+            onToggle={(toggled) => project.midi.snap.set(toggled)}
+          >
+            <i className="ri-magnet-line"></i>
+          </UtilityToggle>
+          <select
+            title={"grid resolution"}
+            value={snapDivision}
+            onChange={(e) => project.midi.snapDivision.set(parseInt(e.target.value, 10))}
+          >
+            <option value={PPQN}>1/4</option>
+            <option value={PPQN / 2}>1/8</option>
+            <option value={PPQN / 4}>1/16</option>
+            <option value={PPQN / 8}>1/32</option>
+            <option value={PPQN / 3}>1/8T</option>
+            <option value={PPQN / 6}>1/16T</option>
+          </select>
           <div className="grow"></div>
           <input
             type="range"

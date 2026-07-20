@@ -2,7 +2,6 @@ import { ScaleLinear } from "d3-scale";
 import { InitFunctions, JSONOfAuto, number, ReplaceFunctions, SNumber, Structured } from "structured-state";
 import { SECS_IN_MIN } from "../../constants";
 import { exhaustive } from "../../utils/exhaustive";
-import { clamp } from "../../utils/math";
 import { nullthrows } from "../../utils/nullthrows";
 import { PPQN } from "../../wam/miditrackwam/MIDIConfiguration";
 import { appEnvironment } from "../AppEnvironment";

@@ -6,9 +6,9 @@ import { MidiClip } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
 import { pressedState } from "./pressedState";
 
-// import { dataWaveformToCanvas } from "../lib/waveformAsync";
 type ClipTrackCombo =
   | { kind: "audio"; clip: AudioClip; track: AudioTrack }
+  //
   | { kind: "midi"; clip: MidiClip; track: MidiTrack };
 
 export function clipMouseDownToMove(e: MouseEvent, cliptrack: ClipTrackCombo, project: AudioProject) {

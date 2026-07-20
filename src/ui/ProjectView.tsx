@@ -1,5 +1,5 @@
 import useResizeObserver from "@react-hook/resize-observer";
-import { useCallback, useLayoutEffect, useRef, useState } from "react";
+import { RefObject, useCallback, useLayoutEffect, useRef, useState } from "react";
 import { useContainer, usePrimitive } from "structured-state";
 import { MAX_TIMELINE_SCALE, MIN_TIMELINE_SCALE } from "../constants";
 import { useTimelineMouseEvents } from "../input/useProjectMouseEvents";
@@ -16,6 +16,30 @@ import { TimelineCursor, TimelineLine } from "./TimelineCursor";
 import { TrackS } from "./TrackS";
 import { useStandardViewport } from "./useStandardViewport";
 import { ViewportPlaybackCursor } from "./ViewportCursor";
+
+function useSetViewportDivWidth(projectDivRef: RefObject<HTMLDivElement | null>, project: AudioProject) {
+  useResizeObserver<HTMLDivElement>(
+    projectDivRef,
+    useCallback(
+      (entry) => {
+        project.viewport.projectDivWidth.set(entry.contentRect.width);
+      },
+      [project.viewport.projectDivWidth],
+    ),
+  );
+
+  // The ResizeObserver only fires when the div's size changes, but loading a new
+  // project swaps in a fresh viewport whose projectDivWidth starts at 0 without
+  // resizing the (reused) div. Seed the width from the DOM whenever the project
+  // changes so the Axis has a non-zero viewport to draw grid lines into.
+  useLayoutEffect(() => {
+    const div = projectDivRef.current;
+    if (div == null) {
+      return;
+    }
+    project.viewport.projectDivWidth.set(div.getBoundingClientRect().width);
+  }, [project.viewport.projectDivWidth, projectDivRef]);
+}
 
 export function ProjectView({ project, renderer }: { project: AudioProject; renderer: AudioRenderer }) {
   const projectDivRef = useRef<HTMLDivElement | null>(null);
@@ -35,15 +59,7 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
     projectDivRef.current?.scrollTo({ left: viewportStartPx, behavior: "instant" });
   }, [viewportStartPx]);
 
-  useResizeObserver<HTMLDivElement>(
-    projectDivRef,
-    useCallback(
-      (entry) => {
-        project.viewport.projectDivWidth.set(entry.contentRect.width);
-      },
-      [project.viewport.projectDivWidth],
-    ),
-  );
+  useSetViewportDivWidth(projectDivRef, project);
 
   useStandardViewport(projectDivRef, project.viewport, MIN_TIMELINE_SCALE, MAX_TIMELINE_SCALE);
 
@@ -142,11 +158,11 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
       {loopPlayback && <TimelineLine project={project} pos={project.loopStart} color={"rgb(255,165,0)"} />}
       {loopPlayback && <TimelineLine project={project} pos={project.loopEnd} color={"rgb(255,165,0)"} />}
 
-      {/* Selection Cursor  */}
-      <TimelineCursor project={project} viewport={project.viewport} />
-
       {/* Playback Cursor */}
       <ViewportPlaybackCursor viewport={project.viewport} player={player} />
+
+      {/* Selection Cursor  */}
+      <TimelineCursor project={project} viewport={project.viewport} />
     </div>
   );
 }

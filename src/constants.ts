@@ -36,6 +36,7 @@ export const DEFAULT_TEMPO = 75;
 
 // note range: 0 - 127
 export const TOTAL_VERTICAL_NOTES = 128; // number of midi notes in piano roll
+export const MIDDLE_C_NOTE = 60; // MIDI note number for middle C (C4)
 
 export const LIBRARY_SEARCH_INPUT_ID = "library-search";
 

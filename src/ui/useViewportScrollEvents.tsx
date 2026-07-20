@@ -4,7 +4,17 @@ import { useEventListener } from "./useEventListener";
 
 export function useViewportScrollEvents(
   divRef: React.RefObject<HTMLElement | null>,
-  { scale, panX }: { scale: (sDelta: number, mouseX: number) => void; panX: (left: number, absolute: boolean) => void },
+  {
+    scale,
+    panX,
+    panY,
+  }: {
+    scale: (sDelta: number, mouseX: number) => void;
+    panX: (left: number, absolute: boolean) => void;
+    // when provided, the vertical axis is controlled too (native scroll is prevented);
+    // consumers that omit it keep the browser's native vertical scroll.
+    panY?: (top: number, absolute: boolean) => void;
+  },
 ) {
   const context = useRef({ wheelCalled: false });
 
@@ -37,9 +47,14 @@ export function useViewportScrollEvents(
         // pan
         else {
           panX(e.deltaX, false);
+          // only take over the vertical axis (and stop native scroll) if the consumer controls it
+          if (panY != null) {
+            panY(e.deltaY, false);
+            e.preventDefault();
+          }
         }
       },
-      [divRef, scale, panX],
+      [divRef, scale, panX, panY],
     ),
     { capture: false },
   );
@@ -64,11 +79,11 @@ export function useViewportScrollEvents(
         }
 
         const projectDiv = nullthrows(divRef.current);
-        const left = projectDiv.scrollLeft;
-        panX(left, true);
+        panX(projectDiv.scrollLeft, true);
+        panY?.(projectDiv.scrollTop, true);
         // e?.preventDefault();
       },
-      [divRef, panX],
+      [divRef, panX, panY],
     ),
   );
 }

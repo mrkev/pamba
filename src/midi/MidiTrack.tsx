@@ -22,7 +22,8 @@ import { StandardTrack } from "../lib/StandardTrack";
 import { nullthrows } from "../utils/nullthrows";
 import { MIDIConfiguration } from "../wam/miditrackwam/MIDIConfiguration";
 import { PianoRollModule, PianoRollNode } from "../wam/miditrackwam/PianoRollModule";
-import { MidiClip, midiClip, sequencerClipOfMidiClip } from "./MidiClip";
+import { MidiClip } from "./MidiClip";
+import { midiClip, sequencerClipOfMidiClip } from "./MidiClipFn";
 import { MidiInstrument } from "./MidiInstrument";
 import type { PianoRollProcessorMessage, SequencerMidiClip } from "./SharedMidiTypes";
 

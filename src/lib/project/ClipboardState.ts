@@ -3,6 +3,7 @@ import { SAudioClip, SMidiClip, construct, serializable } from "../../data/seria
 import { FaustAudioEffect } from "../../dsp/FaustAudioEffect";
 import { MidiClip } from "../../midi/MidiClip";
 import { MidiTrack } from "../../midi/MidiTrack";
+import { NoteT } from "../../midi/SharedMidiTypes";
 import { exhaustive } from "../../utils/exhaustive";
 import { PambaWamNode } from "../../wam/PambaWamNode";
 import { AudioClip } from "../AudioClip";
@@ -26,6 +27,12 @@ export type ClipboardState =
   | {
       kind: "effects";
       effects: ReadonlyArray<{ effect: FaustAudioEffect | PambaWamNode }>;
+    }
+  | {
+      // MIDI notes copied from a clip editor, as immutable `[tick, number, duration, velocity]`
+      // snapshots. Pasted into the active MIDI editor at the playhead (see midiClip.pasteNotes).
+      kind: "notes";
+      notes: ReadonlyArray<NoteT>;
     };
 
 export const clipboard = MarkedValue.create<ClipboardState | null>(null);
@@ -94,6 +101,10 @@ export async function doPaste(project: AudioProject) {
 
       break;
     }
+    case "notes":
+      // Notes paste into the focused MIDI editor; that path is handled in the paste command
+      // (which has the active clip/track), so there's nothing to do for a generic paste here.
+      break;
     case "effects":
     case "tracks":
       break;

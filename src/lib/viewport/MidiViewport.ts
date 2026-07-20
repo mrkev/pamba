@@ -1,5 +1,10 @@
 import { boolean, InitFunctions, JSONOfAuto, number, ReplaceFunctions, SNumber, Structured } from "structured-state";
-import { MIDI_CLIP_EDITOR_MAX_H_SCALE, MIDI_CLIP_EDITOR_MIN_H_SCALE } from "../../constants";
+import {
+  MIDDLE_C_NOTE,
+  MIDI_CLIP_EDITOR_MAX_H_SCALE,
+  MIDI_CLIP_EDITOR_MIN_H_SCALE,
+  TOTAL_VERTICAL_NOTES,
+} from "../../constants";
 import { clamp } from "../../utils/math";
 import { PPQN } from "../../wam/miditrackwam/MIDIConfiguration";
 
@@ -29,6 +34,20 @@ export class MidiViewport extends Structured<AutoMidiViewport, typeof MidiViewpo
     readonly scrollTopPx: SNumber,
   ) {
     super();
+  }
+
+  /**
+   * Default vertical scroll (px from the top of the note range) that puts middle C near the
+   * vertical center of the editor. The real editor height isn't known when a clip is created
+   * (the bottom panel is resizable) and the viewport is serialized, so we center for a typical
+   * height; the browser clamps if the panel is shorter/taller, and any scrolling the user does
+   * from here persists. Notes are laid out bottom-up, so middle C's distance from the top is
+   * `(TOTAL_VERTICAL_NOTES - MIDDLE_C_NOTE - 0.5) * pxNoteHeight`.
+   */
+  static defaultScrollTop(pxNoteHeight: number): number {
+    const ASSUMED_EDITOR_HEIGHT_PX = 240;
+    const middleCFromTop = (TOTAL_VERTICAL_NOTES - MIDDLE_C_NOTE - 0.5) * pxNoteHeight;
+    return Math.max(0, middleCFromTop - ASSUMED_EDITOR_HEIGHT_PX / 2);
   }
 
   static of(pxPerPulse: number, pxNoteHeight: number, scrollLeftPx: number, scrollTopPx: number) {

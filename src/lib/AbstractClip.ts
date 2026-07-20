@@ -45,10 +45,8 @@ export function addClip<Clip extends AbstractClip<U>, U extends Pulses | Seconds
   // Essentially, we want to insert in order, sorted
   // by the _timelineStartU of each clip.
   let i = 0;
-  let _prev: Clip | undefined;
   let next: Clip | undefined;
   for (; i < clips.length; i++) {
-    _prev = i == 0 ? undefined : clips.at(i - 1);
     next = clips.at(i);
 
     // We want to iterate until i
@@ -70,32 +68,7 @@ export function addClip<Clip extends AbstractClip<U>, U extends Pulses | Seconds
 
   clips.splice(i, 0, newClip);
 
-  // if (prev && prev.endOffsetSec > newClip.startOffsetSec) {
-  //   // TODO: delete time range within current clip and insert it.
-
-  //   prev.endOffsetSec = newClip.startOffsetSec;
-
-  //   console.log("TODO: CLIP PREV");
-  //   // prev.endPosSec = newClip.startOffsetSec;
-  // }
-  // if (next && next.startOffsetSec < newClip.endOffsetSec) {
-  //   next.startOffsetSec = newClip.endOffsetSec;
-  // }
-
   assertClipInvariants(clips);
-}
-
-function simplyAddSorted<Clip extends AbstractClip<U>, U extends Pulses | Seconds>(
-  newClips: Clip[],
-  clips: SArray<Clip>,
-): void {
-  if (newClips.length === 0) {
-    return;
-  }
-
-  // TODO: add pushAll to substate to avoid possible stack overflows
-  clips.push(...newClips);
-  clips.sort((a, b) => a._timelineStartU - b._timelineStartU);
 }
 
 /**
@@ -115,10 +88,10 @@ export function deleteTime<Clip extends AbstractClip<U>, U extends Pulses | Seco
     throw new Error("Invariant Violation: startSec > endSec in deleteTime");
   }
 
-  const toRemove = [];
-  const toResort = [];
+  const toRemove: Clip[] = [];
+  const toResort: Clip[] = [];
 
-  const notifyClips = [];
+  const notifyClips: Clip[] = [];
   const res = clips;
   for (let i = 0; i < clips.length; i++) {
     const current = nullthrows(clips.at(i));
@@ -169,16 +142,17 @@ export function deleteTime<Clip extends AbstractClip<U>, U extends Pulses | Seco
     notifyClips.push(current);
   }
 
-  // console.log("clips", clips, toRemove, toResort);
+  // Apply removals and re-inserts in a single pass: filter out the removed
+  // clips, add back the ones whose position changed, and re-sort — one state
+  // mutation and one invariant check instead of one per removed clip.
+  const removeSet = new Set(toRemove);
+  clips._replace((arr) => {
+    const kept = arr.filter((c) => !removeSet.has(c));
+    kept.push(...toResort);
+    kept.sort((a, b) => a._timelineStartU - b._timelineStartU);
+    return kept;
+  });
 
-  for (const clip of toRemove) {
-    // todo: optimize
-    removeClip(clip, clips);
-  }
-
-  simplyAddSorted(toResort, clips);
-
-  // console.log(clips);
   assertClipInvariants(res);
   return notifyClips;
 }

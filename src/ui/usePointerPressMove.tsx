@@ -8,7 +8,7 @@ export type PointerPressMeta = {
 export function usePointerPressMove(
   elemRef: React.RefObject<HTMLElement | null | undefined>,
   callbacks: {
-    down?: (ev: PointerEvent) => void;
+    down?: (ev: PointerEvent) => void | "abort";
     move?: (ev: PointerEvent, metadata: PointerPressMeta) => void;
     up?: (ev: PointerEvent, metadata: PointerPressMeta) => void;
   },
@@ -20,8 +20,11 @@ export function usePointerPressMove(
     }
 
     const onPointerDown = function (e: PointerEvent) {
+      // `down` may veto the gesture (e.g. a tool that shouldn't drag-select)
+      if (callbacks.down?.(e) === "abort") {
+        return;
+      }
       elem.setPointerCapture(e.pointerId);
-      callbacks.down?.(e);
 
       const { clientX: downX, clientY: downY } = e;
       const pointerMoveMeta = { downX, downY };

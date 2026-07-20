@@ -130,6 +130,7 @@ export function StandardClip({
           paddingLeft: "2px",
           fontSize: 11,
           paddingBottom: "2px",
+          minHeight: "1.8ch",
         }}
       >
         {name}
@@ -154,10 +155,12 @@ export function StandardClip({
 
 const useStyles = createUseStyles({
   resizerEnd: {
+    background: "black",
     width: 10,
     right: -5,
   },
   resizerStart: {
+    background: "black",
     width: 10,
     left: -5,
   },

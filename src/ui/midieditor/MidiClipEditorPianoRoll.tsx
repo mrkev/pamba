@@ -12,10 +12,12 @@ import { AnalizedPlayer } from "../../lib/io/AnalizedPlayer";
 import { AudioProject, SecondaryTool } from "../../lib/project/AudioProject";
 import { secsToPulses } from "../../lib/project/TimelineT";
 import { midiViewport } from "../../lib/viewport/MidiViewport";
-import { MidiClip, midiClip } from "../../midi/MidiClip";
+import { snapPulses } from "../../lib/viewport/snap";
+import { MidiClip } from "../../midi/MidiClip";
+import { midiClip } from "../../midi/MidiClipFn";
+import { MidiNote } from "../../midi/MidiNote";
 import { midiTrack, MidiTrack } from "../../midi/MidiTrack";
 import { cn } from "../../utils/cn";
-import { exhaustive } from "../../utils/exhaustive";
 import { clamp } from "../../utils/math";
 import { nullthrows } from "../../utils/nullthrows";
 import { PPQN } from "../../wam/miditrackwam/MIDIConfiguration";
@@ -41,26 +43,82 @@ export function MidiClipEditorPianoRoll({
 }) {
   const pianoRollRef = useRef<HTMLDivElement>(null);
   const editorContainerRef = useRef<HTMLDivElement>(null);
+  // in-progress draw-tool note being sized by dragging, if any
+  const drawGestureRef = useRef<{ note: MidiNote; startTick: number } | null>(null);
   const [bpm] = usePrimitive(project.tempo);
   const [selectionBox, setSelectionBox] = useState<null | [number, number, number, number]>(null);
   const cursorDiv = useRef<HTMLDivElement>(null);
   const [noteHeight] = usePrimitive(clip.detailedViewport.pxNoteHeight);
   const [scrollLeftPx] = usePrimitive(clip.detailedViewport.scrollLeftPx);
+  const [scrollTopPx] = usePrimitive(clip.detailedViewport.scrollTopPx);
+
+  // duration (in pulses) of a draw gesture given the current pointer x, snapped to grid
+  const drawDuration = useCallback(
+    (e: PointerEvent, startTick: number, downX: number) => {
+      const pointerTick = startTick + Math.floor(clip.detailedViewport.pxToPulses(e.clientX - downX));
+      const endTick = snapPulses(project, e, pointerTick);
+      return Math.max(DEFAULT_NOTE_DURATION, endTick - startTick);
+    },
+    [clip.detailedViewport, project],
+  );
 
   usePointerPressMove(editorContainerRef, {
-    down: useCallback(() => {
-      // todo: cancel if drawing tool
-    }, []),
-    move: useCallback((ev: PointerEvent, meta: PointerPressMeta) => {
-      const containerRect = editorContainerRef.current?.getBoundingClientRect();
-      if (containerRect == null) {
-        return;
-      }
-      const box = divSelectionBox(meta, ev, containerRect);
-      setSelectionBox(box);
-    }, []),
+    down: useCallback(
+      (e: PointerEvent): void | "abort" => {
+        if (project.panelTool.get() === "draw") {
+          // clicking an existing note deletes it (handled by the note); only draw on empty space
+          if (e.target !== editorContainerRef.current) {
+            return "abort";
+          }
+          const TOTAL_HEIGHT = noteHeight * TOTAL_VERTICAL_NOTES;
+          const num = Math.floor((TOTAL_HEIGHT - e.offsetY) / noteHeight);
+          const startTick = Math.max(0, snapPulses(project, e, Math.floor(clip.detailedViewport.pxToPulses(e.offsetX))));
+          // create the note live so it renders and can be sized by dragging; committed on up
+          const note = midiClip.addNote(clip, startTick, num, DEFAULT_NOTE_DURATION, 100);
+          drawGestureRef.current = { note, startTick };
+          if (project.hearNotes.get()) {
+            midiTrack.noteOn(track, num);
+          }
+          return;
+        }
+        // move tool: selection box handled in move/up
+      },
+      [clip, noteHeight, project, track],
+    ),
+    move: useCallback(
+      (ev: PointerEvent, meta: PointerPressMeta) => {
+        const draw = drawGestureRef.current;
+        if (draw != null) {
+          draw.note.duration = drawDuration(ev, draw.startTick, meta.downX);
+          return;
+        }
+        const containerRect = editorContainerRef.current?.getBoundingClientRect();
+        if (containerRect == null) {
+          return;
+        }
+        setSelectionBox(divSelectionBox(meta, ev, containerRect));
+      },
+      [drawDuration],
+    ),
     up: useCallback(
       (ev: PointerEvent, meta: PointerPressMeta) => {
+        const draw = drawGestureRef.current;
+        if (draw != null) {
+          drawGestureRef.current = null;
+          const duration = drawDuration(ev, draw.startTick, meta.downX);
+          const num = draw.note.number;
+          // commit as one undo entry: drop the live note, then record its creation at the final size
+          midiClip.removeNote(clip, draw.note);
+          history.record("draw note", () => {
+            midiClip.addNotes(clip, [[draw.startTick, num, duration, 100]]);
+            midiTrack.flushAllClipStateToProcessor(track);
+          });
+          if (project.hearNotes.get()) {
+            midiTrack.noteOff(track, num);
+          }
+          return;
+        }
+
         const containerRect = editorContainerRef.current?.getBoundingClientRect();
         if (containerRect == null) {
           return;
@@ -86,28 +144,15 @@ export function MidiClipEditorPianoRoll({
 
         setSelectionBox(null);
       },
-      [clip, track, project.secondarySelection],
+      [clip, track, project, drawDuration],
     ),
   });
 
-  // on first render, set the scroll
-  useEffect(() => {
-    const pianoRoll = nullthrows(pianoRollRef.current);
-    pianoRoll.scrollTo({
-      left: clip.detailedViewport.scrollLeftPx.get(),
-      top: clip.detailedViewport.scrollTopPx.get(),
-    });
-  }, [clip.detailedViewport.scrollLeftPx, clip.detailedViewport.scrollTopPx]);
-
+  // keep the DOM scroll position in sync with the controlled viewport (both axes)
   useLayoutEffect(() => {
     const pianoRoll = nullthrows(pianoRollRef.current);
-
-    if (!pianoRoll) {
-      return;
-    }
-
-    pianoRoll.scrollTo({ left: scrollLeftPx, behavior: "instant" });
-  }, [scrollLeftPx]);
+    pianoRoll.scrollTo({ left: scrollLeftPx, top: scrollTopPx, behavior: "instant" });
+  }, [scrollLeftPx, scrollTopPx]);
 
   useViewportScrollEvents(pianoRollRef, {
     scale: useCallback(
@@ -131,6 +176,16 @@ export function MidiClipEditorPianoRoll({
         });
       },
       [clip.detailedViewport.scrollLeftPx],
+    ),
+
+    panY: useCallback(
+      (deltaY, absolute) => {
+        const top = absolute ? deltaY : clamp(0, clip.detailedViewport.scrollTopPx.get() + deltaY, Infinity);
+        flushSync(() => {
+          clip.detailedViewport.scrollTopPx.set(top);
+        });
+      },
+      [clip.detailedViewport.scrollTopPx],
     ),
   });
 
@@ -165,48 +220,40 @@ export function MidiClipEditorPianoRoll({
     editorContainerRef,
     useCallback(
       (e: MouseEvent) => {
-        const clickedEditor = e.target === editorContainerRef.current;
-        if (!clickedEditor) {
+        // draw is handled by the pointer gesture (create + drag-to-size); here we only clear the
+        // note selection when pressing empty space with the move tool.
+        if (project.panelTool.get() !== "move" || e.target !== editorContainerRef.current) {
+          return;
+        }
+        project.secondarySelection.set(null);
+        clip.selectedNotes.clear();
+      },
+      [clip, project.panelTool, project.secondarySelection],
+    ),
+  );
+
+  useEventListener(
+    "dblclick",
+    editorContainerRef,
+    useCallback(
+      (e: MouseEvent) => {
+        // move tool: double-click empty space to create a note (deleting an existing note is
+        // handled by the note itself). the draw tool already creates/deletes on single click.
+        if (project.panelTool.get() !== "move" || e.target !== editorContainerRef.current) {
           return;
         }
         const TOTAL_HEIGHT = noteHeight * TOTAL_VERTICAL_NOTES;
         const noteNum = Math.floor((TOTAL_HEIGHT - e.offsetY) / noteHeight);
-
-        // default notes  are PPQN / 4 wide
         const DEFAULT_NOTE_WIDTH = clip.detailedViewport.pulsesToPx(PPQN / 4);
-
         const noteX = Math.floor(e.offsetX / DEFAULT_NOTE_WIDTH);
         const tick = noteX * DEFAULT_NOTE_DURATION;
 
-        const prevNote = midiClip.findNote(clip, tick, noteNum);
-        const panelTool = project.panelTool.get();
-
-        switch (panelTool) {
-          case "move": {
-            if (prevNote) {
-              // selection handled inside the note's pointer handlers
-            } else {
-              project.secondarySelection.set(null);
-              clip.selectedNotes.clear();
-            }
-            break;
-          }
-          case "draw": {
-            void history.record("draw note", () => {
-              if (prevNote != null) {
-                // removal handled in note
-              } else {
-                midiClip.addNote(clip, tick, noteNum, DEFAULT_NOTE_DURATION, 100);
-                midiTrack.flushAllClipStateToProcessor(track);
-              }
-            });
-            break;
-          }
-          default:
-            exhaustive(panelTool);
-        }
+        history.record("draw note", () => {
+          midiClip.addNotes(clip, [[tick, noteNum, DEFAULT_NOTE_DURATION, 100]]);
+          midiTrack.flushAllClipStateToProcessor(track);
+        });
       },
-      [clip, noteHeight, project.panelTool, project.secondarySelection, track],
+      [clip, noteHeight, project.panelTool, track],
     ),
   );
 

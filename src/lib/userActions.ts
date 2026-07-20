@@ -1,5 +1,6 @@
 import { history } from "structured-state";
-import { midiClip, MidiClip } from "../midi/MidiClip";
+import { MidiClip } from "../midi/MidiClip";
+import { midiClip } from "../midi/MidiClipFn";
 import { MidiTrack } from "../midi/MidiTrack";
 import { doConfirm } from "../ui/ConfirmDialog";
 import { exhaustive } from "../utils/exhaustive";

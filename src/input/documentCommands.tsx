@@ -4,11 +4,13 @@ import { DEFAULT_NOTE_DURATION, LIBRARY_SEARCH_INPUT_ID } from "../constants";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioRenderer } from "../lib/io/AudioRenderer";
 import type { AudioProject } from "../lib/project/AudioProject";
+import { clipboard } from "../lib/project/ClipboardState";
 import { selection } from "../lib/project/selection";
 import { clipsLimits } from "../lib/project/timeline";
 import { projectPersistance } from "../lib/ProjectPersistance";
 import { userActions } from "../lib/userActions";
-import { midiClip, MidiClip } from "../midi/MidiClip";
+import { MidiClip } from "../midi/MidiClip";
+import { midiClip } from "../midi/MidiClipFn";
 import { MidiTrack } from "../midi/MidiTrack";
 import { closeProject } from "../ui/header/closeProject";
 import { pressedState } from "../ui/pressedState";
@@ -194,9 +196,39 @@ export const documentCommands = CommandBlock.create(["Project", "Edit", "Tools",
       .helptext("Nudge notes left")
       .section("Edit"),
 
-    duplicateSelection: command(["KeyD", "meta"], (e, project) => {
-      userActions.duplicateSelection(project);
+    transposeOctaveUp: command(["ArrowUp", "shift"], (e, project) => {
+      const ctx = activeNoteSelection(project);
+      if (ctx == null) {
+        return;
+      }
       e?.preventDefault();
+      midiClip.moveSelectedNotes(ctx.track, ctx.clip, 0, 12);
+    })
+      .when((project) => activeNoteSelection(project) != null)
+      .helptext("Transpose up an octave")
+      .section("Edit"),
+
+    transposeOctaveDown: command(["ArrowDown", "shift"], (e, project) => {
+      const ctx = activeNoteSelection(project);
+      if (ctx == null) {
+        return;
+      }
+      e?.preventDefault();
+      midiClip.moveSelectedNotes(ctx.track, ctx.clip, 0, -12);
+    })
+      .when((project) => activeNoteSelection(project) != null)
+      .helptext("Transpose down an octave")
+      .section("Edit"),
+
+    duplicateSelection: command(["KeyD", "meta"], (e, project) => {
+      e?.preventDefault();
+      // in the MIDI editor, duplicate the selected notes; otherwise fall back to clip/track duplicate
+      const noteSel = activeNoteSelection(project);
+      if (noteSel != null && noteSel.clip.selectedNotes.size > 0) {
+        midiClip.duplicateNotes(noteSel.track, noteSel.clip);
+        return;
+      }
+      userActions.duplicateSelection(project);
     }).section("Edit"),
 
     jumpToTimelineStart: command(["ArrowLeft", "alt"], (e, project) => {
@@ -293,16 +325,29 @@ export const documentCommands = CommandBlock.create(["Project", "Edit", "Tools",
     // Clipboard
     copySelection: command(["KeyC", "meta"], async (e, project) => {
       e?.preventDefault();
+      // in the MIDI editor, copy the selected notes; otherwise fall back to clip/track copy
+      const noteSel = activeNoteSelection(project);
+      if (noteSel != null && noteSel.clip.selectedNotes.size > 0) {
+        clipboard.set({ kind: "notes", notes: [...noteSel.clip.selectedNotes].map((n) => n.t) });
+        return;
+      }
       await selection.copySelection(project);
     })
-      .helptext("Copy", "Currently works only with clips")
+      .helptext("Copy", "Clips, or selected MIDI notes")
       .section("Edit"),
 
     pasteClipboard: command(["KeyV", "meta"], async (e, project) => {
       e?.preventDefault();
+      // paste copied notes into the focused MIDI editor at the playhead; otherwise clip/track paste
+      const copied = clipboard.get();
+      const ctx = activeMidiEditor(project);
+      if (copied?.kind === "notes" && ctx != null) {
+        midiClip.pasteNotes(project, ctx.track, ctx.clip, copied.notes);
+        return;
+      }
       await userActions.doPaste(project);
     })
-      .helptext("Paste", "Currently works only with clips")
+      .helptext("Paste", "Clips, or MIDI notes at the playhead")
       .section("Edit"),
 
     // rename: command(["KeyR", "meta"], async (e, project) => {
