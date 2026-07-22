@@ -155,12 +155,12 @@ export function StandardClip({
 
 const useStyles = createUseStyles({
   resizerEnd: {
-    background: "black",
+    // background: "black",
     width: 10,
     right: -5,
   },
   resizerStart: {
-    background: "black",
+    // background: "black",
     width: 10,
     left: -5,
   },

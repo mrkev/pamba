@@ -1,5 +1,5 @@
 export const changelog = `
-next
+v3.2.0
 - midi track recording
 - audio clip editor zoom improvements
 - audio clip editor cursor fixes
