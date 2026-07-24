@@ -31,6 +31,10 @@ import { MidiEditorGridBackground } from "./MidiEditorGridBackground";
 import { MidiEditorTimeAxis } from "./MidiEditorTimeAxis";
 import { VerticalPianoRollKeys } from "./VerticalPianoRollKeys";
 
+// Extra px rendered beyond the visible window on each side, so notes don't pop in at the edges
+// while panning/scrolling.
+const VIRTUALIZE_OVERSCAN_PX = 128;
+
 export function MidiClipEditorPianoRoll({
   clip,
   track,
@@ -53,6 +57,10 @@ export function MidiClipEditorPianoRoll({
   const [scrollLeftPx] = usePrimitive(clip.detailedViewport.scrollLeftPx);
   const [scrollTopPx] = usePrimitive(clip.detailedViewport.scrollTopPx);
   const [playbackPos] = usePrimitive(player.playbackPos);
+  // Visible size of the note area, used to virtualize offscreen notes. Width is the note
+  // column's width; height is the scroll viewport minus the sticky time-axis header (which
+  // paints over the top of the notes). Both update when the resizable bottom panel changes.
+  const [viewport, setViewport] = useState({ width: 0, height: 0 });
 
   // The project cursor is a timeline position, but the piano roll lays notes out clip-relative,
   // so express it in pulses past the clip's start. It's hidden when it falls outside the clip
@@ -167,6 +175,29 @@ export function MidiClipEditorPianoRoll({
     const pianoRoll = nullthrows(pianoRollRef.current);
     pianoRoll.scrollTo({ left: scrollLeftPx, top: scrollTopPx, behavior: "instant" });
   }, [scrollLeftPx, scrollTopPx]);
+
+  // Track the visible note-area size so PianoRollView can cull offscreen notes.
+  useLayoutEffect(() => {
+    const outer = pianoRollRef.current;
+    const editor = editorContainerRef.current;
+    if (outer == null || editor == null) {
+      return;
+    }
+    const measure = () => {
+      const outerRect = outer.getBoundingClientRect();
+      const editorRect = editor.getBoundingClientRect();
+      // Content-y of the note area's top (constant across scroll) == the time-axis header height.
+      const axisHeight = editorRect.top - outerRect.top + outer.scrollTop;
+      const width = editor.clientWidth;
+      const height = outer.clientHeight - axisHeight;
+      setViewport((prev) => (prev.width === width && prev.height === height ? prev : { width, height }));
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(outer);
+    observer.observe(editor);
+    return () => observer.disconnect();
+  }, []);
 
   useViewportScrollEvents(pianoRollRef, {
     scale: useCallback(
@@ -293,7 +324,14 @@ export function MidiClipEditorPianoRoll({
 
       <VerticalPianoRollKeys clip={clip} track={track} />
 
-      <PianoRollView project={project} track={track} clip={clip} ref={editorContainerRef}>
+      <PianoRollView
+        project={project}
+        track={track}
+        clip={clip}
+        viewportWidth={viewport.width}
+        viewportHeight={viewport.height}
+        ref={editorContainerRef}
+      >
         {/* playback head */}
         <div
           className={cn("absolute h-full pointer-events-none top-0 bg-[red] w-px")}
@@ -327,16 +365,53 @@ function PianoRollView({
   children,
   ref,
   className,
+  viewportWidth,
+  viewportHeight,
   ...rest
 }: React.ComponentProps<"div"> & {
   project: AudioProject;
   track: MidiTrack;
   clip: MidiClip;
   children?: ReactNode;
+  viewportWidth: number;
+  viewportHeight: number;
 }) {
   const notes = useContainer(clip.buffer.notes);
   const clipSel = useContainer(clip.selectedNotes);
   const [panelTool] = usePrimitive<SecondaryTool>(project.panelTool);
+  // Read the viewport primitives here (not just in the parent) so this component re-renders,
+  // and thus re-culls, on pan/zoom.
+  const [pxPerPulse] = usePrimitive(clip.detailedViewport.pxPerPulse);
+  const [noteHeight] = usePrimitive(clip.detailedViewport.pxNoteHeight);
+  const [scrollLeftPx] = usePrimitive(clip.detailedViewport.scrollLeftPx);
+  const [scrollTopPx] = usePrimitive(clip.detailedViewport.scrollTopPx);
+
+  // Cull notes outside the visible window (+ overscan) so large clips don't mount thousands of
+  // offscreen <NoteR>s. Notes are laid out bottom-up (`bottom: num * noteHeight`), so note `num`
+  // spans editor-local y `[totalHeight - (num + 1) * noteHeight, totalHeight - num * noteHeight]`,
+  // while the visible window is `[scrollTopPx, scrollTopPx + viewportHeight]` (and likewise in x).
+  // Selected notes are always rendered: an in-progress drag captures the pointer on the note's
+  // element, so unmounting it mid-gesture would break the edit — and a moved note is always selected.
+  const measured = viewportWidth > 0 && viewportHeight > 0;
+  const totalHeight = TOTAL_VERTICAL_NOTES * noteHeight;
+  const visLeft = scrollLeftPx - VIRTUALIZE_OVERSCAN_PX;
+  const visRight = scrollLeftPx + viewportWidth + VIRTUALIZE_OVERSCAN_PX;
+  const visTop = scrollTopPx - VIRTUALIZE_OVERSCAN_PX;
+  const visBottom = scrollTopPx + viewportHeight + VIRTUALIZE_OVERSCAN_PX;
+  const isNoteVisible = (note: MidiNote): boolean => {
+    if (!measured || clipSel.has(note)) {
+      return true;
+    }
+    const [tick, num, duration] = note.t;
+    const left = tick * pxPerPulse;
+    const right = left + duration * pxPerPulse;
+    if (right < visLeft || left > visRight) {
+      return false;
+    }
+    const noteTop = totalHeight - (num + 1) * noteHeight;
+    const noteBottom = totalHeight - num * noteHeight;
+    return noteBottom >= visTop && noteTop <= visBottom;
+  };
 
   return (
     <div
@@ -353,8 +428,8 @@ function PianoRollView({
       {/* background with lines */}
       <MidiEditorGridBackground clip={clip} project={project} />
 
-      {/* notes */}
-      {notes.map((note) => {
+      {/* notes (only those intersecting the viewport; see isNoteVisible) */}
+      {notes.filter(isNoteVisible).map((note) => {
         return (
           <NoteR
             resizable={panelTool === "move"}
