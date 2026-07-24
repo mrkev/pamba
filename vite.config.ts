@@ -16,6 +16,15 @@ export default defineConfig({
     exclude: [...configDefaults.exclude, "packages/**"],
   },
   plugins: [react(), tailwindcss(), svgrPlugin(), faustLoader()],
+  resolve: {
+    // Linked sibling packages (webgpu-waveform-react, structured-state, …) resolve
+    // their bare `react`/`react-dom` imports relative to their own real location,
+    // which pulls in a *second* copy of React from the sibling repo's node_modules.
+    // Two React copies means the hook dispatcher is null in the copy those packages
+    // use → "Cannot read properties of null (reading 'useRef')" in production.
+    // dedupe forces every react/react-dom import back to pamba's single copy.
+    dedupe: ["react", "react-dom"],
+  },
   define: {
     __APP_VERSION__: JSON.stringify(process.env.npm_package_version),
   },
