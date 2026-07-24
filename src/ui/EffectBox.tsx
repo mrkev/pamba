@@ -20,8 +20,8 @@ export function EffectBox({
   children?: React.ReactNode;
   title: string;
   onClickRemove?: () => void;
-  onHeaderMouseDown: () => void;
-  onClickBypass: () => void;
+  onHeaderMouseDown?: () => void;
+  onClickBypass?: () => void;
   isSelected?: boolean;
   canDelete?: boolean;
   canBypass?: boolean;

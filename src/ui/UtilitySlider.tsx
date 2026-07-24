@@ -81,7 +81,6 @@ export function UtilityNumberSlider({
       // Start the slide by adding window events
       window.addEventListener("mousemove", onMouseMove);
       window.addEventListener("mouseup", onMouseUp);
-      console.log("isSliding");
     };
 
     elem.addEventListener("mousedown", onMouseDown);
@@ -104,11 +103,7 @@ export function UtilityNumberSlider({
       }
 
       if (/Digit[0-9]/.test(e.code) || e.code === "Period") {
-        setTypingValue((val) => {
-          console.log("entering value", (val ?? "") + e.key);
-
-          return (val ?? "") + e.key;
-        });
+        setTypingValue((val) => (val ?? "") + e.key);
         e.stopPropagation();
         e.preventDefault();
       }
@@ -225,7 +220,6 @@ export function UtilitySlider({
             return;
         }
 
-        console.log(e, e.key);
         e.preventDefault();
       }}
       onChange={onChange}

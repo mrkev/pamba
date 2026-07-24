@@ -16,17 +16,6 @@ import { useDocumentEventListener, useEventListener } from "../ui/useEventListen
 import { usePointerPressMove } from "../ui/usePointerPressMove";
 import { exhaustive } from "../utils/exhaustive";
 
-// TODO: unused
-function timelineSecs(e: MouseEvent, projectDiv: HTMLDivElement, project: AudioProject) {
-  const viewportStartPx = project.viewport.scrollLeftPx.get();
-  const position = {
-    x: e.clientX + projectDiv.scrollLeft - projectDiv.getBoundingClientRect().x,
-    y: e.clientY + projectDiv.scrollTop - projectDiv.getBoundingClientRect().y,
-  };
-  const asSecs = standardViewport.pxToSecs(project.viewport, position.x + viewportStartPx, "pos");
-  return asSecs;
-}
-
 export function useAxisContainerMouseEvents(
   project: AudioProject,
   axisContainer: React.RefObject<HTMLDivElement | null>,

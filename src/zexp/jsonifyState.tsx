@@ -17,8 +17,6 @@ function jsonifyState(val: unknown): any {
     const res: Record<string, any> = {};
     switch (val.constructor) {
       case AudioClip:
-        // TODO: unused
-        // case AudioTrack:
         res.__constructor = val.constructor.name;
         break;
       case Object:

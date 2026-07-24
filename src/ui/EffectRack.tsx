@@ -224,13 +224,7 @@ export const EffectRack = React.memo(function EffectRack({
 
 function MidiInputEffect({ track }: { track: MidiTrack; project: AudioProject; renderer: AudioRenderer }) {
   return (
-    <EffectBox
-      canDelete={false}
-      onHeaderMouseDown={() => console.log("TODO")}
-      onClickBypass={() => console.log("TODO")}
-      isSelected={false}
-      title={"MIDI"}
-    >
+    <EffectBox canDelete={false} isSelected={false} title={"MIDI"}>
       Input:
       <input type="checkbox" />
       <input type="checkbox" />
@@ -242,13 +236,7 @@ function InstrumentEffect({ track }: { track: MidiTrack; project: AudioProject; 
   const [instrument] = usePrimitive(track.instrument);
   const [name] = usePrimitive(instrument.name);
   return (
-    <EffectBox
-      canDelete={false}
-      onHeaderMouseDown={() => console.log("TODO")}
-      onClickBypass={() => console.log("TODO")}
-      isSelected={false}
-      title={name}
-    >
+    <EffectBox canDelete={false} isSelected={false} title={name}>
       {/* TODO: this wont be reactive: the window won't render the new instrument when we change it */}
       <button
         className="utilityButton"
