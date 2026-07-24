@@ -108,14 +108,18 @@ export function Library({
                 label={"..."}
                 items={{
                   delete: async () => {
-                    if (await doConfirm(`Are you sure you want to delete project '${p.name}'? This can't be undone!`)) {
+                    if (
+                      (await doConfirm(
+                        `Are you sure you want to delete project '${p.name}'? This can't be undone!`,
+                      )) === "yes"
+                    ) {
                       await projectPersistance.deleteProject(p);
                     }
                   },
                   rename: async () => {
                     const newName = await doPrompt(`new name for project '${p.name}'?`);
-                    if (newName != null) {
-                      await projectPersistance.renameProject(p, newName);
+                    if (newName != null && newName.trim() !== "") {
+                      await projectPersistance.renameProject(p, newName.trim());
                     }
                   },
                 }}
@@ -315,11 +319,8 @@ export function Library({
       />
       {/* </AudioFileUploadDropzone> */}
 
-      {/* TODO: library won't be updated when new audio gets uploaded, unless it's constantly executed when I think it might be */}
       <UploadAudioButton loadClip={loadClip} />
       <hr style={{ width: "100%", borderColor: "var(--border-against-bg)", borderStyle: "dotted" }} />
-
-      {/* <UserAuthControl /> */}
     </>
   );
 }

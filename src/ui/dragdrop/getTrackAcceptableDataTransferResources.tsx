@@ -3,7 +3,7 @@ import { localAudioPackage } from "../../data/urlProtocol";
 import { validateFaustEffectId } from "../../dsp/FAUST_EFFECTS";
 import { appEnvironment } from "../../lib/AppEnvironment";
 import { WAMAvailablePlugin } from "../../wam/plugins";
-import { AudioStorage } from "../../lib/project/AudioStorage";
+import { AudioStorage, uploadErrorMessage } from "../../lib/project/AudioStorage";
 import { NoteT } from "../../midi/SharedMidiTypes";
 import { LibraryItem } from "../Library";
 import { midiClipsOfMidiFile } from "./midiTransfer";
@@ -185,7 +185,8 @@ export async function getTrackAcceptableDataTransferResources(
         {
           const result = await audioStorage.uploadToLibrary(file);
           if (result instanceof Error) {
-            throw result;
+            alert(uploadErrorMessage(result, file.name));
+            continue;
           }
           resultingResources.push(result);
         }
@@ -202,8 +203,7 @@ export async function getTrackAcceptableDataTransferResources(
         break;
       }
       default: {
-        // TODO: upload fails but ui has no feedback for users
-        console.error("error_unsupported_format" + filetype);
+        alert(uploadErrorMessage("error_unsupported_format", file.name));
         continue;
       }
     }

@@ -95,6 +95,38 @@ export class ProjectPackage {
     return pkg;
   }
 
+  /**
+   * Renames the project in place, updating both the metadata sidecar (read by the
+   * library list) and the serialized document (read when the project is reopened),
+   * so the two don't drift. Returns a fresh package carrying the new name, or "error".
+   */
+  async rename(newName: string): Promise<ProjectPackage | "error"> {
+    const [documentHandle, metadataHandle] = await pAll(
+      pTry(this.pkgDir.openThrow("file", ProjectPackage.DOCUMENT_FILE_NAME), "invalid" as const),
+      pTry(this.pkgDir.openThrow("file", ProjectPackage.METADATA_FILE_NAME), "invalid" as const),
+    );
+    if (documentHandle === "invalid" || metadataHandle === "invalid") {
+      return "error";
+    }
+
+    try {
+      const parsed = JSON.parse(await (await documentHandle.read()).text());
+      if (!isRecord(parsed)) {
+        return "error";
+      }
+      parsed.projectName = newName;
+      await pAll(
+        documentHandle.write(JSON.stringify(parsed)),
+        metadataHandle.write(JSON.stringify({ projectName: newName })),
+      );
+    } catch (e) {
+      console.error(e);
+      return "error";
+    }
+
+    return new ProjectPackage(this.id, newName, this.audioLibRef, this.pkgDir);
+  }
+
   static async existingPackage(projRoot: FSDir): Promise<ProjectPackage | "invalid"> {
     const metadata = await this.getProjectMetadata(projRoot);
     const audioLibDir = await projRoot.ensure("dir", ProjectPackage.AUDIO_DIR_NAME);

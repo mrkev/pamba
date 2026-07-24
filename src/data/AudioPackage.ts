@@ -73,7 +73,7 @@ export class AudioPackage {
       case "audio/wav":
         break;
       default: {
-        // TODO: upload fails but ui has no feedback for users
+        // Callers surface this to the user via `uploadErrorMessage` (see AudioStorage).
         return "error_unsupported_format";
       }
     }

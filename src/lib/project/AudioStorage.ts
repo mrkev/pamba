@@ -42,6 +42,27 @@ export class AudioStorage {
   }
 }
 
+export type UploadErrorCode = "error_unsupported_format" | "error_dir_exists" | "error_creating";
+
+/**
+ * Human-readable message for an upload failure. `uploadToLibrary`/`uploadToProject`
+ * return the failure code wrapped in an `Error`; pass that Error (or the raw code)
+ * plus the file name to show the user why the upload didn't go through.
+ */
+export function uploadErrorMessage(error: Error | string, fileName: string): string {
+  const code = typeof error === "string" ? error : error.message;
+  switch (code) {
+    case "error_unsupported_format":
+      return `Couldn't add "${fileName}": unsupported audio format.`;
+    case "error_dir_exists":
+      return `"${fileName}" is already in your library.`;
+    case "error_creating":
+      return `Couldn't save "${fileName}": storage error.`;
+    default:
+      return `Couldn't add "${fileName}": ${code}`;
+  }
+}
+
 export function useListProjectAudioFiles(
   project: AudioProject,
   firebaseStoreRef?: StorageReference,

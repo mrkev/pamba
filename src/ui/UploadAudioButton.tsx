@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { usePrimitive } from "structured-state";
 import { appEnvironment } from "../lib/AppEnvironment";
+import { uploadErrorMessage } from "../lib/project/AudioStorage";
 import { ignorePromise } from "../utils/ignorePromise";
 import { UploadButton } from "./FormButtons";
 import { utility } from "./utility";
@@ -26,7 +27,8 @@ export function UploadAudioButton({ loadClip }: { loadClip?: (url: string, name?
           const result = await audioStorage.uploadToLibrary(file);
           if (result instanceof Error) {
             setUploadStatus("idle");
-            throw result;
+            alert(uploadErrorMessage(result, file.name));
+            return;
           }
           const url = result.url().toString();
           ignorePromise(loadClip?.(url, file.name));

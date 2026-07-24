@@ -9,10 +9,12 @@ import { nullthrows } from "../utils/nullthrows";
 import { appEnvironment } from "./AppEnvironment";
 import { AudioTrack } from "./AudioTrack";
 import { AnalizedPlayer } from "./io/AnalizedPlayer";
+import { removeEffect } from "./effect";
 import { audioProject, AudioProject } from "./project/AudioProject";
 import { doPaste } from "./project/ClipboardState";
 import { cliptrack } from "./project/ClipTrack";
 import { selection } from "./project/selection";
+import { PambaWamNode } from "../wam/PambaWamNode";
 import { PrimarySelectionState } from "./project/SelectionState";
 import { timeop } from "./project/TimelineOperation";
 import { standardTrack } from "./StandardTrack";
@@ -107,13 +109,16 @@ export const userActions = {
     primarySelection: Extract<PrimarySelectionState, { status: "effects" }>,
     project: AudioProject,
   ) {
-    // TODO: History
     for (const { track, effect } of primarySelection.effects) {
-      console.log("remove", primarySelection);
-      alert("TODO: remove effect");
-      // AudioTrack.removeEffect(track, effect);
-      project.selected.set(null);
+      // Close the effect's window if it's open (only WAM effects have one), then
+      // remove it from the track's DSP chain. removeEffect handles live graph
+      // rewiring and calls effect.destroy().
+      if (effect instanceof PambaWamNode) {
+        appEnvironment.openEffects.delete(effect);
+      }
+      removeEffect(track, effect);
     }
+    project.selected.set(null);
   },
 
   deleteSelectedTime(primarySelection: Extract<PrimarySelectionState, { status: "time" }>, project: AudioProject) {

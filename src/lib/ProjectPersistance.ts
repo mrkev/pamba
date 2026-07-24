@@ -37,12 +37,37 @@ export const projectPersistance = {
     }
   },
 
-  async deleteProject(project: ProjectPackage) {
-    alert("TODO: not implemented");
+  async deleteProject(projectPackage: ProjectPackage) {
+    const result = await appEnvironment.localFiles.projectLib.delete(projectPackage.id);
+    if (result === "error") {
+      alert(`Could not delete project "${projectPackage.name}".`);
+      return;
+    }
+
+    // If the deleted project happened to be the open one, drop the stale references
+    // so we don't try to reopen a project that no longer exists.
+    if (appEnvironment.projectPacakge.get()?.id === projectPackage.id) {
+      appEnvironment.projectPacakge.set(null);
+    }
+    if (window.localStorage.getItem("pamba.project.open_id") === projectPackage.id) {
+      window.localStorage.removeItem("pamba.project.open_id");
+    }
   },
 
-  async renameProject(project: ProjectPackage, name: string) {
-    alert("TODO: not implemented");
+  async renameProject(projectPackage: ProjectPackage, name: string) {
+    const renamed = await projectPackage.rename(name);
+    if (renamed === "error") {
+      alert(`Could not rename project "${projectPackage.name}".`);
+      return;
+    }
+
+    // Update the library's in-memory state so the list re-renders with the new name.
+    appEnvironment.localFiles.projectLib.state.set(renamed.id, renamed);
+
+    // Keep the open-project reference in sync if it's the one we renamed.
+    if (appEnvironment.projectPacakge.get()?.id === renamed.id) {
+      appEnvironment.projectPacakge.set(renamed);
+    }
   },
 
   async openEmptyProject() {

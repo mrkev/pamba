@@ -2,6 +2,7 @@ import classNames from "classnames";
 import React, { useRef, useState } from "react";
 import { usePrimitive } from "structured-state";
 import { AudioProject } from "../lib/project/AudioProject";
+import { uploadErrorMessage } from "../lib/project/AudioStorage";
 import { useEventListener } from "./useEventListener";
 import { appEnvironment } from "../lib/AppEnvironment";
 
@@ -81,10 +82,11 @@ export function AudioFileUploadDropzone({
     setStatus("loading");
     for (let i = 0; i < dataTransfer.files.length; i++) {
       const file = dataTransfer.files[i];
-      // File-type validation happens downstream in AudioPackage.uploadToLibrary.
+      // File-type validation happens downstream in AudioPackage.newUpload.
       const result = await audioStorage.uploadToLibrary(file);
       if (result instanceof Error) {
-        throw result;
+        alert(uploadErrorMessage(result, file.name));
+        continue;
       }
     }
     setStatus("idle");
