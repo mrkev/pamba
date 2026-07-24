@@ -1,4 +1,11 @@
 export const changelog = `
+next
+- virtualize notes in midi clip editor piano roll
+- effect deletion with keyboard
+- upload error feedback
+- work on project delete/rename
+- ableton-style timeline axis drag to zoom/pan instead of time-select
+
 v3.2.0
 - midi track recording
 - audio clip editor zoom improvements

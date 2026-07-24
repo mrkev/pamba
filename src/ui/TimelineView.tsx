@@ -109,6 +109,7 @@ function HeaderAxisView({
       ref={axisContainerRef}
       className={cn(
         "name-axis-container",
+        "zoom_cursor",
         "sticky top-0 left-0 border-b border-b-axis-timeline-separator justify-evenly",
         activePanel === "primary" ? "bg-panel-active-background" : "bg-timeline-bg",
         className,

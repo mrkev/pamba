@@ -93,6 +93,13 @@ body {
     auto;
 }
 
+/* magnifier over the timeline header axis: drag up/down zooms, left/right pans */
+.zoom_cursor {
+  cursor:
+    url(search-line.svg) 8 8,
+    auto;
+}
+
 /* from: https://raw.githubusercontent.com/tailwindlabs/tailwindcss/refs/heads/main/packages/tailwindcss/preflight.css */
 /* it was a great journey getting here and discovering this is what was making my canvas force a small 2.5px gap under it,
 leading to an infinte loop with a ResizeObserver observing its parent div, but here we are, and I'm happy both about the

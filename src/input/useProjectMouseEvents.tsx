@@ -1,6 +1,6 @@
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 import { history } from "structured-state";
-import { TRACK_HEIGHT } from "../constants";
+import { MAX_TIMELINE_SCALE, MIN_TIMELINE_SCALE, TRACK_HEIGHT } from "../constants";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioTrack } from "../lib/AudioTrack";
@@ -13,48 +13,118 @@ import { MidiClip } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
 import { pressedState } from "../ui/pressedState";
 import { useDocumentEventListener, useEventListener } from "../ui/useEventListener";
-import { usePointerPressMove } from "../ui/usePointerPressMove";
+import { PointerPressMeta, usePointerPressMove } from "../ui/usePointerPressMove";
 import { exhaustive } from "../utils/exhaustive";
+import { clamp } from "../utils/math";
 
+// Vertical pixels dragged to double (or halve) the zoom level.
+const AXIS_ZOOM_PX_PER_DOUBLING = 100;
+// Movement (px) below which a gesture counts as a click, not a drag.
+const AXIS_DRAG_THRESHOLD_PX = 3;
+
+/**
+ * Ableton-style interaction on the timeline header axis: dragging up/down zooms
+ * (anchored under the pointer), dragging left/right pans the timeline. A plain
+ * click (no drag) moves the playhead.
+ */
 export function useAxisContainerMouseEvents(
   project: AudioProject,
   axisContainer: React.RefObject<HTMLDivElement | null>,
 ) {
-  const pointerDownCallback = useCallback(
-    (e: MouseEvent) => {
+  const gestureRef = useRef<{
+    // Viewport state captured at pointer down, so each move computes from the
+    // gesture start (no compounding drift).
+    initialScale: number;
+    initialScroll: number;
+    // Pointer x relative to the axis' visible left edge (the zoom anchor).
+    anchorPx: number;
+    // Playhead position to set if the gesture turns out to be a click.
+    downTime: number;
+    dragged: boolean;
+  } | null>(null);
+
+  const down = useCallback(
+    (e: PointerEvent) => {
       const div = axisContainer.current;
-      if (div == null) {
-        return;
+      if (div == null || e.button !== 0) {
+        return "abort";
       }
 
-      if (e.button !== 0) {
-        return;
+      // The loop markers live inside the axis container and drive their own
+      // drag (via pressedState). stopPropagation on their mousedown doesn't stop
+      // this native pointerdown, so bail out to avoid panning while dragging them.
+      if (e.target instanceof Element && e.target.closest(".name-loop-rect") != null) {
+        return "abort";
       }
 
-      const viewportStartPx = project.viewport.scrollLeftPx.get();
-      const position = {
-        x: e.clientX + div.scrollLeft - div.getBoundingClientRect().x,
-        y: e.clientY + div.scrollTop - div.getBoundingClientRect().y,
+      const vp = project.viewport;
+      const anchorPx = e.clientX - div.getBoundingClientRect().x;
+      const asSecs = standardViewport.pxToSecs(vp, anchorPx + vp.scrollLeftPx.get(), "pos");
+
+      gestureRef.current = {
+        initialScale: vp.pxPerSecond.get(),
+        initialScroll: vp.scrollLeftPx.get(),
+        anchorPx,
+        downTime: Math.max(0, snapped(project, e, asSecs)),
+        dragged: false,
       };
-      const asSecs = standardViewport.pxToSecs(project.viewport, position.x + viewportStartPx, "pos");
-
-      const newPos = Math.max(0, snapped(project, e, asSecs));
-      // player.setCursorPos(asSecs);
-      project.cursorPos.set(newPos);
-      project.selectionWidth.set(null);
-      pressedState.set({
-        status: "selecting_global_time",
-        clientX: e.clientX,
-        clientY: e.clientY,
-        startTime: newPos,
-      });
     },
     [axisContainer, project],
   );
 
-  usePointerPressMove(axisContainer, {
-    down: pointerDownCallback,
-  });
+  const move = useCallback(
+    (e: PointerEvent, meta: PointerPressMeta) => {
+      const gesture = gestureRef.current;
+      if (gesture == null) {
+        return;
+      }
+
+      const deltaX = e.clientX - meta.downX;
+      const deltaY = e.clientY - meta.downY;
+      if (
+        !gesture.dragged &&
+        Math.abs(deltaX) < AXIS_DRAG_THRESHOLD_PX &&
+        Math.abs(deltaY) < AXIS_DRAG_THRESHOLD_PX
+      ) {
+        return;
+      }
+      gesture.dragged = true;
+
+      const vp = project.viewport;
+      // Zoom: dragging down (positive deltaY) zooms in. Mirrors the anchored
+      // scroll math in standardViewport.setXScale, but computed from the gesture
+      // start so combining with the pan below stays drift-free.
+      const newScale = clamp(
+        MIN_TIMELINE_SCALE,
+        gesture.initialScale * Math.pow(2, deltaY / AXIS_ZOOM_PX_PER_DOUBLING),
+        MAX_TIMELINE_SCALE,
+      );
+      const scaleFactorFactor = newScale / gesture.initialScale;
+      const anchor = gesture.anchorPx - vp.START_PADDING_PX;
+      const zoomedStartPx = (gesture.initialScroll + anchor) * scaleFactorFactor - anchor;
+      // Pan: dragging right (positive deltaX) grabs the timeline and pulls it
+      // right, revealing earlier content.
+      const newStartPx = Math.max(0, zoomedStartPx - deltaX);
+
+      vp.pxPerSecond.set(newScale);
+      vp.scrollLeftPx.set(newStartPx);
+    },
+    [project],
+  );
+
+  const up = useCallback(() => {
+    const gesture = gestureRef.current;
+    gestureRef.current = null;
+    if (gesture == null || gesture.dragged) {
+      return;
+    }
+    // A click (no drag) moves the playhead, like Ableton's insert marker.
+    project.cursorPos.set(gesture.downTime);
+    project.selectionWidth.set(null);
+    project.selected.set(null);
+  }, [project]);
+
+  usePointerPressMove(axisContainer, { down, move, up });
 }
 
 export function useTimelineMouseEvents(
