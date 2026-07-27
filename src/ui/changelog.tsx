@@ -1,5 +1,5 @@
 export const changelog = `
-next
+v3.3.0
 - virtualize notes in midi clip editor piano roll
 - effect deletion with keyboard
 - upload error feedback
