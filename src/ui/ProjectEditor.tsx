@@ -20,16 +20,24 @@ function useAsync<T>(promise: Promise<T>): AsyncResult<T> {
   const [result, setResult] = useState<AsyncResult<T>>(STATUS_PENDING);
   const promiseRef = useRef(promise);
 
+  // Reset to pending when the promise changes. Done during render
+  // (derive-state-from-props) instead of in an effect; the ref update stays in
+  // an effect since mutating refs during render is unsafe under concurrent mode.
+  const [prevPromise, setPrevPromise] = useState(promise);
+  if (promise !== prevPromise) {
+    setPrevPromise(promise);
+    setResult(STATUS_PENDING);
+  }
+
   useEffect(() => {
     promiseRef.current = promise;
-    setResult(STATUS_PENDING);
   }, [promise]);
 
   useEffect(() => {
     promise
       .then((v) => {
         // promise could've changed
-        if (promise === promiseRef.current) return;
+        if (promise !== promiseRef.current) return;
         setResult({ status: "resolved", value: v });
       })
       .catch((e) => {

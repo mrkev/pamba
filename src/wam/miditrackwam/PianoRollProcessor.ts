@@ -325,7 +325,6 @@ class PianoRollProcessor extends WamProcessor {
 try {
   audioWorkletGlobalScope.registerProcessor(MODULE_ID, PianoRollProcessor as typeof WamProcessor);
 } catch (error) {
-  // eslint-disable-next-line no-console
   console.warn(error);
 }
 

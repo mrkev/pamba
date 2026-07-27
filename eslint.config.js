@@ -1,5 +1,4 @@
 import js from "@eslint/js";
-import typescriptEslint from "@typescript-eslint/eslint-plugin";
 import react from "eslint-plugin-react";
 import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
@@ -29,9 +28,8 @@ export default defineConfig([
 
   {
     plugins: {
-      react,
-      "@typescript-eslint": typescriptEslint,
-      "react-hooks": reactHooks,
+      // react, @typescript-eslint, and react-hooks are already registered by the
+      // shared flat-recommended configs spread above; only react-refresh isn't.
       "react-refresh": reactRefresh,
     },
 
@@ -91,6 +89,7 @@ export default defineConfig([
       "spaced-comment": "off",
       "react-hooks/rules-of-hooks": "error",
       "react-hooks/exhaustive-deps": "warn",
+      "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
       "react/react-in-jsx-scope": "off",
       "react/no-unescaped-entities": "off",
       "react/prop-types": "off",

@@ -45,10 +45,20 @@ export function PromptDialog() {
   const [prompt] = useLinkAsState(confirmationModal);
   const [value, setValue] = useState<string | null>(null);
 
+  // Seed the input with the prompt's default value when a new prompt opens.
+  // Done during render (derive-state-from-props) instead of in the effect below,
+  // which now only performs the imperative dialog open/close.
+  const [prevPrompt, setPrevPrompt] = useState(prompt);
+  if (prompt !== prevPrompt) {
+    setPrevPrompt(prompt);
+    if (prompt.status === "open") {
+      setValue(prompt.defaultValue ?? null);
+    }
+  }
+
   useEffect(() => {
     if (prompt.status === "open") {
       dialogRef.current?.showModal();
-      setValue(prompt.defaultValue ?? null);
       // okRef.current?.focus();
     } else {
       dialogRef.current?.close();

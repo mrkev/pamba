@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 import type { AudioWorkletGlobalScope, WamTransportData } from "@webaudiomodules/api";
 import getWamProcessor from "../../../packages/sdk/src/WamProcessor";
 import { OrderedMap } from "../../lib/data/OrderedMap";
@@ -130,6 +129,5 @@ try {
   console.log("REGISTERING AudioTrackProcessor");
   audioWorkletGlobalScope.registerProcessor(MODULE_ID, AudioTrackProcessor);
 } catch (error) {
-  // eslint-disable-next-line no-console
   console.warn(error);
 }

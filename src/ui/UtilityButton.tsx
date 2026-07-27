@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { utility } from "./utility";
 
 export function UtilityButton({ className, style, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
@@ -20,9 +20,13 @@ export function UtilityTextInput({
   const [edit, setEdit] = useState(value);
   const [skipBlurChange, setSkipBlurChange] = useState(false);
   const ref = useRef<HTMLInputElement>(null);
-  useEffect(() => {
+  // Reset the editable copy when the external value changes. Done during render
+  // (React's derive-state-from-props pattern) rather than in an effect.
+  const [prevValue, setPrevValue] = useState(value);
+  if (value !== prevValue) {
+    setPrevValue(value);
     setEdit(value);
-  }, [value]);
+  }
 
   const editable = !disabled && onChange != null;
 
