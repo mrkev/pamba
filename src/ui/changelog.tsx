@@ -1,4 +1,7 @@
 export const changelog = `
+next
+- ableton-style midi clip editor axis drag to zoom/pan
+
 v3.3.0
 - virtualize notes in midi clip editor piano roll
 - effect deletion with keyboard

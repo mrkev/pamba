@@ -1,6 +1,7 @@
 import useResizeObserver from "@react-hook/resize-observer";
 import { useRef, useState } from "react";
 import { useContainer, usePrimitive } from "structured-state";
+import { useMidiAxisMouseEvents } from "../../input/useProjectMouseEvents";
 import { AudioProject } from "../../lib/project/AudioProject";
 import { MidiClip } from "../../midi/MidiClip";
 import { cn } from "../../utils/cn";
@@ -35,6 +36,9 @@ export function MidiEditorTimeAxis({
   const [width, setWidth] = useState(0);
   useResizeObserver(ref, (entry) => setWidth(entry.contentRect.width));
 
+  // Drag to zoom (up/down) and pan (left/right); click to move the cursor.
+  useMidiAxisMouseEvents(clip, project, ref);
+
   const beatsPerBar = timeSignature[0];
 
   // Zoom-aware tick step: fewer ticks as beats get narrower. Reuses the timeline's
@@ -56,7 +60,7 @@ export function MidiEditorTimeAxis({
   return (
     <div
       ref={ref}
-      className={cn("relative overflow-hidden bg-timeline-bg", className)}
+      className={cn("relative overflow-hidden bg-timeline-bg zoom_cursor", className)}
       style={{ height: AXIS_HEIGHT, ...style }}
     >
       <svg width={width} height={AXIS_HEIGHT} className="block pointer-events-none select-none">
