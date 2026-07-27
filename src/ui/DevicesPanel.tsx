@@ -3,12 +3,15 @@ import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioProject } from "../lib/project/AudioProject";
 import { cn } from "../utils/cn";
 import { UtilityToggle } from "./UtilityToggle";
+import { AudioRecorder } from "../lib/io/AudioRecorder";
 
-export function MIDIPanel(_: { project: AudioProject }) {
+export function DevicesPanel({ recorder }: { project: AudioProject; recorder: AudioRecorder }) {
   const [midiLearning, setMidiLearning] = useLinkAsState(appEnvironment.midiLearning);
   const inputs = useLink(appEnvironment.midiDevices.inputs);
   const midiInputs = [...inputs().values()];
   const listening = useLink(appEnvironment.midiDevices.activeInputs);
+  const inputDevices = useLink(recorder.audioInputDevices);
+  const [selectedDevice] = useLinkAsState(recorder.currentInput);
 
   return (
     <>
@@ -53,6 +56,18 @@ export function MIDIPanel(_: { project: AudioProject }) {
           </div>
         );
       })}
+
+      <select
+        style={{ width: "100%" }}
+        value={selectedDevice ?? undefined}
+        onChange={(e) => recorder.selectInputDevice(e.target.value)}
+      >
+        {inputDevices().map((device) => (
+          <option value={device.deviceId} key={device.deviceId}>
+            {device.label}
+          </option>
+        ))}
+      </select>
     </>
   );
 }

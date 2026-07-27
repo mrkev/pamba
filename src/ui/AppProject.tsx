@@ -16,7 +16,7 @@ import { TransportControl } from "./header/TransportControl";
 import { HelpPanel } from "./HelpPanel";
 import { HistoryPanel } from "./HistoryPanel";
 import { Library } from "./Library";
-import { MIDIPanel } from "./MIDIPanel";
+import { DevicesPanel } from "./DevicesPanel";
 import { modifierState, useSingletonKeyboardModifierState } from "./ModifierState";
 import { OverviewPanel } from "./OverviewPanel";
 import { ProjectEditor } from "./ProjectEditor";
@@ -62,8 +62,8 @@ export function AppProject({ project }: { project: AudioProject }) {
         },
         midi: {
           icon: <i className="ri-link" style={{ paddingRight: 2 }}></i>,
-          title: "MIDI",
-          render: () => <MIDIPanel project={project} />,
+          title: "Devices",
+          render: () => <DevicesPanel project={project} recorder={recorder} />,
         },
         history: {
           icon: <i className="ri-history-line" style={{ paddingRight: 2 }}></i>,

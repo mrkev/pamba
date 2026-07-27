@@ -52,6 +52,8 @@ export function ProjectView({ project, renderer }: { project: AudioProject; rend
   const player = renderer.analizedPlayer;
   const [loopPlayback] = usePrimitive(project.loopOnPlayback);
 
+  usePrimitive(project.tempo);
+
   useLayoutEffect(() => {
     if (!projectDivRef) {
       return;

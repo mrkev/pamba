@@ -1,5 +1,6 @@
 export const changelog = `
 next
+- fix control to set tempo
 - ableton-style midi clip editor axis drag to zoom/pan
 
 v3.3.0

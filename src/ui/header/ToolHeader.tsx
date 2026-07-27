@@ -80,8 +80,6 @@ export function ToolHeader({
   const [tempo] = usePrimitive(project.tempo);
   const [snapToGrid] = usePrimitive(project.snapToGrid);
   const [loopPlayback] = usePrimitive(project.loopOnPlayback);
-  // const [inputDevices] = useLinkedMap(recorder.audioInputDevices);
-  // const [selectedDevice] = useLinkedState(recorder.currentInput);
   const [projectName] = usePrimitive(project.projectName);
   const [isAudioPlaying] = usePrimitive(renderer.isAudioPlaying);
   const [recorderStatus] = useLinkAsState(recorder.status);
@@ -113,8 +111,6 @@ export function ToolHeader({
               items={[
                 ["new project", documentCommands.getById("newProject")],
                 ["save", documentCommands.getById("save")],
-                // ["bounce selection", documentCommands.getById("newProject")],
-                // ["bounce all", documentCommands.getById("save")],
               ]}
               project={project}
             />
@@ -141,17 +137,6 @@ export function ToolHeader({
             />
           </div>
 
-          {/* <select
-            style={{ width: 100 }}
-            value={selectedDevice ?? undefined}
-            onChange={(e) => recorder.selectInputDevice(e.target.value)}
-          >
-            {inputDevices.map((device) => (
-              <option value={device.deviceId} key={device.deviceId}>
-                {device.label}
-              </option>
-            ))}
-          </select> */}
           <div className="flex flex-row items-center">
             <UtilityNumber value={tempo} onChange={setTempo}></UtilityNumber>
             <button className="utilityButton" disabled>

@@ -1,64 +1,22 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useRef, useState } from "react";
 import { cn } from "../utils/cn";
-import { nullthrows } from "../utils/nullthrows";
-import { RenamableLabel } from "./RenamableLabel";
 
-export type Point = [number, number];
+// Pixels the mouse must travel to move the value by one `step`.
+const PIXELS_PER_STEP = 4;
 
-export function useMouseDrag<T>(
-  ref: React.RefObject<HTMLDivElement | null | undefined>,
-  onMove: (e: MouseEvent, delta: [number, number], initialState: T) => void,
-  initialState?: (e: MouseEvent) => T,
-) {
-  const initial = useRef<null | { pos: Point; state: T }>(null);
-  const getInitialState = useRef<((e: MouseEvent) => T) | undefined>(initialState);
-
-  useEffect(() => {
-    getInitialState.current = initialState;
-  }, [initialState]);
-
-  useEffect(() => {
-    const elem = ref.current;
-    if (elem == null) {
-      return;
-    }
-
-    const onMouseMove = (e: MouseEvent) => {
-      const init = nullthrows(initial.current);
-      onMove(e, [e.clientX - init.pos[0], e.clientY - init.pos[1]], init.state);
-    };
-
-    const onMouseUp = () => {
-      document.removeEventListener("mousemove", onMouseMove);
-      document.removeEventListener("mouseup", onMouseUp);
-    };
-
-    const onMouseDown = (e: MouseEvent) => {
-      initial.current = {
-        pos: [e.clientX, e.clientY],
-        state: (getInitialState.current?.(e) ?? undefined) as T,
-      };
-
-      document.addEventListener("mousemove", onMouseMove);
-      document.addEventListener("mouseup", onMouseUp);
-    };
-
-    elem.addEventListener("mousedown", onMouseDown);
-    return () => {
-      console.log("REMOVING");
-      elem.removeEventListener("mousedown", onMouseDown);
-      document.removeEventListener("mousemove", onMouseMove);
-      document.removeEventListener("mouseup", onMouseUp);
-    };
-  }, [onMove, ref]);
-}
-
+/**
+ * A number that looks like a utility button. Two ways to change it:
+ * - Click and drag: up or right increases, down or left decreases.
+ * - Double click: type a value and press Enter to commit (Escape cancels).
+ *
+ * It's a controlled component: changes are reported through `onChange`.
+ */
 export function UtilityNumber({
   value,
   onChange,
   decimals = 0,
   style,
-  // TODO
+  className,
   min,
   max,
   step,
@@ -67,47 +25,140 @@ export function UtilityNumber({
   onChange?: (v: number) => void;
   decimals?: number;
   style?: React.CSSProperties;
+  className?: string;
   min?: number;
   max?: number;
   step?: number;
 }) {
   const divRef = useRef<HTMLDivElement>(null);
-  useMouseDrag(
-    divRef,
-    useCallback(
-      (_, [deltaX, deltaY], initialValue: number) => {
-        const delta = Math.sqrt(deltaX ** 2 + deltaY ** 2);
-        const sign =
-          deltaX === 0 && deltaY === 0
-            ? 1
-            : Math.abs(deltaX) > Math.abs(deltaY)
-              ? deltaX / Math.abs(deltaX)
-              : -(deltaY / Math.abs(deltaY));
-        const change = parseFloat((sign * (delta / 4)).toFixed(decimals));
-        onChange?.(initialValue + change);
-      },
-      // TODO
-      [decimals, onChange],
-    ),
-    useCallback(() => value, [value]),
-  );
+  const [editing, setEditing] = useState(false);
+  const [editValue, setEditValue] = useState("");
+  // While dragging or editing we freeze the control's width so that changing
+  // digit counts (e.g. "9" -> "100") don't make it jump around. `null` lets it
+  // size to its content again once the interaction ends.
+  const [lockedWidth, setLockedWidth] = useState<number | null>(null);
+  // When we programmatically leave edit mode (Enter/Escape) we don't want the
+  // trailing blur to re-run commit logic.
+  const skipBlur = useRef(false);
+
+  const effectiveStep = step ?? Math.pow(10, -decimals);
+  const display = value.toFixed(decimals);
+
+  function clampRound(n: number): number {
+    let v = n;
+    if (min != null) {
+      v = Math.max(min, v);
+    }
+    if (max != null) {
+      v = Math.min(max, v);
+    }
+    // toFixed to avoid floating point drift accumulating across drag steps.
+    return parseFloat(v.toFixed(decimals));
+  }
+
+  function beginEdit() {
+    if (onChange == null) {
+      return;
+    }
+    // Freeze the width to what the number occupied so the input doesn't balloon
+    // to its default intrinsic size.
+    setLockedWidth(divRef.current?.offsetWidth ?? null);
+    setEditValue(display);
+    setEditing(true);
+  }
+
+  function stopEditing() {
+    setEditing(false);
+    setLockedWidth(null);
+  }
+
+  function commit() {
+    const parsed = parseFloat(editValue);
+    if (!Number.isNaN(parsed)) {
+      onChange?.(clampRound(parsed));
+    }
+    stopEditing();
+  }
+
+  function onMouseDown(e: React.MouseEvent) {
+    // Only the primary button scrubs, and never while typing.
+    if (editing || onChange == null || e.button !== 0) {
+      return;
+    }
+    // Prevent text selection while dragging (double click to edit still fires).
+    e.preventDefault();
+    // Hold the width steady for the whole drag so the digit count changing
+    // doesn't resize the control under the cursor.
+    setLockedWidth(divRef.current?.offsetWidth ?? null);
+
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const startValue = value;
+
+    const onMove = (me: MouseEvent) => {
+      const deltaX = me.clientX - startX;
+      const deltaY = me.clientY - startY;
+      // Follow the dominant axis: right/up are positive, left/down negative.
+      const raw = Math.abs(deltaX) >= Math.abs(deltaY) ? deltaX : -deltaY;
+      const stepsDelta = Math.round(raw / PIXELS_PER_STEP);
+      onChange(clampRound(startValue + stepsDelta * effectiveStep));
+    };
+
+    const onUp = () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+      document.body.style.removeProperty("cursor");
+      setLockedWidth(null);
+    };
+
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    document.body.style.cursor = "ns-resize";
+  }
 
   return (
-    <>
-      <div className={cn("utilityButton", "text-center p-0")} style={style}>
-        <RenamableLabel
-          className={cn("utilityButton", "justify-center py-0 text-control-text-color")}
-          value={String(value)}
-          setValue={function (newVal: string): void {
-            const val = parseFloat(newVal);
-            if (Number.isNaN(val)) {
+    <div
+      ref={divRef}
+      className={cn("utilityButton", "text-center px-1 py-0 select-none text-control-text-color", className)}
+      style={{ cursor: editing ? "text" : "ns-resize", width: lockedWidth ?? undefined, ...style }}
+      onMouseDown={onMouseDown}
+      onDoubleClick={beginEdit}
+    >
+      {editing ? (
+        <input
+          autoFocus
+          inputMode="decimal"
+          className="w-full border-0 bg-transparent p-0 text-center font-bold text-control-text-color outline-none"
+          style={{ fontSize: 12 }}
+          value={editValue}
+          onChange={(e) => setEditValue(e.target.value)}
+          onFocus={(e) => e.currentTarget.select()}
+          onMouseDown={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
+          onKeyUp={(e) => e.stopPropagation()}
+          onKeyDown={(e) => {
+            // Keep keystrokes from reaching the app's global command handlers.
+            e.stopPropagation();
+            if (e.key === "Enter") {
+              skipBlur.current = true;
+              commit();
+            } else if (e.key === "Escape") {
+              skipBlur.current = true;
+              stopEditing();
+            }
+          }}
+          onBlur={() => {
+            if (skipBlur.current) {
+              skipBlur.current = false;
+              stopEditing();
               return;
             }
-            onChange?.(val);
+            commit();
           }}
-          style={{ width: 20 }}
-        ></RenamableLabel>
-      </div>
-    </>
+        />
+      ) : (
+        display
+      )}
+    </div>
   );
 }
