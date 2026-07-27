@@ -6,9 +6,9 @@ import "./index.css";
 import { appEnvironment } from "./lib/AppEnvironment";
 import { TestUtility } from "./screens/TestUtility";
 import { App } from "./ui/App";
+import { ResponsiveCanvasTest as AppTest } from "./ui/midieditor/ResponsiveCanvas";
 import "./ui/utility.css";
 import { nullthrows } from "./utils/nullthrows";
-import { ResponsiveCanvasTest as AppTest } from "./ui/midieditor/ResponsiveCanvas";
 
 // initialize early
 void appEnvironment.initAsync(liveAudioContext());
@@ -23,6 +23,7 @@ const router = createHashRouter([
       },
       { path: "mini", element: <App /> },
       { path: "midi", element: <App /> },
+      { path: "project/:projectId", element: <App /> },
       { path: "utility", element: <TestUtility /> },
       { path: "test", element: <AppTest /> },
     ],

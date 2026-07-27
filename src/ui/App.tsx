@@ -1,4 +1,5 @@
 import React, { useCallback, useState } from "react";
+import { useParams } from "react-router";
 import "remixicon/fonts/remixicon.css";
 import { usePrimitive } from "structured-state";
 import { ProjectPackage } from "../data/ProjectPackage";
@@ -9,12 +10,16 @@ import { ConfirmDialog } from "./ConfirmDialog";
 import { PromptDialog } from "./PromptDialog";
 import { changelog } from "./changelog";
 import { useDocumentEventListener } from "./useEventListener";
+import { useProjectRoute } from "./useProjectRoute";
 import { utility } from "./utility";
 
 const NON_PASSIVE = { passive: false };
 
 export function App(): React.ReactElement {
   const [projectStatus] = usePrimitive(appEnvironment.projectStatus);
+  const { projectId } = useParams();
+
+  useProjectRoute(projectId, projectStatus);
 
   // Prevent trackpad from zooming in
   useDocumentEventListener(
@@ -26,6 +31,11 @@ export function App(): React.ReactElement {
   );
 
   if (projectStatus.status !== "loaded") {
+    // Deep-linked to /project/<id> that's still opening — show a loader instead of the
+    // welcome screen, so a reload/bookmark doesn't flash the "Continue" landing.
+    if (projectId != null) {
+      return <ProjectLoading />;
+    }
     return <WelcomeScreen />;
   } else {
     return (
@@ -36,6 +46,10 @@ export function App(): React.ReactElement {
       </>
     );
   }
+}
+
+function ProjectLoading() {
+  return <pre style={{ padding: 48 }}>Loading project…</pre>;
 }
 
 function InitButtion() {

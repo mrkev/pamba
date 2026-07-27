@@ -5,6 +5,7 @@ next
 - upload error feedback
 - work on project delete/rename
 - ableton-style timeline axis drag to zoom/pan instead of time-select
+- projects exist on the url path
 
 v3.2.0
 - midi track recording
