@@ -1,5 +1,5 @@
 export const changelog = `
-next
+v3.4.0
 - fix control to set tempo
 - ableton-style midi clip editor axis drag to zoom/pan
 - "save changes?" actually shows up now when leaving a project via the url
