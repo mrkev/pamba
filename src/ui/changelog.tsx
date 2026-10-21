@@ -2,6 +2,15 @@ export const changelog = `
 next
 - fix control to set tempo
 - ableton-style midi clip editor axis drag to zoom/pan
+- "save changes?" actually shows up now when leaving a project via the url
+- midi editor grid follows the snap setting, shows beats and bars
+- note velocity looks right in the midi editor
+- double-click to add a note snaps to grid
+- shift to add notes to the selection
+- new notes remember the last note length
+- quantize notes (cmd+u, or the button)
+- midi editor shows where the clip ends
+- undo works on moving/resizing notes now, oops
 
 v3.3.0
 - virtualize notes in midi clip editor piano roll

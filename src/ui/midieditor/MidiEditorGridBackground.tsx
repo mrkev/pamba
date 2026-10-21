@@ -12,6 +12,9 @@ const BAR_LINE_COLOR = "#ccc";
 const BEAT_LINE_COLOR = "#999";
 const DIVISION_LINE_COLOR = "#777";
 
+// Overlay drawn over the area past the clip's end.
+const PAST_CLIP_END_SHADE = "rgba(0, 0, 0, 0.35)";
+
 // Skip grid-resolution lines narrower than this, so zooming out doesn't turn the grid into a smear.
 const MIN_DIVISION_LINE_SPACING_PX = 4;
 
@@ -55,6 +58,13 @@ export function MidiEditorGridBackground({ clip, project }: { clip: MidiClip; pr
         ctx.moveTo(x, 0);
         ctx.lineTo(x, canvas.height);
         ctx.stroke();
+      }
+
+      // Darken everything past the clip's end, so its length is visible in the editor.
+      const clipEndX = Math.round(pxPerPulse * timelineLen.pulses(project) - scrollLeftPx);
+      if (clipEndX < visibleWidthPx) {
+        ctx.fillStyle = PAST_CLIP_END_SHADE;
+        ctx.fillRect(Math.max(0, clipEndX), 0, visibleWidthPx - Math.max(0, clipEndX), canvas.height);
       }
 
       ctx.scale(1, 1);
