@@ -20,7 +20,6 @@ import { midiTrack, MidiTrack } from "../../midi/MidiTrack";
 import { cn } from "../../utils/cn";
 import { clamp } from "../../utils/math";
 import { nullthrows } from "../../utils/nullthrows";
-import { PPQN } from "../../wam/miditrackwam/MIDIConfiguration";
 import { NoteR } from "../NoteR";
 import { CursorLine } from "../TimelineCursor";
 import { useEventListener } from "../useEventListener";
@@ -34,6 +33,9 @@ import { VerticalPianoRollKeys } from "./VerticalPianoRollKeys";
 // Extra px rendered beyond the visible window on each side, so notes don't pop in at the edges
 // while panning/scrolling.
 const VIRTUALIZE_OVERSCAN_PX = 128;
+
+// How long a double-click-created note sounds when "hear notes" is on (there's no drag to hold it).
+const DBLCLICK_AUDITION_MS = 200;
 
 export function MidiClipEditorPianoRoll({
   clip,
@@ -93,7 +95,7 @@ export function MidiClipEditorPianoRoll({
           const num = Math.floor((TOTAL_HEIGHT - e.offsetY) / noteHeight);
           const startTick = Math.max(
             0,
-            snapPulses(project, e, Math.floor(clip.detailedViewport.pxToPulses(e.offsetX))),
+            snapPulses(project, e, Math.floor(clip.detailedViewport.pxToPulses(e.offsetX)), "floor"),
           );
           // create the note live so it renders and can be sized by dragging; committed on up
           const note = midiClip.addNote(clip, startTick, num, DEFAULT_NOTE_DURATION, 100);
@@ -294,16 +296,22 @@ export function MidiClipEditorPianoRoll({
         }
         const TOTAL_HEIGHT = noteHeight * TOTAL_VERTICAL_NOTES;
         const noteNum = Math.floor((TOTAL_HEIGHT - e.offsetY) / noteHeight);
-        const DEFAULT_NOTE_WIDTH = clip.detailedViewport.pulsesToPx(PPQN / 4);
-        const noteX = Math.floor(e.offsetX / DEFAULT_NOTE_WIDTH);
-        const tick = noteX * DEFAULT_NOTE_DURATION;
+        // same grid snapping (toggle, resolution, meta bypass) as the draw tool
+        const tick = Math.max(
+          0,
+          snapPulses(project, e, Math.floor(clip.detailedViewport.pxToPulses(e.offsetX)), "floor"),
+        );
 
         history.record("draw note", () => {
           midiClip.addNotes(clip, [[tick, noteNum, DEFAULT_NOTE_DURATION, 100]]);
           midiTrack.flushAllClipStateToProcessor(track);
         });
+        if (project.hearNotes.get()) {
+          midiTrack.noteOn(track, noteNum);
+          setTimeout(() => midiTrack.noteOff(track, noteNum), DBLCLICK_AUDITION_MS);
+        }
       },
-      [clip, noteHeight, project.panelTool, track],
+      [clip, noteHeight, project, track],
     ),
   );
 

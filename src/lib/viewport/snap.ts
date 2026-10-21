@@ -33,9 +33,16 @@ export function snapToTempo(project: AudioProject, s: number) {
 /**
  * Snaps an absolute pulse value to the piano-roll grid, honoring the MIDI editor's snap
  * toggle (`project.midi.snap`) and the meta-key bypass convention (holding meta inverts it).
- * Returns `pulses` unchanged when snapping is off.
+ * Returns `pulses` unchanged when snapping is off. `"round"` snaps to the nearest grid line (for
+ * drags); `"floor"` snaps to the start of the cell containing `pulses` (for click-to-create, so the
+ * note lands in the cell that was clicked).
  */
-export function snapPulses(project: AudioProject, e: MouseEvent, pulses: number): number {
+export function snapPulses(
+  project: AudioProject,
+  e: MouseEvent,
+  pulses: number,
+  mode: "round" | "floor" = "round",
+): number {
   let snap = project.midi.snap.get();
   if (e.metaKey) {
     snap = !snap;
@@ -47,5 +54,5 @@ export function snapPulses(project: AudioProject, e: MouseEvent, pulses: number)
   if (division <= 0) {
     return pulses;
   }
-  return Math.round(pulses / division) * division;
+  return (mode === "floor" ? Math.floor : Math.round)(pulses / division) * division;
 }
