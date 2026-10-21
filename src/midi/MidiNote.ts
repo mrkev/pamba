@@ -28,8 +28,12 @@ export class MidiNote extends Structured<AutoMidiNote, typeof MidiNote> {
     };
   }
 
-  override replace(json: JSONOfAuto<AutoMidiNote>, replace: ReplaceFunctions): void {
-    throw new Error("Unimplemented");
+  // Called by undo/redo to restore a snapshot.
+  override replace(json: JSONOfAuto<AutoMidiNote>, _replace: ReplaceFunctions): void {
+    this._tick = json.tick;
+    this._number = json.number;
+    this._duration = json.duration;
+    this._velocity = json.velocity;
   }
 
   static construct(auto: JSONOfAuto<AutoMidiNote>, init: InitFunctions): MidiNote {
