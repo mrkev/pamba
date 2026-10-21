@@ -419,10 +419,16 @@ function PianoRollView({
   const visTop = scrollTopPx - VIRTUALIZE_OVERSCAN_PX;
   const visBottom = scrollTopPx + viewportHeight + VIRTUALIZE_OVERSCAN_PX;
   const isNoteVisible = (note: MidiNote): boolean => {
-    if (!measured || clipSel.has(note)) {
+    if (clipSel.has(note)) {
       return true;
     }
     const [tick, num, duration] = note.t;
+    return isInView(tick, num, duration);
+  };
+  function isInView(tick: number, num: number, duration: number): boolean {
+    if (!measured) {
+      return true;
+    }
     const left = tick * pxPerPulse;
     const right = left + duration * pxPerPulse;
     if (right < visLeft || left > visRight) {
@@ -431,7 +437,8 @@ function PianoRollView({
     const noteTop = totalHeight - (num + 1) * noteHeight;
     const noteBottom = totalHeight - num * noteHeight;
     return noteBottom >= visTop && noteTop <= visBottom;
-  };
+  }
+  const otherClips = useContainer(track.clips).filter((c) => c !== clip);
 
   return (
     <div
@@ -447,6 +454,19 @@ function PianoRollView({
     >
       {/* background with lines */}
       <MidiEditorGridBackground clip={clip} project={project} />
+
+      {/* ghost notes: the track's other clips, faded, at their position relative to this clip */}
+      {otherClips.map((other) => (
+        <GhostClipNotes
+          key={other._id}
+          other={other}
+          clip={clip}
+          project={project}
+          noteHeight={noteHeight}
+          pxPerPulse={pxPerPulse}
+          isInView={isInView}
+        />
+      ))}
 
       {/* notes (only those intersecting the viewport; see isNoteVisible) */}
       {notes.filter(isNoteVisible).map((note) => {
@@ -465,4 +485,49 @@ function PianoRollView({
       {children}
     </div>
   );
+}
+
+/**
+ * Read-only, faded notes from another clip on the same track, laid out relative to the edited
+ * clip's start (so notes before it land at negative x, offscreen to the left). Culled like the
+ * real notes, and never interactive.
+ */
+function GhostClipNotes({
+  other,
+  clip,
+  project,
+  noteHeight,
+  pxPerPulse,
+  isInView,
+}: {
+  other: MidiClip;
+  clip: MidiClip;
+  project: AudioProject;
+  noteHeight: number;
+  pxPerPulse: number;
+  isInView: (tick: number, num: number, duration: number) => boolean;
+}) {
+  const notes = useContainer(other.buffer.notes);
+  const otherStart = useContainer(other.timelineStart);
+  const clipStart = useContainer(clip.timelineStart);
+  const offset = otherStart.pulses(project) - clipStart.pulses(project);
+
+  return notes.map((note) => {
+    const [tick, num, duration] = note.t;
+    if (!isInView(tick + offset, num, duration)) {
+      return null;
+    }
+    return (
+      <div
+        key={note._id}
+        className="absolute pointer-events-none box-border border border-white/30 bg-white/15"
+        style={{
+          bottom: num * noteHeight - 1,
+          left: (tick + offset) * pxPerPulse,
+          height: noteHeight + 1,
+          width: duration * pxPerPulse + 1,
+        }}
+      />
+    );
+  });
 }

@@ -1,4 +1,9 @@
 export const changelog = `
+next
+- piano keys have labels now (C3, C4...)
+- black/white keys were upside down in the midi editor lol, fixed
+- see other clips' notes faded in the midi editor
+
 v3.4.0
 - fix control to set tempo
 - ableton-style midi clip editor axis drag to zoom/pan
