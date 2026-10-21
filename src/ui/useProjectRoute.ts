@@ -1,114 +1,91 @@
-import { useCallback, useEffect, useRef } from "react";
-import { BlockerFunction, useBlocker, useNavigate } from "react-router";
+import { useEffect } from "react";
+import { useNavigate } from "react-router";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { projectPersistance } from "../lib/ProjectPersistance";
 import { closeProject } from "./header/closeProject";
 
 type ProjectStatus = ReturnType<typeof appEnvironment.projectStatus.get>;
 
-/** The `/project/<id>` route shape and its inverse — the one place that owns it. */
+/** The `/project/<id>` route shape — the one place that owns it. */
 export function projectPath(id: string): string {
   return `/project/${id}`;
 }
-function projectIdOfPath(pathname: string): string | null {
-  const match = /^\/project\/([^/]+)$/.exec(pathname);
-  return match ? decodeURIComponent(match[1]) : null;
-}
 
 /**
- * Binds the open project to `/#/project/<id>` and protects unsaved work. Composes three concerns
- * (each a hook below): keep URL and project in sync, confirm before the browser leaves a project,
+ * Binds the open project to `/#/project/<id>` and protects unsaved work. Composes two concerns
+ * (each a hook below): keep URL and project in sync (confirming before the URL switches projects),
  * and warn on full-page exits.
  */
 export function useProjectRoute(projectId: string | undefined, projectStatus: ProjectStatus): void {
   useProjectUrlSync(projectId, projectStatus);
-  useLeaveProjectGuard();
   useUnsavedChangesUnloadGuard();
 }
 
 /**
- * Two-way sync between the URL and the loaded project. Each direction is a no-op once the ids
- * match, so they settle instead of ping-ponging:
- * - URL → project: open whatever the URL names (reload, bookmark, back/forward).
+ * Two-way sync between the URL and the loaded project. Each direction only reacts to its own side
+ * changing, so a URL edit isn't immediately undone by the project → URL direction:
+ * - URL → project: open whatever the URL names (reload, bookmark, back/forward, editing the hash),
+ *   with the "Save changes?" confirmation (the same one the Library uses) if a different project is
+ *   open. Cancelling points the URL back at the open project. Routes that name no project
+ *   (`/`, `/midi`, …) just point back at the open project, since nothing would be lost.
  * - project → URL: point the address bar at whatever just loaded, however it was opened.
+ *
+ * This can't be a react-router `useBlocker`: the router only ever `replace`s, so every history
+ * entry is browser-created (hash edits, initial load), and blockers can't undo POP navigations to
+ * entries the router didn't create.
  */
 function useProjectUrlSync(projectId: string | undefined, projectStatus: ProjectStatus): void {
   const navigate = useNavigate();
 
-  // URL → project
+  // URL → project. Reads the active project at run time rather than depending on it: when an in-app
+  // open loads a new project, the URL still names the old one until project → URL catches up, and
+  // that's not a request to switch back.
   useEffect(() => {
-    if (projectId == null || appEnvironment.activeProject()?.projectId === projectId) {
+    if (appEnvironment.activeProject()?.projectId === projectId) {
       return;
     }
     let cancelled = false;
     void (async () => {
       await appEnvironment.readyPromise; // localFiles must be initialized before opening
+      const active = appEnvironment.activeProject();
       // Re-check: we were cancelled, or an in-app action opened it while we waited.
-      if (cancelled || appEnvironment.activeProject()?.projectId === projectId) {
+      if (cancelled || active?.projectId === projectId) {
         return;
+      }
+      if (projectId == null) {
+        if (active != null) {
+          void navigate(projectPath(active.projectId), { replace: true });
+        }
+        return;
+      }
+      if (active != null) {
+        const proceed = await closeProject(active);
+        if (cancelled) {
+          return; // the URL moved on while we were asking; the newer run handles it
+        }
+        if (!proceed) {
+          void navigate(projectPath(active.projectId), { replace: true });
+          return;
+        }
       }
       await projectPersistance.openProject(projectId, false);
     })();
     return () => {
       cancelled = true;
     };
-  }, [projectId]);
+  }, [projectId, navigate]);
 
   // project → URL
+  const loadedId = projectStatus.status === "loaded" ? projectStatus.project.projectId : null;
   useEffect(() => {
-    if (projectStatus.status !== "loaded") {
-      return;
-    }
-    const loadedId = projectStatus.project.projectId;
-    if (projectId !== loadedId) {
+    if (loadedId != null) {
       void navigate(projectPath(loadedId), { replace: true });
     }
-  }, [projectStatus, projectId, navigate]);
+  }, [loadedId, navigate]);
 }
 
 /**
- * "Save changes?" confirmation (the same one the Library uses) when the *browser* leaves the open
- * project — back/forward, editing the hash, heading to the landing page. In-app opens swap the
- * active project before the URL changes, so by the time that navigation fires it already matches
- * the active project and isn't blocked; that's what keeps this from double-prompting.
- */
-function useLeaveProjectGuard(): void {
-  const shouldBlock = useCallback<BlockerFunction>(({ currentLocation, nextLocation }) => {
-    const active = appEnvironment.activeProject();
-    if (active == null || currentLocation.pathname === nextLocation.pathname) {
-      return false; // nothing open to lose, or our own same-URL replace-sync
-    }
-    // Navigating to the project that's already open loses nothing.
-    return projectIdOfPath(nextLocation.pathname) !== active.projectId;
-  }, []);
-
-  const blocker = useBlocker(shouldBlock);
-
-  const handlingRef = useRef(false); // one confirmation per blocked navigation
-  useEffect(() => {
-    if (blocker.state !== "blocked") {
-      handlingRef.current = false;
-      return;
-    }
-    if (handlingRef.current) {
-      return;
-    }
-    handlingRef.current = true;
-
-    const active = appEnvironment.activeProject();
-    void (async () => {
-      const proceed = active == null || (await closeProject(active));
-      if (proceed) {
-        blocker.proceed();
-      } else {
-        blocker.reset();
-      }
-    })();
-  }, [blocker]);
-}
-
-/**
- * Native unsaved-changes prompt for full-page exits (reload, tab close) that the in-app blocker
+ * Native unsaved-changes prompt for full-page exits (reload, tab close) that the in-app sync
  * can't reach — the browser only allows its own generic dialog here. Reads dirty state at fire
  * time, so registering once is enough.
  */
