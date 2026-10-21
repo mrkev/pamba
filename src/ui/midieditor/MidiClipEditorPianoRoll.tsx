@@ -37,6 +37,9 @@ const VIRTUALIZE_OVERSCAN_PX = 128;
 // How long a double-click-created note sounds when "hear notes" is on (there's no drag to hold it).
 const DBLCLICK_AUDITION_MS = 200;
 
+// A draw-tool press that moves less than this is a click (note gets the last length), not a drag.
+const DRAW_DRAG_THRESHOLD_PX = 3;
+
 export function MidiClipEditorPianoRoll({
   clip,
   track,
@@ -73,9 +76,13 @@ export function MidiClipEditorPianoRoll({
   const cursorPulsesInClip = secsToPulsesExact(cursorPos, bpm) - timelineStart.pulses(project);
   const cursorInClip = cursorPulsesInClip >= 0 && cursorPulsesInClip <= timelineLength.pulses(project);
 
-  // duration (in pulses) of a draw gesture given the current pointer x, snapped to grid
+  // Duration (in pulses) of a draw gesture given the current pointer x, snapped to grid. A click
+  // (no real drag) uses the last drawn/resized length; a drag sizes the note to the pointer.
   const drawDuration = useCallback(
     (e: PointerEvent, startTick: number, downX: number) => {
+      if (Math.abs(e.clientX - downX) < DRAW_DRAG_THRESHOLD_PX) {
+        return project.midi.lastNoteDuration.get();
+      }
       const pointerTick = startTick + Math.floor(clip.detailedViewport.pxToPulses(e.clientX - downX));
       const endTick = snapPulses(project, e, pointerTick);
       return Math.max(DEFAULT_NOTE_DURATION, endTick - startTick);
@@ -98,7 +105,7 @@ export function MidiClipEditorPianoRoll({
             snapPulses(project, e, Math.floor(clip.detailedViewport.pxToPulses(e.offsetX)), "floor"),
           );
           // create the note live so it renders and can be sized by dragging; committed on up
-          const note = midiClip.addNote(clip, startTick, num, DEFAULT_NOTE_DURATION, 100);
+          const note = midiClip.addNote(clip, startTick, num, project.midi.lastNoteDuration.get(), 100);
           drawGestureRef.current = { note, startTick };
           if (project.hearNotes.get()) {
             midiTrack.noteOn(track, num);
@@ -130,6 +137,7 @@ export function MidiClipEditorPianoRoll({
         if (draw != null) {
           drawGestureRef.current = null;
           const duration = drawDuration(ev, draw.startTick, meta.downX);
+          project.midi.lastNoteDuration.set(duration);
           const num = draw.note.number;
           // commit as one undo entry: drop the live note, then record its creation at the final size
           midiClip.removeNote(clip, draw.note);
@@ -164,7 +172,8 @@ export function MidiClipEditorPianoRoll({
         );
 
         project.secondarySelection.set({ status: "notes", clip, track });
-        clip.selectedNotes._replace(() => new Set(notes));
+        // shift+box adds to the current selection; a plain box replaces it
+        clip.selectedNotes._replace((prev) => (ev.shiftKey ? new Set([...prev, ...notes]) : new Set(notes)));
 
         setSelectionBox(null);
       },
@@ -270,8 +279,11 @@ export function MidiClipEditorPianoRoll({
         if (project.panelTool.get() !== "move" || e.target !== editorContainerRef.current) {
           return;
         }
-        project.secondarySelection.set(null);
-        clip.selectedNotes.clear();
+        // shift keeps the selection, so a shift+box can add to it
+        if (!e.shiftKey) {
+          project.secondarySelection.set(null);
+          clip.selectedNotes.clear();
+        }
 
         // `offsetX` is relative to the container, which scrolls with the notes, so it's already
         // in the same clip-relative space they're laid out in. Snap like the draw tool does, then
@@ -303,7 +315,7 @@ export function MidiClipEditorPianoRoll({
         );
 
         history.record("draw note", () => {
-          midiClip.addNotes(clip, [[tick, noteNum, DEFAULT_NOTE_DURATION, 100]]);
+          midiClip.addNotes(clip, [[tick, noteNum, project.midi.lastNoteDuration.get(), 100]]);
           midiTrack.flushAllClipStateToProcessor(track);
         });
         if (project.hearNotes.get()) {

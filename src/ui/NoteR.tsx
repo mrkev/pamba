@@ -208,7 +208,13 @@ function resizeMove(e: PointerEvent, re: NoteEditEvent) {
 }
 
 function resizeUp(e: PointerEvent, re: NoteEditEvent) {
-  midiClip.resizeNotes(re.target.track, re.target.clip, re.original.notes, resizeDeltaDuration(e, re));
+  const deltaDuration = resizeDeltaDuration(e, re);
+  midiClip.resizeNotes(re.target.track, re.target.clip, re.original.notes, deltaDuration);
+  // the draw tool reuses the last resized length for new notes
+  const anchor = re.original.notes.get(re.target.note);
+  if (anchor != null && deltaDuration !== 0) {
+    re.target.project.midi.lastNoteDuration.set(Math.max(NOTE_MIN_SIZE_PULSES, anchor[2] + deltaDuration));
+  }
 }
 
 /** MOVING */
@@ -223,6 +229,18 @@ function moveDown(e: PointerEvent, re: NoteEditStartEvent): void | "abort" {
   // draw tool: clicking an existing note deletes it (no move/selection gesture)
   if (project.panelTool.get() === "draw") {
     midiClip.deleteNotes(track, clip, [note]);
+    return "abort";
+  }
+
+  // shift+click toggles the note in/out of the selection (no move gesture)
+  if (e.shiftKey) {
+    if (clip.selectedNotes.has(note)) {
+      clip.selectedNotes.delete(note);
+    } else {
+      clip.selectedNotes.add(note);
+    }
+    project.secondarySelection.set({ status: "notes", clip, track });
+    project.activePanel.set("secondary");
     return "abort";
   }
 

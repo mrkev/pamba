@@ -1,4 +1,5 @@
 import { SPrimitive, history } from "structured-state";
+import { DEFAULT_NOTE_DURATION } from "../../constants";
 import { MidiClip } from "../../midi/MidiClip";
 import { midiClip } from "../../midi/MidiClipFn";
 import { MidiTrack, midiTrack } from "../../midi/MidiTrack";
@@ -32,6 +33,9 @@ export class ProjectMidi {
   // step in pulses (default 1/16 note). Runtime-only (not serialized).
   readonly snap = SPrimitive.of<boolean>(true);
   readonly snapDivision = SPrimitive.of<number>(PPQN / 4);
+  // Length (in pulses) for click-created notes: the last length drawn or resized in the piano
+  // roll, like Ableton/Logic. Runtime-only.
+  readonly lastNoteDuration = SPrimitive.of<number>(DEFAULT_NOTE_DURATION);
 
   constructor(
     //
