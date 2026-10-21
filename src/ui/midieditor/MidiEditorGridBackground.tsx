@@ -5,7 +5,7 @@ import { AudioProject } from "../../lib/project/AudioProject";
 import { MidiClip } from "../../midi/MidiClip";
 import { PPQN } from "../../wam/miditrackwam/MIDIConfiguration";
 import { ResponsiveCanvas } from "./ResponsiveCanvas";
-import { keyboardColorOfNote, NOTES } from "./VerticalPianoRollKeys";
+import { keyboardColorOfNote, noteStrOfNumber } from "./VerticalPianoRollKeys";
 
 // Grid line colors, strongest to weakest.
 const BAR_LINE_COLOR = "#ccc";
@@ -31,8 +31,7 @@ export function MidiEditorGridBackground({ clip, project }: { clip: MidiClip; pr
       ctx.scale(CANVAS_SCALE, CANVAS_SCALE);
 
       for (let n = 0; n < TOTAL_VERTICAL_NOTES; n++) {
-        const noteStr = NOTES[n % NOTES.length];
-        const noteKind = keyboardColorOfNote(noteStr, false);
+        const noteKind = keyboardColorOfNote(noteStrOfNumber(TOTAL_VERTICAL_NOTES - n - 1), false);
         const color = noteKind === "black" ? "#555" : "#666";
 
         // One row per note, shaded like the key it lines up with in `VerticalPianoRollKeys`
