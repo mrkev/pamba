@@ -1,8 +1,6 @@
 allowBuilds:
-  '@firebase/util': true
   '@parcel/watcher': true
   esbuild: true
-  protobufjs: true
 minimumReleaseAgeExclude:
   - '@typescript-eslint/eslint-plugin@8.63.0'
   - '@typescript-eslint/parser@8.63.0'
@@ -42,7 +40,5 @@ minimumReleaseAgeExclude:
   - '@rollup/rollup-win32-x64-msvc@4.62.3'
   - rollup@4.62.3
 onlyBuiltDependencies:
-  - '@firebase/util'
   - '@parcel/watcher'
   - esbuild
-  - protobufjs

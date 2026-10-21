@@ -1,10 +1,6 @@
-import { StorageReference, listAll, ref } from "firebase/storage";
 import type { IFormat } from "music-metadata";
-import { useMemo } from "react";
 import { AudioPackage } from "../../data/AudioPackage";
-import { AsyncResultStatus, useAsyncResult } from "../../ui/useAsyncResult";
 import { appEnvironment } from "../AppEnvironment";
-import type { AudioProject } from "./AudioProject";
 
 export class AudioStorage {
   private constructor() {}
@@ -61,28 +57,4 @@ export function uploadErrorMessage(error: Error | string, fileName: string): str
     default:
       return `Couldn't add "${fileName}": ${code}`;
   }
-}
-
-export function useListProjectAudioFiles(
-  project: AudioProject,
-  firebaseStoreRef?: StorageReference,
-): AsyncResultStatus<StorageReference[]> {
-  const filesPromise = useMemo(() => {
-    if (!firebaseStoreRef) {
-      return null;
-    }
-
-    const location = `project/${project.projectId}/audio`;
-    const files = listAll(ref(firebaseStoreRef, location))
-      .then((files) => files.items)
-      .catch((err) => {
-        throw err;
-      });
-
-    return files;
-  }, [firebaseStoreRef, project.projectId]);
-
-  const audioFiles = useAsyncResult(filesPromise);
-
-  return audioFiles;
 }

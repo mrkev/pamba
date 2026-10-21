@@ -1,14 +1,11 @@
-import { FirebaseApp } from "firebase/app";
-import { Auth, User, getAuth } from "firebase/auth";
 import { MarkedSet, MarkedValue } from "marked-subbable";
 import { DirtyObserver, SPrimitive, array } from "structured-state";
-import { FIREBASE_ENABLED, MAX_NUMBER_OF_TRACKS, PRO54_URL, SOUND_FONT_URL } from "../constants";
+import { MAX_NUMBER_OF_TRACKS, PRO54_URL, SOUND_FONT_URL } from "../constants";
 import { ProjectPackage } from "../data/ProjectPackage";
 import { LocalFilesystem } from "../data/localFilesystem";
 import { FAUST_EFFECTS } from "../dsp/FAUST_EFFECTS";
 import { FaustAudioEffect } from "../dsp/FaustAudioEffect";
 import { ensureError } from "../ensureError";
-import { initFirebaseApp } from "../firebase/firebaseConfig";
 import type { MidiInstrument } from "../midi/MidiInstrument";
 import { isInstrumentPlugin } from "../midi/isInstrumentPlugin";
 import { LocalMValue } from "../ui/useLocalStorage";
@@ -38,10 +35,6 @@ type MidiLearningStatus =
 export class AppEnvironment {
   readonly status: SPrimitive<Status>;
   public readyPromise: Promise<void>;
-  // Firebase
-  readonly firebaseApp: FirebaseApp | null;
-  readonly firebaseAuth: Auth | null;
-  readonly firebaseUser = SPrimitive.of<User | null>(null);
   // Plugins
   readonly wamHostGroup = MarkedValue.create<[id: string, key: string] | null>(null);
   readonly wamStatus = MarkedValue.create<"loading" | "ready">("loading");
@@ -80,14 +73,6 @@ export class AppEnvironment {
   >({ status: "pending" });
 
   constructor() {
-    if (FIREBASE_ENABLED) {
-      this.firebaseApp = initFirebaseApp();
-      this.firebaseAuth = getAuth(this.firebaseApp);
-    } else {
-      this.firebaseApp = null;
-      this.firebaseAuth = null;
-    }
-
     this.openEffects = MarkedSet.create();
     this.status = SPrimitive.of({ is: "initing" });
     this.projectStatus = SPrimitive.of<ProjectState>({ status: "idle" });

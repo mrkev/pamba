@@ -30,7 +30,6 @@
     "d3-axis": "3.0.0",
     "d3-scale": "^4.0.2",
     "eslint-plugin-react-refresh": "^0.5.7",
-    "firebase": "12.19.0",
     "marked-subbable": "file:../substate/packages/marked-subbable",
     "midi-file": "^1.2.4",
     "music-metadata": "^11.16.1",
