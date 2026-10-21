@@ -1,5 +1,4 @@
 import { useLinkAsState } from "marked-subbable";
-import { usePrimitive } from "structured-state";
 import { AudioClip } from "../lib/AudioClip";
 import { AudioTrack } from "../lib/AudioTrack";
 import { AnalizedPlayer } from "../lib/io/AnalizedPlayer";
@@ -29,7 +28,6 @@ export function BottomPanel({
   player: AnalizedPlayer;
   renderer: AudioRenderer;
 }) {
-  const [activeTrack] = usePrimitive(project.activeTrack);
   const [selected] = useLinkAsState(project.selected);
   const primarySelection = getValidEditorSelection(selected);
 
@@ -70,9 +68,6 @@ export function BottomPanel({
     default:
     // exhaustive(primarySelection?.[0]);
   }
-
-  // const clip = activeTrack.pianoRoll.sequencer.pianoRoll.clips["default"];
-  // return <OldMidiClipEditor clip={clip} player={player} />;
 }
 function getValidEditorSelection(selected: PrimarySelectionState | null): BottomPanelDisplay | null {
   if (selected == null) {
