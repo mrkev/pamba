@@ -12,8 +12,8 @@ importers:
         specifier: ^1.9.0
         version: 1.9.0(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       '@grame/faustwasm':
-        specifier: ^0.16.6
-        version: 0.16.6
+        specifier: ^0.19.0
+        version: 0.19.0
       '@react-hook/resize-observer':
         specifier: ^2.0.2
         version: 2.0.2(react@19.3.1)
@@ -804,8 +804,8 @@ packages:
   '@floating-ui/utils@0.2.12':
     resolution: {integrity: sha512-HpCo8tmWzLVad5s2d19EhAz5zqrrQ6s69qd6moPMQvkOuSwDT1YgRfWSVuc4ennqrgv3OHppiOGMQ7oC13yIww==}
 
-  '@grame/faustwasm@0.16.6':
-    resolution: {integrity: sha512-g6kBMW+syyf8IGvScATeEZlDZzjtaMgoe4ykEg/GHckAcKcU0RviYR6yljm6vD5KxUrbGXCIegnWd8ZH4z+kgA==}
+  '@grame/faustwasm@0.19.0':
+    resolution: {integrity: sha512-jCng2xwxtrfkleF5lSl5krwQGTnr/VhFvUVm06f2tvrXm3uKagQe4FaY//+g0c3gosQLBj7V78FuPN6KnnaZzw==}
     hasBin: true
 
   '@humanfs/core@0.19.1':
@@ -5222,7 +5222,7 @@ snapshots:
 
   '@floating-ui/utils@0.2.12': {}
 
-  '@grame/faustwasm@0.16.6':
+  '@grame/faustwasm@0.19.0':
     dependencies:
       '@types/emscripten': 1.41.6
 
