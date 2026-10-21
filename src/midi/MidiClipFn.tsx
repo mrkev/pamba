@@ -212,6 +212,43 @@ function moveSelectedNotes(track: MidiTrack, clip: MidiClip, deltaTick: number, 
   moveNotes(track, clip, moves, deltaTick, deltaNumber);
 }
 
+/**
+ * Snaps the start of each of `notes` to the nearest multiple of `division` pulses (durations are
+ * kept). One undo entry; flushes to the processor. No-op if nothing would move.
+ */
+function quantizeNotes(track: MidiTrack, clip: MidiClip, notes: Iterable<MidiNote>, division: number) {
+  if (division <= 0) {
+    return;
+  }
+  const moves = new Map<MidiNote, number>();
+  for (const note of notes) {
+    const tick = Math.round(note.tick / division) * division;
+    if (tick !== note.tick) {
+      moves.set(note, tick);
+    }
+  }
+  if (moves.size === 0) {
+    return;
+  }
+  history.record("quantize notes", () => {
+    for (const [note, tick] of moves) {
+      note.tick = tick;
+    }
+    for (const note of moves.keys()) {
+      carveOverlaps(clip, moves, note);
+    }
+    clip.buffer.clearCache();
+    clip.notifyChange();
+    midiTrack.flushAllClipStateToProcessor(track);
+  });
+}
+
+/** Quantizes the clip's selected notes (or all of them, if none are selected) to the piano-roll grid. */
+function quantizeSelectedOrAll(project: AudioProject, track: MidiTrack, clip: MidiClip) {
+  const notes = clip.selectedNotes.size > 0 ? [...clip.selectedNotes] : [...clip.buffer.notes._getRaw()];
+  quantizeNotes(track, clip, notes, project.midi.snapDivision.get());
+}
+
 export const NOTE_MIN_VELOCITY = 1;
 export const NOTE_MAX_VELOCITY = 127;
 /**
@@ -319,6 +356,8 @@ export const midiClip = {
   resizeNotes,
   moveSelectedNotes,
   deleteNotes,
+  quantizeNotes,
+  quantizeSelectedOrAll,
   setVelocities,
   duplicateNotes,
   pasteNotes,

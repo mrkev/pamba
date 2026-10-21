@@ -220,6 +220,18 @@ export const documentCommands = CommandBlock.create(["Project", "Edit", "Tools",
       .helptext("Transpose down an octave")
       .section("Edit"),
 
+    quantizeNotes: command(["KeyU", "meta"], (e, project) => {
+      const ctx = activeMidiEditor(project);
+      if (ctx == null) {
+        return;
+      }
+      e?.preventDefault();
+      midiClip.quantizeSelectedOrAll(project, ctx.track, ctx.clip);
+    })
+      .when((project) => activeMidiEditor(project) != null)
+      .helptext("Quantize notes to grid")
+      .section("Edit"),
+
     duplicateSelection: command(["KeyD", "meta"], (e, project) => {
       e?.preventDefault();
       // in the MIDI editor, duplicate the selected notes; otherwise fall back to clip/track duplicate

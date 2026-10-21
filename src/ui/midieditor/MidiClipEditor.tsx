@@ -4,9 +4,11 @@ import { MIDI_CLIP_EDITOR_MAX_H_SCALE } from "../../constants";
 import { AnalizedPlayer } from "../../lib/io/AnalizedPlayer";
 import { AudioProject } from "../../lib/project/AudioProject";
 import { MidiClip } from "../../midi/MidiClip";
+import { midiClip } from "../../midi/MidiClipFn";
 import { midiTrack, MidiTrack } from "../../midi/MidiTrack";
 import { PPQN } from "../../wam/miditrackwam/MIDIConfiguration";
 import { ClipPropsEditor, EditorSection } from "../ClipPropsEditor";
+import { utility } from "../utility";
 import { UtilitySToggle, UtilityToggle } from "../UtilityToggle";
 import { MidiClipEditorPianoRoll } from "./MidiClipEditorPianoRoll";
 
@@ -125,6 +127,13 @@ export function MidiClipEditor({
             <option value={PPQN / 3}>1/8T</option>
             <option value={PPQN / 6}>1/16T</option>
           </select>
+          <button
+            className={utility.button}
+            title={"quantize to grid (selected notes, or all if none selected)"}
+            onClick={() => midiClip.quantizeSelectedOrAll(project, track, clip)}
+          >
+            quantize
+          </button>
           <div className="grow"></div>
           <input
             type="range"
