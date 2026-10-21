@@ -26,6 +26,14 @@ type NoteEditOriginals = {
 /** vertical px the pointer travels per unit of MIDI velocity while alt-dragging a note */
 const VELOCITY_DRAG_PX_PER_UNIT = 2;
 
+/** note opacity at the lowest velocity; the full velocity range maps linearly onto [this, 1] */
+const MIN_VELOCITY_OPACITY = 0.3;
+
+function opacityOfVelocity(velocity: number): number {
+  const t = (velocity - NOTE_MIN_VELOCITY) / (NOTE_MAX_VELOCITY - NOTE_MIN_VELOCITY);
+  return MIN_VELOCITY_OPACITY + (1 - MIN_VELOCITY_OPACITY) * clamp(0, t, 1);
+}
+
 export function NoteR({
   note,
   clip,
@@ -131,7 +139,7 @@ export function NoteR({
         left: clip.detailedViewport.pulsesToPx(tick),
         height: noteHeight + 1,
         width: clip.detailedViewport.pulsesToPx(duration) + 1,
-        opacity: velocity / 100,
+        opacity: opacityOfVelocity(velocity),
         ...style,
       }}
     >
