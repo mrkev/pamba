@@ -7,17 +7,25 @@ import { PPQN } from "../../wam/miditrackwam/MIDIConfiguration";
 import { ResponsiveCanvas } from "./ResponsiveCanvas";
 import { keyboardColorOfNote, NOTES } from "./VerticalPianoRollKeys";
 
-// TODO: Virtualize this
+// Grid line colors, strongest to weakest.
+const BAR_LINE_COLOR = "#ccc";
+const BEAT_LINE_COLOR = "#999";
+const DIVISION_LINE_COLOR = "#777";
+
+// Skip grid-resolution lines narrower than this, so zooming out doesn't turn the grid into a smear.
+const MIN_DIVISION_LINE_SPACING_PX = 4;
+
 export function MidiEditorGridBackground({ clip, project }: { clip: MidiClip; project: AudioProject }) {
   const [noteHeight] = usePrimitive(clip.detailedViewport.pxNoteHeight);
   const timelineLen = useContainer(clip.timelineLength);
   const [pxPerPulse] = usePrimitive(clip.detailedViewport.pxPerPulse);
   const [scrollLeftPx] = usePrimitive(clip.detailedViewport.scrollLeftPx);
+  const [snapDivision] = usePrimitive(project.midi.snapDivision);
+  const [timeSignature] = usePrimitive(project.timeSignature);
 
   const drawFn = useCallback(
     (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
       ctx.scale(CANVAS_SCALE, CANVAS_SCALE);
-      ctx.strokeStyle = "#bbb";
 
       for (let n = 0; n < TOTAL_VERTICAL_NOTES; n++) {
         const noteStr = NOTES[n % NOTES.length];
@@ -30,16 +38,19 @@ export function MidiEditorGridBackground({ clip, project }: { clip: MidiClip; pr
         ctx.fillRect(0, n * noteHeight, canvas.width, noteHeight);
       }
 
-      for (let i = 0; i <= timelineLen.pulses(project); i += PPQN / 4) {
-        if (i === 0) {
-          continue;
-        } else if (i % 8 === 0) {
-          ctx.strokeStyle = "#bbb";
-        } else {
-          ctx.strokeStyle = "#888";
-        }
-        const x = pxPerPulse * i + 0.5 - scrollLeftPx;
+      // Vertical lines at the snap resolution, with beats and bars drawn stronger, so the grid shows
+      // where notes will snap to. Falls back to beat lines when the resolution is too dense to see.
+      // The canvas spans the visible width, so only lines in [scrollLeftPx, scrollLeftPx + width].
+      const pulsesPerBar = PPQN * timeSignature[0];
+      const step = snapDivision > 0 && snapDivision * pxPerPulse >= MIN_DIVISION_LINE_SPACING_PX ? snapDivision : PPQN;
+      const visibleWidthPx = canvas.width / (window.devicePixelRatio || 1);
+      const firstPulse = Math.max(step, Math.ceil(scrollLeftPx / pxPerPulse / step) * step);
+      const lastPulse = Math.min(timelineLen.pulses(project), (scrollLeftPx + visibleWidthPx) / pxPerPulse);
 
+      for (let pulse = firstPulse; pulse <= lastPulse; pulse += step) {
+        ctx.strokeStyle =
+          pulse % pulsesPerBar === 0 ? BAR_LINE_COLOR : pulse % PPQN === 0 ? BEAT_LINE_COLOR : DIVISION_LINE_COLOR;
+        const x = Math.round(pxPerPulse * pulse - scrollLeftPx) + 0.5;
         ctx.beginPath();
         ctx.moveTo(x, 0);
         ctx.lineTo(x, canvas.height);
@@ -48,7 +59,7 @@ export function MidiEditorGridBackground({ clip, project }: { clip: MidiClip; pr
 
       ctx.scale(1, 1);
     },
-    [noteHeight, timelineLen, project, pxPerPulse, scrollLeftPx],
+    [noteHeight, timelineLen, project, pxPerPulse, scrollLeftPx, snapDivision, timeSignature],
   );
 
   return (
