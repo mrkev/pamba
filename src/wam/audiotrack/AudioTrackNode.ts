@@ -1,6 +1,6 @@
 import { WamEventMap, WebAudioModule } from "@webaudiomodules/api";
 import { EmptyObj } from "../../utils/types";
-import { WamNode } from "../../../packages/sdk/src";
+import { WamNode } from "@webaudiomodules/sdk";
 
 export class AudioTrackNode extends WamNode {
   override readonly _supportedEventTypes: Set<keyof WamEventMap> = new Set(["wam-automation", "wam-transport"]);

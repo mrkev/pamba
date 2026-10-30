@@ -1,5 +1,5 @@
 import { WamNode as IWamNode, WebAudioModule as IWebAudioModule } from "@webaudiomodules/api";
-import type { WebAudioModule } from "../../packages/sdk/dist";
+import type { WebAudioModule } from "@webaudiomodules/sdk";
 
 export type WAMImport = {
   prototype: WebAudioModule;

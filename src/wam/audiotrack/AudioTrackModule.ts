@@ -1,5 +1,5 @@
 import { WamNode } from "@webaudiomodules/api";
-import WebAudioModule from "../../../packages/sdk/src/WebAudioModule";
+import WebAudioModule from "@webaudiomodules/sdk/src/WebAudioModule.js";
 import { ignorePromise } from "../../utils/ignorePromise";
 import { EmptyObj } from "../../utils/types";
 import { AudioTrackNode } from "./AudioTrackNode";

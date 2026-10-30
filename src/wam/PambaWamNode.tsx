@@ -1,7 +1,7 @@
 import { WamNode as IWamNode, WamParameterDataMap, WamParameterInfoMap } from "@webaudiomodules/api";
 import { MarkedValue } from "marked-subbable";
 import { boolean, SString, string } from "structured-state";
-import type { WebAudioModule } from "../../packages/sdk/dist";
+import type { WebAudioModule } from "@webaudiomodules/sdk";
 import { DSPStep } from "../dsp/DSPStep";
 import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
 import { appEnvironment } from "../lib/AppEnvironment";

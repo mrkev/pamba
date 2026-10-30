@@ -1,8 +1,7 @@
 import type { AudioWorkletGlobalScope, WamTransportData } from "@webaudiomodules/api";
-import getWamProcessor from "../../../packages/sdk/src/WamProcessor";
+import getWamProcessor from "@webaudiomodules/sdk/src/WamProcessor.js";
 import { OrderedMap } from "../../lib/data/OrderedMap";
 import { AudioTrackProcessorMessage, SimpleAudioClip } from "./SharedAudioTrackTypes";
-// import { getWamProcessor } from "../../../packages/sdk/src";
 
 const MODULE_ID = "com.aykev.audiotrack";
 const audioWorkletGlobalScope: AudioWorkletGlobalScope = globalThis as unknown as AudioWorkletGlobalScope;
