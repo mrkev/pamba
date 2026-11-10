@@ -1,5 +1,5 @@
 export const changelog = `
-next
+v3.4.1
 - piano keys have labels now (C3, C4...)
 - black/white keys were upside down in the midi editor lol, fixed
 - see other clips' notes faded in the midi editor
