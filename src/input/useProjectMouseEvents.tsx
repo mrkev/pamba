@@ -14,7 +14,7 @@ import { clipMovePPQN, clipMoveSec, pointMovePulses, pointMoveSec } from "../lib
 import { AudioProject } from "../lib/project/AudioProject";
 import { pulsesToSec } from "../lib/project/TimelineT";
 import { standardTrack } from "../lib/StandardTrack";
-import { snapped, snapPulses } from "../lib/viewport/snap";
+import { shouldSnap, snapPulses, timelinePos } from "../lib/viewport/snap";
 import { standardViewport } from "../lib/viewport/StandardViewport";
 import { MidiClip } from "../midi/MidiClip";
 import { MidiTrack } from "../midi/MidiTrack";
@@ -166,7 +166,7 @@ export function useAxisContainerMouseEvents(
     shouldAbort: (e) => e.target instanceof Element && e.target.closest(".name-loop-rect") != null,
     onClick: (anchorPx, e) => {
       const asSecs = standardViewport.pxToSecs(vp, anchorPx + vp.scrollLeftPx.get(), "pos");
-      project.cursorPos.set(Math.max(0, snapped(project, e, asSecs)));
+      project.cursorPos.set(Math.max(0, timelinePos(project, shouldSnap(project, e), asSecs, "seconds")));
       project.selectionWidth.set(null);
       project.selected.set(null);
     },
@@ -202,6 +202,14 @@ export function useMidiAxisMouseEvents(
       project.selectionWidth.set(null);
     },
   });
+}
+
+/**
+ * Width of a time selection dragged from `startS` (snapped when pressed) by `deltaXSecs`:
+ * its end lands like any timeline position, and can't go before 0. Negative when dragged left.
+ */
+function selectionWidthSecs(project: AudioProject, e: MouseEvent, startS: number, deltaXSecs: number) {
+  return Math.max(0, timelinePos(project, shouldSnap(project, e), startS + deltaXSecs, "seconds")) - startS;
 }
 
 export function useTimelineMouseEvents(
@@ -247,7 +255,7 @@ export function useTimelineMouseEvents(
         };
 
         const asSecs = standardViewport.pxToSecs(project.viewport, position.x, "pos");
-        const newPos = Math.max(0, snapped(project, e, asSecs));
+        const newPos = Math.max(0, timelinePos(project, shouldSnap(project, e), asSecs, "seconds"));
 
         console.log("GLOBAL TIME");
         pressedState.set({
@@ -333,7 +341,7 @@ export function useTimelineMouseEvents(
           case "selecting_global_time": {
             const { startTime } = pressed;
             const deltaXSecs = standardViewport.pxToSecs(project.viewport, e.clientX - pressed.clientX, "len");
-            const selWidth = snapped(project, e, deltaXSecs);
+            const selWidth = selectionWidthSecs(project, e, startTime, deltaXSecs);
             pressedState.set(null);
 
             if (selWidth === 0) {
@@ -370,7 +378,7 @@ export function useTimelineMouseEvents(
 
           case "selecting_track_time": {
             const deltaXSecs = standardViewport.pxToSecs(project.viewport, e.clientX - pressed.clientX, "len");
-            const selWidthS = snapped(project, e, deltaXSecs);
+            const selWidthS = selectionWidthSecs(project, e, pressed.startTime, deltaXSecs);
 
             pressedState.set(null);
             const { startTime, track } = pressed;
@@ -432,8 +440,7 @@ export function useTimelineMouseEvents(
 
         switch (pressed.status) {
           case "moving_clip": {
-            // metaKey flips it
-            const snap = e.metaKey ? !project.snapToGrid.get() : project.snapToGrid.get();
+            const snap = shouldSnap(project, e);
             const deltaX = e.clientX - pressed.clientX;
 
             const previewClip = pressed.clipForRendering;
@@ -465,7 +472,7 @@ export function useTimelineMouseEvents(
 
           case "selecting_global_time": {
             const deltaXSecs = standardViewport.pxToSecs(project.viewport, e.clientX - pressed.clientX, "len");
-            const selWidth = snapped(project, e, deltaXSecs);
+            const selWidth = selectionWidthSecs(project, e, pressed.startTime, deltaXSecs);
             project.selectionWidth.set(selWidth);
             project.selected.set(null);
             // project.selected.set({ status: "time", start: pressed.startTime, end: pressed.startTime + deltaXSecs });
@@ -476,8 +483,7 @@ export function useTimelineMouseEvents(
             // "TimelinePoint obj: num + unit", standard moving behaviour
             // TODO: For: Markers, loop markers, clips, midi notes, etc
 
-            // metaKey flips it
-            const snap = e.metaKey ? !project.snapToGrid.get() : project.snapToGrid.get();
+            const snap = shouldSnap(project, e);
             const deltaX = e.clientX - pressed.clientX;
             const lowerLim = pressed.limit?.[0] ?? null;
             const upperLim = pressed.limit?.[1] ?? null;
@@ -530,7 +536,7 @@ export function useTimelineMouseEvents(
 
           case "selecting_track_time":
             const deltaXSecs = standardViewport.pxToSecs(project.viewport, e.clientX - pressed.clientX, "len");
-            const newWidth = snapped(project, e, deltaXSecs);
+            const newWidth = selectionWidthSecs(project, e, pressed.startTime, deltaXSecs);
             project.selectionWidth.set(newWidth);
             // project.selected.set(null);
             break;

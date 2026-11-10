@@ -1,4 +1,3 @@
-import { SECS_IN_MIN } from "../../constants";
 import { AudioProject } from "../../lib/project/AudioProject";
 import { standardViewport } from "../../lib/viewport/StandardViewport";
 import { PPQN } from "../../wam/miditrackwam/MIDIConfiguration";
@@ -7,7 +6,8 @@ export const MIN_TICK_DISTANCE = 60; // 60px
 
 /**
  * returns an array of ticks (beat number, time of beat in seconds)
- * for a viewport that starts at startS px and ends at endS
+ * for a viewport that starts at startS px and ends at endS. Zoomed in, beat numbers can be
+ * fractional (sub-beat grid lines).
  */
 export function getBeatTickData(
   project: AudioProject,
@@ -18,24 +18,19 @@ export function getBeatTickData(
   const oneBeatLen = project.viewport.pulsesToSecs(PPQN);
   const oneBeatSizePx = project.viewport.pulsesToPx(PPQN, "len");
 
-  // 1 = show every beat. 2 = show every other beat. etc.
-  const tickBeatFactor = getBeatScaleFactorForOneBeatSize(oneBeatSizePx);
-  const tickBeatLengthS = tickBeatFactor * oneBeatLen;
+  // 1 = show every beat. 2 = show every other beat. 1/4 = show every 16th note. etc.
+  const tickBeats = timelineGridBeats(oneBeatSizePx);
+  const tickLenS = tickBeats * oneBeatLen;
 
-  // Find the first beat after `startS` that fits our tick beat length.
-  // NOTE: technically, Math.ceil. But we render one beat before the viewport start
+  // Find the first tick after `startS`.
+  // NOTE: technically, Math.ceil. But we render one tick before the viewport start
   // so text doesn't just "disappear" when the "beat line" scrolls out of view
-  const firstBeatNum = Math.floor(startS / tickBeatLengthS);
+  const firstTick = Math.floor(startS / tickLenS);
 
   const ticksToShow = [];
-  for (
-    let i = firstBeatNum * tickBeatFactor, //
-      s = tickBeatLengthS * firstBeatNum;
-    //
-    s < endS;
-    i += tickBeatFactor, s += tickBeatLengthS
-  ) {
-    ticksToShow.push([i, s] as const);
+  // multiply instead of accumulating, so fractional beats don't drift
+  for (let k = firstTick; k * tickLenS < endS; k++) {
+    ticksToShow.push([k * tickBeats, k * tickLenS] as const);
   }
 
   return ticksToShow;
@@ -62,12 +57,19 @@ export function getTimeTickData(project: AudioProject, startS: number, endS: num
   return ticksToShow;
 }
 
-export function getOneTickLen(project: AudioProject, tempo: number) {
-  const oneBeatLen = SECS_IN_MIN / tempo;
-  const oneBeatSizePx = standardViewport.secsToPx(project.viewport, oneBeatLen, "len");
-  const tickBeatFactor = getBeatScaleFactorForOneBeatSize(oneBeatSizePx);
-  const tickBeatLength = tickBeatFactor * oneBeatLen;
-  return tickBeatLength;
+/**
+ * Beats between the timeline's grid lines (ruler ticks, snapping) at a zoom where one beat is
+ * `oneBeatSizePx` wide: down to a 16th note zoomed in, up to 64 beats zoomed out. Sub-beat
+ * steps stay on whole pulses (PPQN 24: 12 and 6).
+ */
+export function timelineGridBeats(oneBeatSizePx: number): number {
+  if (oneBeatSizePx >= 160) {
+    return 1 / 4;
+  }
+  if (oneBeatSizePx >= 80) {
+    return 1 / 2;
+  }
+  return getBeatScaleFactorForOneBeatSize(oneBeatSizePx);
 }
 
 export function getBeatScaleFactorForOneBeatSize(oneBeatSizePx: number): number {

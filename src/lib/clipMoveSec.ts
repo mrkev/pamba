@@ -1,40 +1,13 @@
 import { CLIP_MIN_SIZE_PULSES } from "../constants";
 import { MidiClip } from "../midi/MidiClip";
-import { getOneTickLen } from "../ui/axis/getBeatTickData";
-import { clamp, returnClosest, stepNumber } from "../utils/math";
-import { PPQN } from "../wam/miditrackwam/MIDIConfiguration";
+import { clamp } from "../utils/math";
 import { AudioClip } from "./AudioClip";
 import { AudioProject } from "./project/AudioProject";
 import { time, TimelineT } from "./project/TimelineT";
+import { timelinePos } from "./viewport/snap";
 
 /** A clip's edges as they were when a resize drag started. */
 export type ClipEdgesOriginal = { start: TimelineT; len: TimelineT; bufferOffset: TimelineT };
-
-/**
- * Snaps a dragged clip edge (in the clip's unit) to the grid, or to a grid offset by where the
- * edge started, whichever is closer. Same grids as moving a clip (clipMoveSec, clipMovePPQN).
- */
-function snapClipEdge(project: AudioProject, clip: AudioClip | MidiClip, edge: number, originalEdge: number) {
-  if (clip instanceof MidiClip) {
-    return returnClosest(edge, stepNumber(edge, PPQN), stepNumber(edge, PPQN * 4, originalEdge));
-  }
-  const tickBeatLength = getOneTickLen(project, project.tempo.get());
-  return returnClosest(edge, stepNumber(edge, tickBeatLength), stepNumber(edge, tickBeatLength, originalEdge));
-}
-
-/** Snaps a dragged edge if `snap`; otherwise just keeps MIDI edges on whole pulses. */
-function dragClipEdge(
-  project: AudioProject,
-  clip: AudioClip | MidiClip,
-  edge: number,
-  originalEdge: number,
-  snap: boolean,
-) {
-  if (snap) {
-    return snapClipEdge(project, clip, edge, originalEdge);
-  }
-  return clip.timelineLength.unit === "pulses" ? Math.round(edge) : edge;
-}
 
 /**
  * The shortest a resize drag makes a clip, in the clip's unit. A clip that's already shorter
@@ -61,7 +34,7 @@ export function clipResizeEndTarget(
   const start = original.start.asUnit(unit, project);
   const originalLen = original.len.asUnit(unit, project);
   const originalEnd = start + originalLen;
-  const end = dragClipEdge(project, clip, originalEnd + deltaU, originalEnd, snap);
+  const end = timelinePos(project, snap, originalEnd + deltaU, unit, originalEnd);
   const maxLen =
     clip instanceof AudioClip ? clip.getBufferLength() - original.bufferOffset.asUnit(unit, project) : Infinity;
   return clamp(minDragLength(project, clip, originalLen), end - start, maxLen);
@@ -83,7 +56,7 @@ export function clipResizeStartTarget(
   const originalStart = original.start.asUnit(unit, project);
   const originalLen = original.len.asUnit(unit, project);
   const end = originalStart + originalLen;
-  const start = dragClipEdge(project, clip, originalStart + deltaU, originalStart, snap);
+  const start = timelinePos(project, snap, originalStart + deltaU, unit, originalStart);
   const minStart =
     clip instanceof AudioClip ? Math.max(0, originalStart - original.bufferOffset.asUnit(unit, project)) : 0;
   return clamp(minStart, start, end - minDragLength(project, clip, originalLen));
@@ -96,16 +69,7 @@ export function clipMoveSec(
   project: AudioProject,
   snap: boolean,
 ) {
-  if (!snap) {
-    clip.timelineStart.set(newOffsetSec, "seconds");
-  } else {
-    const tempo = project.tempo.get();
-    const tickBeatLength = getOneTickLen(project, tempo);
-    const steppedToTick = stepNumber(newOffsetSec, tickBeatLength);
-    const steppedToOriginalStart = stepNumber(newOffsetSec, tickBeatLength, originalStart.secs(project));
-    const result = returnClosest(newOffsetSec, steppedToTick, steppedToOriginalStart);
-    clip.timelineStart.set(result, "seconds");
-  }
+  clip.timelineStart.set(timelinePos(project, snap, newOffsetSec, "seconds", originalStart.secs(project)), "seconds");
 }
 
 export function clipMovePPQN(
@@ -115,44 +79,13 @@ export function clipMovePPQN(
   project: AudioProject,
   snap: boolean,
 ) {
-  if (!snap) {
-    clip.timelineStart.set(newOffsetPulses, "pulses");
-  } else {
-    const steppedToTick = stepNumber(newOffsetPulses, PPQN);
-    const steppedToOriginalStart = stepNumber(newOffsetPulses, PPQN * 4, originalStart.pulses(project));
-    const result = returnClosest(newOffsetPulses, steppedToTick, steppedToOriginalStart);
-    clip.timelineStart.set(result, "pulses");
-  }
+  clip.timelineStart.set(timelinePos(project, snap, newOffsetPulses, "pulses", originalStart.pulses(project)), "pulses");
 }
 
-export function pointMoveSec(
-  project: AudioProject,
-  point: TimelineT,
-  newOffsetSec: number,
-  snap: boolean,
-  originalStartOffsetSec?: number,
-) {
-  if (!snap) {
-    point.set(newOffsetSec);
-  } else {
-    const tempo = project.tempo.get();
-    const tickBeatLength = getOneTickLen(project, tempo);
-    let steppedToTick = stepNumber(newOffsetSec, tickBeatLength);
-    if (typeof originalStartOffsetSec === "number") {
-      steppedToTick = stepNumber(newOffsetSec, tickBeatLength, originalStartOffsetSec);
-    }
-    const result = returnClosest(newOffsetSec, steppedToTick, steppedToTick);
-    point.set(result);
-  }
+export function pointMoveSec(project: AudioProject, point: TimelineT, newOffsetSec: number, snap: boolean) {
+  point.set(timelinePos(project, snap, newOffsetSec, "seconds"));
 }
 
 export function pointMovePulses(project: AudioProject, point: TimelineT, newOffsetPulses: number, snap: boolean) {
-  // todo: snap arg to snap to larger grid, vs PPQN
-
-  if (!snap) {
-    point.set(newOffsetPulses, "pulses");
-  } else {
-    const actualNewOffsetPulses = stepNumber(newOffsetPulses, PPQN);
-    point.set(actualNewOffsetPulses, "pulses");
-  }
+  point.set(timelinePos(project, snap, newOffsetPulses, "pulses"), "pulses");
 }

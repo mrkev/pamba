@@ -1,7 +1,7 @@
 export const changelog = `
 next
 - can now delete audio tracks while playing
-- fixes to clip snapping
+- fixes and improvements to clip snapping
 
 v3.4.1
 - piano keys have labels now (C3, C4...)

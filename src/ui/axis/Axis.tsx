@@ -45,8 +45,11 @@ export function Axis({
         tempoTicks.map(([beatNum, secs]) => {
           const px = standardViewport.secsToViewportPx(project.viewport, secs, "pos");
 
-          const denom = beatNum % timeSignature[0];
-          const label = `${Math.floor(beatNum / 4) + 1}` + (denom === 0 ? "" : `.${denom}`);
+          // Zoomed in, there are ticks between beats; they get a shorter, fainter line and no label.
+          const isSubBeat = !Number.isInteger(beatNum);
+          const beatsPerBar = timeSignature[0];
+          const beatInBar = beatNum % beatsPerBar;
+          const label = `${Math.floor(beatNum / beatsPerBar) + 1}` + (beatInBar === 0 ? "" : `.${beatInBar}`);
           const [fontSize, textY] = textDims("tempo");
 
           return (
@@ -54,11 +57,12 @@ export function Axis({
               <line
                 x1={px}
                 x2={px}
-                y1={primaryAxis === "time" ? "70%" : "0"}
+                y1={primaryAxis === "time" || (isHeader && isSubBeat) ? "70%" : "0"}
                 y2="100%"
                 stroke="var(--timeline-tick)"
+                strokeOpacity={isSubBeat ? 0.5 : undefined}
               ></line>
-              {isHeader && (
+              {isHeader && !isSubBeat && (
                 <text
                   x={px}
                   y={textY}

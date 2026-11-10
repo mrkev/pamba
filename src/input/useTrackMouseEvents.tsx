@@ -3,7 +3,7 @@ import { AudioTrack } from "../lib/AudioTrack";
 import { AudioProject } from "../lib/project/AudioProject";
 import { pressedState } from "../ui/pressedState";
 import { useEventListener } from "../ui/useEventListener";
-import { snapped } from "../lib/viewport/snap";
+import { shouldSnap, timelinePos } from "../lib/viewport/snap";
 import { MidiTrack } from "../midi/MidiTrack";
 import { standardViewport } from "../lib/viewport/StandardViewport";
 
@@ -48,7 +48,7 @@ export function useTrackMouseEvents(
         };
 
         const asSecs = standardViewport.pxToSecs(project.viewport, position.x, "pos");
-        const newPos = Math.max(0, snapped(project, e, asSecs));
+        const newPos = Math.max(0, timelinePos(project, shouldSnap(project, e), asSecs, "seconds"));
 
         pressedState.set({
           status: "selecting_track_time",
