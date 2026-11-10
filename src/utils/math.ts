@@ -3,12 +3,15 @@ export function clamp(min: number, val: number, max: number): number {
   return Math.min(Math.max(min, val), max);
 }
 
-// Rounds to closest
+/**
+ * Rounds `number` to the closest point on the grid `origin + k * step` (k any integer).
+ * Returns `number` unchanged for a non-positive step.
+ */
 export function stepNumber(number: number, step: number, origin = 0) {
-  const change = origin % step;
-  const up = Math.ceil(number / step) * step + change;
-  const down = Math.floor(number / step) * step + change;
-  return up - number < 0.5 ? up : down;
+  if (!(step > 0)) {
+    return number;
+  }
+  return Math.round((number - origin) / step) * step + origin;
 }
 
 export function returnClosest(num: number, option1: number, ...options: number[]) {

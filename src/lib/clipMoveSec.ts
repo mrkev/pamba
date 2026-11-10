@@ -1,3 +1,4 @@
+import { CLIP_MIN_SIZE_PULSES } from "../constants";
 import { MidiClip } from "../midi/MidiClip";
 import { getOneTickLen } from "../ui/axis/getBeatTickData";
 import { clamp, returnClosest, stepNumber } from "../utils/math";
@@ -27,17 +28,19 @@ export function clipResizeEndSec(clip: AudioClip, newLengthSec: number, project:
 }
 
 export function clipResizeEndPulses(clip: MidiClip, newLengthPulses: number, originalEndPulses: number, snap: boolean) {
-  // We can't trim a clip to end before it's beggining
-  // note: we don't clamp because midi clips can grow as long as we want them to
-  const newClipEnd = Math.min(0, newLengthPulses);
-
+  // note: we don't clamp the max because midi clips can grow as long as we want them to
   if (!snap) {
     clip.timelineLength.set(newLengthPulses, "pulses");
   } else {
-    const steppedToTick = stepNumber(newClipEnd, PPQN);
-    const steppedToOriginalEnd = stepNumber(newLengthPulses, PPQN * 4, originalEndPulses);
-    const result = returnClosest(newLengthPulses, steppedToTick, steppedToOriginalEnd);
-    clip.timelineLength.set(result, "pulses");
+    // Snap the absolute end (not the length): to the closest beat, or to whole bars away
+    // from where the end was originally.
+    const start = clip.timelineStart.ensurePulses();
+    const newEnd = start + newLengthPulses;
+    const endSteppedToBeat = stepNumber(newEnd, PPQN);
+    const endSteppedToOriginalEnd = stepNumber(newEnd, PPQN * 4, originalEndPulses);
+    const end = returnClosest(newEnd, endSteppedToBeat, endSteppedToOriginalEnd);
+    // We can't trim a clip to end before it's beggining
+    clip.timelineLength.set(Math.max(CLIP_MIN_SIZE_PULSES, end - start), "pulses");
   }
 }
 
