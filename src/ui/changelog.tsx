@@ -1,4 +1,7 @@
 export const changelog = `
+next
+- can now delete audio tracks while playing
+
 v3.4.1
 - piano keys have labels now (C3, C4...)
 - black/white keys were upside down in the midi editor lol, fixed

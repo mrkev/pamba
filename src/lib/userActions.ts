@@ -33,8 +33,9 @@ export const userActions = {
   },
 
   deleteTrack: async (track: AudioTrack | MidiTrack, player: AnalizedPlayer, project: AudioProject) => {
-    if (player.isAudioPlaying) {
-      // todo: some sort of alert or feedback, can't edit tracks while playing?
+    if (player.isAudioPlaying && !(track instanceof AudioTrack)) {
+      // MIDI tracks can't leave playback cleanly yet (see audioProject.removeTrack)
+      // todo: some sort of alert or feedback?
       return;
     }
 
@@ -144,8 +145,12 @@ export const userActions = {
         break;
 
       case "tracks": {
-        if (appEnvironment.renderer.analizedPlayer.isAudioPlaying) {
-          // todo: some sort of alert or feedback, can't edit tracks while playing?
+        if (
+          appEnvironment.renderer.analizedPlayer.isAudioPlaying &&
+          primarySelection.tracks.some((track) => !(track instanceof AudioTrack))
+        ) {
+          // MIDI tracks can't leave playback cleanly yet (see audioProject.removeTrack)
+          // todo: some sort of alert or feedback?
           break;
         }
 
@@ -157,7 +162,6 @@ export const userActions = {
           break;
         }
 
-        // TODO: if playing don't delete. show track locked?
         for (const track of primarySelection.tracks) {
           console.log("remove", primarySelection);
           audioProject.removeTrack(project, appEnvironment.renderer.analizedPlayer, track);

@@ -157,6 +157,9 @@ export class AnalizedPlayer extends TypedEmitter<{
       // TODO: mke playing tracks and isAudioPlaying the same state
       throw new Error("No tracks playing");
     }
+    if (!this.playingTracks.includes(track)) {
+      return;
+    }
     track.stopPlayback();
     this.playingTracks = this.playingTracks.filter((t) => t !== track);
   }

@@ -116,7 +116,6 @@ function WelcomeScreen() {
       <ul style={{ listStyleType: "'- '", width: "56ch", whiteSpace: "normal", paddingInlineStart: "2ch" }}>
         <li>Not all actions can be undone.</li>
         <li>Ocassionaly, clicking clips appends-to instead of replacing selection.</li>
-        <li>Effects added during playback are applied on next playback, or might not be applied at all.</li>
         <li>
           Moving clips across tracks is buggy:
           <ul>

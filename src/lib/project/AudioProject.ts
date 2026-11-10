@@ -203,10 +203,15 @@ export const audioProject = {
       return;
     }
 
-    // Remove it from playback
+    // Remove it from playback. Audio tracks stop cleanly; MIDI tracks would need
+    // their sequencer and instrument stopped too, so callers don't remove them
+    // while playing yet.
     if (player.isAudioPlaying) {
-      console.log("TODO: delete track while playing");
-      // player.removeTrackFromPlayback(track);
+      if (track instanceof AudioTrack) {
+        player.removeTrackFromPlayback(track);
+      } else {
+        console.warn("removing a MIDI track while playing is unsupported", track);
+      }
     }
 
     project.allTracks.splice(pos, 1);
