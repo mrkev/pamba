@@ -128,7 +128,8 @@ export class AnalizedPlayer extends TypedEmitter<{
     for (const track of tracks) {
       track.startPlayback(tempo, liveAudioContext, cursorPos);
     }
-    this.playingTracks = tracks;
+    // copy: `tracks` is often the project's live track array, which changes as tracks are added/removed
+    this.playingTracks = [...tracks];
     this.playingLoop = loop;
     this.CTX_PLAY_START_TIME = liveAudioContext.currentTime;
     this.isAudioPlaying = true;
@@ -137,7 +138,7 @@ export class AnalizedPlayer extends TypedEmitter<{
   /**
    * Adds a track to playback if we're already playing all tracks.
    */
-  addTrackToPlayback(project: AudioProject, track: AudioTrack, startAt: number, tempo: number) {
+  addTrackToPlayback(project: AudioProject, track: AudioTrack, tempo: number) {
     const liveAudioContext = liveAudioContextFn();
 
     if (!this.playingTracks) {
@@ -145,11 +146,10 @@ export class AnalizedPlayer extends TypedEmitter<{
       throw new Error("No tracks playing");
     }
 
-    DSP.connect(track.dsp, this.mixDownNode);
     this.playingTracks = this.playingTracks.concat(track);
-    const LATENCY = 10;
-    track.prepareForPlayback(project, liveAudioContext, startAt);
-    track.startPlayback(tempo, liveAudioContext, startAt + LATENCY);
+    // Join in sync with the tracks already playing, as if it had started with them
+    track.prepareForPlayback(project, liveAudioContext, this.cursorAtPlaybackStart);
+    track.startPlayback(tempo, liveAudioContext, this.cursorAtPlaybackStart, this.CTX_PLAY_START_TIME);
   }
 
   removeTrackFromPlayback(track: AudioTrack) {

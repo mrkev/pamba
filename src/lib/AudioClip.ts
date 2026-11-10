@@ -349,9 +349,13 @@ export const audioClip = {
    */
   toSimple(clip: AudioClip): SimpleAudioClip {
     return {
-      channels: clip.buffer.channels,
       id: clip._id,
-      startOffsetSec: 0,
+      // buffer can be missing at runtime for clips of missing media; those play silence
+      channels: clip.buffer == null ? [] : clip.buffer.channels,
+      sampleRate: clip.getSampleRate(),
+      timelineStartSec: clip.timelineStart.ensureSecs(),
+      timelineLengthSec: clip.timelineLength.ensureSecs(),
+      bufferOffsetSec: clip.bufferOffset.ensureSecs(),
     };
   },
 };

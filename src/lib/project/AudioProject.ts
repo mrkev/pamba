@@ -136,7 +136,16 @@ export class AudioProject {
 }
 
 function canEditTrack(project: AudioProject, track: MidiTrack | AudioTrack | StandardTrack<any>) {
-  return !project.lockedTracks.has(track) && !appEnvironment.renderer.analizedPlayer.isAudioPlaying;
+  if (project.lockedTracks.has(track)) {
+    return false;
+  }
+  // Audio tracks stream their clips from AudioTrackProcessor, which picks up edits
+  // live. MIDI tracks don't yet sync every clip edit to their sequencer, so editing
+  // them during playback would desync what's heard from what's shown.
+  if (track instanceof AudioTrack) {
+    return true;
+  }
+  return !appEnvironment.renderer.analizedPlayer.isAudioPlaying;
 }
 
 export function deleteTime(project: AudioProject, track: MidiTrack | AudioTrack, startS: number, endS: number): void {
@@ -168,8 +177,7 @@ export const audioProject = {
       project.allTracks.push(newTrack);
     }
     if (player != null && player.isAudioPlaying) {
-      console.log("ADDED TO PLAYBACK");
-      player.addTrackToPlayback(project, newTrack, project.cursorPos.get(), project.tempo.get());
+      player.addTrackToPlayback(project, newTrack, project.tempo.get());
     }
 
     DSP.connect(newTrack.dsp, appEnvironment.renderer.analizedPlayer.mixDownNode);

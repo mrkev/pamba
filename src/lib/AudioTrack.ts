@@ -12,12 +12,13 @@ import {
   string,
   Structured,
 } from "structured-state";
-import { liveAudioContext, TRACK_HEIGHT } from "../constants";
+import { TRACK_HEIGHT } from "../constants";
 import { DSP } from "../dsp/DSP";
 import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
 import { mixDown } from "../mixDown";
 import { nullthrows } from "../utils/nullthrows";
 import { AudioTrackModule } from "../wam/audiotrack/AudioTrackModule";
+import { AudioTrackNode } from "../wam/audiotrack/AudioTrackNode";
 import { appEnvironment } from "./AppEnvironment";
 import { audioClip, AudioClip } from "./AudioClip";
 import { AudioContextInfo } from "./initAudioContext";
@@ -37,8 +38,15 @@ export class AudioTrack extends Structured<AutoAudioTrack, typeof AudioTrack> im
   // For background processing
   // private thread_UNUSED = new TrackThread();
 
-  // if audo is playing, this is the soruce with the playing buffer
-  private playingSource: TrackedAudioNode<AudioBufferSourceNode> | null;
+  // Live playback source: the track's AudioTrackProcessor, which plays clips from
+  // their shared buffers. Persistent, so clip edits reach it during playback.
+  private readonly liveSource: TrackedAudioNode<AudioTrackNode>;
+  // Loop to use for the next startPlayback, decided in prepareForPlayback
+  private preparedLoop: readonly [startSec: number, endSec: number] | null = null;
+  private flushScheduled = false;
+
+  // Bounce source, set by prepareForBounce and started by startPlayback on the offline context
+  private bounceSource: TrackedAudioNode<AudioBufferSourceNode> | null = null;
 
   // if audio is being recorded, this is the clip it's being recorded into
   public readonly recordingClip: AudioClip | null = null;
@@ -51,7 +59,12 @@ export class AudioTrack extends Structured<AutoAudioTrack, typeof AudioTrack> im
     readonly wamModule: AudioTrackModule,
   ) {
     super();
-    this.playingSource = null;
+    this.liveSource = TrackedAudioNode.of(wamModule.wamNode);
+    // Keep the processor's clips in sync with ours. Changes anywhere in the clip
+    // list (adding, moving, trimming clips, undo/redo...) propagate up to it.
+    // (structured-state doesn't export `subscribe`; this is what it does.)
+    this.clips._subscriptors.add(() => this.scheduleClipFlush());
+    this.scheduleClipFlush();
   }
 
   static async of(name: string, clips: AudioClip[], height: number, projectTrackDSP: ProjectTrackDSP) {
@@ -129,43 +142,52 @@ export class AudioTrack extends Structured<AutoAudioTrack, typeof AudioTrack> im
   //////////// Playback ////////////
 
   // Topology of DSP:
-  // [ Source Node ]
-  //        V
-  // [ Gain Node ]
+  // [ AudioTrackProcessor (liveSource) ]
   //        V
   // [ ... Effects]
   //        V
-  // [ _Hidden Gain Node (for soloing)]
+  // [ Track utility (gain, pan, mute) ]
   //        V
-  // [ Out Node ]
-  prepareForPlayback(project: AudioProject, context: AudioContext, startingAt: number): void {
-    // We need to keep a reference to our source node for play/pause
-    this.playingSource = TrackedAudioNode.of(this.getSourceNode(context));
-    this.dsp.connectChain(this.playingSource);
-
-    if (AudioProject.playbackWillLoop(project, startingAt)) {
-      this.playingSource.get().loop = true;
-      this.playingSource.get().loopStart = project.loopStart.secs(project);
-      this.playingSource.get().loopEnd = project.loopEnd.secs(project);
-      console.log(`looping`, this.playingSource.get().loopStart, this.playingSource.get().loopEnd);
-    } else {
-      this.playingSource.get().loop = false;
-    }
+  // [ _Hidden Gain Node (for soloing)]
+  //
+  // The processor is persistent and always has the track's current clips (see
+  // scheduleClipFlush), so the chain is only wired while playing.
+  prepareForPlayback(project: AudioProject, _context: AudioContext, startingAt: number): void {
+    this.flushClipsToProcessor();
+    this.dsp.connectChain(this.liveSource);
+    this.preparedLoop = AudioProject.playbackWillLoop(project, startingAt)
+      ? [project.loopStart.secs(project), project.loopEnd.secs(project)]
+      : null;
   }
 
-  // NOTE: needs to be called right after .prepareForPlayback
-  startPlayback(tempo: number, context: BaseAudioContext, offset?: number) {
-    if (!this.playingSource) {
-      throw new Error("Track is not ready for playback!");
+  /**
+   * NOTE: needs to be called right after .prepareForPlayback (or .prepareForBounce)
+   * @param offset timeline position to start playing from, in seconds
+   * @param startCtxTime audio-context time at which the timeline is at `offset`. Defaults
+   * to now. Pass the original start time to join a playback that's already going.
+   */
+  startPlayback(_tempo: number, context: BaseAudioContext, offset: number = 0, startCtxTime?: number) {
+    if (this.bounceSource != null && this.bounceSource.get().context === context) {
+      this.bounceSource.get().start(0, offset);
+      this.bounceSource = null;
+      return;
     }
-    this.playingSource.get().start(0, offset); // Play the sound now
+
+    this.wamModule.sendMessageToProcessor({
+      action: "play",
+      startCtxTime: startCtxTime ?? context.currentTime,
+      startSec: offset,
+      loop: this.preparedLoop,
+    });
   }
 
   async prepareForBounce(
     context: OfflineAudioContext,
     offlineContextInfo: AudioContextInfo,
   ): Promise<TrackedAudioNode> {
-    this.playingSource = TrackedAudioNode.of(this.getSourceNode(context));
+    // TODO: bounce through an AudioTrackProcessor in the offline context too, and drop mixDown
+    const bounceSource = TrackedAudioNode.of(this.getBounceSourceNode(context));
+    this.bounceSource = bounceSource;
 
     const effectNodes = await Promise.all(
       this.dsp.effectNodes._getRaw().map(async (effect) => {
@@ -185,7 +207,7 @@ export class AudioTrack extends Structured<AutoAudioTrack, typeof AudioTrack> im
 
     DSP.connectSerialNodes([
       ///
-      this.playingSource,
+      bounceSource,
       ...effectNodes,
       trackUtility,
       _hiddenGainNode,
@@ -195,21 +217,35 @@ export class AudioTrack extends Structured<AutoAudioTrack, typeof AudioTrack> im
   }
 
   stopPlayback(): void {
-    if (!this.playingSource) {
-      console.warn("Stopping but no playingSource on track", this);
-      return;
-    }
-
-    this.playingSource.get().stop(0);
-    this.dsp.disconnectChain(this.playingSource);
+    this.wamModule.sendMessageToProcessor({ action: "stop" });
+    this.dsp.disconnectChain(this.liveSource);
   }
 
-  // TODO: I think I can keep 'trackBuffer' between plays
-  private getSourceNode(context: BaseAudioContext): AudioBufferSourceNode {
+  private getBounceSourceNode(context: BaseAudioContext): AudioBufferSourceNode {
     const trackBuffer = mixDown(this.clips._getRaw(), 2);
     const sourceNode = context.createBufferSource();
     sourceNode.buffer = trackBuffer;
     return sourceNode;
+  }
+
+  /** Coalesces bursts of clip changes (eg, a drag) into one flush per task */
+  private scheduleClipFlush() {
+    if (this.flushScheduled) {
+      return;
+    }
+    this.flushScheduled = true;
+    queueMicrotask(() => {
+      this.flushScheduled = false;
+      this.flushClipsToProcessor();
+    });
+  }
+
+  /** Sends the current clips to the processor. Cheap: sample data is shared, not copied. */
+  private flushClipsToProcessor() {
+    this.wamModule.sendMessageToProcessor({
+      action: "set_clips",
+      seqClips: this.clips._getRaw().map((clip) => audioClip.toSimple(clip)),
+    });
   }
 
   //////////// UTILITY ////////////
@@ -220,33 +256,6 @@ export class AudioTrack extends Structured<AutoAudioTrack, typeof AudioTrack> im
     standardTrack.addClip(project, track, clip);
     return track;
   }
-
-  public flushFirstClipToProcessor() {
-    this.wamModule.sendMessageToProcessor({
-      action: "set_clips",
-      seqClips: [audioClip.toSimple(nullthrows(this.clips.at(0), "no clip"))],
-    });
-  }
-
-  public testWAMPlayback() {
-    const context = liveAudioContext();
-    this.wamModule.wamNode.connect(context.destination);
-    this.wamModule.sendMessageToProcessor({
-      action: "play",
-    });
-  }
 }
 
 export const audioTrack = {};
-
-/**
- * TODO: play only on press play
- * clip sync:
- *  - init, send all clips
- *  - clip creation
- *  - clip deletion
- *  - clip moving
- *  - clip trimming
- *  - etc?
- *  - do this via substate? keep track clip array in sync?
- */

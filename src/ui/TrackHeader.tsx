@@ -227,24 +227,6 @@ export const TrackHeader = React.memo(function TrackHeader({
             {isLocked ? "\u26BF" : "\u26f6" /* squared key, square four corners */}
           </button>
           {/* {isLocked ? <i style={{ paddingLeft: 2 }}>Locked</i> : null} */}
-          {/* {track instanceof AudioTrack ? (
-            <div>
-              <button
-                className={cx("utilityButton", styles.deleteTrackButton)}
-                onClick={async () => track.flushFirstClipToProcessor()}
-              >
-                test
-              </button>
-              <button
-                className={cx("utilityButton", styles.deleteTrackButton)}
-                onClick={async () => track.testWAMPlayback()}
-              >
-                two
-              </button>
-            </div>
-          ) : (
-            <PeakMeter track={track} />
-          )} */}
           <TrackPeakMeter track={track} />
         </div>
 

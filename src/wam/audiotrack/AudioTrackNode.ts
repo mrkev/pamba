@@ -8,11 +8,12 @@ export class AudioTrackNode extends WamNode {
   constructor(module: WebAudioModule, options: AudioWorkletNodeOptions) {
     super(module, {
       ...options,
-      processorOptions: {
-        numberOfInputs: 1,
-        numberOfOutputs: 1,
-        outputChannelCount: [2],
-      },
+      // A pure source: no inputs, one stereo output. (Without an explicit
+      // outputChannelCount the output's channel count would follow the
+      // unconnected input's, ie, mono.)
+      numberOfInputs: 0,
+      numberOfOutputs: 1,
+      outputChannelCount: [2],
     });
   }
 
