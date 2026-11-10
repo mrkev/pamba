@@ -3,8 +3,8 @@ next
 - piano keys have labels now (C3, C4...)
 - black/white keys were upside down in the midi editor lol, fixed
 - see other clips' notes faded in the midi editor
-- edit audio tracks while playing: move, trim, add, delete clips and hear it right away
-- audio tracks play in stereo (they were coming out mono)
+- can now edit audio tracks while playing
+- fix issue causing audio tracks to always play in mono
 
 v3.4.0
 - fix control to set tempo

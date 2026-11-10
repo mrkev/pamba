@@ -16,9 +16,11 @@ mute = checkbox("Mute");
 // Utility
 // -----------------------------
 
-// Constant-power panning
-panL = sqrt((1 - pan) / 2);
-panR = sqrt((1 + pan) / 2);
+// Stereo balance: at center both channels pass through untouched (keeping the
+// stereo image); panning one way fades the opposite channel out on a
+// constant-power curve. (Mono sources arrive as identical L/R, so they pan too.)
+balL = cos(max(pan, 0) * ma.PI / 2);
+balR = cos(max(0 - pan, 0) * ma.PI / 2);
 
 // Mute control
 muteGain = 1 - mute;
@@ -33,7 +35,4 @@ process = hgroup("track", _, _
 
 applyGain(l, r) = (l * gain * muteGain, r * gain * muteGain);
 
-applyPan(l, r) = (
-  l * panL + r * panL,
-  l * panR + r * panR
-);
+applyPan(l, r) = (l * balL, r * balR);
