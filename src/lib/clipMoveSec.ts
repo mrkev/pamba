@@ -5,70 +5,88 @@ import { clamp, returnClosest, stepNumber } from "../utils/math";
 import { PPQN } from "../wam/miditrackwam/MIDIConfiguration";
 import { AudioClip } from "./AudioClip";
 import { AudioProject } from "./project/AudioProject";
-import { TimelineT } from "./project/TimelineT";
+import { time, TimelineT } from "./project/TimelineT";
 
-export function clipResizeEndSec(clip: AudioClip, newLengthSec: number, project: AudioProject, snap: boolean) {
-  const newClipEnd = clamp(
-    // We can't trim a clip to end before it's beggining
-    0,
-    newLengthSec,
-    // and also prevent it from extending beyond its original length
-    clip.getBufferLength() - clip.bufferOffset.ensureSecs(),
-  );
+/** A clip's edges as they were when a resize drag started. */
+export type ClipEdgesOriginal = { start: TimelineT; len: TimelineT; bufferOffset: TimelineT };
 
-  if (!snap) {
-    clip.timelineLength.set(newLengthSec, "seconds");
-  } else {
-    const tempo = project.tempo.get();
-    const tickBeatLength = getOneTickLen(project, tempo);
-    const steppedToTick = stepNumber(newClipEnd, tickBeatLength);
-    // TODO: add original location too as tick too
-    clip.timelineLength.set(steppedToTick, "seconds");
+/**
+ * Snaps a dragged clip edge (in the clip's unit) to the grid, or to a grid offset by where the
+ * edge started, whichever is closer. Same grids as moving a clip (clipMoveSec, clipMovePPQN).
+ */
+function snapClipEdge(project: AudioProject, clip: AudioClip | MidiClip, edge: number, originalEdge: number) {
+  if (clip instanceof MidiClip) {
+    return returnClosest(edge, stepNumber(edge, PPQN), stepNumber(edge, PPQN * 4, originalEdge));
   }
+  const tickBeatLength = getOneTickLen(project, project.tempo.get());
+  return returnClosest(edge, stepNumber(edge, tickBeatLength), stepNumber(edge, tickBeatLength, originalEdge));
 }
 
-export function clipResizeEndPulses(clip: MidiClip, newLengthPulses: number, originalEndPulses: number, snap: boolean) {
-  // note: we don't clamp the max because midi clips can grow as long as we want them to
-  if (!snap) {
-    clip.timelineLength.set(newLengthPulses, "pulses");
-  } else {
-    // Snap the absolute end (not the length): to the closest beat, or to whole bars away
-    // from where the end was originally.
-    const start = clip.timelineStart.ensurePulses();
-    const newEnd = start + newLengthPulses;
-    const endSteppedToBeat = stepNumber(newEnd, PPQN);
-    const endSteppedToOriginalEnd = stepNumber(newEnd, PPQN * 4, originalEndPulses);
-    const end = returnClosest(newEnd, endSteppedToBeat, endSteppedToOriginalEnd);
-    // We can't trim a clip to end before it's beggining
-    clip.timelineLength.set(Math.max(CLIP_MIN_SIZE_PULSES, end - start), "pulses");
-  }
-}
-
-export function clipResizeStartSec(
-  clip: AudioClip,
-  newClipLengthS: number,
-  newBufferOffset: number,
-  newTimelineStartSec: number,
+/** Snaps a dragged edge if `snap`; otherwise just keeps MIDI edges on whole pulses. */
+function dragClipEdge(
   project: AudioProject,
+  clip: AudioClip | MidiClip,
+  edge: number,
+  originalEdge: number,
   snap: boolean,
 ) {
-  if (!snap) {
-    clip.bufferOffset.set(newBufferOffset, "seconds");
-    clip.timelineStart.set(newTimelineStartSec, "seconds");
-    clip.timelineLength.set(newClipLengthS, "seconds");
-  } else {
-    const tempo = project.tempo.get();
-    const tickBeatLength = getOneTickLen(project, tempo);
-    const startStepped = stepNumber(newTimelineStartSec, tickBeatLength);
-
-    const delta2 = startStepped - newTimelineStartSec;
-    const bufferOffsetStepped = newBufferOffset + delta2;
-    const lengthStepped = newClipLengthS - delta2;
-
-    clip.bufferOffset.set(bufferOffsetStepped, "seconds");
-    clip.timelineStart.set(startStepped, "seconds");
-    clip.timelineLength.set(lengthStepped, "seconds");
+  if (snap) {
+    return snapClipEdge(project, clip, edge, originalEdge);
   }
+  return clip.timelineLength.unit === "pulses" ? Math.round(edge) : edge;
+}
+
+/**
+ * The shortest a resize drag makes a clip, in the clip's unit. A clip that's already shorter
+ * can't be shrunk further, but keeps its length.
+ */
+function minDragLength(project: AudioProject, clip: AudioClip | MidiClip, originalLen: number) {
+  const minLen = time(CLIP_MIN_SIZE_PULSES, "pulses").asUnit(clip.timelineLength.unit, project);
+  return Math.min(minLen, originalLen);
+}
+
+/**
+ * The length (in the clip's unit) a clip gets when its end edge is dragged by `deltaU` (also in
+ * the clip's unit). Snaps the absolute end, keeps a minimum length, and doesn't grow an audio
+ * clip past the end of its buffer. MIDI clips can grow as long as we want them to.
+ */
+export function clipResizeEndTarget(
+  project: AudioProject,
+  clip: AudioClip | MidiClip,
+  original: ClipEdgesOriginal,
+  deltaU: number,
+  snap: boolean,
+): number {
+  const unit = clip.timelineLength.unit;
+  const start = original.start.asUnit(unit, project);
+  const originalLen = original.len.asUnit(unit, project);
+  const originalEnd = start + originalLen;
+  const end = dragClipEdge(project, clip, originalEnd + deltaU, originalEnd, snap);
+  const maxLen =
+    clip instanceof AudioClip ? clip.getBufferLength() - original.bufferOffset.asUnit(unit, project) : Infinity;
+  return clamp(minDragLength(project, clip, originalLen), end - start, maxLen);
+}
+
+/**
+ * The start (in the clip's unit) a clip gets when its start edge is dragged by `deltaU` (also
+ * in the clip's unit), keeping its end in place. Snaps the start, keeps a minimum length, and
+ * doesn't extend an audio clip before the start of its buffer.
+ */
+export function clipResizeStartTarget(
+  project: AudioProject,
+  clip: AudioClip | MidiClip,
+  original: ClipEdgesOriginal,
+  deltaU: number,
+  snap: boolean,
+): number {
+  const unit = clip.timelineLength.unit;
+  const originalStart = original.start.asUnit(unit, project);
+  const originalLen = original.len.asUnit(unit, project);
+  const end = originalStart + originalLen;
+  const start = dragClipEdge(project, clip, originalStart + deltaU, originalStart, snap);
+  const minStart =
+    clip instanceof AudioClip ? Math.max(0, originalStart - original.bufferOffset.asUnit(unit, project)) : 0;
+  return clamp(minStart, start, end - minDragLength(project, clip, originalLen));
 }
 
 export function clipMoveSec(

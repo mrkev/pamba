@@ -10,6 +10,7 @@ import {
   // printClips,
   pushClip,
   removeClip,
+  setClipStart,
   splitClip,
 } from "../AbstractClip";
 import { AudioClip } from "../AudioClip";
@@ -378,5 +379,73 @@ describe("splitClip", () => {
 
     expect(splitClip(orphan, 5, all)).toBe(null);
     expect(all.length).toBe(1);
+  });
+});
+
+describe("setClipStart", () => {
+  // A clip at [start, end] whose audio begins `offset` seconds earlier, so it can grow left.
+  function trimmedClip(start: number, end: number, offset: number) {
+    const clip = bclip(start - offset, end);
+    clip.trimStartToTimelineU(start);
+    return clip;
+  }
+
+  it("trims the start, keeping the end", () => {
+    const foo = bclip(0, 10);
+    const all = clips([foo]);
+    setClipStart(foo, 4, all);
+
+    expect(foo.getTimelineStartSec()).toBe(4);
+    expect(foo.getTimelineEndSec()).toBe(10);
+    expect(foo.bufferOffset.ensureSecs()).toBe(4);
+  });
+
+  it("extends the start back into its audio", () => {
+    const foo = trimmedClip(4, 10, 4);
+    const all = clips([foo]);
+    setClipStart(foo, 1, all);
+
+    expect(foo.getTimelineStartSec()).toBe(1);
+    expect(foo.getTimelineEndSec()).toBe(10);
+    expect(foo.bufferOffset.ensureSecs()).toBe(1);
+  });
+
+  it("trims the previous clip when growing into it", () => {
+    const before = bclip(0, 5);
+    const foo = trimmedClip(5, 10, 2);
+    const all = clips([before, foo]);
+    const trimmed = setClipStart(foo, 3, all);
+
+    expect(all.length).toBe(2);
+    expect(before.getTimelineEndSec()).toBe(3);
+    expect(foo.getTimelineStartSec()).toBe(3);
+    expect(trimmed).toEqual([before]);
+  });
+
+  it("removes a previous clip it grows over entirely", () => {
+    const before = bclip(4, 5);
+    const foo = trimmedClip(5, 10, 2);
+    const all = clips([before, foo]);
+    setClipStart(foo, 3, all);
+
+    expect(all.length).toBe(1);
+    expect(all.at(0)).toBe(foo);
+    expect(foo.getTimelineStartSec()).toBe(3);
+  });
+
+  it("leaves other clips alone when shrinking", () => {
+    const before = bclip(0, 5);
+    const foo = bclip(5, 10);
+    const all = clips([before, foo]);
+    expect(setClipStart(foo, 7, all)).toEqual([]);
+
+    expect(all.length).toBe(2);
+    expect(before.getTimelineEndSec()).toBe(5);
+    expect(foo.getTimelineStartSec()).toBe(7);
+  });
+
+  it("throws when the new start is past the clip's end", () => {
+    const foo = bclip(0, 10);
+    expect(() => setClipStart(foo, 11, clips([foo]))).toThrow(/past the clip's end/);
   });
 });

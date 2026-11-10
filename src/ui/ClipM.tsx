@@ -63,6 +63,7 @@ export function ClipM({
       className={cn(muted && "bg-clip-muted-color")}
       clip={clip}
       editable={editable}
+      track={track}
       isSelected={isSelected}
       onMouseDownToMove={onMouseDownToMove}
       onClipClick={onClipClick}

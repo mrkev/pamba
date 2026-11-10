@@ -112,6 +112,7 @@ export const ClipA = React.memo(function ClipAImpl({
     <StandardClip
       editable={editable}
       clip={clip}
+      track={track}
       isSelected={isSelected}
       onMouseDownToMove={onMouseDownToMove}
       onClipClick={onClipClick}

@@ -206,6 +206,33 @@ export function splitClip<Clip extends AbstractClip<U>, U extends Pulses | Secon
 }
 
 /**
+ * Moves a clip's start edge to `newStart` (track units) while keeping its end in place, like
+ * dragging the clip's left edge. Growing left deletes the time it grows into. The caller
+ * clamps `newStart` to what the clip can hold (see standardTrack.setClipStart). Returns the
+ * other clips that were trimmed, like deleteTime.
+ */
+export function setClipStart<Clip extends AbstractClip<U>, U extends Pulses | Seconds>(
+  clip: Clip,
+  newStart: number,
+  clips: SArray<Clip>,
+): Clip[] {
+  if (clips.indexOf(clip) === -1) {
+    throw new Error("setClipStart: clip not in track");
+  }
+  if (newStart > clip._timelineEndU) {
+    throw new Error("setClipStart: start past the clip's end");
+  }
+
+  const prevStart = clip._timelineStartU;
+  // Clear the area we're growing into first, while the clip itself is still outside of it.
+  const notifyClips = newStart < prevStart ? deleteTime(newStart, prevStart, clips) : [];
+  clip.trimStartToTimelineU(newStart as U);
+
+  assertClipInvariants(clips);
+  return notifyClips;
+}
+
+/**
  * Adds a clip right after the last clip
  */
 export function pushClip<Clip extends AbstractClip<U>, U extends Pulses | Seconds>(

@@ -1,21 +1,24 @@
 import React, { useCallback, useMemo, useRef } from "react";
 import { createUseStyles } from "react-jss";
-import { useContainer, usePrimitive } from "structured-state";
-import { CLIP_MIN_SIZE_PULSES } from "../constants";
+import { history, useContainer, usePrimitive } from "structured-state";
 import { appEnvironment } from "../lib/AppEnvironment";
 import { AudioClip } from "../lib/AudioClip";
-import { clipResizeEndPulses, clipResizeEndSec, clipResizeStartSec } from "../lib/clipMoveSec";
-import { AudioProject } from "../lib/project/AudioProject";
-import { TimelineT } from "../lib/project/TimelineT";
+import { AudioTrack } from "../lib/AudioTrack";
+import { ClipEdgesOriginal, clipResizeEndTarget, clipResizeStartTarget } from "../lib/clipMoveSec";
+import { AudioProject, audioProject } from "../lib/project/AudioProject";
+import { cliptrack } from "../lib/project/ClipTrack";
+import { standardTrack } from "../lib/StandardTrack";
+import { shouldSnap } from "../lib/viewport/snap";
 import { MidiClip } from "../midi/MidiClip";
+import { MidiTrack } from "../midi/MidiTrack";
 import { cn } from "../utils/cn";
-import { clamp } from "../utils/math";
 import { useEventListener } from "./useEventListener";
 import { PointerPressMeta, usePointerEditing } from "./usePointerPressMove";
 
 /** Standard component renderer for clips on the timeline */
 export function StandardClip({
   clip,
+  track,
   isSelected,
   contentStyle = {},
   editable,
@@ -26,6 +29,7 @@ export function StandardClip({
   className,
 }: {
   clip: AudioClip | MidiClip;
+  track: AudioTrack | MidiTrack | null; // null if clip is being rendered for move
   isSelected: boolean;
   contentStyle?: React.CSSProperties;
   editable: boolean;
@@ -70,13 +74,13 @@ export function StandardClip({
     }),
     [clip.bufferOffset, clip.timelineLength, clip.timelineStart, editable],
   );
-  const target = useMemo(() => ({ clip, project }), [clip, project]);
+  const target = useMemo(() => ({ clip, project, track }), [clip, project, track]);
 
   const isResizingEnd = usePointerEditing(resizerEndRef, originalCb, {
     down: useCallback((e: PointerEvent, original: ClipEditOriginal) => resizeDown(e, { target, original }), [target]),
     up: useCallback(
       (e: PointerEvent, start: PointerPressMeta, original: ClipEditOriginal) =>
-        resizeUp(e, { start, target, original }),
+        resizeEndUp(e, { start, target, original }),
       [target],
     ),
     move: useCallback(
@@ -90,7 +94,7 @@ export function StandardClip({
     down: useCallback((e: PointerEvent, original: ClipEditOriginal) => resizeDown(e, { target, original }), [target]),
     up: useCallback(
       (e: PointerEvent, start: PointerPressMeta, original: ClipEditOriginal) =>
-        resizeUp(e, { start, target, original }),
+        resizeStartUp(e, { start, target, original }),
       [target],
     ),
     move: useCallback(
@@ -100,7 +104,10 @@ export function StandardClip({
     ),
   });
 
-  const showResizers = (editable && tool == "move" && width > 10) || isResizingEnd || isResizingStart;
+  const showResizers =
+    (editable && track != null && tool == "move" && width > 10) || isResizingEnd || isResizingStart;
+  // MIDI clips can't trim their start yet: they have no content offset, so it'd shift their notes.
+  const showStartResizer = showResizers && !(clip instanceof MidiClip);
 
   return (
     <div
@@ -136,7 +143,7 @@ export function StandardClip({
         {name}
       </div>
       <div className="grow" style={contentStyle}></div>
-      {showResizers && (
+      {showStartResizer && (
         <div
           ref={resizerStartRef}
           className={cn("absolute top-0 h-full cursor-ew-resize bg-black/0", styles.resizerStart)}
@@ -166,12 +173,13 @@ const useStyles = createUseStyles({
   },
 });
 
-/** EVENTS, UNUSED */
+/** EVENTS */
 
-type ClipEditOriginal = { len: TimelineT; start: TimelineT; bufferOffset: TimelineT; editable: boolean };
+type ClipEditOriginal = ClipEdgesOriginal & { editable: boolean };
 type ClipEditTarget = {
   project: AudioProject;
   clip: AudioClip | MidiClip;
+  track: AudioTrack | MidiTrack | null;
 };
 
 type ClipEditStartEvent = {
@@ -186,67 +194,82 @@ type ClipEditEvent = {
 };
 
 /** RESIZING */
+// While dragging, the clip itself follows the pointer (so audio tracks play the new edge live).
+// On release we put the clip back and redo the change through standardTrack inside
+// history.record, so undo captures the original -> final change and neighbors get trimmed.
 
 function resizeDown(e: PointerEvent, re: ClipEditStartEvent) {
   // so it doesn't reach the clip or timeline body
   e.stopPropagation();
   e.preventDefault();
 
-  const tool = re.target.project.pointerTool.get();
-  if (tool !== "move" || !re.original.editable) {
+  const { project, track } = re.target;
+  const tool = project.pointerTool.get();
+  if (tool !== "move" || !re.original.editable || track == null || !audioProject.canEditTrack(project, track)) {
     return "abort";
   }
 }
 
+/** Pointer movement since the press, in the clip's unit. */
+function dragDeltaU(e: PointerEvent, re: ClipEditEvent) {
+  const { project, clip } = re.target;
+  return project.viewport.pxTo(e.clientX - re.start.downX, clip.timelineLength.unit, "len");
+}
+
+function restoreEdges(clip: AudioClip | MidiClip, original: ClipEdgesOriginal) {
+  clip.featuredMutation(() => {
+    clip.timelineStart.set(original.start);
+    clip.timelineLength.set(original.len);
+    clip.bufferOffset.set(original.bufferOffset);
+  });
+}
+
 function resizeEndMove(e: PointerEvent, re: ClipEditEvent) {
-  const project = re.target.project;
-  const targetClip = re.target.clip;
+  const { project, clip } = re.target;
+  const len = clipResizeEndTarget(project, clip, re.original, dragDeltaU(e, re), shouldSnap(project, e));
+  clip.timelineLength.set(len, clip.timelineLength.unit);
+}
 
-  const deltaX = e.clientX - re.start.downX;
-  const deltaU = Math.floor(project.viewport.pxTo(deltaX, targetClip.timelineLength.unit, "len"));
-  const snap = e.metaKey ? !project.snapToGrid.get() : project.snapToGrid.get();
-
-  if (targetClip instanceof MidiClip) {
-    const newLength = Math.max(CLIP_MIN_SIZE_PULSES, re.original.len.pulses(project) + deltaU);
-    const originalEnd = re.original.start.pulses(project) + re.original.len.pulses(project);
-    clipResizeEndPulses(targetClip, newLength, originalEnd, snap);
+function resizeEndUp(e: PointerEvent, re: ClipEditEvent) {
+  const { project, clip, track } = re.target;
+  const unit = clip.timelineLength.unit;
+  const len = clipResizeEndTarget(project, clip, re.original, dragDeltaU(e, re), shouldSnap(project, e));
+  restoreEdges(clip, re.original);
+  if (track == null || len === re.original.len.asUnit(unit, project)) {
+    return;
   }
 
-  if (targetClip instanceof AudioClip) {
-    const newLength = re.original.len.secs(project) + deltaU;
-    clipResizeEndSec(targetClip, newLength, project, snap);
-  }
+  history.record("resize clip", () => {
+    const ct = cliptrack(clip, track);
+    if (ct.kind === "midi") {
+      standardTrack.setClipLength(project, ct.track, ct.clip, len, unit);
+    } else {
+      standardTrack.setClipLength(project, ct.track, ct.clip, len, unit);
+    }
+  });
 }
 
 function resizeStartMove(e: PointerEvent, re: ClipEditEvent) {
-  const project = re.target.project;
-  const targetClip = re.target.clip;
-  const deltaX = e.clientX - re.start.downX;
-  const deltaU = Math.floor(project.viewport.pxTo(deltaX, targetClip.timelineLength.unit, "len"));
-  const snap = e.metaKey ? !project.snapToGrid.get() : project.snapToGrid.get();
-
-  if (targetClip instanceof MidiClip) {
-    throw new Error("MidiClip unimplemented2");
-  }
-
-  if (targetClip instanceof AudioClip) {
-    const originalClipLengthSecs = re.original.len.secs(project);
-    const newLength = clamp(
-      // zero length is minimum
-      0,
-      re.original.len.secs(project) - deltaU,
-      // since trimming from start, max is going back all the way to zero
-      originalClipLengthSecs + re.original.bufferOffset.secs(project),
-    );
-
-    const effectiveChange = originalClipLengthSecs - newLength;
-
-    const newTimelineStartSec = re.original.start.secs(project) + effectiveChange;
-    const newBufferOffset = re.original.bufferOffset.secs(project) + effectiveChange;
-    clipResizeStartSec(targetClip, newLength, newBufferOffset, newTimelineStartSec, project, snap);
-  }
+  const { project, clip } = re.target;
+  const start = clipResizeStartTarget(project, clip, re.original, dragDeltaU(e, re), shouldSnap(project, e));
+  // Trims relative to wherever the last move left the clip; the commit starts from the original.
+  clip.trimStartToTimelineU(start);
 }
 
-function resizeUp(e: PointerEvent, re: ClipEditEvent) {
-  // TODO: delete time within clip (ie, clear overlapping clip time)
+function resizeStartUp(e: PointerEvent, re: ClipEditEvent) {
+  const { project, clip, track } = re.target;
+  const unit = clip.timelineStart.unit;
+  const start = clipResizeStartTarget(project, clip, re.original, dragDeltaU(e, re), shouldSnap(project, e));
+  restoreEdges(clip, re.original);
+  // MIDI clips don't support trimming their start yet (their start handle isn't shown)
+  if (track == null || !(clip instanceof AudioClip) || !(track instanceof AudioTrack)) {
+    return;
+  }
+  if (start === re.original.start.asUnit(unit, project)) {
+    return;
+  }
+
+  history.record("trim clip start", () => {
+    standardTrack.setClipStart(project, track, clip, start, unit);
+  });
 }

@@ -2,7 +2,7 @@ import { SPrimitive, SSchemaArray } from "structured-state";
 import { TrackedAudioNode } from "../dsp/TrackedAudioNode";
 import { MidiTrack } from "../midi/MidiTrack";
 import { clamp } from "../utils/math";
-import { AbstractClip, addClip, deleteTime, pushClip, removeClip, splitClip } from "./AbstractClip";
+import { AbstractClip, addClip, deleteTime, pushClip, removeClip, setClipStart, splitClip } from "./AbstractClip";
 import { AudioClip } from "./AudioClip";
 import { AudioTrack } from "./AudioTrack";
 import { ProjectTrackDSP } from "./ProjectTrackDSP";
@@ -35,6 +35,14 @@ function maxClipLength(clip: AbstractClip<any>): number {
     return Infinity;
   }
   return clip.getBufferLength() - clip.bufferOffset.ensureSecs();
+}
+
+/** In the clip's own storage unit. Audio clips can't start before their buffer does. */
+function minClipStart(clip: AbstractClip<any>): number {
+  if (!(clip instanceof AudioClip)) {
+    return 0;
+  }
+  return Math.max(0, clip.timelineStart.ensureSecs() - clip.bufferOffset.ensureSecs());
 }
 
 export const standardTrack = {
@@ -136,6 +144,35 @@ export const standardTrack = {
     const clipStart = clip.timelineStart.ensure(unit);
     standardTrack.deleteTime(project, track, clipStart + prevLength, clipStart + newLength);
     clip.timelineLength.set(newLength, unit);
+  },
+
+  /**
+   * Moves a clip's start to a time given in any unit, keeping its end in place (trims or
+   * extends its start). Growing a clip deletes the time it expands into, so it doesn't overlap
+   * whatever precedes it on the track. Audio only for now: MIDI clips have no content offset
+   * yet, so trimming their start would shift their notes.
+   */
+  setClipStart<T extends AbstractClip<any>>(
+    project: AudioProject,
+    track: StandardTrack<T>,
+    clip: T,
+    t: number,
+    u: TimeUnit,
+  ): void {
+    if (!audioProject.canEditTrack(project, track)) {
+      return;
+    }
+
+    if (!(clip instanceof AudioClip)) {
+      throw new Error("setClipStart: only audio clips can trim their start");
+    }
+
+    const unit = clip.timelineStart.unit;
+    const newStart = clamp(minClipStart(clip), time(t, u).asUnit(unit, project), clip._timelineEndU);
+    const notifyClips = setClipStart(clip, newStart, track.clips);
+    notifyClips.forEach((c) => {
+      c.notifyChange();
+    });
   },
 
   splitClip<T extends AbstractClip<any>>(
